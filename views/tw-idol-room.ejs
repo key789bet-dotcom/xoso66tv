@@ -787,6 +787,22 @@ function renderLightbox(){
 }
 
 function toggleFollow(b){ b.textContent = b.textContent.indexOf('Đã')>=0 ? '❤ Theo dõi' : '✓ Đã theo dõi'; }
+
+// ===== KHỞI ĐỘNG BOT CHAT IDOL (welcome + auto messages) =====
+// hasObs do server truyền vào → quyết định bot có chạy không
+(function initIdolChat(){
+  var hasObs = <%= (typeof hasObs !== 'undefined' && hasObs) ? 'true' : 'false' %>;
+  function start(){
+    if (typeof window.startChat === 'function') {
+      window.startChat('chatBody', { mode: 'idol', isLive: hasObs });
+    } else {
+      // Retry sau khi chat-v2.js load
+      setTimeout(start, 300);
+    }
+  }
+  if (document.readyState !== 'loading') start();
+  else document.addEventListener('DOMContentLoaded', start);
+})();
 </script>
 
 <script type="application/json" id="lbDataPhotos"><%- JSON.stringify(ALBUM) %></script>
