@@ -1,6 +1,7 @@
 /**
  * XOSO66 TV - Express server, Tailwind CSS, clean URL, SEO chuẩn
  */
+require('dotenv').config();
 const path     = require('path');
 const express  = require('express');
 const api      = require('./lib/api');
