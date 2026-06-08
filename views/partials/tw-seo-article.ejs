@@ -1,0 +1,210 @@
+<%
+// TOC + bài viết SEO chuẩn 2026
+var TOC = [
+  { id:'gioi-thieu',  text: brand.short, sub:'Nền tảng phát sóng trực tiếp Bóng Đá & Esport 24/7 miễn phí, không quảng cáo, full HD tốc độ cao' },
+  { id:'la-gi',       text: brand.short + ' Là Gì?' },
+  { id:'lich-su',     text: 'Lịch Sử Hình Thành Của ' + brand.short },
+  { id:'muc-dich',    text: 'Mục Đích Thành Lập Của ' + brand.short },
+  { id:'uu-diem',     text: 'Những Ưu Điểm Nổi Bật Của ' + brand.short },
+  { id:'ly-do',       text: 'Những Lý Do Nên Xem Trực Tiếp Bóng Đá Tại ' + brand.short },
+  { id:'ket-luan',    text: 'Kết Luận' }
+];
+%>
+
+<section class="bg-bg-card border border-line rounded-xl overflow-hidden mb-6" itemscope itemtype="https://schema.org/Article" aria-label="Giới thiệu <%= brand.name %>">
+  <meta itemprop="author" content="<%= brand.name %>">
+  <meta itemprop="publisher" content="<%= brand.name %>">
+  <meta itemprop="datePublished" content="2026-01-01">
+  <meta itemprop="image" content="/static/img/logoxoso66tv.webp">
+
+  <!-- Header bar (orange) -->
+  <header class="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-pri to-pri-dark text-white">
+    <span class="w-7 h-7 rounded-full bg-white/25 grid place-items-center text-base font-black">i</span>
+    <h2 class="text-base md:text-lg font-extrabold tracking-wide" itemprop="headline">Giới Thiệu Về <%= brand.short %></h2>
+  </header>
+
+  <!-- 2-col body: TOC sidebar | content -->
+  <div class="grid md:grid-cols-[260px_1fr] gap-0">
+
+    <!-- TOC sidebar -->
+    <aside class="border-b md:border-b-0 md:border-r border-line bg-[#11151c]" aria-label="Mục lục">
+      <nav class="p-3 space-y-1.5 md:sticky md:top-20">
+        <% TOC.forEach(function(t, i){ %>
+          <a href="#<%= t.id %>" class="seo-toc block px-3 py-2.5 rounded-md border-l-[3px] border-transparent hover:border-pri hover:bg-bg-soft transition-all <%= i===0 ? 'border-pri bg-bg-soft' : '' %>">
+            <div class="text-[13.5px] font-extrabold <%= i===0 ? 'text-pri-light' : 'text-white' %>"><%= t.text %></div>
+            <% if (t.sub) { %><div class="text-[11px] text-muted mt-0.5 leading-snug line-clamp-3"><%= t.sub %></div><% } %>
+          </a>
+        <% }); %>
+      </nav>
+    </aside>
+
+    <!-- Article content -->
+    <article class="p-5 md:p-7 text-gray-200 leading-relaxed text-[14.5px] space-y-6 [&_a]:text-pri-light [&_a:hover]:text-pri [&_a]:underline [&_strong]:text-white max-h-[560px] overflow-y-auto scrollbar-thin" itemprop="articleBody">
+
+      <!-- Section 1: Intro -->
+      <div id="gioi-thieu" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          <%= brand.name %>: Nền Tảng Xem Trực Tiếp Bóng Đá HD Miễn Phí Số 1 Việt Nam
+        </h3>
+        <p class="mb-3">Trong bối cảnh nhu cầu <strong>xem trực tiếp bóng đá</strong>, <strong>livestream thể thao</strong> và <strong>esports</strong> ngày càng tăng cao, <strong><%= brand.name %></strong> tự hào là một trong những <strong>kênh xem bóng đá trực tiếp HD</strong> hàng đầu tại Việt Nam. Chúng tôi cung cấp dịch vụ <strong>livestream bóng đá miễn phí</strong> 24/7 với chất lượng <strong>Full HD 1080p</strong>, bình luận tiếng Việt chuyên nghiệp và <strong>không quảng cáo</strong> gián đoạn.</p>
+        <p class="mb-3">Bất kể bạn là fan <a href="/lich-phat-song?mon=bong-da">Ngoại Hạng Anh</a>, <a href="/the-thao/bong-da">La Liga</a>, <a href="/the-thao/bong-da">Serie A</a>, <a href="/the-thao/bong-da">Bundesliga</a>, <a href="/the-thao/bong-da">Champions League</a>, <a href="/the-thao/bong-da">World Cup</a>, <a href="/the-thao/bong-da">Euro</a>, <a href="/the-thao/bong-da">V-League</a> hay các giải đấu khác như <a href="/the-thao/bong-ro">NBA</a>, <a href="/the-thao/tennis">ATP/WTA Tennis</a>, <a href="/esports">esports LCK/LPL</a> — <%= brand.name %> đều phủ sóng đầy đủ.</p>
+        <p>Hãy cùng khám phá tất cả những lý do tại sao <%= brand.short %> lại trở thành lựa chọn <strong>số một</strong> của hàng triệu fan thể thao Việt Nam và game thủ esports.</p>
+      </div>
+
+      <!-- Section 2: What is -->
+      <div id="la-gi" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          <%= brand.short %> Là Gì? - Định Nghĩa Đầy Đủ
+        </h3>
+        <p class="mb-3"><strong><%= brand.name %></strong> (viết tắt <strong><%= brand.short %></strong>) là <strong>nền tảng livestream thể thao trực tuyến</strong> hàng đầu Việt Nam, cho phép người dùng <strong>xem trực tiếp bóng đá HD</strong>, theo dõi các giải đấu <a href="/the-thao/bong-da">bóng đá</a>, <a href="/the-thao/bong-ro">bóng rổ NBA</a>, <a href="/the-thao/tennis">tennis</a>, <a href="/the-thao/bong-chuyen">bóng chuyền VNL</a>, <a href="/the-thao/bong-ban">bóng bàn</a> và <a href="/esports">esports</a> trên cùng một website.</p>
+        <p class="mb-3">Tại đây, người hâm mộ thể thao Việt có thể theo dõi <strong>100% các trận đấu</strong> từ những giải đấu lớn như <strong>FIFA World Cup</strong>, <strong>UEFA Euro</strong>, <strong>Copa America</strong>, <strong>AFF Cup</strong>, <strong>Premier League</strong>, <strong>La Liga</strong>, <strong>Serie A</strong>, <strong>Bundesliga</strong>, <strong>Ligue 1</strong>, <strong>Champions League</strong> đến các giải nhỏ hơn như <strong>V-League</strong>, <strong>Hạng Nhất Quốc Gia</strong>, <strong>U23 Châu Á</strong>.</p>
+        <p class="mb-3">Các giải đấu <strong>esports đỉnh cao</strong> như <strong>League of Legends World Championship</strong>, <strong>LCK/LPL</strong>, <strong>Dota 2 The International</strong>, <strong>CS:GO Majors</strong>, <strong>Valorant Champions Tour</strong>, <strong>PUBG Mobile Global Championship</strong> cũng được phát sóng trực tiếp tại <%= brand.short %>.</p>
+        <p>Điều đặc biệt khiến <strong>%= brand.short %></strong> nổi bật là cung cấp dịch vụ <strong>hoàn toàn miễn phí</strong>, <strong>không cần đăng ký</strong>, <strong>không quảng cáo gián đoạn</strong> giữa trận và hỗ trợ <strong>bình luận tiếng Việt</strong> bởi đội ngũ BLV chuyên nghiệp.</p>
+      </div>
+
+      <!-- Section 3: History -->
+      <div id="lich-su" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          Lịch Sử Hình Thành Của <%= brand.short %>
+        </h3>
+        <p class="mb-3"><%= brand.short %> được sáng lập bởi một nhóm đam mê thể thao và công nghệ, với mục tiêu cung cấp một nền tảng phát sóng trực tiếp chất lượng cao cho người hâm mộ thể thao và esports. Được xây dựng từ những năm đầu của thế kỷ 21, <%= brand.short %> đã nhanh chóng phát triển và trở thành một cái tên quen thuộc trong ngành công nghiệp phát sóng thể thao trực tuyến tại Việt Nam.</p>
+        <p>Nhờ vào sự phát triển không ngừng và khả năng nắm bắt xu hướng của thị trường, <%= brand.short %> đã vươn lên và trở thành một trong những nền tảng phát sóng trực tiếp bóng đá và esports hàng đầu hiện nay, phục vụ hàng <strong>triệu lượt xem mỗi tháng</strong>.</p>
+      </div>
+
+      <!-- Section 4: Mission -->
+      <div id="muc-dich" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          Mục Đích Thành Lập Của <%= brand.short %>
+        </h3>
+        <p class="mb-3">Mục đích chính của <%= brand.name %> là mang đến cho người hâm mộ thể thao và game thủ một nền tảng phát sóng trực tiếp <strong>chất lượng cao</strong>, <strong>nhanh chóng</strong> và <strong>hoàn toàn miễn phí</strong>. Đặc biệt, <%= brand.short %> hướng tới việc phá vỡ rào cản về chi phí và quảng cáo gián đoạn mà người dùng thường gặp phải trên các nền tảng phát sóng khác.</p>
+        <p>Bên cạnh việc cung cấp dịch vụ phát sóng các trận đấu bóng đá và esports, <%= brand.short %> còn cam kết xây dựng một <a href="/forum">cộng đồng người hâm mộ thể thao</a> sôi động, nơi các fan có thể chia sẻ niềm đam mê, tham gia thảo luận và cập nhật những thông tin mới nhất về thế giới thể thao và game.</p>
+      </div>
+
+      <!-- Section 5: Advantages -->
+      <div id="uu-diem" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          Những Ưu Điểm Nổi Bật Của <%= brand.short %>
+        </h3>
+        <ul class="space-y-3 list-none pl-0">
+          <li class="flex gap-3"><span class="text-pri shrink-0 mt-0.5">&#10003;</span><div><strong>Chất lượng phát sóng Full HD:</strong> <%= brand.short %> mang đến trải nghiệm xem trực tiếp với chất lượng hình ảnh sắc nét <strong>1080p</strong>, âm thanh sống động và độ trễ thấp dưới 5 giây, giúp người xem cảm nhận trọn vẹn từng khoảnh khắc trên sân cỏ.</div></li>
+          <li class="flex gap-3"><span class="text-pri shrink-0 mt-0.5">&#10003;</span><div><strong>Phát sóng 24/7 không gián đoạn:</strong> Bạn có thể theo dõi các trận đấu yêu thích bất cứ lúc nào, dù là sáng sớm hay tối khuya, mà không lo bị gián đoạn bởi quảng cáo hay sự cố kỹ thuật.</div></li>
+          <li class="flex gap-3"><span class="text-pri shrink-0 mt-0.5">&#10003;</span><div><strong>Đa dạng giải đấu:</strong> Từ những giải đấu quốc tế lớn như <a href="/lich-phat-song?mon=bong-da">Champions League</a>, <a href="/lich-phat-song?mon=bong-da">Premier League</a>, đến các giải đấu esports như League of Legends, Dota 2, CS:GO, đều được <%= brand.short %> phát sóng đầy đủ.</div></li>
+          <li class="flex gap-3"><span class="text-pri shrink-0 mt-0.5">&#10003;</span><div><strong>Hoàn toàn miễn phí:</strong> Không cần đăng ký, không phải trả phí, người dùng có thể tận hưởng tất cả các trận đấu chỉ với một cú click chuột.</div></li>
+          <li class="flex gap-3"><span class="text-pri shrink-0 mt-0.5">&#10003;</span><div><strong>Bình luận tiếng Việt chuyên nghiệp:</strong> Đội ngũ <a href="/idol-live">BLV Việt Nam</a> giàu kinh nghiệm, mang đến trải nghiệm cuồng nhiệt mỗi trận đấu.</div></li>
+          <li class="flex gap-3"><span class="text-pri shrink-0 mt-0.5">&#10003;</span><div><strong>Hỗ trợ đa nền tảng:</strong> Bạn có thể xem trực tiếp trên máy tính, điện thoại di động (Android &amp; iOS), tablet hoặc Smart TV qua Chromecast.</div></li>
+        </ul>
+      </div>
+
+      <!-- Section 6: Reasons -->
+      <div id="ly-do" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          Những Lý Do Nên Xem Trực Tiếp Bóng Đá Tại <%= brand.short %>
+        </h3>
+        <p class="mb-3">Có rất nhiều lý do khiến <%= brand.name %> trở thành <strong>điểm đến lý tưởng</strong> để <strong>xem bóng đá trực tiếp HD miễn phí</strong>, theo dõi <strong>livescore real-time</strong>, đặt cược thể thao và giải trí với idol live show:</p>
+        <ol class="space-y-2.5 list-none pl-0 counter-reset:item">
+          <% [
+            { h:'Tiết kiệm chi phí', p:'Không cần phải trả phí thuê bao đắt đỏ, bạn vẫn có thể xem trực tiếp các trận đấu yêu thích.' },
+            { h:'Chất lượng hình ảnh tuyệt vời', p:'Với công nghệ phát sóng tiên tiến CDN tại Việt Nam, '+brand.short+' cung cấp chất lượng hình ảnh sắc nét và mượt mà tuyệt đối.' },
+            { h:'Đảm bảo phát sóng đầy đủ', p:'Tất cả các trận đấu đều được phát sóng trực tiếp, từ các trận đấu lớn như World Cup đến các giải đấu nhỏ hơn ở V-League.' },
+            { h:'Trải nghiệm không bị gián đoạn', p:brand.short+' không có quảng cáo bật lên, không bị gián đoạn trong suốt 90 phút trận đấu.' },
+            { h:'Cập nhật nhanh chóng', p:'Mọi trận đấu và sự kiện thể thao mới đều được '+brand.short+' cập nhật ngay lập tức trong vòng 60 giây.' }
+          ].forEach(function(r, i){ %>
+            <li class="flex gap-3 bg-bg-soft border border-line rounded-lg p-3">
+              <span class="shrink-0 w-7 h-7 rounded-full bg-pri text-white grid place-items-center font-black text-sm"><%= i+1 %></span>
+              <div class="flex-1"><strong><%= r.h %>:</strong> <%= r.p %></div>
+            </li>
+          <% }); %>
+        </ol>
+      </div>
+
+      <!-- Section 7: Conclusion -->
+      <div id="ket-luan" class="scroll-mt-24">
+        <h3 class="text-pri-light text-[15px] md:text-base font-extrabold mb-3 flex items-center gap-2">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          Kết Luận
+        </h3>
+        <p class="mb-3"><strong><%= brand.name %></strong> đã chứng minh được giá trị trong cộng đồng <strong>xem bóng đá trực tuyến</strong> tại Việt Nam với hàng triệu lượt xem mỗi tháng và <strong>500.000+ thành viên</strong> đăng ký. Với các ưu điểm vượt trội như <strong>chất lượng livestream Full HD 1080p</strong>, <strong>miễn phí hoàn toàn</strong>, <strong>không quảng cáo</strong>, độ trễ thấp dưới 5 giây và phát sóng <strong>24/7</strong>, <%= brand.short %> chính là <strong>kênh xem bóng đá trực tiếp số 1</strong> dành cho mọi tín đồ thể thao và game thủ Việt Nam.</p>
+        <p class="mb-3">Nếu bạn đang tìm <strong>website xem bóng đá free</strong>, <strong>livescore chuẩn</strong>, <strong>tin tức thể thao mới nhất</strong>, <strong>highlight các trận đấu</strong> hay đơn giản chỉ là một nơi giải trí với <strong>casino trực tuyến</strong> và <strong>idol live</strong>, thì <%= brand.name %> chính là lựa chọn không thể bỏ qua.</p>
+        <p>Hãy <a href="<%= partner.register %>" target="_blank" rel="noopener">đăng ký ngay hôm nay</a> để không bỏ lỡ bất kỳ trận đấu nào và tận hưởng những giây phút giải trí tuyệt vời cùng <%= brand.short %>! Đừng quên theo dõi chúng tôi trên các mạng xã hội để cập nhật những thông tin mới nhất và các chương trình <a href="/qua-tang">khuyến mãi hấp dẫn</a>.</p>
+
+        <!-- CTA box -->
+        <div class="mt-5 bg-gradient-to-br from-pri/15 to-live/10 border border-pri/40 rounded-xl p-5 text-center">
+          <div class="text-2xl mb-2">&#127942;</div>
+          <h4 class="text-white font-extrabold text-lg mb-1.5">Trải nghiệm <%= brand.name %> ngay hôm nay</h4>
+          <p class="text-muted text-sm mb-4">Đăng ký miễn phí trong 30 giây - Nhận ngay thưởng 100% nạp lần đầu lên tới 5 triệu</p>
+          <div class="flex gap-2.5 justify-center flex-wrap">
+            <a href="/dang-ky" class="inline-flex items-center gap-2 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white font-extrabold px-6 py-2.5 rounded-lg shadow-pri transition-all">&#128640; Đăng Ký Ngay</a>
+            <a href="/" class="inline-flex items-center gap-2 bg-bg-soft hover:bg-bg-deep text-white font-bold px-6 py-2.5 rounded-lg border border-line transition-colors">&#9654; Xem Trực Tiếp</a>
+          </div>
+        </div>
+      </div>
+
+    </article>
+  </div>
+</section>
+
+<script>
+// Scroll-spy: highlight TOC mục đang xem (scroll trong khung article)
+(function(){
+  var tocLinks = document.querySelectorAll('.seo-toc');
+  if (!tocLinks.length) return;
+  var article = document.querySelector('article[itemprop="articleBody"]');
+  if (!article) return;
+  var targets = Array.from(tocLinks).map(function(a){ return article.querySelector(a.getAttribute('href')); }).filter(Boolean);
+
+  function activate(idx){
+    tocLinks.forEach(function(a, i){
+      var active = i === idx;
+      a.classList.toggle('border-pri', active);
+      a.classList.toggle('bg-bg-soft', active);
+      var ttl = a.querySelector('div:first-child');
+      if (ttl) {
+        ttl.classList.toggle('text-pri-light', active);
+        ttl.classList.toggle('text-white', !active);
+      }
+    });
+  }
+
+  function onScroll(){
+    var sy = article.scrollTop + 20;
+    var idx = 0;
+    for (var i=0; i<targets.length; i++) {
+      if (targets[i].offsetTop - article.offsetTop <= sy) idx = i; else break;
+    }
+    activate(idx);
+  }
+  article.addEventListener('scroll', onScroll, { passive: true });
+
+  // Override TOC click: scroll trong article thay vì cả page
+  tocLinks.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var target = article.querySelector(this.getAttribute('href'));
+      if (target) {
+        article.scrollTo({ top: target.offsetTop - article.offsetTop - 8, behavior: 'smooth' });
+      }
+    });
+  });
+
+  onScroll();
+})();
+</script>
+<!-- JSON-LD Article schema for SEO 2026 -->
+<script type="application/ld+json">{
+  "@context":"https://schema.org",
+  "@type":"Article",
+  "headline":"Giới Thiệu Về <%= brand.name %> - Nền Tảng Phát Sóng Trực Tiếp Bóng Đá & Esport HD Miễn Phí",
+  "image":"<%= siteUrl %>/static/img/logoxoso66tv.webp",
+  "author":{"@type":"Organization","name":"<%= brand.name %>"},
+  "publisher":{"@type":"Organization","name":"<%= brand.name %>","logo":{"@type":"ImageObject","url":"<%= siteUrl %>/static/img/logoxoso66tv.webp"}},
+  "datePublished":"2026-01-01",
+  "dateModified":"<%= (new Date()).toISOString().slice(0,10) %>",
+  "mainEntityOfPage":{"@type":"WebPage","@id":"<%= siteUrl %>/"},
+  "description":"<%= brand.name %> là nền tảng phát sóng trực tiếp bóng đá, esports HD miễn phí 24/7 không quảng cáo. Phủ sóng mọi giải đấu lớn như Premier League, La Liga, Champions League, World Cup."
+}</script>

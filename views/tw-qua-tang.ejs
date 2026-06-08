@@ -1,0 +1,285 @@
+<%
+seo = {
+  title: 'Quà Tặng & Đổi Quà X COIN - '+brand.name,
+  description: 'Nhận quà miễn phí mỗi ngày, đổi X COIN lấy voucher Shopee, GrabFood, tiền mặt. Quay vòng quay may mắn trúng tới 1000 X COIN.',
+  keywords: 'quà tặng, đổi X COIN, voucher miễn phí, vòng quay may mắn',
+  canonical: '/qua-tang',
+  breadcrumb: [{ name:'Quà tặng', url:'/qua-tang' }]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5"><span class="text-2xl">&#128176;</span> <span class="text-shimmer">Quà Tặng & Đổi Quà X COIN</span></h1>
+  <p class="text-muted text-sm">Nhận quà miễn phí mỗi ngày, tích lũy X COIN để đổi voucher Shopee, GrabFood, tiền mặt thật. Số dư hiện tại: <strong class="text-gold" id="qtBalance">— 🪙</strong></p>
+</header>
+
+<!-- HERO: Vòng quay -->
+<div class="bg-gradient-to-br from-orange-500 to-orange-600 p-9 rounded-2xl text-white text-center mb-6 relative overflow-hidden">
+  <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 30% 50%,#fff,transparent 50%),radial-gradient(circle at 70% 50%,#fff,transparent 50%)"></div>
+  <div class="relative z-10">
+    <div class="text-5xl mb-2.5">&#127873;</div>
+    <h2 class="text-2xl font-black mb-2">QUAY VÒNG QUAY MAY MẮN MIỄN PHÍ</h2>
+    <p class="text-sm opacity-95 mb-4">1 lượt FREE mỗi ngày · Trúng từ 5 đến 1.000 X COIN · Chơi trong site</p>
+    <a href="/game/vong-quay" class="inline-block bg-white text-red-700 px-8 py-3 rounded-full font-extrabold text-sm hover:scale-105 transition-transform">&#127920; Quay ngay</a>
+  </div>
+</div>
+
+<!-- DAILY GIFTS - claim trong site -->
+<section class="mb-6">
+  <div class="flex items-center gap-2.5 mb-3.5">
+    <span class="w-1 h-5 bg-pri rounded-sm"></span>
+    <h2 class="text-lg font-extrabold text-white">&#127873; Quà miễn phí hàng ngày</h2>
+    <span class="ml-auto text-xs text-muted">Reset 00:00 mỗi ngày</span>
+  </div>
+  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+    <%
+      var DAILY_GIFTS = [
+        { id:'g_register',  ico:'&#127915;', n:'Voucher chào mừng',  d:'Đăng ký mới',           reward:50,   cond:'register', condText:'Cần là member' },
+        { id:'g_login',     ico:'&#127770;', n:'Quà đăng nhập',      d:'Mỗi ngày 1 lần',         reward:10,   cond:'daily',    condText:'Login hôm nay' },
+        { id:'g_streak3',   ico:'&#127919;', n:'Quà streak 3 ngày',  d:'Điểm danh 3 ngày liên tiếp', reward:30, cond:'streak3', condText:'Cần streak >= 3' },
+        { id:'g_streak7',   ico:'&#11088;',  n:'Quà streak 7 ngày',  d:'Điểm danh 7 ngày liên tiếp', reward:100,cond:'streak7', condText:'Cần streak >= 7' },
+        { id:'g_birthday',  ico:'&#127874;', n:'Quà sinh nhật',      d:'Trong tháng sinh nhật',  reward:500,  cond:'birthday', condText:'Cập nhật ngày sinh' },
+        { id:'g_invite',    ico:'&#127942;', n:'Mời bạn nhận xu',    d:'Mỗi bạn = +200 xu',     reward:200,  cond:'invite',   condText:'Chia sẻ link mời' },
+        { id:'g_share',     ico:'&#128279;', n:'Chia sẻ Facebook',   d:'1 lần / ngày',          reward:20,   cond:'daily',    condText:'Click share Facebook' },
+        { id:'g_vip',       ico:'&#128142;', n:'Đặc quyền VIP',      d:'Nạp tích lũy >= 10tr',  reward:1000, cond:'vip',      condText:'Cần VIP >= 2' }
+      ];
+    %>
+    <% DAILY_GIFTS.forEach(function(g){ %>
+      <article class="bg-bg-card border border-line rounded-xl text-center px-4 py-6 transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri relative" id="card-<%= g.id %>">
+        <div class="text-5xl mb-2.5 drop-shadow"><%- g.ico %></div>
+        <h3 class="font-extrabold text-white mb-1"><%= g.n %></h3>
+        <p class="text-muted text-xs mb-2"><%= g.d %></p>
+        <div class="text-gold font-extrabold mb-3 flex items-center justify-center gap-1">
+          <span class="text-base">🪙</span>
+          <span class="tabular-nums">+<%= g.reward.toLocaleString('vi-VN') %></span>
+        </div>
+        <button onclick="claimGift('<%= g.id %>', '<%= g.cond %>', <%= g.reward %>, '<%= g.condText %>')" class="qt-btn inline-block bg-pri hover:bg-pri-dark text-white px-4 py-1.5 rounded-md font-bold text-xs transition-colors">Nhận quà</button>
+      </article>
+    <% }); %>
+  </div>
+</section>
+
+<!-- X COIN SHOP - đổi xu lấy quà thật -->
+<section class="mb-6">
+  <div class="flex items-center gap-2.5 mb-3.5">
+    <span class="w-1 h-5 bg-pri rounded-sm"></span>
+    <h2 class="text-lg font-extrabold text-white">&#128722; Shop đổi quà bằng X COIN</h2>
+    <span class="ml-auto text-xs text-muted">Đổi 1 lần / món / tháng</span>
+  </div>
+
+  <!-- Note: tất cả là quà vật lý XOSO66 -->
+  <div class="mb-4 bg-bg-soft border border-line rounded-lg px-4 py-2.5 text-sm text-muted">
+    📦 Toàn bộ là <strong class="text-white">quà vật lý XOSO66 chính hãng</strong>. Sau khi đổi, CSKH sẽ liên hệ trong 24h để giao hàng.
+  </div>
+
+  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]" id="shopGrid">
+    <%
+      var SHOP_ITEMS = [
+        { id:'s_cap',        ico:'🧢', n:'Mũ lưỡi trai XOSO66',   cost:800,    type:'phys', stock:100 },
+        { id:'s_tshirt',     ico:'👕', n:'Áo thun XOSO66',        cost:1500,   type:'phys', stock:50  },
+        { id:'s_hoodie',     ico:'🧥', n:'Áo hoodie XOSO66',      cost:3500,   type:'phys', stock:30  },
+        { id:'s_backpack',   ico:'🎒', n:'Balo logo XOSO66',      cost:5000,   type:'phys', stock:20  },
+        { id:'s_powerbank',  ico:'🔋', n:'Sạc dự phòng 20000mAh', cost:6500,   type:'phys', stock:25  },
+        { id:'s_speaker',    ico:'🔊', n:'Loa Bluetooth JBL Go 3',cost:12000,  type:'phys', stock:15  },
+        { id:'s_airpods',    ico:'🎧', n:'Tai nghe AirPods 3',    cost:18000,  type:'phys', stock:5   },
+        { id:'s_watch',      ico:'⌚', n:'Apple Watch SE',         cost:55000,  type:'phys', stock:3   },
+        { id:'s_ipad',       ico:'📱', n:'iPad Gen 10 64GB',      cost:85000,  type:'phys', stock:2   },
+        { id:'s_iphone',     ico:'📱', n:'iPhone 15 Pro Max',     cost:120000, type:'phys', stock:1   },
+        { id:'s_motor',      ico:'🏍', n:'SH 150i 2026',          cost:500000, type:'phys', stock:1   }
+      ];
+    %>
+    <% SHOP_ITEMS.forEach(function(it){ %>
+      <article class="shop-item bg-bg-card border border-line rounded-xl overflow-hidden transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri" data-type="<%= it.type %>">
+        <div class="aspect-square bg-gradient-to-br from-bg-soft to-bg-deep grid place-items-center text-7xl"><%= it.ico %></div>
+        <div class="p-3">
+          <h3 class="font-bold text-white text-sm mb-1 line-clamp-2 leading-tight"><%= it.n %></h3>
+          <div class="flex items-center justify-between mt-2">
+            <div class="text-gold font-extrabold text-sm flex items-center gap-1">
+              🪙 <span class="tabular-nums"><%= it.cost.toLocaleString('vi-VN') %></span>
+            </div>
+            <span class="text-[10px] text-muted">Còn <%= it.stock %></span>
+          </div>
+          <button onclick="redeemItem('<%= it.id %>', '<%= it.n %>', <%= it.cost %>)" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-md transition-colors">Đổi ngay</button>
+        </div>
+      </article>
+    <% }); %>
+  </div>
+</section>
+
+<!-- LỊCH SỬ ĐÃ NHẬN -->
+<section class="mb-6 bg-bg-card border border-line rounded-xl p-5">
+  <h2 class="text-base font-extrabold text-white mb-3 flex items-center gap-2">
+    <span class="w-1 h-5 bg-pri rounded-sm"></span> &#128221; Lịch sử nhận quà
+    <a href="/profile?tab=history" class="ml-auto text-xs text-pri-light font-semibold">Xem đầy đủ →</a>
+  </h2>
+  <div id="qtHistory" class="space-y-2 max-h-60 overflow-y-auto scrollbar-thin">
+    <div class="text-muted text-sm text-center py-6">Chưa nhận quà nào. Bắt đầu nào!</div>
+  </div>
+</section>
+
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2:'Hệ thống quà tặng & X COIN của '+brand.name,
+  intro:'Càng tích cực hoạt động trên '+brand.name+', bạn càng nhận được nhiều quà. Hệ thống tự động ghi nhận điểm danh, streak, mời bạn.',
+  sections: [
+    { h3:'Quà miễn phí hàng ngày', p:'8 phần quà tích hợp: chào mừng, login, streak 3/7 ngày, sinh nhật, mời bạn, share Facebook, VIP. Hoàn toàn miễn phí.' },
+    { h3:'Đổi X COIN lấy quà vật lý XOSO66', p:'11 món quà vật lý chính hãng từ phụ kiện XOSO66 (mũ, áo thun, hoodie, balo) đến công nghệ cao cấp (sạc dự phòng, JBL, AirPods, Apple Watch, iPad, iPhone, SH 150i).' }
+  ],
+  faqs: [
+    { q:'Quay vòng quay có mất phí không?', a:'1 lượt miễn phí mỗi ngày. Lượt sau 10 X COIN/lượt.' },
+    { q:'X COIN dùng để làm gì?', a:'Có. Đổi được quà vật lý chính hãng XOSO66, giao tận nơi miễn phí toàn quốc.' },
+    { q:'Quà có giao tận nhà không?', a:'Có. Sau khi đổi, CSKH liên hệ trong 24h xác nhận địa chỉ giao hàng.' }
+  ]
+}}) %>
+
+<script>
+(function(){
+  // ===== Toast fallback =====
+  if (typeof window.showToast !== 'function') {
+    window.showToast = function(msg, kind){
+      var t = document.createElement('div');
+      var col = kind==='error' ? '#ff3b3b' : kind==='success' ? '#27ae60' : '#ff7a18';
+      t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#161a22;color:#fff;padding:12px 18px;border-radius:8px;border-left:4px solid '+col+';z-index:9999;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:320px;';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; }, 2500);
+      setTimeout(function(){ t.remove(); }, 3000);
+    };
+  }
+
+  // ===== Helpers =====
+  function getUser(){ try { return JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){ return {}; } }
+  function setUser(u){ try { localStorage.setItem('x66_user', JSON.stringify(u)); } catch(e){} }
+  function getCoin(){ var u = getUser(); return typeof u.coin==='number'?u.coin:79; }
+  function setCoin(c){ var u = getUser(); u.coin = c; setUser(u); refreshBal(); }
+  function refreshBal(){ var el = document.getElementById('qtBalance'); if (el) el.textContent = getCoin().toLocaleString('vi-VN') + ' 🪙'; }
+  function isLoggedIn(){ var u = getUser(); return !!u.username; }
+  function getStreak(){
+    try { var ck = JSON.parse(localStorage.getItem('x66_checkin')||'{}'); return (ck.done||[]).length; }
+    catch(e){ return 0; }
+  }
+  function today(){ return new Date().toDateString(); }
+
+  // ===== Claim state =====
+  function getClaimed(){
+    try { return JSON.parse(localStorage.getItem('x66_gifts_claimed')||'{}'); } catch(e){ return {}; }
+  }
+  function setClaimed(obj){ try { localStorage.setItem('x66_gifts_claimed', JSON.stringify(obj)); } catch(e){} }
+  function isDailyClaimed(id){
+    var c = getClaimed();
+    return c[id] && c[id].date === today();
+  }
+  function isOnceClaimed(id){
+    var c = getClaimed();
+    return !!c[id];
+  }
+
+  // ===== History =====
+  function pushHistory(label, amount, type){
+    var hist = [];
+    try { hist = JSON.parse(localStorage.getItem('x66_gifts_history')||'[]'); } catch(e){}
+    hist.unshift({ label: label, amount: amount, type: type||'gift', t: Date.now() });
+    try { localStorage.setItem('x66_gifts_history', JSON.stringify(hist.slice(0,30))); } catch(e){}
+    renderHistory();
+  }
+  function renderHistory(){
+    var hist = [];
+    try { hist = JSON.parse(localStorage.getItem('x66_gifts_history')||'[]'); } catch(e){}
+    var el = document.getElementById('qtHistory');
+    if (!hist.length) { el.innerHTML = '<div class="text-muted text-sm text-center py-6">Chưa nhận quà nào. Bắt đầu nào!</div>'; return; }
+    el.innerHTML = hist.slice(0,15).map(function(h){
+      var d = new Date(h.t);
+      var time = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' '+d.getDate()+'/'+(d.getMonth()+1);
+      var clr = h.amount > 0 ? 'text-emerald-400' : 'text-live';
+      var icon = h.type==='shop' ? '🛍' : h.type==='spend' ? '💸' : '🎁';
+      var sign = h.amount > 0 ? '+' : '';
+      return '<div class="flex items-center gap-2 bg-bg-soft border border-line/40 rounded px-3 py-2 text-sm"><span class="text-lg">'+icon+'</span><span class="flex-1 text-white">'+h.label+'</span><span class="'+clr+' font-bold tabular-nums">'+sign+h.amount.toLocaleString('vi-VN')+' 🪙</span><span class="text-dim text-[10px] tabular-nums hidden sm:inline">'+time+'</span></div>';
+    }).join('');
+  }
+
+  // ===== CLAIM DAILY GIFT =====
+  window.claimGift = function(id, cond, reward, condText){
+    if (!isLoggedIn()) { if (confirm('Bạn cần đăng nhập. Đăng nhập ngay?')) location.href='/dang-nhap'; return; }
+    var u = getUser();
+
+    // Check conditions
+    if (cond === 'register') {
+      // Quà 1 lần duy nhất
+      if (isOnceClaimed(id)) { showToast('Quà này chỉ nhận 1 lần, bạn đã nhận rồi!','error'); markDone(id); return; }
+    } else if (cond === 'daily') {
+      if (isDailyClaimed(id)) { showToast('Hôm nay bạn đã nhận quà này rồi, ngày mai quay lại nhé!','error'); markDone(id); return; }
+    } else if (cond === 'streak3') {
+      var s = getStreak();
+      if (s < 3) { showToast('Cần điểm danh ít nhất 3 ngày liên tiếp (hiện: '+s+' ngày). Vào /profile?tab=checkin','error'); return; }
+      if (isOnceClaimed(id)) { showToast('Đã nhận quà streak 3 trong tháng này. Đợi tháng sau!','error'); markDone(id); return; }
+    } else if (cond === 'streak7') {
+      var s = getStreak();
+      if (s < 7) { showToast('Cần điểm danh ít nhất 7 ngày liên tiếp (hiện: '+s+' ngày)','error'); return; }
+      if (isOnceClaimed(id)) { showToast('Đã nhận quà streak 7 trong tháng này.','error'); markDone(id); return; }
+    } else if (cond === 'birthday') {
+      if (!u.birthday) { if (confirm('Bạn chưa cập nhật ngày sinh. Đi cập nhật ngay?')) location.href='/profile?tab=info'; return; }
+      var bd = new Date(u.birthday), today = new Date();
+      if (bd.getMonth() !== today.getMonth()) { showToast('Quà chỉ tặng trong tháng sinh nhật bạn (tháng '+(bd.getMonth()+1)+')','error'); return; }
+      if (isOnceClaimed(id)) { showToast('Đã nhận quà sinh nhật năm nay rồi!','error'); markDone(id); return; }
+    } else if (cond === 'invite') {
+      var link = location.origin + '/dang-ky?ref=' + (u.username || 'X66');
+      prompt('Copy link mời bạn của bạn (chia sẻ trên FB/Zalo, mỗi bạn đăng ký = +200 xu):', link);
+      // Demo: cộng luôn 200 xu mỗi lần share
+      if (isDailyClaimed(id)) { showToast('Hôm nay đã chia sẻ link rồi, mai quay lại nhé','error'); return; }
+    } else if (cond === 'vip') {
+      var vip = u.vip || 1;
+      if (vip < 2) { showToast('Cần VIP >= 2 (nạp tích lũy >= 10tr). Hiện tại VIP '+vip,'error'); return; }
+      if (isDailyClaimed(id)) { showToast('Đã nhận quà VIP hôm nay','error'); markDone(id); return; }
+    }
+
+    // Pass all checks → cộng coin
+    setCoin(getCoin() + reward);
+    var c = getClaimed(); c[id] = { date: today(), t: Date.now() }; setClaimed(c);
+    pushHistory('Nhận: ' + getGiftName(id), reward, 'gift');
+    showToast('🎉 Đã nhận +' + reward + ' X COIN!', 'success');
+    markDone(id);
+  };
+
+  function getGiftName(id){
+    var btn = document.querySelector('#card-'+id+' h3');
+    return btn ? btn.textContent : 'Quà';
+  }
+  function markDone(id){
+    var card = document.getElementById('card-'+id);
+    if (!card) return;
+    var btn = card.querySelector('button');
+    if (btn) {
+      btn.textContent = '✓ Đã nhận hôm nay';
+      btn.className = 'inline-block bg-bg-deep text-muted px-4 py-1.5 rounded-md font-bold text-xs cursor-not-allowed';
+      btn.disabled = true;
+    }
+  }
+
+  // Init UI: mark đã claim
+  ['g_login','g_register','g_streak3','g_streak7','g_birthday','g_invite','g_share','g_vip'].forEach(function(id){
+    if (id === 'g_register' || id.indexOf('streak') === 0 || id === 'g_birthday') {
+      if (isOnceClaimed(id)) markDone(id);
+    } else {
+      if (isDailyClaimed(id)) markDone(id);
+    }
+  });
+
+  // ===== REDEEM SHOP ITEM =====
+  window.redeemItem = function(id, name, cost){
+    if (!isLoggedIn()) { if (confirm('Bạn cần đăng nhập. Đăng nhập ngay?')) location.href='/dang-nhap'; return; }
+    var coin = getCoin();
+    if (coin < cost) { showToast('X COIN không đủ! Cần '+cost+', còn '+coin+'. Kiếm thêm nhé!','error'); return; }
+    if (!confirm('Đổi "'+name+'" với giá '+cost+' X COIN?\nSố dư hiện tại: '+coin+'\nSau khi đổi: '+(coin-cost))) return;
+    setCoin(coin - cost);
+    pushHistory('Đổi: ' + name, -cost, 'shop');
+    showToast('🎉 Đã đổi "'+name+'"! CSKH sẽ liên hệ trong 24h.','success');
+  };
+
+  // Init
+  refreshBal();
+  renderHistory();
+})();
+</script>
+
+<%- include('partials/tw-footer') %>

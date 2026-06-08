@@ -1,0 +1,184 @@
+<%- include('partials/layout-start', { title:'Dashboard', active:'dash', obsPending: stats.obsPending, adminUser: adminUser }) %>
+
+<!-- Live stats row (auto-refresh 10s) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+  <div class="p-5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg relative overflow-hidden">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-90 font-bold flex items-center gap-1.5"><span class="w-2 h-2 bg-white rounded-full animate-pulse-live"></span>DANG ONLINE</div>
+        <div class="text-3xl font-black mt-1.5 tabular-nums" id="sOnline"><%= stats.online %></div>
+        <div class="text-xs opacity-90 mt-1.5">Trong 5 phut qua</div>
+      </div>
+      <div class="text-4xl opacity-80">&#128293;</div>
+    </div>
+  </div>
+
+  <div class="p-5 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 text-white shadow-lg">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-90 font-bold">KHACH MOI HOM NAY</div>
+        <div class="text-3xl font-black mt-1.5 tabular-nums" id="sNewToday"><%= stats.newToday %></div>
+        <div class="text-xs opacity-90 mt-1.5">Hom qua: <span id="sNewYest"><%= stats.newYesterday %></span></div>
+      </div>
+      <div class="text-4xl opacity-80">&#127881;</div>
+    </div>
+  </div>
+
+  <div class="p-5 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white shadow-lg">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-90 font-bold">UNIQUE HOM NAY</div>
+        <div class="text-3xl font-black mt-1.5 tabular-nums" id="sUniqToday"><%= stats.uniqueToday %></div>
+        <div class="text-xs opacity-90 mt-1.5"><span id="sReqToday"><%= stats.requestsToday %></span> requests</div>
+      </div>
+      <div class="text-4xl opacity-80">&#128279;</div>
+    </div>
+  </div>
+
+  <div class="p-5 rounded-xl bg-gradient-to-br from-orange-500 to-live text-white shadow-lg">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-90 font-bold">TONG VISITORS</div>
+        <div class="text-3xl font-black mt-1.5 tabular-nums"><%= stats.totalVisitors %></div>
+        <div class="text-xs opacity-90 mt-1.5">7 ngay gan day</div>
+      </div>
+      <div class="text-4xl opacity-80">&#128202;</div>
+    </div>
+  </div>
+</div>
+
+<!-- 7-day chart -->
+<section class="bg-bg-card border border-line rounded-xl p-5 mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-1 h-5 bg-emerald-500 rounded-sm"></span>Luot truy cap 7 ngay gan day</h2>
+    <span class="text-xs text-muted flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse-live"></span>Auto-refresh 10s</span>
+  </div>
+  <% var max7 = Math.max(1, ...stats.days7.map(function(d){ return d.unique })); %>
+  <div class="flex items-end gap-2 h-32" id="chart7">
+    <% stats.days7.forEach(function(d){ var h = Math.round(d.unique*100/max7); %>
+      <div class="flex-1 flex flex-col items-center justify-end gap-1.5">
+        <div class="text-[10px] text-pri-light font-bold tabular-nums" title="<%= d.unique %> unique, <%= d.newCount %> moi"><%= d.unique %></div>
+        <div class="w-full bg-gradient-to-t from-emerald-700 to-emerald-400 rounded-t transition-all" style="height:<%= Math.max(h,2) %>%"></div>
+        <div class="text-[10px] text-muted"><%= d.label %></div>
+      </div>
+    <% }); %>
+  </div>
+</section>
+
+<!-- Manager counts -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <%
+    var cards = [
+      { ico:'&#128100;', label:'Tong User',     val: stats.users,         color:'from-blue-500 to-blue-700',       link:'/admin/users' },
+      { ico:'&#127908;', label:'BLV',           val: stats.blvs,          color:'from-purple to-pink',             link:'/admin/blv',   sub: stats.blvPending+' cho duyet' },
+      { ico:'&#128081;', label:'Idol',          val: stats.idols,         color:'from-pink to-red-500',            link:'/admin/idol',  sub: stats.idolPending+' cho duyet' },
+      { ico:'&#128250;', label:'OBS Pending',   val: stats.obsPending,    color:'from-orange-500 to-live',         link:'/admin/obs',   sub:'Can xet duyet' }
+    ];
+    cards.forEach(function(c){
+  %>
+    <a href="<%= c.link %>" class="block p-5 rounded-xl bg-gradient-to-br <%= c.color %> text-white hover:-translate-y-1 transition-transform shadow-lg">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-widest opacity-90 font-bold"><%= c.label %></div>
+          <div class="text-3xl font-black mt-1.5"><%= c.val %></div>
+          <% if (c.sub) { %><div class="text-xs opacity-90 mt-1.5"><%= c.sub %></div><% } %>
+        </div>
+        <div class="text-4xl opacity-80"><%- c.ico %></div>
+      </div>
+    </a>
+  <% }); %>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-4 mb-6">
+  <section class="bg-bg-card border border-line rounded-xl p-5">
+    <h2 class="text-base font-extrabold text-white mb-3 flex items-center gap-2"><span class="w-1 h-5 bg-pri rounded-sm"></span>VIP Distribution</h2>
+    <div class="space-y-2.5">
+      <% stats.vipDist.forEach(function(v){ var pct = stats.users ? Math.round(v.count*100/stats.users) : 0; %>
+        <div>
+          <div class="flex items-center justify-between text-xs mb-1">
+            <span class="font-bold" style="color:<%= v.tier.color %>"><%= v.tier.name %></span>
+            <span class="text-muted"><%= v.count %> nguoi (<%= pct %>%)</span>
+          </div>
+          <div class="h-2 bg-bg-deep rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all" style="width:<%= pct %>%;background:<%= v.tier.color %>"></div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </section>
+
+  <section class="bg-bg-card border border-line rounded-xl p-5">
+    <h2 class="text-base font-extrabold text-white mb-3 flex items-center gap-2"><span class="w-1 h-5 bg-pri rounded-sm"></span>Activity Log</h2>
+    <% if (!stats.recentLog.length) { %>
+      <div class="text-center py-8 text-muted text-sm">Chua co hoat dong</div>
+    <% } else { %>
+      <ul class="space-y-2 text-xs">
+        <% stats.recentLog.slice(0, 12).forEach(function(l){ %>
+          <li class="flex items-start gap-2 py-1.5 border-b border-line last:border-0">
+            <span class="text-pri-light shrink-0">&middot;</span>
+            <div class="flex-1">
+              <span class="text-white font-semibold"><%= l.action %></span> <span class="text-muted"><%= l.target %></span>
+              <div class="text-dim text-[10px] mt-0.5"><%= new Date(l.at).toLocaleString('vi-VN') %> &middot; by <%= l.by %></div>
+            </div>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </section>
+</div>
+
+<section class="bg-bg-card border border-line rounded-xl p-5">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-1 h-5 bg-pri rounded-sm"></span>Quick Actions</h2>
+  </div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <a href="/admin/obs?status=pending" class="p-4 bg-bg-soft hover:bg-bg-deep border border-line rounded-lg text-center transition-colors">
+      <div class="text-3xl mb-1">&#128250;</div>
+      <div class="font-bold text-white text-sm">Xet duyet OBS</div>
+      <div class="text-pri-light text-xs mt-1"><%= stats.obsPending %> requests</div>
+    </a>
+    <a href="/admin/blv?status=pending" class="p-4 bg-bg-soft hover:bg-bg-deep border border-line rounded-lg text-center transition-colors">
+      <div class="text-3xl mb-1">&#127908;</div>
+      <div class="font-bold text-white text-sm">Duyet BLV moi</div>
+      <div class="text-pri-light text-xs mt-1"><%= stats.blvPending %> chờ</div>
+    </a>
+    <a href="/admin/idol?status=pending" class="p-4 bg-bg-soft hover:bg-bg-deep border border-line rounded-lg text-center transition-colors">
+      <div class="text-3xl mb-1">&#128081;</div>
+      <div class="font-bold text-white text-sm">Duyet Idol moi</div>
+      <div class="text-pri-light text-xs mt-1"><%= stats.idolPending %> chờ</div>
+    </a>
+    <a href="/admin/users" class="p-4 bg-bg-soft hover:bg-bg-deep border border-line rounded-lg text-center transition-colors">
+      <div class="text-3xl mb-1">&#128100;</div>
+      <div class="font-bold text-white text-sm">Quan ly User</div>
+      <div class="text-pri-light text-xs mt-1">Nang VIP / Ban</div>
+    </a>
+  </div>
+</section>
+
+<script>
+async function refreshStats(){
+  try {
+    const r = await fetch('/admin/api/live-stats');
+    const j = await r.json();
+    document.getElementById('sOnline').textContent    = j.online;
+    document.getElementById('sNewToday').textContent  = j.newToday;
+    document.getElementById('sNewYest').textContent   = j.newYesterday;
+    document.getElementById('sUniqToday').textContent = j.uniqueToday;
+    document.getElementById('sReqToday').textContent  = j.requestsToday;
+    // Re-render 7-day chart
+    const max = Math.max(1, ...j.days7.map(function(d){ return d.unique }));
+    const wrap = document.getElementById('chart7');
+    wrap.innerHTML = j.days7.map(function(d){
+      const h = Math.round(d.unique*100/max);
+      return '<div class="flex-1 flex flex-col items-center justify-end gap-1.5">' +
+             '<div class="text-[10px] text-pri-light font-bold tabular-nums" title="'+d.unique+' unique, '+d.newCount+' moi">'+d.unique+'</div>' +
+             '<div class="w-full bg-gradient-to-t from-emerald-700 to-emerald-400 rounded-t transition-all" style="height:'+Math.max(h,2)+'%"></div>' +
+             '<div class="text-[10px] text-muted">'+d.label+'</div>' +
+             '</div>';
+    }).join('');
+  } catch(e) {}
+}
+setInterval(refreshStats, 10000);
+</script>
+
+<%- include('partials/layout-end') %>

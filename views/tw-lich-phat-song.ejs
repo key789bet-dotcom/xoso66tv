@@ -1,0 +1,49 @@
+<%
+var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+var _catName = sport ? (cats[sport] && cats[sport].name || '') : '';
+seo = {
+  title: (_catName ? 'Lịch '+_catName : 'Lịch phát sóng thể thao')+' hôm nay '+_todayVi+' - '+brand.name,
+  description: 'Lịch phát sóng trực tiếp '+(_catName||'thể thao')+' hôm nay '+_todayVi+' và ngày mai tại '+brand.name+'. '+list.length+' trận HD bình luận tiếng Việt.',
+  keywords: 'lịch phát sóng, lịch thi đấu '+(_catName||'thể thao')+', livestream '+brand.short,
+  canonical: '/lich-phat-song'+(sport?'?mon='+sport:''),
+  breadcrumb: [{ name:'Lịch phát sóng', url:'/lich-phat-song' }].concat(sport?[{ name:_catName, url:'/lich-phat-song?mon='+sport }]:[])
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5 leading-tight"><span class="text-2xl">&#128197;</span> <span class="text-shimmer">Lịch Phát Sóng <%= _catName||'Thể Thao' %> Hôm Nay <%= _todayVi %></span></h1>
+  <p class="text-muted text-sm leading-relaxed">Tổng hợp <strong class="text-white"><%= list.length %> trận đấu</strong> sắp diễn ra trong 2 ngày tới được <strong class="text-white"><%= brand.name %></strong> tường thuật HD miễn phí. Lọc theo môn yêu thích, xem chi tiết và nhận thông báo trước giờ bóng lăn.</p>
+</header>
+
+<nav class="flex gap-2 flex-wrap bg-bg-card border border-line rounded-xl p-2 mb-5 overflow-x-auto scrollbar-hide" aria-label="Lọc môn">
+  <a href="/lich-phat-song" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap <%= !sport ? 'bg-gradient-to-br from-pri to-live text-white shadow-pri' : 'text-gray-100 hover:bg-bg-soft' %>"><span class="bg-white/20 w-5 h-5 rounded grid place-items-center text-[10px]">&check;</span> Tất cả</a>
+  <% Object.entries(cats).forEach(function(pair){ var k=pair[0], c=pair[1]; if (c.partnerOnly) return; %>
+    <a href="/lich-phat-song?mon=<%= k %>" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap <%= sport===k ? 'bg-gradient-to-br from-pri to-live text-white shadow-pri' : 'text-gray-100 hover:bg-bg-soft' %>"><span><%= c.icon %></span> <%= c.name %></a>
+  <% }); %>
+</nav>
+
+<section>
+  <% if (!list || list.length === 0) { %>
+    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted"><div class="text-5xl mb-2 opacity-60">&#128229;</div>Không có trận sắp diễn ra.</div>
+  <% } else { %>
+    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]" itemscope itemtype="https://schema.org/ItemList"><%- include('partials/tw-stream-card', { list: list }) %></div>
+  <% } %>
+</section>
+
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2: 'Lịch phát sóng '+(_catName||'thể thao')+' đầy đủ, chính xác',
+  intro: '<strong>'+brand.name+'</strong> cập nhật lịch theo thời gian thực từ TheSportsDB, ESPN, BetsAPI. Giờ giấc đã chuyển sang múi giờ Việt Nam (GMT+7).',
+  sections: [
+    { h3:'Cách xem & đặt lịch nhắc', p:'Click trận để vào phòng HD. Đăng ký <a href="/dang-ky">tài khoản</a> để nhận thông báo trước 15 phút khi trận yêu thích sắp bắt đầu.' },
+    { h3:'Không bỏ lỡ trận nào', p:'Lịch tô màu rõ ràng: <strong>LIVE</strong> đang trực tiếp, <strong>Sắp đá</strong> sắp diễn ra, <strong>FT</strong> đã kết thúc. Có thể chuyển sang <a href="/the-thao/bong-da">trang bóng đá</a> xem trực tiếp ngay.' }
+  ],
+  faqs: [
+    { q:'Lịch có cập nhật real-time không?', a:'Có. Dữ liệu sync mỗi 60 giây.' },
+    { q:'Múi giờ hiển thị là gì?', a:'Tất cả thời gian đều hiển thị theo giờ Việt Nam (UTC+7).' },
+    { q:'Tại sao có trận không có link xem?', a:'Một số giải nhỏ chưa có bản quyền tại VN. Xem highlight sau trận tại <a href="/video-noi-bat">Video nổi bật</a>.' }
+  ]
+}}) %>
+
+<%- include('partials/tw-footer') %>

@@ -1,0 +1,242 @@
+<!-- IDOL: PREVIEW 5s → UNLOCK MODAL -->
+<div id="unlockOverlay" class="hidden fixed inset-0 z-[80] bg-black/85 backdrop-blur-sm grid place-items-center px-4" onclick="if(event.target===this)closeUnlockDialog()">
+
+  <!-- PREVIEW PLAYER (5s) -->
+  <div id="previewBox" class="hidden bg-black border-2 border-pri rounded-2xl shadow-[0_20px_60px_rgba(255,122,24,.4)] max-w-2xl w-full overflow-hidden">
+    <!-- Header -->
+    <header class="relative px-5 py-3 bg-gradient-to-r from-purple via-pink to-orange-500 text-white flex items-center gap-2.5">
+      <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-base font-extrabold truncate" id="previewName">Linh Trang</h3>
+        <p class="text-[11px] opacity-90 truncate" id="previewRoom">Phòng VIP</p>
+      </div>
+      <div class="bg-black/40 backdrop-blur px-3 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-2">
+        <span>🔓 Tự khóa sau:</span>
+        <span id="previewCountdown" class="text-gold text-base tabular-nums w-5 text-center">5</span>
+        <span>s</span>
+      </div>
+      <button onclick="closeUnlockDialog()" class="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 grid place-items-center text-xl text-white" aria-label="Đóng">&times;</button>
+    </header>
+
+    <!-- Video area (preview) -->
+    <div class="aspect-video bg-gradient-to-br from-purple via-pink to-orange-500 relative overflow-hidden grid place-items-center" id="previewVideo">
+      <!-- Animated background -->
+      <div class="absolute inset-0 opacity-50" style="background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.4),transparent 50%),radial-gradient(circle at 70% 50%,rgba(255,255,255,.3),transparent 50%)"></div>
+      <!-- Dancing emoji center -->
+      <div class="relative z-10 text-9xl filter drop-shadow-2xl" id="previewEmoji" style="animation: bouncePreview 1.2s ease-in-out infinite alternate;">💃</div>
+      <!-- Stream simulation overlay -->
+      <div class="absolute bottom-3 left-3 z-10 flex items-center gap-2 bg-black/60 backdrop-blur px-3 py-1.5 rounded-full text-white text-xs font-bold">
+        <span>👁</span>
+        <span id="previewViewers" class="tabular-nums">2.487</span>
+        <span class="opacity-70">đang xem</span>
+      </div>
+      <div class="absolute bottom-3 right-3 z-10 bg-black/60 backdrop-blur px-2 py-0.5 rounded text-gold text-[10px] font-bold">HD 1080p</div>
+      <!-- Countdown progress bar bottom -->
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-black/40 z-10">
+        <div id="previewProgress" class="h-full bg-gradient-to-r from-pri to-gold transition-all" style="width:100%"></div>
+      </div>
+    </div>
+
+    <!-- Bottom hint -->
+    <div class="px-5 py-3 bg-bg-card border-t border-line text-center text-xs text-muted">
+      💡 Xem thử <strong class="text-white">5 giây miễn phí</strong> - Mở khóa bằng X COIN để xem trọn vẹn <strong class="text-pri-light">30 phút</strong>
+    </div>
+  </div>
+
+  <!-- UNLOCK DIALOG (sau 5s) -->
+  <div id="unlockBox" class="hidden bg-gradient-to-br from-bg-card to-bg-soft border-2 border-pri rounded-2xl shadow-[0_20px_60px_rgba(255,122,24,.4)] max-w-md w-full overflow-hidden animate-[fadeIn_.3s]">
+    <header class="relative px-5 py-4 bg-gradient-to-r from-purple via-pink to-orange-500 text-white">
+      <button onclick="closeUnlockDialog()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 grid place-items-center text-xl">&times;</button>
+      <h3 class="text-lg font-extrabold flex items-center gap-2">&#128274; Hết thời gian xem thử</h3>
+      <p class="text-xs opacity-95 mt-0.5">Mở khóa bằng X COIN để tiếp tục xem 30 phút</p>
+    </header>
+
+    <div class="p-5">
+      <!-- Idol info -->
+      <div class="flex items-center gap-3 mb-4 p-3 bg-bg-soft border border-line rounded-lg">
+        <div id="unlockAvatar" class="w-16 h-16 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-3xl text-white shrink-0">👑</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-extrabold text-white text-base truncate" id="unlockName">Linh Trang</div>
+          <div class="text-[11px] text-muted truncate" id="unlockRoom">Phòng VIP</div>
+          <div class="text-[11px] text-pri-light mt-1 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span>
+            <span id="unlockViewers">2.487</span> đang xem &middot; Thời lượng <span id="unlockDuration">30</span> phút
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-pri/15 to-pri-dark/10 border-2 border-pri/50 rounded-xl p-4 text-center mb-4">
+        <div class="text-[11px] text-muted uppercase tracking-wide font-bold mb-1">Phí mở khóa</div>
+        <div class="text-4xl font-black text-gold flex items-center justify-center gap-2">
+          <span class="text-3xl">🪙</span>
+          <span id="unlockPrice" class="tabular-nums">200</span>
+        </div>
+        <div class="text-[11px] text-muted mt-1">X COIN</div>
+      </div>
+
+      <div class="flex items-center justify-between text-sm bg-bg-deep rounded-lg px-3 py-2 mb-4">
+        <span class="text-muted">Số dư hiện có:</span>
+        <span class="font-extrabold text-gold tabular-nums" id="unlockBalance">79 🪙</span>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="rePreview()" class="flex-1 px-3 py-3 bg-bg-deep hover:bg-bg-soft border border-line text-white font-bold rounded-lg transition-colors text-sm">🔄 Xem lại 5s</button>
+        <button onclick="confirmUnlock()" id="unlockConfirmBtn" class="flex-[1.5] px-4 py-3 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white font-extrabold rounded-lg shadow-pri transition-all">🔓 Mở khóa ngay</button>
+      </div>
+
+      <div id="unlockInsufficient" class="hidden mt-3 bg-live/10 border border-live/40 text-live rounded-lg p-3 text-sm text-center">
+        ⚠ X COIN không đủ! Còn thiếu <strong id="unlockShortage">0</strong> xu
+        <div class="mt-2 flex gap-1.5 justify-center">
+          <a href="/qua-tang" class="text-xs bg-pri text-white font-bold px-3 py-1.5 rounded">🎡 Kiếm xu miễn phí</a>
+          <a href="<%= partner.register %>" target="_blank" rel="noopener" class="text-xs bg-emerald-600 text-white font-bold px-3 py-1.5 rounded">💵 Nạp tiền</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+@keyframes bouncePreview { from{transform:translateY(0) scale(1)} to{transform:translateY(-15px) scale(1.05) rotate(-3deg)} }
+</style>
+
+<script>
+(function(){
+  var ST = { id:null, name:'', price:0, room:'', duration:30, avatar:'👑' };
+  var previewTimer = null;
+  var previewSeconds = 5;
+
+  window.openUnlockDialog = function(opts){
+    // ===== ADMIN BYPASS: skip preview + unlock dialog =====
+    if (typeof window.isUserAdmin === 'function' && window.isUserAdmin()) {
+      if (window.x66ShowAdminBadge) window.x66ShowAdminBadge();
+      if (opts.onUnlocked) opts.onUnlocked();
+      else if (opts.redirectUrl) location.href = opts.redirectUrl;
+      return;
+    }
+
+    // Login check
+    try { var u = JSON.parse(localStorage.getItem('x66_user')||'{}'); if (!u.username) { if (confirm('Bạn cần đăng nhập để vào phòng VIP. Đăng nhập ngay?')) location.href='/dang-nhap'; return; } } catch(e){}
+
+    // Already unlocked?
+    try {
+      var unlocked = JSON.parse(localStorage.getItem('x66_unlocked_idols')||'[]');
+      if (unlocked.indexOf(opts.id) >= 0) {
+        if (opts.onUnlocked) opts.onUnlocked();
+        else if (opts.redirectUrl) location.href = opts.redirectUrl;
+        return;
+      }
+    } catch(e){}
+
+    // Free? → skip everything
+    if (!opts.price || opts.price <= 0) {
+      if (opts.onUnlocked) opts.onUnlocked();
+      else if (opts.redirectUrl) location.href = opts.redirectUrl;
+      return;
+    }
+
+    // Set state
+    ST = Object.assign({ duration:30, avatar:'👑' }, opts);
+    // Show overlay → preview first
+    document.getElementById('unlockOverlay').classList.remove('hidden');
+    startPreview();
+  };
+
+  // BẮT ĐẦU preview 5s
+  function startPreview(){
+    var box   = document.getElementById('previewBox');
+    var unlock= document.getElementById('unlockBox');
+    box.classList.remove('hidden');
+    unlock.classList.add('hidden');
+
+    // Populate
+    document.getElementById('previewName').textContent  = ST.name || 'Idol';
+    document.getElementById('previewRoom').textContent  = ST.room || 'Phòng VIP';
+    document.getElementById('previewEmoji').textContent = ST.avatar || '💃';
+    document.getElementById('previewViewers').textContent = ((ST.id||'').length * 137 % 9000 + 500).toLocaleString('vi-VN');
+
+    var s = previewSeconds;
+    document.getElementById('previewCountdown').textContent = s;
+    document.getElementById('previewProgress').style.width = '100%';
+
+    clearInterval(previewTimer);
+    previewTimer = setInterval(function(){
+      s--;
+      document.getElementById('previewCountdown').textContent = Math.max(0, s);
+      document.getElementById('previewProgress').style.width = (Math.max(0, s) / previewSeconds * 100) + '%';
+      if (s <= 0) {
+        clearInterval(previewTimer);
+        // Fade preview → show unlock
+        box.classList.add('hidden');
+        showUnlockBox();
+      }
+    }, 1000);
+  }
+
+  function showUnlockBox(){
+    var unlock = document.getElementById('unlockBox');
+    unlock.classList.remove('hidden');
+    document.getElementById('unlockName').textContent     = ST.name || 'Idol';
+    document.getElementById('unlockRoom').textContent     = ST.room || 'Phòng VIP';
+    document.getElementById('unlockPrice').textContent    = ST.price.toLocaleString('vi-VN');
+    document.getElementById('unlockDuration').textContent = ST.duration;
+    document.getElementById('unlockAvatar').textContent   = ST.avatar;
+    document.getElementById('unlockViewers').textContent  = ((ST.id||'').length * 137 % 9000 + 500).toLocaleString('vi-VN');
+    refreshBalance();
+  }
+
+  // Xem lại 5s preview
+  window.rePreview = function(){ startPreview(); };
+
+  window.closeUnlockDialog = function(){
+    clearInterval(previewTimer);
+    document.getElementById('unlockOverlay').classList.add('hidden');
+    document.getElementById('previewBox').classList.add('hidden');
+    document.getElementById('unlockBox').classList.add('hidden');
+    document.getElementById('unlockInsufficient').classList.add('hidden');
+    var btn = document.getElementById('unlockConfirmBtn');
+    if (btn) { btn.disabled = false; btn.innerHTML = '🔓 Mở khóa ngay'; }
+  };
+
+  window.confirmUnlock = function(){
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      var coin = typeof u.coin==='number' ? u.coin : 79;
+      if (coin < ST.price) {
+        var short = ST.price - coin;
+        document.getElementById('unlockShortage').textContent = short.toLocaleString('vi-VN');
+        document.getElementById('unlockInsufficient').classList.remove('hidden');
+        return;
+      }
+      u.coin = coin - ST.price;
+      localStorage.setItem('x66_user', JSON.stringify(u));
+      var unlocked = JSON.parse(localStorage.getItem('x66_unlocked_idols')||'[]');
+      unlocked.push(ST.id);
+      localStorage.setItem('x66_unlocked_idols', JSON.stringify(unlocked));
+
+      var btn = document.getElementById('unlockConfirmBtn');
+      btn.disabled = true;
+      btn.innerHTML = '✓ Đã mở khóa, đang vào phòng...';
+      setTimeout(function(){
+        closeUnlockDialog();
+        if (ST.onUnlocked) ST.onUnlocked();
+        else if (ST.redirectUrl) location.href = ST.redirectUrl;
+      }, 900);
+    } catch(e){ alert('Lỗi: ' + e.message); }
+  };
+
+  function refreshBalance(){
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      var coin = typeof u.coin==='number' ? u.coin : 79;
+      document.getElementById('unlockBalance').textContent = coin.toLocaleString('vi-VN') + ' 🪙';
+    } catch(e){}
+  }
+
+  window.isIdolUnlocked = function(id){
+    // Admin luôn được coi là đã unlock
+    if (typeof window.isUserAdmin === 'function' && window.isUserAdmin()) return true;
+    try { return JSON.parse(localStorage.getItem('x66_unlocked_idols')||'[]').indexOf(id) >= 0; } catch(e){ return false; }
+  };
+})();
+</script>

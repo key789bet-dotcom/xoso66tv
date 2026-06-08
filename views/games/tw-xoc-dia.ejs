@@ -1,0 +1,720 @@
+<%
+seo = {
+  title: 'Xóc Đĩa Online Đổi Thưởng X COIN - '+brand.name,
+  description: 'Xóc đĩa truyền thống Việt Nam, 4 đĩa, cửa CHẴN/LẺ 1:1, cửa đặc biệt 1:15. Mobile-first.',
+  canonical: '/game/xoc-dia'
+};
+%>
+<%- include('../partials/tw-layout-start') %>
+
+<script>
+(function(){ try { if (!localStorage.getItem('x66_user')) { if(confirm('Cần đăng nhập để chơi. Đăng nhập ngay?')) location.href='/dang-nhap'; else location.href='/mini-game'; } } catch(e){} })();
+</script>
+
+<section class="max-w-md md:max-w-3xl mx-auto mb-6 select-none">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="bg-gradient-to-r from-amber-950 via-yellow-900 to-amber-950 border-2 border-yellow-600/50 rounded-t-2xl px-2.5 md:px-5 py-2 md:py-3 flex items-center gap-2 shadow-2xl">
+    <a href="/mini-game" class="w-8 h-8 rounded-full bg-black/40 grid place-items-center text-yellow-300 hover:bg-black/60 shrink-0" aria-label="Thoát">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <div class="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-lg border border-yellow-600/40 min-w-0">
+      <div class="w-6 h-6 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-amber-500 to-yellow-700 grid place-items-center text-white font-black text-xs md:text-sm shadow-lg shrink-0" id="xdAvatar">U</div>
+      <div class="text-[9px] md:text-[10px] text-yellow-200/70 font-bold uppercase truncate" id="xdUsername">guest</div>
+    </div>
+    <div class="flex-1 text-center min-w-0">
+      <div class="flex items-center justify-center gap-1.5">
+        <span class="text-base md:text-2xl">🥥</span>
+        <h1 class="text-sm md:text-2xl font-black bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-400 bg-clip-text text-transparent drop-shadow tracking-wide">XÓC ĐĨA</h1>
+        <span class="text-base md:text-2xl">🥥</span>
+      </div>
+      <div class="text-[8px] md:text-[10px] text-yellow-300/80 font-bold tracking-widest -mt-0.5">ĐỔI THƯỞNG</div>
+    </div>
+    <div class="flex items-center gap-1 bg-black/40 px-2 md:px-4 py-1 md:py-2 rounded-lg border border-yellow-600/40 shrink-0">
+      <span class="text-yellow-300 text-sm md:text-base">🪙</span>
+      <span class="text-yellow-300 font-black tabular-nums text-xs md:text-base" id="xdBalance">0</span>
+    </div>
+  </header>
+
+  <!-- ============ MAIN GAME ============ -->
+  <main class="bg-gradient-to-b from-red-950 via-red-900 to-red-950 border-x-2 border-yellow-600/50 px-2.5 md:px-6 py-3 md:py-5 shadow-2xl" style="background-image:radial-gradient(circle at 20% 30%,rgba(255,200,80,.1),transparent 60%),radial-gradient(circle at 80% 70%,rgba(255,150,50,.1),transparent 60%)">
+
+    <!-- Round + Countdown -->
+    <div class="flex items-center justify-between mb-2.5 px-1">
+      <div class="flex items-center gap-1.5">
+        <span class="text-base md:text-xl">🎴</span>
+        <span class="text-[11px] md:text-sm font-extrabold text-yellow-200">Phiên #<span id="xdRoundId" class="tabular-nums">000001</span></span>
+      </div>
+      <div class="flex items-center gap-1.5 bg-black/50 px-2 py-0.5 rounded-full border border-yellow-600/40">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-yellow-300"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="text-[10px] md:text-xs text-yellow-200">Bắt đầu sau:</span>
+        <span id="xdCountdown" class="font-black text-sm text-yellow-300 tabular-nums">30s</span>
+      </div>
+    </div>
+
+    <!-- ===== 3-column layout: CHẴN | PLATE | LẺ ===== -->
+    <div class="grid grid-cols-[1fr_auto_1fr] gap-1.5 md:gap-3 items-center mb-3">
+
+      <!-- CHẴN (Even) - Blue -->
+      <button onclick="xdSelectMain('chan')" id="xdChanBox" class="xd-side group bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-950 border-2 border-yellow-500/60 hover:border-yellow-300 rounded-xl px-2 py-3 md:py-5 text-center transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(59,130,246,.5)] relative overflow-hidden">
+        <div class="absolute top-1 right-1 bg-black/40 text-[8px] text-yellow-300 font-black px-1.5 py-0.5 rounded">1:1</div>
+        <!-- Mini disks decoration -->
+        <div class="absolute top-1 left-1 flex gap-0.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+        </div>
+        <div class="text-2xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.5)] mt-3" style="text-shadow:0 0 12px rgba(255,200,80,.6)">CHẴN</div>
+        <div class="text-[9px] md:text-[10px] text-yellow-200/80 font-bold mt-0.5">0/2/4 đỏ</div>
+        <div class="mt-1 flex items-center justify-center gap-1 text-[9px] text-yellow-200/70">
+          <span>👥</span><span class="tabular-nums" id="xdChanCount">132</span>
+        </div>
+        <div class="mt-1 bg-black/40 rounded-md py-1 text-yellow-300 font-extrabold tabular-nums text-[11px] md:text-sm truncate px-1" id="xdChanPool">45.6M</div>
+        <div class="text-[9px] text-yellow-200/60 mt-0.5">Cược: <b class="text-yellow-300 tabular-nums" id="xdChanMyBet">0</b></div>
+      </button>
+
+      <!-- CENTER PLATE (Đĩa xóc) - 3D realistic wooden bowl -->
+      <div class="relative shrink-0 xd-plate-wrap">
+        <!-- Ground shadow -->
+        <div class="absolute left-1/2 -bottom-2 -translate-x-1/2 w-[90%] h-3 rounded-full blur-md bg-black/60"></div>
+
+        <!-- 3D PLATE -->
+        <div class="xd-plate3d w-28 h-28 md:w-44 md:h-44 relative" id="xdPlate">
+          <!-- Outer rim (gold metallic) -->
+          <div class="xd-rim-outer absolute inset-0 rounded-full"></div>
+          <!-- Inner wooden bowl -->
+          <div class="xd-bowl absolute inset-[7%] rounded-full"></div>
+          <!-- Glossy reflection top -->
+          <div class="xd-gloss absolute inset-[8%] rounded-full pointer-events-none"></div>
+
+          <!-- The 4 disks (3D metal coins) -->
+          <div class="absolute inset-0 grid place-items-center z-10">
+            <div class="grid grid-cols-2 gap-1.5 md:gap-2.5" id="xdDisks">
+              <span class="xd-coin3d xd-c-white"></span>
+              <span class="xd-coin3d xd-c-red"></span>
+              <span class="xd-coin3d xd-c-white"></span>
+              <span class="xd-coin3d xd-c-red"></span>
+            </div>
+          </div>
+
+          <!-- Lid (closing during rolling) -->
+          <div id="xdBowl" class="hidden xd-lid absolute inset-0 rounded-full grid place-items-center z-20"></div>
+        </div>
+
+        <!-- Result badge -->
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 text-red-900 text-[10px] md:text-xs font-black px-3 py-0.5 rounded-full shadow-[0_2px_8px_rgba(255,200,0,.6)] whitespace-nowrap border border-yellow-200" id="xdResultBadge">?</div>
+      </div>
+
+      <!-- LẺ (Odd) - Red -->
+      <button onclick="xdSelectMain('le')" id="xdLeBox" class="xd-side group bg-gradient-to-br from-red-700 via-red-800 to-red-950 border-2 border-yellow-500/60 hover:border-yellow-300 rounded-xl px-2 py-3 md:py-5 text-center transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(239,68,68,.5)] relative overflow-hidden">
+        <div class="absolute top-1 left-1 bg-black/40 text-[8px] text-yellow-300 font-black px-1.5 py-0.5 rounded">1:1</div>
+        <div class="absolute top-1 right-1 flex gap-0.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+        </div>
+        <div class="text-2xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.5)] mt-3" style="text-shadow:0 0 12px rgba(255,200,80,.6)">LẺ</div>
+        <div class="text-[9px] md:text-[10px] text-yellow-200/80 font-bold mt-0.5">1/3 đỏ</div>
+        <div class="mt-1 flex items-center justify-center gap-1 text-[9px] text-yellow-200/70">
+          <span>👥</span><span class="tabular-nums" id="xdLeCount">132</span>
+        </div>
+        <div class="mt-1 bg-black/40 rounded-md py-1 text-yellow-300 font-extrabold tabular-nums text-[11px] md:text-sm truncate px-1" id="xdLePool">58.7M</div>
+        <div class="text-[9px] text-yellow-200/60 mt-0.5">Cược: <b class="text-yellow-300 tabular-nums" id="xdLeMyBet">0</b></div>
+      </button>
+    </div>
+
+    <!-- ===== SPECIAL BETS (1:15) ===== -->
+    <div class="mb-3">
+      <div class="text-[10px] md:text-xs text-yellow-200/80 font-bold mb-1.5 px-1">Cửa đặc biệt - thưởng 1:15</div>
+      <div class="grid grid-cols-5 gap-1 md:gap-2">
+        <% [
+          { id:'4d',  label:'4 Đỏ',     pattern:['r','r','r','r'] },
+          { id:'3d1t',label:'3Đ 1T',    pattern:['r','r','r','w'] },
+          { id:'2d2t',label:'2Đ 2T',    pattern:['r','r','w','w'] },
+          { id:'1d3t',label:'1Đ 3T',    pattern:['r','w','w','w'] },
+          { id:'4t',  label:'4 Trắng',  pattern:['w','w','w','w'] }
+        ].forEach(function(s){ %>
+          <button onclick="xdSelectSpecial('<%= s.id %>')" data-id="<%= s.id %>" class="xd-special bg-bg-card border-2 border-yellow-500/30 hover:border-yellow-400 rounded-lg p-1 md:p-1.5 text-center transition-all hover:-translate-y-0.5 active:scale-95">
+            <div class="flex gap-0.5 justify-center mb-1">
+              <% s.pattern.forEach(function(c){ %>
+                <div class="w-2 h-2 md:w-3 md:h-3 rounded-full <%= c==='r' ? 'bg-red-600' : 'bg-white' %> border border-yellow-700/40 shadow-inner"></div>
+              <% }); %>
+            </div>
+            <div class="text-[9px] md:text-[10px] font-black text-white"><%= s.label %></div>
+            <div class="text-[8px] md:text-[9px] text-yellow-300 font-bold">1:15</div>
+            <div class="text-[8px] text-yellow-200/60 mt-0.5">Cược: <b class="text-yellow-300 tabular-nums xd-special-bet" data-id="<%= s.id %>">0</b></div>
+          </button>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- ===== HISTORY STRIP ===== -->
+    <div class="flex items-center gap-1 mb-3 px-1 overflow-x-auto scrollbar-hide">
+      <span class="text-[10px] text-yellow-200/70 font-bold shrink-0 mr-1">Lịch sử:</span>
+      <div class="flex gap-1" id="xdHistoryStrip"></div>
+    </div>
+
+    <!-- ===== SELECTED AMOUNT ===== -->
+    <div class="bg-black/40 rounded-xl py-2 md:py-3 text-center mb-3 border border-yellow-600/30">
+      <div class="text-[9px] md:text-[10px] text-yellow-200/70 uppercase tracking-widest font-bold">Số cược đã chọn</div>
+      <div class="text-2xl md:text-3xl font-black text-yellow-300 tabular-nums drop-shadow" id="xdSelectedAmt">0</div>
+      <div class="text-[10px] text-yellow-200/60 mt-0.5 px-2" id="xdResultText">Chọn mức cược → Click cửa cược</div>
+    </div>
+
+    <!-- ===== CHIPS (đa dạng cho new user 79 coin → high roller) ===== -->
+    <div class="grid grid-cols-7 gap-1 md:gap-2 mb-3">
+      <% [
+        { v:10,      l:'10',   c:'from-gray-400 to-gray-600' },
+        { v:100,     l:'100',  c:'from-emerald-500 to-emerald-700' },
+        { v:1000,    l:'1K',   c:'from-sky-500 to-blue-700' },
+        { v:10000,   l:'10K',  c:'from-purple-500 to-purple-700' },
+        { v:100000,  l:'100K', c:'from-red-500 to-red-700' },
+        { v:1000000, l:'1M',   c:'from-yellow-400 to-amber-600' },
+        { v:10000000,l:'10M',  c:'from-pink-500 to-fuchsia-700' }
+      ].forEach(function(c){ %>
+        <button class="xd-chip relative px-1 py-2 bg-gradient-to-br <%= c.c %> text-white rounded-full font-black text-[10px] md:text-sm shadow-[0_3px_0_rgba(0,0,0,.3),inset_0_2px_0_rgba(255,255,255,.4)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(0,0,0,.3)] transition-all border-2 border-white/40" data-amt="<%= c.v %>"><span class="xd-chip-label"><%= c.l %></span></button>
+      <% }); %>
+    </div>
+
+    <!-- ===== ACTION ===== -->
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="xdClearBets()" class="bg-gradient-to-br from-gray-600 to-gray-800 hover:brightness-110 text-white py-2.5 rounded-full font-black text-[11px] md:text-sm shadow-lg border-2 border-gray-400 active:scale-95 transition-transform">✕ XÓA CƯỢC</button>
+      <button onclick="xdConfirmBet()" class="bg-gradient-to-br from-yellow-500 to-orange-600 hover:brightness-110 text-white py-2.5 rounded-full font-black text-[11px] md:text-sm shadow-lg border-2 border-yellow-300 active:scale-95 transition-transform">✓ CƯỢC NGAY</button>
+    </div>
+
+  </main>
+
+  <!-- ===== BOTTOM TABS ===== -->
+  <footer class="bg-gradient-to-r from-amber-950 via-yellow-900 to-amber-950 border-2 border-yellow-600/50 border-t-0 rounded-b-2xl px-2 py-1.5 grid grid-cols-4 gap-1">
+    <button onclick="xdToggle('history')" class="text-yellow-200 hover:text-yellow-300 text-[10px] md:text-[11px] font-bold flex flex-col items-center gap-0.5 py-1 active:scale-95">
+      <span class="text-base md:text-lg">📊</span><span>Lịch sử</span>
+    </button>
+    <button onclick="xdToggle('rules')" class="text-yellow-200 hover:text-yellow-300 text-[10px] md:text-[11px] font-bold flex flex-col items-center gap-0.5 py-1 active:scale-95">
+      <span class="text-base md:text-lg">📖</span><span>Luật chơi</span>
+    </button>
+    <button onclick="xdToggle('top')" class="text-yellow-200 hover:text-yellow-300 text-[10px] md:text-[11px] font-bold flex flex-col items-center gap-0.5 py-1 active:scale-95">
+      <span class="text-base md:text-lg">🏆</span><span>Xếp hạng</span>
+    </button>
+    <a href="<%= partner.telegram %>" target="_blank" class="text-yellow-200 hover:text-yellow-300 text-[10px] md:text-[11px] font-bold flex flex-col items-center gap-0.5 py-1 active:scale-95">
+      <span class="text-base md:text-lg">💬</span><span>Hotline</span>
+    </a>
+  </footer>
+
+  <!-- EXPANDABLE -->
+  <div id="xdHistory" class="hidden bg-bg-card border border-line rounded-xl p-3 mt-3">
+    <h3 class="text-sm font-extrabold text-white mb-2">📊 Lịch sử 12 phiên gần nhất</h3>
+    <div class="space-y-1.5" id="xdHistoryList"><div class="text-muted text-sm">Chưa có lịch sử...</div></div>
+  </div>
+  <div id="xdRules" class="hidden bg-bg-card border border-line rounded-xl p-3 mt-3 text-[12px] text-gray-200">
+    <h3 class="text-sm font-extrabold text-white mb-2">📖 Luật chơi Xóc Đĩa</h3>
+    <ul class="space-y-1 leading-relaxed">
+      <li>• Mỗi phiên <strong>30 giây</strong>, hệ thống xóc 4 đĩa (mặt đỏ/trắng)</li>
+      <li>• <strong class="text-blue-400">CHẴN</strong> = số đĩa đỏ là <strong>0, 2, hoặc 4</strong> → thắng <strong>1:1</strong></li>
+      <li>• <strong class="text-red-400">LẺ</strong> = số đĩa đỏ là <strong>1 hoặc 3</strong> → thắng <strong>1:1</strong></li>
+      <li>• Cửa <strong>đặc biệt</strong> (4Đ / 3Đ1T / 2Đ2T / 1Đ3T / 4T) đoán đúng combo → thắng <strong class="text-yellow-300">1:15</strong></li>
+      <li>• Có thể đặt nhiều cửa cùng lúc trong 1 phiên</li>
+      <li>• Trước khi đóng cược 5s, không thể đặt thêm</li>
+    </ul>
+  </div>
+  <div id="xdTop" class="hidden bg-bg-card border border-line rounded-xl p-3 mt-3">
+    <h3 class="text-sm font-extrabold text-white mb-2">🏆 Top thắng hôm nay</h3>
+    <div class="space-y-1.5">
+      <% ['xocking_88','chan_master','le_king99','vipFan88','BoMy_X66'].forEach(function(n,i){ var amt=(5-i)*8500+1200; %>
+        <div class="flex items-center gap-2 bg-bg-soft border border-line rounded-lg p-2 text-[12px]">
+          <span class="text-base"><%= ['🥇','🥈','🥉','4️⃣','5️⃣'][i] %></span>
+          <span class="flex-1 font-bold text-white truncate"><%= n %></span>
+          <span class="text-yellow-300 font-extrabold tabular-nums shrink-0">+<%= amt.toLocaleString('vi-VN') %> 🪙</span>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ============ 3D PLATE (Đĩa Xóc) ============ */
+.xd-plate-wrap { perspective: 800px; }
+.xd-plate3d {
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 12px 18px rgba(0,0,0,.6));
+}
+.xd-rim-outer {
+  background:
+    radial-gradient(circle at 30% 25%, #fff8c4 0%, #ffe07a 18%, #e6a82e 45%, #8a5a14 80%, #4a2f0a 100%);
+  box-shadow:
+    inset 0 4px 8px rgba(255,255,255,.55),
+    inset 0 -6px 12px rgba(0,0,0,.55),
+    inset 6px 0 8px rgba(255,200,80,.3),
+    inset -6px 0 8px rgba(60,30,0,.4),
+    0 4px 12px rgba(0,0,0,.4);
+}
+/* small carved lines on the rim */
+.xd-rim-outer::before {
+  content:''; position:absolute; inset:0;
+  border-radius:50%;
+  background: repeating-conic-gradient(from 0deg, rgba(0,0,0,.18) 0deg 2deg, transparent 2deg 8deg);
+  mix-blend-mode: multiply;
+  opacity: .35;
+}
+.xd-bowl {
+  background:
+    radial-gradient(ellipse at 50% 30%, #5a1e0a 0%, #3a0f04 45%, #1a0700 100%);
+  box-shadow:
+    inset 0 6px 14px rgba(0,0,0,.85),
+    inset 0 -3px 8px rgba(255,100,50,.25),
+    inset 0 0 22px rgba(0,0,0,.6);
+}
+.xd-gloss {
+  background: radial-gradient(ellipse 70% 35% at 50% 15%, rgba(255,255,255,.18), rgba(255,255,255,0) 70%);
+}
+
+/* ============ 3D COINS (đồng xu kim loại) ============ */
+.xd-coin3d {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,.65),
+    inset 0 -2px 4px rgba(0,0,0,.45),
+    inset 0 2px 3px rgba(255,255,255,.55),
+    inset -2px -1px 3px rgba(0,0,0,.3);
+  border: 1px solid rgba(0,0,0,.4);
+}
+@media (min-width: 768px){ .xd-coin3d { width: 36px; height: 36px; } }
+.xd-coin3d::before {
+  content:''; position:absolute;
+  top:12%; left:18%;
+  width:38%; height:28%;
+  border-radius:50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,.9), rgba(255,255,255,0) 70%);
+  filter: blur(.5px);
+}
+.xd-c-red    { background: radial-gradient(circle at 35% 30%, #ff7777 0%, #d81717 40%, #6a0606 100%); }
+.xd-c-white  { background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e2e2e2 50%, #888 100%); }
+
+/* Spinning when shaking */
+.xd-shaking .xd-coin3d { animation: xdCoinTumble .35s ease-in-out infinite; }
+@keyframes xdCoinTumble {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-6px) rotate(180deg) scaleX(.4); }
+  50%      { transform: translateY(0) rotate(360deg); }
+  75%      { transform: translateY(-4px) rotate(540deg) scaleX(.4); }
+}
+.xd-coin3d:nth-child(1) { animation-delay: 0s; }
+.xd-coin3d:nth-child(2) { animation-delay: .08s; }
+.xd-coin3d:nth-child(3) { animation-delay: .16s; }
+.xd-coin3d:nth-child(4) { animation-delay: .24s; }
+
+/* ============ 3D LID (nắp đĩa khi đang xóc) ============ */
+.xd-lid {
+  background:
+    radial-gradient(circle at 35% 30%, #fff4b8 0%, #f4c34a 25%, #b07820 55%, #5a3a0c 100%);
+  box-shadow:
+    inset 0 8px 16px rgba(255,255,255,.5),
+    inset 0 -8px 18px rgba(0,0,0,.6),
+    0 6px 18px rgba(0,0,0,.5);
+  position: relative;
+  overflow: hidden;
+}
+.xd-lid::before {
+  content:'🥥'; font-size:48px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+}
+@media (min-width: 768px) { .xd-lid::before { font-size: 72px; } }
+.xd-lid::after {
+  content:''; position:absolute; inset:0;
+  border-radius:50%;
+  background: repeating-conic-gradient(from 0deg, rgba(0,0,0,.22) 0deg 2deg, transparent 2deg 6deg);
+  opacity: .25;
+}
+
+/* ============ 3D CHẴN/LẺ SIDE CARDS ============ */
+.xd-side {
+  position: relative;
+  transform: perspective(600px) rotateY(0deg);
+  transition: transform .25s, box-shadow .25s;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25), transparent 50%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,.35) 100%);
+}
+.xd-side::before {
+  content:''; position:absolute; inset:0;
+  border-radius:inherit;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.4),
+    inset 0 -3px 0 rgba(0,0,0,.5),
+    inset 0 0 30px rgba(0,0,0,.3);
+  pointer-events:none;
+}
+.xd-side:hover { transform: perspective(600px) rotateY(0deg) translateY(-2px) scale(1.02); }
+.xd-side.is-selected { box-shadow: 0 0 0 3px #fde047, 0 0 30px rgba(253,224,71,.7) !important; transform: perspective(600px) translateY(-3px) scale(1.04); }
+
+/* ============ 3D SPECIAL BETS ============ */
+.xd-special {
+  background-image: linear-gradient(180deg, #1f2630, #0f141c);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -2px 0 rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.4);
+}
+.xd-special.is-selected { background: linear-gradient(135deg,#fef3c7,#fde047) !important; color: #7c2d12 !important; transform: scale(1.05); box-shadow: 0 0 12px rgba(252,211,77,.7) !important; }
+.xd-special.is-selected .text-white { color: #7c2d12 !important; }
+.xd-special.is-selected .text-yellow-300 { color: #7c2d12 !important; }
+.xd-special.is-selected .text-yellow-200\/60 { color: #92400e !important; }
+
+/* ============ 3D CASINO CHIPS ============ */
+.xd-chip {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  display: grid;
+  place-items: center;
+  font-size: 11px !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,.5);
+  box-shadow:
+    0 4px 0 rgba(0,0,0,.4),
+    0 6px 12px rgba(0,0,0,.3),
+    inset 0 2px 3px rgba(255,255,255,.5),
+    inset 0 -3px 4px rgba(0,0,0,.35) !important;
+  transition: all .15s ease-out;
+}
+@media (min-width: 768px) { .xd-chip { font-size: 14px !important; } }
+/* edge segments (white sectors on real casino chip) */
+.xd-chip::before {
+  content:''; position:absolute; inset:0;
+  border-radius:50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.85) 0deg 16deg, transparent 16deg 60deg);
+  -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%, #000 88%, transparent 89%);
+          mask: radial-gradient(circle, transparent 60%, #000 61%, #000 88%, transparent 89%);
+  opacity: .85;
+}
+/* inner disc */
+.xd-chip::after {
+  content:''; position:absolute; inset:14%;
+  border-radius:50%;
+  background: inherit;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.4), inset 0 1px 2px rgba(255,255,255,.4), inset 0 -2px 3px rgba(0,0,0,.3);
+}
+.xd-chip > * { position: relative; z-index: 5; }
+.xd-chip-label {
+  position: relative;
+  z-index: 5;
+  color: #fff;
+  font-weight: 900;
+  font-size: 12px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.8), 0 0 4px rgba(0,0,0,.6);
+  letter-spacing: .3px;
+}
+@media (min-width: 768px) { .xd-chip-label { font-size: 15px; } }
+.xd-chip::after { z-index: 1; }
+.xd-chip::before { z-index: 2; }
+.xd-chip:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.4), inset 0 2px 3px rgba(0,0,0,.3) !important; }
+.xd-chip.is-selected {
+  transform: scale(1.18) translateY(-2px);
+  box-shadow: 0 0 22px rgba(252,211,77,.95), 0 6px 0 rgba(0,0,0,.4), inset 0 2px 3px rgba(255,255,255,.5) !important;
+  outline: 3px solid #fde047;
+  outline-offset: -3px;
+}
+
+.win-flash { animation: xdWinFlash .5s ease-in-out 3; }
+@keyframes xdWinFlash { 0%,100%{box-shadow:0 0 0 4px #10b981} 50%{box-shadow:0 0 32px 8px #10b981} }
+
+/* Plate shake animation when rolling */
+.xd-shaking { animation: xdShake .14s linear infinite; }
+@keyframes xdShake {
+  0%   { transform: translate(-2px, -3px) rotate(-3deg); }
+  25%  { transform: translate(3px, 2px) rotate(3deg); }
+  50%  { transform: translate(-3px, 3px) rotate(-2deg); }
+  75%  { transform: translate(2px, -2px) rotate(2deg); }
+  100% { transform: translate(-2px, -3px) rotate(-3deg); }
+}
+
+/* Reveal flip animation (đồng xu lật khi mở nắp) */
+@keyframes xdReveal {
+  0%   { transform: rotateY(180deg) scale(.4); opacity: 0; }
+  60%  { transform: rotateY(0deg) scale(1.15); opacity: 1; }
+  100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+}
+</style>
+
+<script>
+(function(){
+  if (typeof window.showToast !== 'function') {
+    window.showToast = function(msg, kind){
+      var t=document.createElement('div'); var col=kind==='error'?'#ff3b3b':kind==='success'?'#27ae60':'#ff7a18';
+      t.style.cssText='position:fixed;bottom:20px;right:20px;background:#161a22;color:#fff;padding:12px 18px;border-radius:8px;border-left:4px solid '+col+';z-index:9999;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;';
+      t.textContent=msg; document.body.appendChild(t);
+      setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; }, 2500);
+      setTimeout(function(){ t.remove(); }, 3000);
+    };
+  }
+
+  function fmtCompact(n){
+    if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+    return n.toLocaleString('vi-VN');
+  }
+  function isMobile(){ return window.innerWidth < 768; }
+
+  var ROUND_DURATION = 30;
+  var state = {
+    roundId: 1, secLeft: 30, selectedAmt: 0, rolling: false,
+    bets: { chan:0, le:0, '4d':0, '3d1t':0, '2d2t':0, '1d3t':0, '4t':0 },
+    chanPool: 45600000, lePool: 58700000, chanCount: 132, leCount: 132,
+    history: []
+  };
+
+  function getUser(){ try { return JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){ return {}; } }
+  function setUser(u){ try { localStorage.setItem('x66_user', JSON.stringify(u)); } catch(e){} }
+  function getCoin(){ var u=getUser(); return typeof u.coin==='number'?u.coin:79; }
+  function setCoin(c){ var u=getUser(); u.coin=c; setUser(u); refresh(); }
+
+  function refresh(){
+    var u = getUser();
+    document.getElementById('xdBalance').textContent = getCoin().toLocaleString('vi-VN');
+    document.getElementById('xdUsername').textContent = (u.username||'guest').toLowerCase();
+    document.getElementById('xdAvatar').textContent = (u.username||'U').charAt(0).toUpperCase();
+  }
+
+  try { var ss = JSON.parse(localStorage.getItem('x66_xd_state')||'null'); if (ss) { state.roundId = ss.roundId||1; state.history = ss.history||[]; } } catch(e){}
+  function saveState(){ try { localStorage.setItem('x66_xd_state', JSON.stringify({roundId:state.roundId, history:state.history.slice(0,30)})); } catch(e){} }
+
+  function updateRound(){
+    document.getElementById('xdRoundId').textContent = String(state.roundId).padStart(6,'0');
+    var sec = state.secLeft, el = document.getElementById('xdCountdown');
+    el.textContent = sec + 's';
+    el.className = 'font-black text-sm tabular-nums ' + (sec>15?'text-emerald-400':sec>5?'text-yellow-300':'text-red-400 animate-pulse');
+    document.getElementById('xdChanPool').textContent = isMobile() ? fmtCompact(state.chanPool) : state.chanPool.toLocaleString('vi-VN');
+    document.getElementById('xdLePool').textContent   = isMobile() ? fmtCompact(state.lePool)   : state.lePool.toLocaleString('vi-VN');
+    document.getElementById('xdChanCount').textContent = state.chanCount;
+    document.getElementById('xdLeCount').textContent = state.leCount;
+  }
+
+  // Chip select
+  document.querySelectorAll('.xd-chip').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.xd-chip').forEach(function(x){ x.classList.remove('is-selected'); });
+      this.classList.add('is-selected');
+      state.selectedAmt = parseInt(this.getAttribute('data-amt'),10);
+      document.getElementById('xdSelectedAmt').textContent = state.selectedAmt.toLocaleString('vi-VN');
+      document.getElementById('xdResultText').textContent = 'Đã chọn ' + state.selectedAmt.toLocaleString('vi-VN') + ' 🪙 - Click cửa cược';
+    });
+  });
+
+  function canBet(){
+    if (state.rolling) { showToast('Đang ra kết quả','error'); return false; }
+    if (state.secLeft < 5) { showToast('Còn dưới 5s, không thể cược','error'); return false; }
+    if (state.selectedAmt <= 0) { showToast('Bấm chọn 1 chip vàng trước (10/100/1K...)','error'); return false; }
+    var coin = getCoin();
+    if (coin < state.selectedAmt) { showToast('X COIN không đủ! Còn ' + coin, 'error'); return false; }
+    return true;
+  }
+
+  window.xdSelectMain = function(side){
+    if (!canBet()) return;
+    setCoin(getCoin() - state.selectedAmt);
+    state.bets[side] += state.selectedAmt;
+    if (side === 'chan') {
+      state.chanPool += state.selectedAmt;
+      document.getElementById('xdChanMyBet').textContent = state.bets.chan.toLocaleString('vi-VN');
+      document.getElementById('xdChanBox').classList.add('is-selected');
+    } else {
+      state.lePool += state.selectedAmt;
+      document.getElementById('xdLeMyBet').textContent = state.bets.le.toLocaleString('vi-VN');
+      document.getElementById('xdLeBox').classList.add('is-selected');
+    }
+    showToast('Đặt ' + state.selectedAmt.toLocaleString('vi-VN') + ' 🪙 vào ' + (side==='chan'?'CHẴN':'LẺ'), 'success');
+  };
+
+  window.xdSelectSpecial = function(id){
+    if (!canBet()) return;
+    setCoin(getCoin() - state.selectedAmt);
+    state.bets[id] += state.selectedAmt;
+    document.querySelectorAll('.xd-special[data-id="'+id+'"]').forEach(function(b){ b.classList.add('is-selected'); });
+    document.querySelectorAll('.xd-special-bet[data-id="'+id+'"]').forEach(function(b){ b.textContent = state.bets[id].toLocaleString('vi-VN'); });
+    var lbl = {'4d':'4 Đỏ','3d1t':'3Đỏ 1Trắng','2d2t':'2Đỏ 2Trắng','1d3t':'1Đỏ 3Trắng','4t':'4 Trắng'}[id];
+    showToast('Đặt ' + state.selectedAmt.toLocaleString('vi-VN') + ' 🪙 vào ' + lbl, 'success');
+  };
+
+  window.xdClearBets = function(){
+    var total = 0;
+    Object.keys(state.bets).forEach(function(k){ total += state.bets[k]; });
+    if (!total) { showToast('Chưa có cược để xóa','error'); return; }
+    if (state.secLeft < 10) { showToast('Còn dưới 10s, không thể hủy','error'); return; }
+    setCoin(getCoin() + total);
+    state.chanPool -= state.bets.chan; state.lePool -= state.bets.le;
+    Object.keys(state.bets).forEach(function(k){ state.bets[k] = 0; });
+    resetBetUI();
+    showToast('Đã hủy toàn bộ cược, hoàn ' + total.toLocaleString('vi-VN') + ' 🪙', 'success');
+  };
+
+  window.xdConfirmBet = function(){
+    var total = 0;
+    Object.keys(state.bets).forEach(function(k){ total += state.bets[k]; });
+    if (!total) { showToast('Bạn chưa đặt cược','error'); return; }
+    showToast('✓ Đã xác nhận cược tổng ' + total.toLocaleString('vi-VN') + ' 🪙', 'success');
+  };
+
+  function resetBetUI(){
+    document.getElementById('xdChanMyBet').textContent = '0';
+    document.getElementById('xdLeMyBet').textContent = '0';
+    document.getElementById('xdChanBox').classList.remove('is-selected','win-flash');
+    document.getElementById('xdLeBox').classList.remove('is-selected','win-flash');
+    document.querySelectorAll('.xd-special').forEach(function(b){ b.classList.remove('is-selected'); });
+    document.querySelectorAll('.xd-special-bet').forEach(function(b){ b.textContent = '0'; });
+  }
+
+  window.xdToggle = function(name){
+    ['history','rules','top'].forEach(function(id){
+      var el = document.getElementById('xd' + id.charAt(0).toUpperCase()+id.slice(1));
+      if (!el) return;
+      if (id === name) el.classList.toggle('hidden');
+      else el.classList.add('hidden');
+    });
+  };
+
+  function rollAndReveal(){
+    state.rolling = true;
+    var plate = document.getElementById('xdPlate');
+    var bowl  = document.getElementById('xdBowl');
+    var disks = document.getElementById('xdDisks');
+    plate.classList.add('xd-shaking');
+    bowl.classList.remove('hidden');
+    disks.style.opacity = '0';
+    document.getElementById('xdResultBadge').textContent = '...';
+    document.getElementById('xdResultText').textContent = '🥥 Đang xóc đĩa...';
+
+    setTimeout(function(){
+      plate.classList.remove('xd-shaking');
+      bowl.classList.add('hidden');
+      disks.style.opacity = '1';
+      // Random 4 disks
+      var disk = [];
+      for (var i=0;i<4;i++) disk.push(Math.random() < .5 ? 'r' : 'w');
+      var redCount = disk.filter(function(c){return c==='r';}).length;
+      // Update visual: 3D metal coins (red/white)
+      var diskEls = disks.children;
+      for (var i=0;i<4;i++) {
+        diskEls[i].className = 'xd-coin3d ' + (disk[i]==='r' ? 'xd-c-red' : 'xd-c-white');
+      }
+      // Reveal flip animation
+      [].forEach.call(diskEls, function(el, i){
+        el.style.animation = 'none';
+        el.offsetHeight; // reflow
+        el.style.animation = 'xdReveal .6s ' + (i*.08) + 's both';
+      });
+      // Determine winners
+      var mainWinner = (redCount===0||redCount===2||redCount===4) ? 'chan' : 'le';
+      var specialWinner = null;
+      if (redCount === 4) specialWinner = '4d';
+      else if (redCount === 3) specialWinner = '3d1t';
+      else if (redCount === 2) specialWinner = '2d2t';
+      else if (redCount === 1) specialWinner = '1d3t';
+      else if (redCount === 0) specialWinner = '4t';
+
+      var label = mainWinner==='chan'?'⚪ CHẴN':'🔴 LẺ';
+      document.getElementById('xdResultBadge').textContent = redCount + 'Đ';
+      document.getElementById('xdResultText').innerHTML = '<span class="text-yellow-300 text-base font-black">' + label + ' · ' + redCount + ' đỏ / ' + (4-redCount) + ' trắng</span>';
+
+      // Calculate payout
+      var totalWin = 0;
+      // Main bet 1:1
+      if (state.bets[mainWinner] > 0) {
+        totalWin += state.bets[mainWinner] * 2;
+        document.getElementById(mainWinner==='chan'?'xdChanBox':'xdLeBox').classList.add('win-flash');
+      }
+      // Special bet 1:15
+      if (specialWinner && state.bets[specialWinner] > 0) {
+        totalWin += state.bets[specialWinner] * 16;
+        document.querySelectorAll('.xd-special[data-id="'+specialWinner+'"]').forEach(function(b){ b.classList.add('win-flash'); });
+      }
+      if (totalWin > 0) {
+        setCoin(getCoin() + totalWin);
+        showToast('🎉 THẮNG! +' + totalWin.toLocaleString('vi-VN') + ' 🪙', 'success');
+      } else {
+        var totalBet = 0;
+        Object.keys(state.bets).forEach(function(k){ totalBet += state.bets[k]; });
+        if (totalBet > 0) showToast('😢 Thua ' + totalBet.toLocaleString('vi-VN') + ' 🪙', 'error');
+      }
+
+      state.history.unshift({ round: state.roundId, disks: disk, redCount: redCount, main: mainWinner, special: specialWinner });
+      saveState();
+      renderHistory();
+      renderHistoryStrip();
+
+      setTimeout(function(){
+        state.roundId++;
+        state.secLeft = ROUND_DURATION;
+        Object.keys(state.bets).forEach(function(k){ state.bets[k] = 0; });
+        state.rolling = false;
+        document.getElementById('xdResultBadge').textContent = '?';
+        resetBetUI();
+        state.chanPool = 40000000 + Math.floor(Math.random()*15000000);
+        state.lePool   = 50000000 + Math.floor(Math.random()*15000000);
+        state.chanCount = 100 + Math.floor(Math.random()*80);
+        state.leCount   = 100 + Math.floor(Math.random()*80);
+        updateRound();
+      }, 4000);
+    }, 2000);
+  }
+
+  function renderHistory(){
+    var el = document.getElementById('xdHistoryList');
+    if (!el) return;
+    if (!state.history.length) { el.innerHTML = '<div class="text-muted text-sm">Chưa có lịch sử...</div>'; return; }
+    el.innerHTML = state.history.slice(0,12).map(function(h){
+      var clr = h.main==='chan'?'bg-blue-600':'bg-red-600';
+      var lbl = h.main==='chan'?'C':'L';
+      var disksHtml = h.disks.map(function(c){ return '<div class="w-3 h-3 rounded-full inline-block mx-px '+(c==='r'?'bg-red-600':'bg-white border border-gray-400')+'"></div>'; }).join('');
+      return '<div class="flex items-center gap-2 text-[12px] py-1 border-b border-line/30">'
+        + '<div class="w-7 h-7 rounded-full '+clr+' grid place-items-center text-white font-black text-xs">'+lbl+'</div>'
+        + '<span class="text-white font-bold w-12 truncate">#'+h.round+'</span>'
+        + '<div>'+disksHtml+'</div>'
+        + '<span class="ml-auto text-yellow-300 font-bold">'+h.redCount+'Đ</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderHistoryStrip(){
+    var el = document.getElementById('xdHistoryStrip');
+    if (!el) return;
+    if (!state.history.length) { el.innerHTML = '<span class="text-[10px] text-yellow-200/40">Chưa có</span>'; return; }
+    el.innerHTML = state.history.slice(0,15).map(function(h){
+      var clr = h.main==='chan'?'bg-blue-600':'bg-red-600';
+      var lbl = h.main==='chan'?'C':'L';
+      return '<div class="w-5 h-5 rounded-full '+clr+' grid place-items-center text-white font-black text-[10px] shrink-0" title="Phiên '+h.round+' = '+h.redCount+'đỏ">'+lbl+'</div>';
+    }).join('');
+  }
+
+  function tick(){
+    try {
+      if (!state.rolling) {
+        state.secLeft--;
+        state.chanPool += Math.floor(Math.random()*30000);
+        state.lePool += Math.floor(Math.random()*30000);
+        state.chanCount += Math.floor(Math.random()*2);
+        state.leCount += Math.floor(Math.random()*2);
+        if (state.secLeft <= 0) rollAndReveal();
+        else updateRound();
+      }
+    } catch(e){ console.error('tick err:', e); }
+  }
+
+  refresh();
+  updateRound();
+  renderHistory();
+  renderHistoryStrip();
+  setInterval(tick, 1000);
+  window.addEventListener('resize', updateRound);
+
+  // Auto-select first chip de user co the dat cuoc ngay
+  var firstChip = document.querySelector('.xd-chip');
+  if (firstChip) firstChip.click();
+})();
+</script>
+
+<%- include('../partials/tw-footer') %>

@@ -1,0 +1,65 @@
+<%
+seo = {
+  title: 'Live '+cat.name+' trực tiếp HD - '+brand.name,
+  description: 'Xem trực tiếp '+cat.name+' HD miễn phí tại '+brand.name+'. Hiện có '+live.length+' trận live, '+upcoming.length+' trận sắp diễn ra. Bình luận tiếng Việt 24/7.',
+  keywords: 'xem '+cat.name.toLowerCase()+' trực tiếp, livestream '+cat.name.toLowerCase()+', '+brand.short+', '+cat.name.toLowerCase()+' hôm nay',
+  canonical: '/the-thao/'+activeCat,
+  breadcrumb: [{ name:cat.name, url:'/the-thao/'+activeCat }],
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header style="background:linear-gradient(135deg,<%= cat.color %>,#1a1f29);padding:32px;border-radius:14px;margin-bottom:20px;color:#fff;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div style="font-size:64px"><%= cat.icon %></div>
+  <div style="flex:1;min-width:240px">
+    <h1 style="font-size:28px;font-weight:900;margin-bottom:4px">Live <%= cat.name %> Trực Tiếp HD</h1>
+    <p style="font-size:14px;opacity:.95"><strong><%= live.length %></strong> trận đang trực tiếp • <strong><%= upcoming.length %></strong> trận sắp diễn ra • Bình luận tiếng Việt 24/7</p>
+  </div>
+  <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" style="background:#fff;color:<%= cat.color %>;padding:12px 28px;border-radius:8px;font-weight:800">💰 Đặt cược <%= cat.name %></a>
+</header>
+
+<nav class="cat-tabs" aria-label="Đổi môn">
+  <a href="/" class="cat-tab"><span class="all-ico">✓</span> Tất cả</a>
+  <% Object.entries(cats).forEach(([k, c]) => { if (c.partnerOnly) return; %>
+    <a href="/the-thao/<%= k %>" class="cat-tab <%= activeCat===k?'active':'' %>"><span class="ico"><%= c.icon %></span> <%= c.name %></a>
+  <% }); %>
+</nav>
+
+<% if (live.length) { %>
+<section class="sec" aria-label="Live">
+  <div class="sec-head"><h2 class="ttl">🔴 Đang trực tiếp <span class="live-badge">LIVE • <%= live.length %></span></h2></div>
+  <div class="stream-grid"><%- include('partials/stream-card', { list: live }) %></div>
+</section>
+<% } %>
+
+<section class="sec" aria-label="Sắp diễn ra">
+  <div class="sec-head"><h2 class="ttl">⏰ Sắp diễn ra</h2></div>
+  <% if (!upcoming.length) { %>
+    <div class="empty"><div class="ico">📅</div><div>Không có trận <%= cat.name.toLowerCase() %> sắp diễn ra trong 2 ngày tới.</div></div>
+  <% } else { %>
+    <div class="stream-grid"><%- include('partials/stream-card', { list: upcoming }) %></div>
+  <% } %>
+</section>
+
+<% if (finished.length) { %>
+<section class="sec" aria-label="Mới kết thúc">
+  <div class="sec-head"><h2 class="ttl">🎬 Mới kết thúc</h2></div>
+  <div class="stream-grid"><%- include('partials/stream-card', { list: finished }) %></div>
+</section>
+<% } %>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2: 'Xem live '+cat.name+' miễn phí tại '+brand.name,
+  intro: 'Trang chuyên biệt phục vụ các fan hâm mộ <strong>'+cat.name+'</strong>. Tất cả trận đấu từ giải lớn nhất thế giới đến giải địa phương đều được tổng hợp và livestream HD miễn phí.',
+  sections: [
+    { h3:'Chất lượng &amp; trải nghiệm', p:'Stream Full HD 1080p, độ trễ thấp dưới 5s, bình luận tiếng Việt 24/7 bởi đội ngũ BLV chuyên nghiệp. Hỗ trợ xem trên mọi thiết bị: PC, mobile, smart TV, Chromecast.' },
+    { h3:'Nhận khuyến mãi khi xem', p:'Đăng ký tại <a href="<%= partner.register %>" target="_blank" rel="noopener">'+brand.domain+'</a> để nhận thưởng 100% nạp lần đầu + voucher cá cược '+cat.name.toLowerCase()+'. Xem live và đặt cược trên cùng một nền tảng.' },
+  ],
+  faqs: [
+    { q:'Có cần đăng ký để xem '+cat.name+' không?', a:'Không. Bạn có thể xem ngay, không cần đăng ký. Tài khoản chỉ cần khi muốn chat, đặt cược hoặc nhận khuyến mãi.' },
+    { q:'Bao nhiêu trận '+cat.name+' được phát mỗi ngày?', a:'Trung bình 10-30 trận/ngày tuỳ mùa giải. Riêng các ngày cuối tuần và Champions League/NBA Playoff có thể lên đến 40+ trận.' },
+  ]
+}}) %>
+
+<%- include('partials/footer') %>

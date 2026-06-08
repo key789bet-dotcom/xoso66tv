@@ -1,0 +1,346 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "username": "sang_user",
+      "fullname": "Nguyen Van Sang",
+      "phone": "0912345678",
+      "email": "sang@x.vn",
+      "vip": 0,
+      "balance": 50000,
+      "status": "active",
+      "joinedAt": 1778040744743
+    },
+    {
+      "id": "u2",
+      "username": "mai_chi",
+      "fullname": "Tran Mai Chi",
+      "phone": "0987654321",
+      "email": "mai@x.vn",
+      "vip": 2,
+      "balance": 25000000,
+      "status": "active",
+      "joinedAt": 1775448744743
+    },
+    {
+      "id": "u3",
+      "username": "thanh_long",
+      "fullname": "Pham Thanh Long",
+      "phone": "0911223344",
+      "email": "long@x.vn",
+      "vip": 1,
+      "balance": 7500000,
+      "status": "active",
+      "joinedAt": 1779336744743
+    },
+    {
+      "id": "u4",
+      "username": "bo_gia_88",
+      "fullname": "Le Van Boss",
+      "phone": "0922334455",
+      "email": "boss@x.vn",
+      "vip": 5,
+      "balance": 1500000000,
+      "status": "active",
+      "joinedAt": 1770264744743
+    },
+    {
+      "id": "u5",
+      "username": "spam_acc",
+      "fullname": "Account spam",
+      "phone": "0933445566",
+      "email": "",
+      "vip": 0,
+      "balance": 0,
+      "status": "banned",
+      "joinedAt": 1780373544743,
+      "banReason": "Gian lan nap thuong"
+    },
+    {
+      "id": "u6",
+      "username": "hot_idol",
+      "fullname": "Nguyen Mai Phuong",
+      "phone": "0944556677",
+      "email": "mp@x.vn",
+      "vip": 3,
+      "balance": 75000000,
+      "status": "active",
+      "joinedAt": 1776744744743
+    },
+    {
+      "id": "umq1txhee",
+      "username": "admin",
+      "fullname": "admin",
+      "phone": "",
+      "email": "",
+      "vip": 1,
+      "balance": 0,
+      "status": "active",
+      "coin": 2800,
+      "joinedAt": 1780718688086,
+      "lastDeposit": {
+        "vnd": 1000000,
+        "at": 1780719121171,
+        "txId": "XS66-LINK-001"
+      },
+      "totalDeposited": 1500000
+    },
+    {
+      "id": "u_y0njs1w1",
+      "username": "test_demo",
+      "fullname": "Demo User",
+      "phone": "0999888777",
+      "email": "demo@test.vn",
+      "password": "12345678",
+      "vip": 1,
+      "balance": 100000,
+      "coin": 100,
+      "status": "active",
+      "joinedAt": 1780751719985
+    }
+  ],
+  "blvs": [],
+  "idols": [
+    {
+      "id": "i1",
+      "name": "Linh Trang",
+      "userId": "u6",
+      "avatar": "https://i.pravatar.cc/80?img=21",
+      "age": 22,
+      "viewers": 3420,
+      "status": "active",
+      "liveNow": true,
+      "totalStreams": 120,
+      "registeredAt": 1777176744743,
+      "room": "Phòng Free",
+      "lock": 0,
+      "color": 198,
+      "emoji": "💃",
+      "height": 165,
+      "weight": 48,
+      "city": "Hà Nội",
+      "job": "Sinh viên ĐH Sân khấu",
+      "hobby": "Hát, nhảy hiện đại, du lịch",
+      "bio": "Cô gái Hà Nội yêu nghệ thuật, đam mê live show. Sẵn sàng kết bạn cùng mọi người."
+    },
+    {
+      "id": "i2",
+      "name": "Mai Chi",
+      "userId": "u2",
+      "avatar": "https://i.pravatar.cc/80?img=22",
+      "age": 24,
+      "viewers": 5180,
+      "status": "active",
+      "liveNow": true,
+      "totalStreams": 230,
+      "registeredAt": 1774584744743,
+      "room": "Phòng Free",
+      "lock": 0,
+      "color": 30,
+      "emoji": "👩",
+      "height": 168,
+      "weight": 50,
+      "city": "TP.HCM",
+      "job": "Model bán thời gian",
+      "hobby": "Yoga, nấu ăn, đi cafe",
+      "bio": "Sài Gòn gái, vui vẻ thân thiện, hay cười."
+    },
+    {
+      "id": "i3",
+      "name": "Thao Vy",
+      "userId": null,
+      "avatar": "https://i.pravatar.cc/80?img=23",
+      "age": 21,
+      "viewers": 1280,
+      "status": "active",
+      "liveNow": false,
+      "totalStreams": 45,
+      "registeredAt": 1778904744743,
+      "room": "Karaoke",
+      "lock": 50,
+      "color": 60,
+      "emoji": "🎤",
+      "height": 162,
+      "weight": 46,
+      "city": "Đà Nẵng",
+      "job": "Streamer toàn thời gian",
+      "hobby": "Karaoke, K-pop, viết blog",
+      "bio": "Giọng hát ngọt như đường, sẵn sàng song ca với mọi yêu cầu của bạn."
+    },
+    {
+      "id": "i4",
+      "name": "Bao Chau",
+      "userId": null,
+      "avatar": "https://i.pravatar.cc/80?img=24",
+      "age": 20,
+      "viewers": 0,
+      "status": "active",
+      "liveNow": false,
+      "totalStreams": 0,
+      "registeredAt": 1780621944743,
+      "note": "Sinh vien nam 3, IELTS 7.0",
+      "room": "Karaoke",
+      "lock": 50,
+      "color": 90,
+      "emoji": "🎵",
+      "height": 166,
+      "weight": 49,
+      "city": "Hải Phòng",
+      "job": "Ca sĩ tự do",
+      "hobby": "Acoustic, đàn guitar",
+      "bio": "Yêu nhạc acoustic, có thể hát hơn 200 bài."
+    },
+    {
+      "id": "i5",
+      "name": "Khanh Linh",
+      "userId": null,
+      "avatar": "https://i.pravatar.cc/80?img=25",
+      "age": 23,
+      "viewers": 0,
+      "status": "active",
+      "liveNow": true,
+      "totalStreams": 0,
+      "registeredAt": 1780603944743,
+      "note": "Cua hang thoi trang chu",
+      "room": "Phòng VIP",
+      "lock": 200,
+      "color": 120,
+      "emoji": "👑",
+      "height": 170,
+      "weight": 52,
+      "city": "Hà Nội",
+      "job": "Influencer 100K follow",
+      "hobby": "Cosplay, makeup, du lịch",
+      "bio": "Top idol VIP của XOSO66. Mỗi đêm 1 phong cách makeup khác nhau.",
+      "pinCode": "1111",
+      "pinSetAt": 1780842680780,
+      "liveTitle": "ddd"
+    }
+  ],
+  "obs": [],
+  "auditLog": [
+    {
+      "id": "a_5xmhf8wc",
+      "at": 1780894191132,
+      "action": "Delete BLV",
+      "target": "BLV Quang Huy",
+      "by": "admin"
+    },
+    {
+      "id": "a_7pcbpq74",
+      "at": 1780894188216,
+      "action": "Delete BLV",
+      "target": "BLV Tung Mom",
+      "by": "admin"
+    },
+    {
+      "id": "a_k79joo20",
+      "at": 1780894185900,
+      "action": "Delete BLV",
+      "target": "BLV Hoang Hai",
+      "by": "admin"
+    },
+    {
+      "id": "a_u8ruc0eq",
+      "at": 1780894183434,
+      "action": "Delete BLV",
+      "target": "BLV Anh Quan",
+      "by": "admin"
+    },
+    {
+      "id": "a_uvm3ps0j",
+      "at": 1780894178774,
+      "action": "Delete BLV",
+      "target": "BLV Tan Binh",
+      "by": "admin"
+    },
+    {
+      "id": "a_qxz3wvw5",
+      "at": 1780894153835,
+      "action": "Delete OBS request",
+      "target": "BLV Tan Binh",
+      "by": "admin"
+    },
+    {
+      "id": "a_s1xr32k6",
+      "at": 1780894151526,
+      "action": "Delete OBS request",
+      "target": "BLV Tung Mom",
+      "by": "admin"
+    },
+    {
+      "id": "a_6tlw01m4",
+      "at": 1780894148349,
+      "action": "Delete OBS request",
+      "target": "Idol Linh Trang",
+      "by": "admin"
+    },
+    {
+      "id": "a_n1wquntl",
+      "at": 1780894144390,
+      "action": "Delete OBS request",
+      "target": "BLV Anh Quan",
+      "by": "admin"
+    },
+    {
+      "id": "a_tr9wzw77",
+      "at": 1780894141021,
+      "action": "Delete OBS request",
+      "target": "Idol Bao Chau",
+      "by": "admin"
+    },
+    {
+      "id": "a_fjgrivr2",
+      "at": 1780894137323,
+      "action": "Delete OBS request",
+      "target": "Idol i5",
+      "by": "admin"
+    },
+    {
+      "id": "a_j7548xl5",
+      "at": 1780753321529,
+      "action": "Bat stream cho Idol Linh Trang",
+      "target": "admin",
+      "by": "admin"
+    },
+    {
+      "id": "a_vkvhrxfh",
+      "at": 1780751719985,
+      "action": "Tao user moi: test_demo",
+      "target": "admin",
+      "by": "admin"
+    },
+    {
+      "id": "a_jyq12fnd",
+      "at": 1780632880212,
+      "action": "Approve OBS",
+      "target": "BLV Tan Binh (sk_blvtanbinh_0frx8314)",
+      "by": "admin"
+    },
+    {
+      "id": "a_c68gzhbn",
+      "at": 1780632876257,
+      "action": "Approve OBS",
+      "target": "Idol Bao Chau (sk_idolbaochau_6ulryf5l)",
+      "by": "admin"
+    },
+    {
+      "id": "a_onwssbeh",
+      "at": 1780632857062,
+      "action": "Approve IDOL",
+      "target": "Khanh Linh",
+      "by": "admin"
+    },
+    {
+      "id": "a_7u73edk9",
+      "at": 1780632852545,
+      "action": "Approve IDOL",
+      "target": "Bao Chau",
+      "by": "admin"
+    }
+  ],
+  "admin2fa": {
+    "secret": "IRKVCXSQFB2FA326PI5U4KLUJ5QVW4BB",
+    "enabledAt": 1780892832726
+  }
+}

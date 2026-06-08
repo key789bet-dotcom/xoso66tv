@@ -1,0 +1,181 @@
+<aside id="sidebar" class="bg-gradient-to-b from-[#13171f] to-bg border-r border-line overflow-y-auto fixed md:sticky top-0 bottom-0 left-0 h-screen w-72 md:w-auto z-50 -translate-x-full md:translate-x-0 transition-transform scrollbar-thin">
+
+  <nav class="p-2">
+    <!-- Logo to voi hieu ung background dong -->
+    <a href="/" class="logo-box relative flex items-center justify-center px-2 py-6 mb-2 rounded-xl overflow-hidden group transition-colors">
+      <!-- Animated gradient background -->
+      <div class="logo-bg-grad absolute inset-0 opacity-70" aria-hidden="true"></div>
+      <!-- Spotlight rotating -->
+      <div class="logo-spotlight absolute inset-0 opacity-60" aria-hidden="true"></div>
+      <!-- Sparkles -->
+      <div class="logo-sparkle absolute inset-0 pointer-events-none" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <!-- Logo with glow -->
+      <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="relative z-10 max-h-20 w-auto logo-pulse" onerror="this.outerHTML='<div class=&quot;relative z-10 font-black text-xl text-white logo-pulse&quot;><%= brand.short %></div>'">
+    </a>
+
+    <style>
+      .logo-box { background: linear-gradient(135deg, #1a0e1f, #0e1116, #1a0e1f); }
+      .logo-box::before {
+        content:'';position:absolute;inset:0;border-radius:inherit;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,122,24,.15), transparent 70%);
+        background-size:200% 200%;
+        animation: logoSweep 4s linear infinite;
+        z-index:1;
+      }
+      .logo-bg-grad {
+        background: radial-gradient(ellipse at 20% 50%, rgba(255,122,24,.5), transparent 60%),
+                    radial-gradient(ellipse at 80% 50%, rgba(233,30,99,.4), transparent 60%),
+                    radial-gradient(ellipse at 50% 100%, rgba(241,196,15,.3), transparent 60%);
+        background-size: 200% 200%;
+        animation: logoBgShift 8s ease-in-out infinite alternate;
+        z-index:0;
+      }
+      .logo-spotlight {
+        background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255,122,24,.25) 60deg, transparent 120deg, transparent 240deg, rgba(241,196,15,.2) 300deg, transparent 360deg);
+        animation: logoSpin 10s linear infinite;
+        z-index:0;
+      }
+      @keyframes logoBgShift {
+        0%   { background-position: 0% 50%, 100% 50%, 50% 100%; }
+        50%  { background-position: 100% 0%,  0% 100%, 0% 0%;   }
+        100% { background-position: 50% 100%, 50% 0%,  100% 50%;}
+      }
+      @keyframes logoSweep {
+        0%   { background-position: -100% -100%; }
+        100% { background-position:  100%  100%; }
+      }
+      @keyframes logoSpin {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+      .logo-pulse {
+        filter: drop-shadow(0 0 8px rgba(255,122,24,.6)) drop-shadow(0 0 16px rgba(255,122,24,.3));
+        animation: logoPulseGlow 2.5s ease-in-out infinite;
+      }
+      @keyframes logoPulseGlow {
+        0%, 100% { filter: drop-shadow(0 0 8px rgba(255,122,24,.6)) drop-shadow(0 0 16px rgba(255,122,24,.3)); transform: scale(1); }
+        50%      { filter: drop-shadow(0 0 14px rgba(255,200,80,.9)) drop-shadow(0 0 28px rgba(255,122,24,.5)); transform: scale(1.03); }
+      }
+      /* Sparkles */
+      .logo-sparkle span {
+        position: absolute; width:4px; height:4px; border-radius:50%;
+        background: #fff; box-shadow: 0 0 6px #fff, 0 0 12px rgba(255,122,24,.8);
+        opacity: 0;
+        animation: sparkleFloat 4s ease-in infinite;
+      }
+      .logo-sparkle span:nth-child(1) { left:10%; top:80%; animation-delay: 0s;   }
+      .logo-sparkle span:nth-child(2) { left:30%; top:90%; animation-delay: .6s;  }
+      .logo-sparkle span:nth-child(3) { left:55%; top:85%; animation-delay: 1.2s; }
+      .logo-sparkle span:nth-child(4) { left:70%; top:95%; animation-delay: 1.8s; }
+      .logo-sparkle span:nth-child(5) { left:85%; top:80%; animation-delay: 2.4s; }
+      .logo-sparkle span:nth-child(6) { left:45%; top:75%; animation-delay: 3.0s; }
+      @keyframes sparkleFloat {
+        0%   { transform: translateY(0) scale(0); opacity: 0; }
+        20%  { transform: translateY(-10px) scale(1); opacity: 1; }
+        80%  { transform: translateY(-60px) scale(.8); opacity: .8; }
+        100% { transform: translateY(-90px) scale(0); opacity: 0; }
+      }
+      .logo-box:hover .logo-pulse { animation-duration: 1s; }
+    </style>
+    <%
+      var items = [
+        { href:'/',              key:'home',     text:'Trang chủ',              a:'home',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>' },
+        { href:'/lich-phat-song',key:'lich',     text:'Lịch phát sóng',         a:'lich',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' },
+        { href:'/su-kien',       key:'su-kien',  text:'Sự kiện & Khuyến mãi',   a:'su-kien', hot:true,
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>' },
+        { href:'/qua-tang',      key:'qua-tang', text:'Quà tặng',               a:'qua-tang',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>' },
+        { href:'/video-noi-bat', key:'video',    text:'Video nổi bật',          a:'video',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' },
+        { href:'/tin-tuc',       key:'news',     text:'Tin tức',                a:'news', badge:'HOT',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6z"/></svg>' },
+        { href:'/mini-game',     key:'mini',     text:'Mini Game',              a:'mini',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><rect x="2" y="6" width="20" height="12" rx="3"/><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><circle cx="16" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>' },
+        { href:'/idol-studio',   key:'studio',   text:'Lên sóng (Studio)',      a:'studio', badge:'LIVE', streamerOnly:true,
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>' }
+      ];
+    %>
+    <% items.forEach(function(it){ var ac = active===it.a; %>
+      <a href="<%= it.href %>" <%= it.streamerOnly ? 'data-streamer-only="1" style="display:none"' : '' %> class="relative flex items-center gap-2.5 px-3 py-2.5 my-0.5 rounded-lg text-sm font-semibold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/20 to-transparent text-pri-light' : 'text-gray-100 hover:bg-bg-soft hover:text-white' %>">
+        <% if (ac) { %><span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-pri rounded-r"></span><% } %>
+        <span class="w-6 h-6 shrink-0 flex items-center justify-center <%= ac ? 'text-pri-light' : 'text-pri' %>">
+          <%- it.svg %>
+        </span>
+        <span class="flex-1"><%= it.text %></span>
+        <% if (it.hot)   { %><span class="text-base">&#128293;</span><% } %>
+        <% if (it.badge) { %><span class="bg-live text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded animate-pulse-live"><%= it.badge %></span><% } %>
+      </a>
+    <% }); %>
+
+    <!-- Danh mục thể thao -->
+    <div class="mt-3">
+      <div class="px-3 pt-2.5 pb-1.5 text-dim text-[11px] uppercase tracking-widest font-extrabold flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span> Danh mục phát sóng
+      </div>
+      <% Object.entries(cats).forEach(function(pair){
+         var key=pair[0], c=pair[1]; var ac=activeCat===key;
+         var href = key==='casino'?'/casino':key==='idol'?'/idol-live':key==='esports'?'/esports':key==='hot'?'/':'/the-thao/'+key;
+         var cnt = catCounts[key] || 0;
+      %>
+        <a href="<%= href %>" class="relative flex items-center gap-2.5 px-3 py-2.5 my-0.5 rounded-lg text-sm font-semibold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/20 to-transparent text-pri-light' : 'text-gray-100 hover:bg-bg-soft hover:text-white' %>">
+          <% if (ac) { %><span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-pri rounded-r"></span><% } %>
+          <span class="w-6 h-6 shrink-0 flex items-center justify-center text-lg"><%= c.icon %></span>
+          <span class="flex-1"><%= c.name %></span>
+          <% if (cnt > 0) { %><span class="<%= ac?'bg-pri text-white':'bg-bg-deep text-pri-light' %> px-2 py-0.5 rounded-full text-[11px] font-extrabold min-w-[22px] text-center"><%= cnt %></span><% } %>
+        </a>
+      <% }); %>
+    </div>
+  </nav>
+
+  <!-- ===== CSKH CARD (an tren trang idol room va trang co chat rieng) ===== -->
+
+  <% var _hideCskh = (typeof path !== 'undefined' && path && (path.indexOf('/idol/') === 0 || path.indexOf('/live/') === 0)); %>
+  <% if (!_hideCskh) { %>
+  <div class="mx-2 my-4 relative rounded-xl overflow-hidden cskh-card">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1a1f29] via-[#1f1818] to-[#13171f]"></div>
+    <div class="absolute inset-0 opacity-40 cskh-glow"></div>
+    <div class="absolute inset-0 border border-pri/30 rounded-xl pointer-events-none"></div>
+    <div class="relative p-3.5">
+      <div class="flex items-center gap-2.5 mb-2.5">
+        <div class="relative shrink-0">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center shadow-lg shadow-pri/30">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-bg-deep cskh-pulse"></span>
+        </div>
+        <div class="flex-1 min-w-0 text-left">
+          <div class="flex items-center gap-1.5">
+            <span class="text-white font-extrabold text-[13px] truncate">Hỗ trợ CSKH</span>
+            <span class="cskh-badge text-[9px] font-black text-white px-1.5 py-0.5 rounded shrink-0">24/7</span>
+          </div>
+          <div class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+            <span class="inline-block w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span>
+            Đang online · Phản hồi &lt;1 phút
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-1.5 mb-2">
+        <a href="<%= partner.telegram %>" target="_blank" rel="noopener" class="group relative flex items-center justify-center gap-1 bg-gradient-to-br from-[#2aabee] to-[#229ed9] hover:from-[#229ed9] hover:to-[#1c87b8] text-white py-2 rounded-lg text-[11px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2aabee]/40 overflow-hidden">
+          <span class="absolute inset-0 cskh-shine opacity-0 group-hover:opacity-100"></span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" class="relative"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+          <span class="relative">Telegram</span>
+        </a>
+        <a href="/lien-he" class="group relative flex items-center justify-center gap-1 bg-gradient-to-br from-pri to-pink hover:from-pri-light hover:to-pri text-white py-2 rounded-lg text-[11px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-pri/40 overflow-hidden">
+          <span class="absolute inset-0 cskh-shine opacity-0 group-hover:opacity-100"></span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="relative"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="relative">Live Chat</span>
+        </a>
+      </div>
+      <div class="flex items-center justify-between text-[10px] text-muted/80 pt-1.5 border-t border-line/40">
+        <span>📞 Hotline</span>
+        <span>✉ Email</span>
+        <span class="flex items-center gap-1 text-pri-light font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Miễn phí</span>
+      </div>
+    </div>
+  </div>
+  <% } %>
+</aside>

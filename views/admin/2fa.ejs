@@ -1,0 +1,112 @@
+<%- include('partials/layout-start', { title:'2FA Security', active:'2fa', obsPending: obsPending, adminUser: adminUser }) %>
+
+<section class="max-w-md mx-auto bg-bg-card border-2 border-pri/40 rounded-2xl p-6 shadow-2xl">
+  <div class="text-center mb-4">
+    <div class="text-5xl mb-2">🛡️</div>
+    <h1 class="text-2xl font-black text-white">2-Factor Authentication</h1>
+    <p class="text-muted text-sm mt-1">Bảo mật tài khoản admin với mã OTP từ điện thoại</p>
+  </div>
+
+  <div id="status2fa" class="mb-4 p-3 rounded-lg text-center text-sm font-bold"></div>
+
+  <!-- Setup section (chưa enabled) -->
+  <div id="setup2fa" class="hidden">
+    <div class="bg-bg-deep p-4 rounded-xl mb-3 text-center">
+      <p class="text-[12px] text-muted mb-2">📱 Quét QR bằng <b class="text-pri-light">Google Authenticator</b>, <b class="text-pri-light">Microsoft Authenticator</b>, hoặc <b class="text-pri-light">Authy</b></p>
+      <img id="qrImage" class="mx-auto rounded-lg border border-line bg-white" style="max-width:200px" alt="2FA QR">
+      <div class="mt-3 bg-bg-soft p-2 rounded text-[11px] font-mono break-all" id="secretCode">...</div>
+      <button onclick="copySecret()" class="text-[10px] text-pri-light mt-1">📋 Copy secret</button>
+    </div>
+    <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Nhập mã 6 số từ app để xác nhận</label>
+    <div class="flex gap-2">
+      <input id="setupOtp" type="tel" maxlength="6" placeholder="123456" class="flex-1 bg-bg-deep border border-line text-white text-xl text-center font-black tabular-nums px-3 py-3 rounded-lg outline-none focus:border-pri">
+      <button onclick="verifySetup()" class="bg-gradient-to-r from-emerald-500 to-green-700 hover:brightness-110 text-white px-5 rounded-lg font-bold active:scale-95">Xác nhận</button>
+    </div>
+  </div>
+
+  <!-- Enabled section -->
+  <div id="enabled2fa" class="hidden">
+    <div class="bg-emerald-900/30 border border-emerald-500/50 rounded-xl p-4 text-center mb-3">
+      <div class="text-4xl mb-2">✅</div>
+      <h3 class="text-emerald-300 font-bold">2FA đang hoạt động</h3>
+      <p class="text-[12px] text-emerald-200 mt-1">Mỗi lần login admin sẽ cần mã OTP từ app</p>
+    </div>
+    <button onclick="disable2FA()" class="w-full bg-bg-soft hover:bg-live border border-line hover:border-live text-white py-2.5 rounded-xl font-bold text-sm">🔓 Tắt 2FA</button>
+  </div>
+
+  <!-- Setup trigger button -->
+  <button onclick="startSetup()" id="startBtn" class="hidden w-full bg-gradient-to-r from-pri to-live text-white py-3 rounded-xl font-extrabold text-sm shadow-lg shadow-pri/40 active:scale-95">
+    🛡️ Bật 2FA ngay
+  </button>
+</section>
+
+<script>
+(function(){
+  function setStatus(html, type){
+    var el = document.getElementById('status2fa');
+    el.innerHTML = html;
+    el.className = 'mb-4 p-3 rounded-lg text-center text-sm font-bold ' +
+      (type === 'success' ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/40' :
+       type === 'error'   ? 'bg-red-900/30 text-red-300 border border-red-500/40' :
+                            'bg-bg-soft text-gray-300 border border-line');
+  }
+  async function loadStatus(){
+    try {
+      var r = await fetch('/api/auth/2fa/status', { credentials:'same-origin' });
+      var j = await r.json();
+      if (!j.ok) { setStatus('❌ ' + (j.error || 'Cần đăng nhập admin'), 'error'); return; }
+      if (j.enabled) {
+        setStatus('🟢 2FA đã kích hoạt', 'success');
+        document.getElementById('enabled2fa').classList.remove('hidden');
+      } else {
+        setStatus('⚠️ 2FA chưa kích hoạt - Khuyến nghị bật ngay', 'error');
+        document.getElementById('startBtn').classList.remove('hidden');
+      }
+    } catch(e) { setStatus('❌ ' + e.message, 'error'); }
+  }
+  window.startSetup = async function(){
+    try {
+      var r = await fetch('/api/auth/2fa/setup', { method:'POST', credentials:'same-origin' });
+      var j = await r.json();
+      if (!j.ok) return setStatus('❌ ' + (j.error || 'Lỗi'), 'error');
+      document.getElementById('qrImage').src = j.qrCode;
+      document.getElementById('secretCode').textContent = j.secret;
+      document.getElementById('setup2fa').classList.remove('hidden');
+      document.getElementById('startBtn').classList.add('hidden');
+      setStatus('📱 Quét QR code ở dưới rồi nhập mã 6 số', '');
+      window._currentSecret = j.secret;
+    } catch(e) { setStatus('❌ ' + e.message, 'error'); }
+  };
+  window.verifySetup = async function(){
+    var otp = document.getElementById('setupOtp').value.trim();
+    if (!/^[0-9]{6}$/.test(otp)) return setStatus('❌ Mã OTP phải 6 chữ số', 'error');
+    try {
+      var r = await fetch('/api/auth/2fa/verify-setup', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        credentials:'same-origin',
+        body: JSON.stringify({ token: otp })
+      });
+      var j = await r.json();
+      if (!j.ok) return setStatus('❌ ' + (j.error || 'Mã không đúng'), 'error');
+      setStatus('✅ 2FA đã kích hoạt thành công!', 'success');
+      setTimeout(loadStatus, 1000);
+    } catch(e) { setStatus('❌ ' + e.message, 'error'); }
+  };
+  window.disable2FA = async function(){
+    if (!confirm('Tắt 2FA? Tài khoản admin sẽ chỉ dùng password thường (kém an toàn).')) return;
+    try {
+      var r = await fetch('/api/auth/2fa/disable', { method:'POST', credentials:'same-origin' });
+      var j = await r.json();
+      if (!j.ok) return setStatus('❌ ' + (j.error || 'Lỗi'), 'error');
+      setStatus('🔓 Đã tắt 2FA', '');
+      setTimeout(function(){ location.reload(); }, 800);
+    } catch(e) { setStatus('❌ ' + e.message, 'error'); }
+  };
+  window.copySecret = function(){
+    if (window._currentSecret) navigator.clipboard.writeText(window._currentSecret).then(function(){ alert('Đã copy'); });
+  };
+  loadStatus();
+})();
+</script>
+
+<%- include('partials/layout-end') %>

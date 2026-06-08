@@ -1,0 +1,223 @@
+<%
+seo = {
+  title: 'Quên mật khẩu - Khôi phục tài khoản '+brand.name,
+  canonical: '/quen-mat-khau',
+  noindex: true
+};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<div class="min-h-[calc(100vh-220px)] grid place-items-center px-4 py-8 relative">
+  <a href="/" class="absolute top-2 right-2 w-9 h-9 rounded-full bg-pri text-white grid place-items-center font-black text-lg hover:bg-pri-dark transition-colors shadow-lg">&times;</a>
+
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-5">
+      <a href="/" class="inline-block">
+        <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="h-16 mx-auto drop-shadow-lg" onerror="this.outerHTML='<div class=&quot;text-3xl font-black text-white&quot;><%= brand.name %></div>'">
+      </a>
+    </div>
+
+    <section class="bg-[#1a1f29] border border-line/60 rounded-2xl shadow-2xl overflow-hidden p-5">
+      <h1 class="text-2xl font-black text-white mb-1.5">Khôi phục mật khẩu &#128273;</h1>
+      <p class="text-muted text-sm mb-5">Nhập email đã đăng ký, hệ thống sẽ gửi mã OTP để đặt lại mật khẩu.</p>
+
+      <div class="flex justify-between mb-6 relative">
+        <div class="absolute top-3.5 left-[14%] right-[14%] h-0.5 bg-line z-0"></div>
+        <% [1,2,3].forEach(function(n){ var labels=['Xác thực','Nhập OTP','Mật khẩu mới']; %>
+          <div class="step flex flex-col items-center gap-1.5 relative z-[1]" data-step="<%= n %>">
+            <div class="num w-7 h-7 rounded-full grid place-items-center font-extrabold text-[13px] <%= n===1 ? 'bg-pri border-2 border-pri text-white shadow-[0_0_0_4px_rgba(255,122,24,.2)]' : 'bg-bg-deep border-2 border-line text-muted' %>"><%= n %></div>
+            <div class="lbl text-[11px] font-semibold <%= n===1 ? 'text-gray-100':'text-muted' %>"><%= labels[n-1] %></div>
+          </div>
+        <% }); %>
+      </div>
+
+      <form id="step1" class="space-y-3.5">
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center justify-center gap-1.5 bg-bg-deep border border-line px-3 py-3 rounded-lg cursor-pointer text-sm font-semibold has-[:checked]:border-pri has-[:checked]:text-pri-light has-[:checked]:bg-pri/10">
+            <input type="radio" name="method" value="email" checked class="accent-pri"> &#9993; Email
+          </label>
+          <label class="flex items-center justify-center gap-1.5 bg-bg-deep border border-line px-3 py-3 rounded-lg cursor-pointer text-sm font-semibold has-[:checked]:border-pri has-[:checked]:text-pri-light has-[:checked]:bg-pri/10">
+            <input type="radio" name="method" value="telegram" class="accent-pri"> &#128238; Telegram
+          </label>
+        </div>
+
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted" id="contactIcon">&#128231;</span>
+          <input id="contact" type="text" required class="w-full bg-bg-deep border border-line text-gray-100 pl-10 pr-3 py-3 rounded-lg outline-none focus:border-pri" placeholder="email@example.com">
+        </div>
+
+        <div id="teleHint" class="hidden bg-sky-500/10 border border-sky-500/40 rounded-lg p-3 text-sky-300 text-xs">
+          <div class="font-bold mb-1">&#128161; Lần đầu dùng Telegram?</div>
+          Truy cập <a id="botLink" href="#" target="_blank" rel="noopener" class="text-white font-bold underline">@bot</a> và gửi lệnh <code class="bg-black/30 px-1 rounded">/start</code> để nhận ChatID, sau đó dán vào tài khoản trong trang cá nhân.
+        </div>
+
+        <div class="flex items-stretch gap-2">
+          <input id="cap1" type="text" required maxlength="5" pattern="[0-9]{5}" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-3 rounded-lg outline-none focus:border-pri tracking-widest" placeholder="Mã CAPTCHA">
+          <div id="capBox1" class="w-[130px] h-[48px] bg-white rounded-lg cursor-pointer overflow-hidden" onclick="renderCaptcha('capBox1')"></div>
+          <button type="button" onclick="renderCaptcha('capBox1')" class="w-12 h-12 bg-pri hover:bg-pri-dark text-white rounded-lg grid place-items-center text-lg font-bold">&#8635;</button>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-gradient-to-b from-pri to-pri-dark text-white rounded-lg font-extrabold shadow-pri hover:brightness-110">&#128228; GỬI MÃ OTP</button>
+        <p class="text-center text-sm text-muted">Nhớ mật khẩu? <a href="/dang-nhap" class="text-pri-light font-semibold">Đăng nhập &rarr;</a></p>
+      </form>
+
+      <form id="step2" class="space-y-3.5 hidden">
+        <div class="bg-emerald-500/10 border border-emerald-500 rounded-lg p-3 text-emerald-400 text-xs font-semibold">&#9989; Mã OTP đã gửi tới <b id="contactInfo">-</b></div>
+        <div class="grid grid-cols-6 gap-2">
+          <% for (var i=0;i<6;i++) { %><input class="otp-cell bg-bg-deep border border-line text-gray-100 text-center text-2xl font-extrabold py-3.5 rounded-lg outline-none focus:border-pri" maxlength="1" pattern="[0-9]"><% } %>
+        </div>
+        <p class="text-[11px] text-muted text-center">Còn lại <span id="cd" class="text-pri-light font-bold">60s</span> &middot; <a href="#" id="rs" class="text-muted font-semibold" onclick="event.preventDefault()">Gửi lại OTP</a></p>
+        <button type="submit" class="w-full py-3 bg-gradient-to-b from-pri to-pri-dark text-white rounded-lg font-extrabold shadow-pri">&check; XÁC NHẬN OTP</button>
+        <p class="text-center text-sm"><a href="#" onclick="event.preventDefault();showStep(1)" class="text-pri-light font-semibold">&larr; Quay lại</a></p>
+      </form>
+
+      <form id="step3" class="space-y-3.5 hidden">
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">&#128274;</span>
+          <input id="newpw" type="password" required minlength="8" class="w-full bg-bg-deep border border-line text-gray-100 pl-10 pr-10 py-3 rounded-lg outline-none focus:border-pri" placeholder="Mật khẩu mới (tối thiểu 8 ký tự)">
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted bg-transparent border-0" onclick="togglePw('newpw',this)">&#128065;</button>
+        </div>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">&#128272;</span>
+          <input id="newpw2" type="password" required class="w-full bg-bg-deep border border-line text-gray-100 pl-10 pr-10 py-3 rounded-lg outline-none focus:border-pri" placeholder="Nhập lại mật khẩu">
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted bg-transparent border-0" onclick="togglePw('newpw2',this)">&#128065;</button>
+        </div>
+        <button type="submit" class="w-full py-3 bg-gradient-to-b from-pri to-pri-dark text-white rounded-lg font-extrabold shadow-pri">&#128190; ĐẶT LẠI MẬT KHẨU</button>
+      </form>
+    </section>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-20 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
+
+<script src="/static/js/captcha.js"></script>
+<script>
+var ST = { contact:'', method:'email', token:'' };
+function togglePw(id, btn){ var i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; }
+function showToast(msg, kind){
+  var t=document.getElementById('toast');
+  var c=kind==='success'?'!border-l-emerald-500':kind==='error'?'!border-l-live':'!border-l-pri';
+  t.className='fixed top-20 right-5 bg-bg-card border border-line border-l-4 px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-0 transition-transform '+c;
+  t.textContent=msg;
+  setTimeout(function(){ t.className=t.className.replace('translate-x-0','translate-x-[120%]') }, 3800);
+}
+function showStep(n){
+  [1,2,3].forEach(function(i){
+    document.getElementById('step'+i).classList.toggle('hidden', i!==n);
+    var s = document.querySelector('[data-step="'+i+'"]');
+    s.querySelector('.num').className = 'num w-7 h-7 rounded-full grid place-items-center font-extrabold text-[13px] ' +
+      (i<n ? 'bg-emerald-500 border-2 border-emerald-500 text-white' :
+       i===n ? 'bg-pri border-2 border-pri text-white shadow-[0_0_0_4px_rgba(255,122,24,.2)]' :
+       'bg-bg-deep border-2 border-line text-muted');
+    s.querySelector('.lbl').className = 'lbl text-[11px] font-semibold ' + (i<=n ? 'text-gray-100':'text-muted');
+  });
+}
+renderCaptcha('capBox1');
+
+function updateMethodUi(){
+  var m = document.querySelector('input[name=method]:checked').value;
+  var input = document.getElementById('contact');
+  var icon  = document.getElementById('contactIcon');
+  var hint  = document.getElementById('teleHint');
+  if (m === 'telegram') {
+    icon.innerHTML = '&#128241;';
+    input.placeholder = 'email / SĐT / username đã đăng ký';
+    input.type = 'text';
+    hint.classList.remove('hidden');
+  } else {
+    icon.innerHTML = '&#128231;';
+    input.placeholder = 'email@example.com';
+    input.type = 'email';
+    hint.classList.add('hidden');
+  }
+}
+document.querySelectorAll('input[name=method]').forEach(function(r){ r.addEventListener('change', updateMethodUi); });
+updateMethodUi();
+
+document.querySelectorAll('.otp-cell').forEach(function(cell, i, all){
+  cell.addEventListener('input', function(e){ if (e.target.value && i<all.length-1) all[i+1].focus(); });
+  cell.addEventListener('keydown', function(e){ if (e.key==='Backspace' && !e.target.value && i>0) all[i-1].focus(); });
+});
+
+document.getElementById('step1').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var contact = document.getElementById('contact').value.trim();
+  var method  = document.querySelector('input[name=method]:checked').value;
+  var cap     = document.getElementById('cap1').value.trim();
+  if (!contact) { showToast('Vui lòng nhập email/SĐT','error'); return; }
+  if (!verifyCaptcha(cap)) { showToast('Captcha sai','error'); renderCaptcha('capBox1'); document.getElementById('cap1').value=''; return; }
+  var btn = this.querySelector('button[type=submit]'); btn.disabled=true; var ot=btn.textContent; btn.textContent='Đang gửi OTP...';
+  try {
+    var r = await fetch('/api/quen-mat-khau/send-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contact: contact, method: method }) });
+    var j = await r.json();
+    if (j.ok) {
+      ST.contact = contact; ST.method = method;
+      document.getElementById('contactInfo').textContent = contact + (method==='telegram'?' (Telegram)':'');
+      var msg = j.demo ? ('Demo: OTP = '+j.code) : (method==='telegram' ? 'Đã gửi OTP qua Telegram, mở bot để xem' : 'Đã gửi OTP, vui lòng check email');
+      showToast(msg, 'success');
+      showStep(2); startCd();
+    } else if (j.needConnect && j.botLink) {
+      var link = document.getElementById('botLink');
+      link.href = j.botLink;
+      link.textContent = '@' + (j.botUsername || 'Bot');
+      document.getElementById('teleHint').classList.remove('hidden');
+      showToast(j.message || 'Vui lòng kết nối Telegram bot trước','error');
+      renderCaptcha('capBox1'); document.getElementById('cap1').value='';
+    } else {
+      showToast(j.message || 'Gửi OTP thất bại','error'); renderCaptcha('capBox1'); document.getElementById('cap1').value='';
+    }
+  } catch(err){ showToast('Lỗi kết nối','error'); }
+  btn.disabled=false; btn.textContent=ot;
+});
+
+document.getElementById('step2').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var code = Array.from(document.querySelectorAll('.otp-cell')).map(function(x){return x.value}).join('');
+  if (code.length !== 6) { showToast('Vui lòng nhập đủ 6 số OTP','error'); return; }
+  var btn = this.querySelector('button[type=submit]'); btn.disabled=true; var ot=btn.textContent; btn.textContent='Đang xác thực...';
+  try {
+    var r = await fetch('/api/quen-mat-khau/verify-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contact: ST.contact, code: code }) });
+    var j = await r.json();
+    if (j.ok) { ST.token = j.token; showToast('Xác thực OTP thành công','success'); showStep(3); }
+    else { showToast(j.message || 'Sai OTP','error'); document.querySelectorAll('.otp-cell').forEach(function(c){c.value=''}); document.querySelectorAll('.otp-cell')[0].focus(); }
+  } catch(err){ showToast('Lỗi kết nối','error'); }
+  btn.disabled=false; btn.textContent=ot;
+});
+
+document.getElementById('step3').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var p = document.getElementById('newpw').value, p2 = document.getElementById('newpw2').value;
+  if (p.length<8) { showToast('Mật khẩu tối thiểu 8 ký tự','error'); return; }
+  if (p !== p2) { showToast('Mật khẩu không khớp','error'); return; }
+  var btn = this.querySelector('button[type=submit]'); btn.disabled=true; var ot=btn.textContent; btn.textContent='Đang cập nhật...';
+  try {
+    var r = await fetch('/api/quen-mat-khau/reset', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: ST.token, password: p }) });
+    var j = await r.json();
+    if (j.ok) { showToast('Đổi mật khẩu thành công!','success'); setTimeout(function(){ location.href='/dang-nhap' }, 1800); }
+    else { showToast(j.message || 'Thất bại','error'); btn.disabled=false; btn.textContent=ot; }
+  } catch(err){ showToast('Lỗi kết nối','error'); btn.disabled=false; btn.textContent=ot; }
+});
+
+var cdTimer;
+function startCd(){
+  var s = 60; clearInterval(cdTimer);
+  var el = document.getElementById('cd'), btn = document.getElementById('rs');
+  btn.style.pointerEvents = 'none'; btn.classList.remove('text-pri-light');
+  cdTimer = setInterval(function(){
+    s--; el.textContent = s+'s';
+    if (s <= 0) {
+      clearInterval(cdTimer); el.textContent = '0s';
+      btn.style.pointerEvents = ''; btn.classList.add('text-pri-light');
+      btn.onclick = async function(ev){
+        ev.preventDefault();
+        var r = await fetch('/api/quen-mat-khau/send-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contact: ST.contact, method: ST.method }) });
+        var j = await r.json();
+        if (j.ok) { showToast('Đã gửi lại OTP'+(j.demo?' (demo: '+j.code+')':''),'success'); startCd(); }
+        else showToast(j.message || 'Gửi lại thất bại','error');
+      };
+    }
+  }, 1000);
+}
+</script>
+
+<%- include('partials/tw-footer') %>

@@ -1,0 +1,100 @@
+<%- include('partials/layout-start', { title:'OBS Stream Approval', active:'obs', obsPending: obsPending, adminUser: adminUser }) %>
+
+<div class="bg-bg-card border border-line rounded-xl p-5 mb-5">
+  <div class="flex items-start gap-3">
+    <div class="text-3xl">&#128250;</div>
+    <div class="flex-1">
+      <h2 class="text-base font-extrabold text-white">OBS / RTMP Stream Key Approval</h2>
+      <p class="text-muted text-xs mt-1">Khi BLV hoac Idol gui yeu cau ket noi OBS, ban se thay o day. Click "Approve" de cap RTMP server + stream key.</p>
+      <div class="mt-3 bg-bg-soft border border-line rounded-lg p-3 text-xs">
+        <div class="text-muted mb-1">RTMP Server hien tai:</div>
+        <code class="text-pri-light font-mono select-all">rtmp://stream.xoso66tv.com/live</code>
+        <span class="ml-2 text-dim">(co the doi trong lib/db.js)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="flex gap-2 mb-5 bg-bg-card border border-line rounded-xl p-2">
+  <% var tabs = [{k:'',l:'Tat ca',n:counts.all},{k:'pending',l:'Cho duyet',n:counts.pending,hot:true},{k:'approved',l:'Da duyet',n:counts.approved},{k:'rejected',l:'Tu choi',n:counts.rejected}]; %>
+  <% tabs.forEach(function(t){ var ac=statusFilter===t.k; %>
+    <a href="/admin/obs<%= t.k?'?status='+t.k:'' %>" class="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] transition-colors <%= ac ? 'bg-gradient-to-br from-orange-500 to-live text-white' : 'text-gray-100 hover:bg-bg-soft' %>">
+      <%= t.l %>
+      <% if (t.n>0) { %><span class="<%= ac?'bg-white/20':'bg-bg-deep' %> text-[11px] px-2 py-0.5 rounded-full font-extrabold <%= t.hot && !ac ? 'text-live animate-pulse-live':'text-pri-light' %>"><%= t.n %></span><% } %>
+    </a>
+  <% }); %>
+</nav>
+
+<% if (!list.length) { %>
+  <div class="p-16 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
+    <div class="text-5xl mb-3 opacity-60">&#128250;</div>
+    <div>Khong co yeu cau OBS nao</div>
+  </div>
+<% } else { %>
+<div class="space-y-3">
+  <% list.forEach(function(o){
+       var icon = o.requesterType==='blv' ? '&#127908;' : '&#128081;';
+       var bg = o.requesterType==='blv' ? 'from-purple/20' : 'from-pink/20';
+  %>
+    <article class="bg-bg-card border border-line rounded-xl p-4 <%= o.status==='pending' ? 'border-pri/40 ring-1 ring-pri/10' : '' %>">
+      <div class="flex flex-wrap items-start gap-4">
+        <div class="w-14 h-14 rounded-xl bg-gradient-to-br <%= bg %> to-transparent border border-line grid place-items-center text-2xl shrink-0"><%- icon %></div>
+        <div class="flex-1 min-w-[260px]">
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
+            <span class="font-extrabold text-white text-base"><%= o.requesterName %></span>
+            <span class="px-2 py-0.5 bg-bg-deep rounded text-[10px] uppercase tracking-wider font-bold <%= o.requesterType==='blv'?'text-purple':'text-pink' %>"><%= o.requesterType %></span>
+            <% if (o.status==='pending') { %>
+              <span class="px-2 py-0.5 bg-pri/15 text-pri-light rounded text-[11px] font-bold animate-pulse-live">Cho duyet</span>
+            <% } else if (o.status==='approved') { %>
+              <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[11px] font-bold">&check; Da duyet</span>
+            <% } else { %>
+              <span class="px-2 py-0.5 bg-live/15 text-live rounded text-[11px] font-bold">&times; Tu choi</span>
+            <% } %>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-2 text-xs text-muted">
+            <div>&#128205; IP: <code class="text-gray-100"><%= o.ip %></code></div>
+            <div>&#128187; Device: <span class="text-gray-100"><%= o.device %></span></div>
+            <div>&#128197; Gui luc: <span class="text-gray-100"><%= new Date(o.createdAt).toLocaleString('vi-VN') %></span></div>
+            <% if (o.approvedAt) { %><div>&check; Duyet luc: <span class="text-emerald-400"><%= new Date(o.approvedAt).toLocaleString('vi-VN') %></span></div><% } %>
+            <% if (o.rejectedAt) { %><div>&times; Tu choi luc: <span class="text-live"><%= new Date(o.rejectedAt).toLocaleString('vi-VN') %></span></div><% } %>
+          </div>
+          <% if (o.note) { %><div class="mt-2 text-xs bg-bg-soft border border-line px-3 py-2 rounded text-muted">&#128221; <%= o.note %></div><% } %>
+          <% if (o.rejectReason) { %><div class="mt-2 text-xs bg-live/10 border border-live/30 px-3 py-2 rounded text-live">&#9888; <%= o.rejectReason %></div><% } %>
+
+          <% if (o.status==='approved' && o.streamKey) { %>
+            <div class="mt-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 space-y-1.5">
+              <div class="text-emerald-400 text-xs font-bold uppercase tracking-wider">&#9989; STREAM CREDENTIALS</div>
+              <div class="text-xs"><span class="text-muted">Server:</span> <code class="text-gray-100 select-all font-mono"><%= o.rtmpServer %></code></div>
+              <div class="text-xs"><span class="text-muted">Stream Key:</span> <code class="text-pri-light select-all font-mono"><%= o.streamKey %></code> <button onclick="navigator.clipboard.writeText('<%= o.streamKey %>'); showToast('Da copy stream key','success')" class="ml-2 px-2 py-0.5 bg-bg-soft hover:bg-bg-deep text-xs rounded">Copy</button></div>
+            </div>
+          <% } %>
+        </div>
+
+        <div class="flex flex-col gap-2 shrink-0">
+          <% if (o.status==='pending') { %>
+            <button onclick="confirmAction('Duyet va cap stream key cho <%= o.requesterName %>?', function(){ adminAction('/admin/api/obs/<%= o.id %>/approve') })" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold">&check; Approve &amp; cap key</button>
+            <button onclick="var r=prompt('Ly do tu choi?'); if(r) adminAction('/admin/api/obs/<%= o.id %>/reject', { reason: r })" class="px-4 py-2 bg-live hover:bg-red-700 text-white rounded-lg text-sm font-bold">&times; Tu choi</button>
+          <% } else if (o.status==='approved') { %>
+            <% if (o.streamActive) { %>
+              <button onclick="confirmAction('Tat stream cua <%= o.requesterName %>? Bot chat se tat.', function(){ adminAction('/admin/api/obs/<%= o.id %>/toggle-stream') })" class="px-4 py-2 bg-live text-white rounded-lg text-sm font-extrabold flex items-center gap-1.5 animate-pulse">
+                <span class="w-2 h-2 bg-white rounded-full"></span> &#128308; DANG STREAM (click de tat)
+              </button>
+            <% } else { %>
+              <button onclick="confirmAction('Bat stream cua <%= o.requesterName %>? Bot chat se hoat dong.', function(){ adminAction('/admin/api/obs/<%= o.id %>/toggle-stream') })" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-extrabold">
+                &#9654; Bat stream live
+              </button>
+            <% } %>
+            <button onclick="confirmAction('Thu hoi stream key cua <%= o.requesterName %>?', function(){ adminAction('/admin/api/obs/<%= o.id %>/revoke') })" class="px-4 py-2 bg-live/10 hover:bg-live text-live hover:text-white rounded-lg text-sm font-bold">&#128274; Thu hoi key</button>
+            <button onclick="confirmAction('Cap stream key MOI cho <%= o.requesterName %>?', function(){ adminAction('/admin/api/obs/<%= o.id %>/regenerate') })" class="px-4 py-2 bg-pri/15 hover:bg-pri text-pri-light hover:text-white rounded-lg text-sm font-bold">&#128260; Cap key moi</button>
+          <% } else { %>
+            <button onclick="confirmAction('Duyet lai <%= o.requesterName %>?', function(){ adminAction('/admin/api/obs/<%= o.id %>/approve') })" class="px-4 py-2 bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg text-sm font-bold">Duyet lai</button>
+          <% } %>
+          <button onclick="confirmAction('Xoa yeu cau nay?', function(){ adminAction('/admin/api/obs/<%= o.id %>/delete') })" class="px-4 py-2 bg-bg-deep hover:bg-live text-muted hover:text-white rounded-lg text-sm font-bold">Xoa</button>
+        </div>
+      </div>
+    </article>
+  <% }); %>
+</div>
+<% } %>
+
+<%- include('partials/layout-end') %>

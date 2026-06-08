@@ -1,0 +1,797 @@
+<%
+// Idol full profile (sau lay tu DB)
+var idol = (typeof dbIdol !== 'undefined' && dbIdol) ? dbIdol : { name:'Idol', room:'Phòng', lock:0, color:0, emoji:'👑', age:'-', height:'-', weight:'-', city:'-', job:'-', hobby:'-', bio:'-' };
+var idolId = (typeof idolKey !== 'undefined' && idolKey) ? idolKey : 'i01';
+var viewers = ((idol.name.charCodeAt(0)+idolId.length) * 137) % 9000 + 500;
+var follow  = ((idol.name.charCodeAt(0)+idolId.length) * 53)  % 250000 + 5000;
+var tipsToday = ((idol.name.charCodeAt(0)*7+idolId.length) * 31) % 80000 + 10000;
+
+// Sinh 9 ảnh placeholder (gradient + emoji)
+var ALBUM_EMOJIS = ['📷','🌸','🌹','💃','🌺','✨','💖','🦋','🌷'];
+var ALBUM = [];
+for (var k=0; k<9; k++){
+  var h = (idol.color + k*40) % 360;
+  ALBUM.push({
+    caption: ['Ảnh studio','Du lịch','Ngày thường','Sự kiện','Cosplay','Selfie','Hậu trường','Concert','Photoshoot'][k] + ' #' + (k+1),
+    color: 'linear-gradient(135deg, hsl('+h+',75%,50%), hsl('+((h+60)%360)+',75%,40%))',
+    emoji: ALBUM_EMOJIS[k]
+  });
+}
+// 4 video clip
+var VIDEOS = [
+  { title:'Cover bài Hoa Nở Không Màu', duration:'3:42', views:'12.5K', emoji:'🎤' },
+  { title:'Dance K-pop highlight',       duration:'1:20', views:'8.7K',  emoji:'💃' },
+  { title:'Vlog hậu trường live',        duration:'5:18', views:'21K',   emoji:'📹' },
+  { title:'Tâm sự cuối tuần',            duration:'2:45', views:'15K',   emoji:'💬' }
+];
+
+seo = {
+  title: idol.name + ' - ' + idol.room + ' - ' + brand.name,
+  description: 'Xem trực tiếp '+idol.name+', '+idol.age+' tuổi, '+idol.city+'. '+viewers.toLocaleString('vi-VN')+' người đang xem. '+idol.bio.slice(0,80),
+  canonical: '/idol/'+idolId,
+  noindex: true
+};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<!-- ===== MOBILE FULLSCREEN LIVE ROOM ===== -->
+<%- include('partials/tw-idol-mobile', { idol: idol, idolId: idolId, viewers: viewers, follow: follow, tipsToday: tipsToday, allIdols: (typeof allIdols !== 'undefined' ? allIdols : []), ALBUM: ALBUM, VIDEOS: VIDEOS }) %>
+
+<!-- ===== AUTH + LOCK CHECK với MODAL đẹp ===== -->
+<% if (idol.lock > 0) { %>
+<div id="lockOverlay" class="hidden fixed inset-0 z-[100] bg-black/85 backdrop-blur-md grid place-items-center px-4">
+  <!-- Swipe up hint (top) -->
+  <div id="lockSwipeUpHint" class="absolute top-4 inset-x-0 z-10 text-center pointer-events-none">
+    <div class="inline-flex items-center gap-2 bg-pri/20 backdrop-blur border border-pri/40 text-pri-light text-xs font-bold px-3 py-1.5 rounded-full">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+      <span>Vuốt lên: <span id="lockSwipeNextName">Idol kế tiếp</span></span>
+    </div>
+  </div>
+  <!-- Swipe down hint (bottom) -->
+  <div id="lockSwipeDownHint" class="absolute bottom-4 inset-x-0 z-10 text-center pointer-events-none">
+    <div class="inline-flex items-center gap-2 bg-pri/20 backdrop-blur border border-pri/40 text-pri-light text-xs font-bold px-3 py-1.5 rounded-full">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      <span>Vuốt xuống: <span id="lockSwipePrevName">Idol trước</span></span>
+    </div>
+  </div>
+  <div class="bg-gradient-to-b from-bg-card via-bg-deep to-black border-2 border-pri/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl shadow-pri/40 text-center relative overflow-hidden">
+    <!-- Decorative glow -->
+    <div class="absolute -top-20 -right-20 w-40 h-40 bg-pri/30 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-pink/30 rounded-full blur-3xl"></div>
+
+    <!-- Lock icon -->
+    <div class="relative w-24 h-24 mx-auto mb-3">
+      <div class="absolute inset-0 rounded-full bg-gradient-to-br from-pri to-pink lock-modal-pulse"></div>
+      <div class="absolute inset-0 grid place-items-center text-5xl">🔒</div>
+      <!-- Orbiting sparkles -->
+      <span class="absolute top-0 left-1/2 -translate-x-1/2 text-yellow-300 lock-sparkle-1">✨</span>
+      <span class="absolute bottom-0 left-1/2 -translate-x-1/2 text-yellow-300 lock-sparkle-2">✨</span>
+    </div>
+
+    <h2 class="text-white font-black text-xl mb-1 relative z-10">PHÒNG VIP BỊ KHÓA</h2>
+    <p class="text-muted text-sm mb-4 relative z-10">Phòng của <b class="text-pri-light"><%= idol.name %></b> yêu cầu mở khóa</p>
+
+    <!-- Cost display -->
+    <div class="relative z-10 bg-gradient-to-br from-yellow-500/20 via-orange-500/15 to-yellow-500/20 border-2 border-yellow-400/40 rounded-xl p-4 mb-4">
+      <div class="text-[11px] text-yellow-200 uppercase tracking-widest font-bold mb-1">Chi phí mở khóa</div>
+      <div class="flex items-center justify-center gap-2">
+        <span class="text-3xl">🪙</span>
+        <span class="text-yellow-300 font-black text-3xl tabular-nums drop-shadow"><%= idol.lock %></span>
+        <span class="text-yellow-200 font-bold text-sm">X COIN</span>
+      </div>
+      <div class="text-[10px] text-gray-300 mt-1">Mở khóa 1 lần - xem mãi mãi</div>
+    </div>
+
+    <!-- Balance -->
+    <div class="relative z-10 flex items-center justify-between bg-bg-soft border border-line rounded-lg px-3 py-2 mb-4 text-sm">
+      <span class="text-muted text-xs">Số dư của bạn:</span>
+      <span class="flex items-center gap-1.5">
+        <span>🪙</span>
+        <span class="text-gold font-extrabold tabular-nums" id="lockMyCoin">0</span>
+      </span>
+    </div>
+
+    <!-- Actions -->
+    <button onclick="lockUnlockNow()" id="lockUnlockBtn" class="relative z-10 w-full bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 hover:brightness-110 text-white py-3 rounded-xl font-extrabold text-sm mb-2 active:scale-95 shadow-lg shadow-orange-500/40 flex items-center justify-center gap-2">
+      <span class="text-lg">🔓</span>
+      <span>MỞ KHÓA NGAY (<%= idol.lock %> 🪙)</span>
+    </button>
+    <a href="/idol-live" class="relative z-10 block w-full bg-bg-soft border border-line text-gray-300 py-2.5 rounded-xl font-bold text-xs hover:bg-bg-deep">← Quay lại danh sách</a>
+
+    <!-- Info note -->
+    <div class="relative z-10 mt-3 text-[10px] text-muted leading-relaxed">
+      💡 Mở khóa để xem live không giới hạn · Quà tặng cho idol để bày tỏ tình cảm
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes lockModalPulse {
+  0%,100% { transform: scale(1); opacity: .9; box-shadow: 0 0 24px rgba(255,122,24,.5); }
+  50%     { transform: scale(1.08); opacity: 1; box-shadow: 0 0 48px rgba(233,30,99,.7); }
+}
+.lock-modal-pulse { animation: lockModalPulse 2s ease-in-out infinite; }
+@keyframes lockSparkleOrbit1 {
+  0% { transform: translateX(-50%) rotate(0deg) translateY(-48px) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg) translateY(-48px) rotate(-360deg); }
+}
+@keyframes lockSparkleOrbit2 {
+  0% { transform: translateX(-50%) rotate(180deg) translateY(-48px) rotate(-180deg); }
+  100% { transform: translateX(-50%) rotate(540deg) translateY(-48px) rotate(-540deg); }
+}
+.lock-sparkle-1 { animation: lockSparkleOrbit1 4s linear infinite; font-size: 18px; filter: drop-shadow(0 0 6px gold); }
+.lock-sparkle-2 { animation: lockSparkleOrbit2 4s linear infinite; font-size: 14px; filter: drop-shadow(0 0 6px gold); }
+@keyframes lockShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.lock-shake { animation: lockShake .3s ease-in-out 2; }
+</style>
+<script>
+(function(){
+  var lock = <%= idol.lock %>;
+  var idolId = '<%= idolId %>';
+  var idolName = '<%= idol.name.replace(/'/g, "\'") %>';
+  var overlay = document.getElementById('lockOverlay');
+
+  // ===== ADMIN BYPASS: skip lock modal completely =====
+  if (typeof window.isUserAdmin === 'function' && window.isUserAdmin()) {
+    if (window.x66ShowAdminBadge) window.x66ShowAdminBadge();
+    return;
+  }
+
+  function showLockModal(){
+    overlay.classList.remove('hidden');
+    refreshBalance();
+  }
+  function refreshBalance(){
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      var coin = typeof u.coin === 'number' ? u.coin : 79;
+      var el = document.getElementById('lockMyCoin');
+      if (el) el.textContent = coin.toLocaleString('vi-VN');
+    } catch(e){}
+  }
+
+  // Check auth + unlock status
+  try {
+    var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+    if (!u.username) {
+      // Show modal asking to login first
+      overlay.querySelector('h2').textContent = 'CẦN ĐĂNG NHẬP';
+      overlay.querySelector('p').innerHTML = 'Đăng nhập để mở khóa phòng <b class="text-pri-light">' + idolName + '</b>';
+      document.getElementById('lockUnlockBtn').innerHTML = '<span class="text-lg">👤</span><span>ĐĂNG NHẬP NGAY</span>';
+      document.getElementById('lockUnlockBtn').setAttribute('onclick', "location.href='/dang-nhap'");
+      showLockModal();
+      return;
+    }
+    var unlocked = JSON.parse(localStorage.getItem('x66_unlocked_idols')||'[]');
+    if (unlocked.indexOf(idolId) < 0) {
+      showLockModal();
+    }
+  } catch(e){
+    showLockModal();
+  }
+
+  // ===== SWIPE GESTURE ON LOCK OVERLAY =====
+  var lockAllIdols = <%- JSON.stringify(typeof allIdols !== 'undefined' ? allIdols : []) %>;
+  var lockCurrentIdx = lockAllIdols.findIndex(function(i){ return i.id === idolId; });
+  if (lockCurrentIdx < 0) lockCurrentIdx = 0;
+  var lockNextI = lockAllIdols.length > 1 ? lockAllIdols[(lockCurrentIdx + 1) % lockAllIdols.length] : null;
+  var lockPrevI = lockAllIdols.length > 1 ? lockAllIdols[(lockCurrentIdx - 1 + lockAllIdols.length) % lockAllIdols.length] : null;
+
+  // Populate names in hints
+  if (lockNextI) document.getElementById('lockSwipeNextName').textContent = lockNextI.emoji + ' ' + lockNextI.name;
+  if (lockPrevI) document.getElementById('lockSwipePrevName').textContent = lockPrevI.emoji + ' ' + lockPrevI.name;
+  if (!lockNextI) document.getElementById('lockSwipeUpHint').style.display = 'none';
+  if (!lockPrevI) document.getElementById('lockSwipeDownHint').style.display = 'none';
+
+  var lockTouchStartY = 0, lockTouchStartX = 0, lockTouchDeltaY = 0, lockSwiping = false, lockSwipeDecided = false;
+  var LOCK_SWIPE_THRESHOLD = 70;
+
+  function lockOnTouchStart(e){
+    if (!e.touches || !e.touches[0]) return;
+    // Don't interfere with button clicks inside modal
+    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+    lockTouchStartY = e.touches[0].clientY;
+    lockTouchStartX = e.touches[0].clientX;
+    lockTouchDeltaY = 0;
+    lockSwiping = true;
+    lockSwipeDecided = false;
+  }
+  function lockOnTouchMove(e){
+    if (!lockSwiping || !e.touches || !e.touches[0]) return;
+    var dy = e.touches[0].clientY - lockTouchStartY;
+    var dx = e.touches[0].clientX - lockTouchStartX;
+    if (!lockSwipeDecided && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      if (Math.abs(dx) > Math.abs(dy) / 1.2) { lockSwiping = false; return; }
+      lockSwipeDecided = true;
+    }
+    if (!lockSwipeDecided) return;
+    if (e.cancelable) e.preventDefault();
+    lockTouchDeltaY = dy;
+    var modal = overlay.querySelector('div.bg-gradient-to-b');
+    if (modal) {
+      modal.style.transition = 'none';
+      modal.style.transform = 'translateY(' + (dy * 0.4) + 'px)';
+      modal.style.opacity = Math.max(.5, 1 - Math.abs(dy)/300).toString();
+    }
+    // Highlight hint while swiping
+    if (dy < -30 && lockNextI) {
+      document.getElementById('lockSwipeUpHint').style.transform = 'scale(' + (1 + Math.min(.3, Math.abs(dy)/200)) + ')';
+    } else if (dy > 30 && lockPrevI) {
+      document.getElementById('lockSwipeDownHint').style.transform = 'scale(' + (1 + Math.min(.3, dy/200)) + ')';
+    }
+  }
+  function lockOnTouchEnd(e){
+    if (!lockSwiping) return;
+    lockSwiping = false;
+    var modal = overlay.querySelector('div.bg-gradient-to-b');
+    if (modal) {
+      modal.style.transition = 'transform .25s ease-out, opacity .25s ease-out';
+    }
+    document.getElementById('lockSwipeUpHint').style.transform = '';
+    document.getElementById('lockSwipeDownHint').style.transform = '';
+
+    if (lockTouchDeltaY < -LOCK_SWIPE_THRESHOLD && lockNextI) {
+      // Slide out up + navigate
+      if (modal) {
+        modal.style.transform = 'translateY(-120vh)';
+        modal.style.opacity = '0';
+      }
+      setTimeout(function(){ location.href = '/idol/' + lockNextI.id; }, 300);
+    } else if (lockTouchDeltaY > LOCK_SWIPE_THRESHOLD && lockPrevI) {
+      if (modal) {
+        modal.style.transform = 'translateY(120vh)';
+        modal.style.opacity = '0';
+      }
+      setTimeout(function(){ location.href = '/idol/' + lockPrevI.id; }, 300);
+    } else {
+      // Snap back
+      if (modal) {
+        modal.style.transform = '';
+        modal.style.opacity = '';
+      }
+    }
+    lockTouchDeltaY = 0;
+  }
+  // Attach to overlay (works on whole dark area)
+  if (overlay) {
+    overlay.addEventListener('touchstart', lockOnTouchStart, { passive: true });
+    overlay.addEventListener('touchmove', lockOnTouchMove, { passive: false });
+    overlay.addEventListener('touchend', lockOnTouchEnd, { passive: true });
+    overlay.addEventListener('touchcancel', lockOnTouchEnd, { passive: true });
+  }
+
+  window.lockUnlockNow = function(){
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      var coin = typeof u.coin === 'number' ? u.coin : 79;
+      if (coin < lock) {
+        // Insufficient: shake + show error
+        var modal = overlay.querySelector('div');
+        modal.classList.add('lock-shake');
+        setTimeout(function(){ modal.classList.remove('lock-shake'); }, 700);
+        if (confirm('❌ X COIN không đủ!\n\nCần ' + lock + ' 🪙 - Bạn có ' + coin + ' 🪙\n\nNạp thêm X COIN ngay?')) {
+          location.href = '/qua-tang';
+        }
+        return;
+      }
+      // Trừ coin + lưu unlocked
+      u.coin = coin - lock;
+      localStorage.setItem('x66_user', JSON.stringify(u));
+      var unlocked = JSON.parse(localStorage.getItem('x66_unlocked_idols')||'[]');
+      if (unlocked.indexOf(idolId) < 0) {
+        unlocked.push(idolId);
+        localStorage.setItem('x66_unlocked_idols', JSON.stringify(unlocked));
+      }
+      // Success animation
+      overlay.querySelector('.text-5xl').textContent = '🎉';
+      overlay.querySelector('h2').textContent = 'MỞ KHÓA THÀNH CÔNG!';
+      overlay.querySelector('p').innerHTML = 'Đang vào phòng <b class="text-pri-light">' + idolName + '</b>...';
+      setTimeout(function(){
+        overlay.style.transition = 'opacity .3s';
+        overlay.style.opacity = '0';
+        setTimeout(function(){ overlay.classList.add('hidden'); overlay.style.opacity = '1'; }, 300);
+      }, 1500);
+    } catch(e){ alert('Lỗi: ' + e.message); }
+  };
+})();
+</script>
+<% } %>
+
+<!-- ===== PIN LOCK OVERLAY (chi hien khi idol set PIN) ===== -->
+<% if (typeof pinRequired !== 'undefined' && pinRequired) { %>
+<div id="pinOverlay" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md grid place-items-center px-4 hidden">
+  <div class="bg-gradient-to-b from-bg-card via-bg-deep to-black border-2 border-yellow-500/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl shadow-yellow-500/30 text-center">
+    <div class="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-red-600 to-orange-600 grid place-items-center text-5xl shadow-2xl shadow-red-500/40 pin-lock-anim">🔒</div>
+    <h2 class="text-white font-black text-xl mb-1">PHÒNG CÓ MẬT MÃ</h2>
+    <p class="text-muted text-sm mb-4"><b class="text-pri-light"><%= idol.name %></b> yêu cầu nhập mã PIN để vào xem</p>
+
+    <div class="flex justify-center gap-2 mb-3" id="pinInputBox">
+      <input type="tel" maxlength="1" class="pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="0" autocomplete="off">
+      <input type="tel" maxlength="1" class="pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="1" autocomplete="off">
+      <input type="tel" maxlength="1" class="pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="2" autocomplete="off">
+      <input type="tel" maxlength="1" class="pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="3" autocomplete="off">
+    </div>
+    <div id="pinError" class="hidden text-red-400 text-[12px] font-bold mb-2"></div>
+
+    <button onclick="pinSubmit()" id="pinSubmitBtn" class="w-full bg-gradient-to-r from-pri to-live text-white py-3 rounded-xl font-extrabold text-sm mb-2 active:scale-95 shadow-lg shadow-pri/40">🔓 Mở khóa phòng</button>
+    <a href="/idol-live" class="block w-full bg-bg-soft border border-line text-gray-300 py-2.5 rounded-xl font-bold text-xs hover:bg-bg-deep">← Quay lại danh sách</a>
+
+    <div class="mt-3 text-[10px] text-muted">💡 Liên hệ idol để xin mã PIN qua chat/Telegram</div>
+  </div>
+</div>
+<style>
+.pin-lock-anim { animation: pinLockPulse 2s ease-in-out infinite; }
+@keyframes pinLockPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 24px rgba(239,68,68,.4); }
+  50%     { transform: scale(1.08); box-shadow: 0 0 40px rgba(239,68,68,.8); }
+}
+@keyframes pinShake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.pin-shake { animation: pinShake .3s ease-in-out 2; }
+</style>
+<script>
+(function(){
+  var idolId = '<%= idolId %>';
+  var storageKey = 'x66_pin_ok_' + idolId;
+  var overlay = document.getElementById('pinOverlay');
+
+  // ===== ADMIN BYPASS: skip PIN modal =====
+  if (typeof window.isUserAdmin === 'function' && window.isUserAdmin()) {
+    if (window.x66ShowAdminBadge) window.x66ShowAdminBadge();
+    return;
+  }
+  // Check localStorage: nếu đã verify trước rồi thì không hỏi nữa
+  try {
+    var ok = localStorage.getItem(storageKey);
+    if (!ok) {
+      overlay.classList.remove('hidden');
+      setTimeout(function(){ var f = document.querySelector('.pin-digit'); if (f) f.focus(); }, 200);
+    }
+  } catch(e) {
+    overlay.classList.remove('hidden');
+  }
+
+  // PIN inputs interaction
+  var inputs = document.querySelectorAll('.pin-digit');
+  inputs.forEach(function(inp, idx){
+    inp.addEventListener('input', function(){
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value && idx < inputs.length - 1) inputs[idx+1].focus();
+      // Auto-submit khi nhập đủ 4
+      if (idx === inputs.length - 1 && this.value) {
+        var pin = ''; inputs.forEach(function(i){ pin += i.value; });
+        if (pin.length === 4) pinSubmit();
+      }
+    });
+    inp.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !this.value && idx > 0) inputs[idx-1].focus();
+      if (e.key === 'Enter') pinSubmit();
+    });
+    inp.addEventListener('paste', function(e){
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData('text');
+      var digits = (paste||'').replace(/[^0-9]/g,'').slice(0,4).split('');
+      digits.forEach(function(d, i){ if (inputs[i]) inputs[i].value = d; });
+      if (digits.length >= 4) pinSubmit();
+    });
+  });
+
+  window.pinSubmit = function(){
+    var pin = '';
+    inputs.forEach(function(i){ pin += i.value; });
+    if (pin.length !== 4) {
+      showPinErr('Nhập đủ 4 chữ số');
+      return;
+    }
+    var btn = document.getElementById('pinSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang kiểm tra...';
+    fetch('/api/idol/verify-pin', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: idolId, pin: pin })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      btn.disabled = false;
+      btn.textContent = '🔓 Mở khóa phòng';
+      if (j.ok) {
+        try { localStorage.setItem(storageKey, '1'); } catch(e){}
+        overlay.style.transition = 'opacity .3s';
+        overlay.style.opacity = '0';
+        setTimeout(function(){ overlay.classList.add('hidden'); overlay.style.opacity = '1'; }, 300);
+      } else {
+        showPinErr(j.error || 'Mã PIN không đúng');
+        document.getElementById('pinInputBox').classList.add('pin-shake');
+        setTimeout(function(){ document.getElementById('pinInputBox').classList.remove('pin-shake'); }, 600);
+        inputs.forEach(function(i){ i.value = ''; });
+        inputs[0].focus();
+      }
+    }).catch(function(){
+      btn.disabled = false;
+      btn.textContent = '🔓 Mở khóa phòng';
+      showPinErr('Lỗi mạng - thử lại');
+    });
+  };
+  function showPinErr(msg){
+    var el = document.getElementById('pinError');
+    el.textContent = '❌ ' + msg;
+    el.classList.remove('hidden');
+    setTimeout(function(){ el.classList.add('hidden'); }, 4000);
+  }
+})();
+</script>
+<% } %>
+
+<article class="mb-6 hidden md:block">
+
+  <!-- TOP ROW: Player + Chat cùng grid stretch -->
+  <section class="grid lg:grid-cols-[1fr_340px] gap-4 mb-4 items-stretch">
+    <!-- Player aspect-video -->
+
+    <!-- Player -->
+    <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center" style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))">
+      <div class="absolute inset-0 opacity-40" style="background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.4),transparent 50%),radial-gradient(circle at 70% 50%,rgba(255,255,255,.3),transparent 50%)"></div>
+      <span class="absolute top-3.5 left-3.5 z-[2] bg-live text-white px-3 py-1 rounded-md font-extrabold text-xs flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+      <span class="absolute top-3.5 right-3.5 z-[2] bg-black/70 text-gold px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1.5">👁 <span class="tabular-nums"><%= viewers.toLocaleString('vi-VN') %></span></span>
+      <div class="relative z-[1] text-[200px] filter drop-shadow-2xl" style="animation:bounceIdol 1.4s ease-in-out infinite alternate;"><%= idol.emoji || '👑' %></div>
+      <div class="absolute inset-x-0 bottom-0 z-[2] px-4 py-3 bg-gradient-to-t from-black/85 to-transparent text-white flex items-center gap-3">
+        <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Phát/Dừng">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        </button>
+        <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Tắt tiếng">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <div class="flex-1"></div>
+        <span class="text-[10px] font-bold bg-pri text-white px-1.5 py-0.5 rounded">HD 1080p</span>
+        <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Toàn màn hình">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- CHAT: cùng row grid với player, auto stretch theo aspect-video -->
+    <aside class="bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden h-full" aria-label="Chat" id="chatPanelTop">
+      <div class="flex border-b border-line bg-bg-soft">
+        <button class="cp-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri" data-tab="chat" onclick="switchChatTab('chat')">💬 Chat phòng</button>
+        <button class="cp-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent relative" data-tab="gift" onclick="switchChatTab('gift')">
+          🎁 Quà
+          <span id="cpGiftBadge" class="hidden absolute top-1.5 right-2 bg-live text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 grid place-items-center px-1 animate-pulse">0</span>
+        </button>
+      </div>
+      <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between">
+        <span class="text-emerald-500 flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-live"></span><%= Math.floor(viewers/10).toLocaleString('vi-VN') %> online</span>
+        <span id="cpStatLabel">Bình luận: <b class="text-pri-light" id="cpStatNum"><%= (Math.random()*5000|0)+1000 %></b></span>
+      </div>
+      <!-- TAB CHAT -->
+      <div class="flex-1 overflow-y-auto py-1 scrollbar-thin" id="chatBody" data-panel="chat"></div>
+      <!-- TAB QUÀ (initially hidden) -->
+      <div class="hidden flex-1 overflow-y-auto scrollbar-thin bg-bg" id="giftLog" data-panel="gift">
+        <!-- Top tippers compact -->
+        <div class="px-3 py-2.5 border-b border-line bg-gradient-to-b from-pri/10 to-transparent">
+          <div class="flex items-center justify-between mb-1.5">
+            <h4 class="text-[11px] font-extrabold text-pri-light flex items-center gap-1">🏆 Top tặng hôm nay</h4>
+            <span class="text-[10px] text-gold tabular-nums"><%= tipsToday.toLocaleString('vi-VN') %> 🪙</span>
+          </div>
+          <div class="space-y-1">
+            <% ['vipFan88','iLove'+idol.name.charAt(0),'BoMy_X66'].forEach(function(name, i){ var amt = (3-i)*1500+200; %>
+            <div class="flex items-center gap-2 text-[11px]">
+              <span class="text-base"><%= ['🥇','🥈','🥉'][i] %></span>
+              <span class="font-bold text-white truncate flex-1"><%= name %></span>
+              <span class="text-gold font-bold tabular-nums">🪙 <%= amt.toLocaleString('vi-VN') %></span>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+        <!-- Recent gifts log header -->
+        <div class="px-3 pt-2.5 pb-1 flex items-center justify-between">
+          <h4 class="text-[11px] font-extrabold text-white flex items-center gap-1">⏱ Quà mới nhất</h4>
+          <button onclick="clearGiftLog()" class="text-[10px] text-muted hover:text-live">Xóa</button>
+        </div>
+        <!-- Gift log list -->
+        <div id="giftLogList" class="px-2 pb-2 space-y-1.5">
+          <div class="text-center py-8 text-muted text-[12px]">
+            <div class="text-3xl mb-2 opacity-50">🎁</div>
+            <div>Chưa có quà tặng nào.</div>
+            <div class="text-[10px] mt-1">Hãy tặng quà đầu tiên cho idol!</div>
+          </div>
+        </div>
+        <!-- CTA mở gift panel -->
+        <div class="sticky bottom-0 p-2 bg-gradient-to-t from-bg-card to-transparent">
+          <button onclick="openGiftPanel('<%= idol.name %>')" class="w-full py-2.5 bg-gradient-to-br from-pri to-live hover:brightness-110 text-white font-extrabold text-xs rounded-lg shadow-lg shadow-pri/30 flex items-center justify-center gap-2">
+            <span class="text-base">🎁</span>
+            <span>TẶNG QUÀ NGAY</span>
+          </button>
+        </div>
+      </div>
+      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="x66-cta-reg group relative mx-2 mt-2 mb-1 px-2 py-2.5 rounded-lg overflow-hidden flex items-center justify-center gap-1.5 text-white text-[11px] font-extrabold text-center cursor-pointer">
+        <span class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400"></span>
+        <span class="absolute inset-0 x66-cta-shine"></span>
+        <span class="relative flex items-center gap-1.5 drop-shadow-md">
+          <span class="text-base">🎰</span>
+          <span class="tracking-wide">ĐĂNG KÝ TÀI KHOẢN XOSO66</span>
+          <span class="text-sm group-hover:translate-x-0.5 transition-transform">→</span>
+        </span>
+      </a>
+      <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft">
+        <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
+        <button onclick="sendChat('chatInput','chatBody')" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-md font-bold text-xs">Gửi</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- BOTTOM: thông tin idol + tippers + profile + album (full width left col) -->
+  <div class="space-y-3.5">
+    <!-- Idol info bar -->
+    <div class="bg-bg-card border border-line rounded-xl p-4 flex items-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-4xl shrink-0 border-2 border-pri"><%= idol.emoji || '👑' %></div>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-xl font-extrabold text-white flex items-center gap-2"><%= idol.name %>
+          <% if (idol.lock === 0) { %>
+            <span class="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-extrabold">FREE</span>
+          <% } else { %>
+            <span class="text-[10px] bg-pri text-white px-1.5 py-0.5 rounded font-extrabold">VIP <%= idol.lock %> 🪙</span>
+          <% } %>
+        </h1>
+        <p class="text-muted text-sm"><%= idol.room %> · 👁 <%= viewers.toLocaleString('vi-VN') %> · ❤ <%= follow.toLocaleString('vi-VN') %> follow</p>
+      </div>
+      <button onclick="toggleFollow(this)" class="px-4 py-2 bg-bg-soft border-2 border-pri text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors">❤ Theo dõi</button>
+      <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-pri">🎁 Tặng quà</button>
+    </div>
+
+    <!-- Top tippers -->
+    <aside class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-pri-light text-sm font-bold mb-3 flex items-center gap-1.5">🏆 Top khách tặng quà hôm nay <span class="ml-auto text-[11px] text-muted">Tổng: <span class="text-gold font-bold tabular-nums"><%= tipsToday.toLocaleString('vi-VN') %> 🪙</span></span></h3>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <% ['vipFan88','iLove'+idol.name.charAt(0),'BoMy_X66'].forEach(function(name, i){
+          var amount = (3-i) * 1500 + 200;
+        %>
+          <div class="bg-bg-soft border border-line rounded-lg p-3">
+            <div class="text-2xl mb-1"><%= ['🥇','🥈','🥉'][i] %></div>
+            <div class="text-xs font-bold text-white truncate"><%= name %></div>
+            <div class="text-[11px] text-gold font-extrabold tabular-nums mt-0.5">🪙 <%= amount.toLocaleString('vi-VN') %></div>
+          </div>
+        <% }); %>
+      </div>
+    </aside>
+
+    <!-- ===== PROFILE CARD ===== -->
+    <section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <header class="px-5 py-3 bg-gradient-to-r from-pri to-pri-dark text-white flex items-center gap-2.5">
+        <span class="text-xl">👤</span>
+        <h2 class="text-base font-extrabold">Hồ sơ <%= idol.name %></h2>
+      </header>
+
+      <div class="p-5 grid md:grid-cols-[200px_1fr] gap-5">
+        <!-- Bio info table -->
+        <div class="space-y-2.5 text-sm">
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Tuổi:</span><span class="text-white font-bold"><%= idol.age || '-' %></span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Chiều cao:</span><span class="text-white font-bold"><%= idol.height || '-' %> cm</span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Cân nặng:</span><span class="text-white font-bold"><%= idol.weight || '-' %> kg</span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Quê:</span><span class="text-white font-bold"><%= idol.city || '-' %></span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Nghề:</span><span class="text-white font-bold text-[12px] text-right"><%= idol.job || '-' %></span></div>
+          <div class="text-muted text-xs">Sở thích:</div>
+          <div class="text-white text-[13px]"><%= idol.hobby || '-' %></div>
+        </div>
+        <!-- Bio paragraph -->
+        <div>
+          <h3 class="text-pri-light font-bold text-sm mb-2 flex items-center gap-1.5">💭 Giới thiệu bản thân</h3>
+          <p class="text-gray-200 leading-relaxed text-[13.5px]"><%= idol.bio || 'Chưa cập nhật thông tin.' %></p>
+
+          <div class="grid grid-cols-3 gap-2 mt-4">
+            <div class="bg-bg-soft border border-line rounded-lg py-2 text-center">
+              <div class="text-[10px] text-muted uppercase">Followers</div>
+              <div class="text-base font-extrabold text-pri-light tabular-nums"><%= (follow/1000).toFixed(0) %>K</div>
+            </div>
+            <div class="bg-bg-soft border border-line rounded-lg py-2 text-center">
+              <div class="text-[10px] text-muted uppercase">Online today</div>
+              <div class="text-base font-extrabold text-emerald-400 tabular-nums"><%= (Math.random()*5+1).toFixed(1) %>h</div>
+            </div>
+            <div class="bg-bg-soft border border-line rounded-lg py-2 text-center">
+              <div class="text-[10px] text-muted uppercase">Quà nhận</div>
+              <div class="text-base font-extrabold text-gold tabular-nums"><%= (tipsToday/1000).toFixed(0) %>K 🪙</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ALBUM + VIDEO ===== -->
+    <section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <header class="flex items-center gap-2 px-3 border-b border-line">
+        <button class="ab-tab px-4 py-3 text-sm font-extrabold text-pri-light border-b-2 border-pri" data-tab="photo">📷 Album ảnh (<%= ALBUM.length %>)</button>
+        <button class="ab-tab px-4 py-3 text-sm font-extrabold text-muted hover:text-white border-b-2 border-transparent" data-tab="video">🎬 Video (<%= VIDEOS.length %>)</button>
+        <span class="ml-auto text-[10px] text-muted">Click để xem fullscreen</span>
+      </header>
+
+      <!-- Photo grid -->
+      <div class="ab-panel p-3" data-panel="photo">
+        <div class="grid grid-cols-3 gap-2">
+          <% ALBUM.forEach(function(p, i){ %>
+            <button class="aspect-square rounded-lg overflow-hidden relative group hover:scale-105 transition-transform" style="background:<%= p.color %>" onclick="openLightbox('photo', <%= i %>)">
+              <div class="absolute inset-0 grid place-items-center text-5xl text-white/90"><%- p.emoji %></div>
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors"></div>
+              <div class="absolute bottom-1 left-1 right-1 text-[10px] font-bold text-white text-left bg-black/50 backdrop-blur px-1.5 py-0.5 rounded truncate opacity-0 group-hover:opacity-100 transition-opacity"><%= p.caption %></div>
+              <% if (i === 0) { %><span class="absolute top-1 left-1 bg-pri text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">HOT</span><% } %>
+            </button>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- Video grid -->
+      <div class="ab-panel hidden p-3" data-panel="video">
+        <div class="grid grid-cols-2 gap-3">
+          <% VIDEOS.forEach(function(v, i){
+            var h = (idol.color + i*60) % 360;
+          %>
+            <button class="text-left rounded-lg overflow-hidden group hover:scale-[1.02] transition-transform" onclick="openLightbox('video', <%= i %>)">
+              <div class="aspect-video relative grid place-items-center" style="background:linear-gradient(135deg, hsl(<%= h %>,75%,40%), hsl(<%= (h+50)%360 %>,75%,30%))">
+                <div class="absolute inset-0 opacity-40" style="background:radial-gradient(circle at center,rgba(255,255,255,.3),transparent 60%)"></div>
+                <div class="relative z-10 text-7xl drop-shadow-2xl"><%- v.emoji %></div>
+                <!-- Play button overlay -->
+                <div class="absolute inset-0 grid place-items-center bg-black/0 group-hover:bg-black/40 transition-colors">
+                  <div class="w-14 h-14 bg-white/90 group-hover:bg-pri group-hover:text-white text-pri rounded-full grid place-items-center text-2xl shadow-lg transition-all">▶</div>
+                </div>
+                <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tabular-nums"><%= v.duration %></span>
+              </div>
+              <div class="bg-bg-soft px-3 py-2">
+                <div class="text-[13px] font-bold text-white truncate"><%= v.title %></div>
+                <div class="text-[10px] text-muted mt-0.5">👁 <%= v.views %> lượt xem</div>
+              </div>
+            </button>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- RIGHT: Chat sidebar -->
+  </div>
+</article>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="hidden fixed inset-0 z-[90] bg-black/95 grid place-items-center p-4" onclick="if(event.target===this)closeLightbox()">
+  <button onclick="closeLightbox()" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full grid place-items-center text-2xl">&times;</button>
+  <button onclick="lightboxPrev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full grid place-items-center text-2xl">‹</button>
+  <button onclick="lightboxNext()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full grid place-items-center text-2xl">›</button>
+  <div class="max-w-3xl w-full max-h-[85vh] flex flex-col">
+    <div id="lbContent" class="flex-1 rounded-xl overflow-hidden relative grid place-items-center min-h-[400px]">
+      <!-- populated by JS -->
+    </div>
+    <div class="mt-3 text-center">
+      <div id="lbTitle" class="text-white font-extrabold text-lg">Title</div>
+      <div id="lbMeta" class="text-muted text-sm mt-1">1 / 9</div>
+      <div class="flex justify-center gap-2 mt-3">
+        <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-bold text-xs rounded-lg">🎁 Tặng quà cho idol</button>
+        <button class="px-4 py-2 bg-bg-soft border border-line text-white font-bold text-xs rounded-lg">❤ Thả tim</button>
+        <button class="px-4 py-2 bg-bg-soft border border-line text-white font-bold text-xs rounded-lg">📷 Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== TAB CHAT / QUÀ trong khung chat phong idol =====
+window.switchChatTab = function(tab){
+  document.querySelectorAll('.cp-tab').forEach(function(t){
+    if (t.getAttribute('data-tab') === tab) {
+      t.className = 'cp-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri' + (t.getAttribute('data-tab')==='gift'?' relative':'');
+    } else {
+      t.className = 'cp-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent' + (t.getAttribute('data-tab')==='gift'?' relative':'');
+    }
+  });
+  document.querySelectorAll('[data-panel="chat"],[data-panel="gift"]').forEach(function(p){
+    if (p.id === 'chatBody' || p.id === 'giftLog') {
+      if (p.getAttribute('data-panel') === tab) p.classList.remove('hidden');
+      else p.classList.add('hidden');
+    }
+  });
+  // Update header stat label
+  var label = document.getElementById('cpStatLabel');
+  if (label) {
+    if (tab === 'gift') label.innerHTML = 'Quà nhận: <b class="text-pri-light" id="cpStatNum">' + (window.__giftLogCount || 0) + '</b>';
+    else label.innerHTML = 'Bình luận: <b class="text-pri-light" id="cpStatNum"><%= (Math.random()*5000|0)+1000 %></b>';
+  }
+  // Khi xem tab quà => clear badge
+  if (tab === 'gift') {
+    var b = document.getElementById('cpGiftBadge'); if (b) b.classList.add('hidden');
+    window.__giftBadgeCount = 0;
+  }
+};
+
+window.clearGiftLog = function(){
+  if (!confirm('Xóa toàn bộ log quà tặng?')) return;
+  var list = document.getElementById('giftLogList');
+  if (list) list.innerHTML = '<div class="text-center py-8 text-muted text-[12px]"><div class="text-3xl mb-2 opacity-50">🎁</div><div>Chưa có quà tặng nào.</div></div>';
+  window.__giftLogCount = 0;
+};
+
+// Hook vao gift panel: moi khi co quà tặng, đẩy vào log + badge nếu đang xem tab Chat
+window.x66RecordGift = function(username, icon, name, price, tier){
+  var list = document.getElementById('giftLogList');
+  if (!list) return;
+  // Clear "empty" placeholder if any
+  if (list.querySelector('.text-center')) list.innerHTML = '';
+  var TIER_COLOR = { common:'border-slate-500', rare:'border-sky-500', epic:'border-purple-500', legendary:'border-orange-500' };
+  var item = document.createElement('div');
+  item.className = 'flex items-center gap-2 px-2 py-2 bg-bg-card border-l-2 ' + (TIER_COLOR[tier]||'border-slate-500') + ' rounded text-[11px] hover:bg-bg-soft transition-colors';
+  item.innerHTML = '<span class="text-xl">' + icon + '</span>'
+    + '<div class="flex-1 min-w-0">'
+    +   '<div class="font-bold text-white truncate">' + username + '</div>'
+    +   '<div class="text-[10px] text-muted">tặng <span class="text-pri-light font-semibold">' + name + '</span></div>'
+    + '</div>'
+    + '<div class="text-gold font-extrabold tabular-nums whitespace-nowrap">🪙 ' + price.toLocaleString('vi-VN') + '</div>';
+  list.insertBefore(item, list.firstChild);
+  // Giữ max 50
+  while (list.children.length > 50) list.removeChild(list.lastChild);
+  // Counter
+  window.__giftLogCount = (window.__giftLogCount || 0) + 1;
+  // Badge nếu đang xem tab chat
+  var giftPanel = document.getElementById('giftLog');
+  if (giftPanel && giftPanel.classList.contains('hidden')) {
+    window.__giftBadgeCount = (window.__giftBadgeCount || 0) + 1;
+    var b = document.getElementById('cpGiftBadge');
+    if (b) { b.classList.remove('hidden'); b.textContent = window.__giftBadgeCount > 99 ? '99+' : window.__giftBadgeCount; }
+  }
+};
+
+// ===== LIGHTBOX =====
+var LB = { type:'photo', idx:0, photos:[], videos:[] };
+LB.photos = JSON.parse(document.getElementById('lbDataPhotos')?.textContent || '[]');
+LB.videos = JSON.parse(document.getElementById('lbDataVideos')?.textContent || '[]');
+
+// Toggle photo/video tabs
+document.querySelectorAll('.ab-tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    var tab = this.getAttribute('data-tab');
+    document.querySelectorAll('.ab-tab').forEach(function(x){ x.className = x.className.replace('text-pri-light border-pri','text-muted hover:text-white border-transparent'); });
+    this.className = this.className.replace('text-muted hover:text-white border-transparent','text-pri-light border-pri');
+    document.querySelectorAll('.ab-panel').forEach(function(p){
+      if (p.getAttribute('data-panel') === tab) p.classList.remove('hidden');
+      else p.classList.add('hidden');
+    });
+  });
+});
+
+window.openLightbox = function(type, idx){
+  LB.type = type; LB.idx = idx;
+  document.getElementById('lightbox').classList.remove('hidden');
+  renderLightbox();
+};
+window.closeLightbox = function(){ document.getElementById('lightbox').classList.add('hidden'); };
+window.lightboxPrev = function(){
+  var arr = LB.type==='photo' ? LB.photos : LB.videos;
+  LB.idx = (LB.idx - 1 + arr.length) % arr.length;
+  renderLightbox();
+};
+window.lightboxNext = function(){
+  var arr = LB.type==='photo' ? LB.photos : LB.videos;
+  LB.idx = (LB.idx + 1) % arr.length;
+  renderLightbox();
+};
+function renderLightbox(){
+  var arr = LB.type==='photo' ? LB.photos : LB.videos;
+  var item = arr[LB.idx];
+  var content = document.getElementById('lbContent');
+  if (LB.type === 'photo') {
+    content.style.background = item.color;
+    content.innerHTML = '<div style="font-size:160px;text-shadow:0 8px 32px rgba(0,0,0,.5)">'+item.emoji+'</div>';
+    document.getElementById('lbTitle').textContent = item.caption;
+  } else {
+    content.style.background = 'linear-gradient(135deg,#1a1f29,#0e1116)';
+    content.innerHTML = '<div style="text-align:center"><div style="font-size:120px;margin-bottom:16px">'+item.emoji+'</div></div>';
+    document.getElementById('lbTitle').textContent = item.title + ' • ' + item.views + ' lượt xem';
+  }
+  document.getElementById('lbMeta').textContent = (LB.idx+1) + ' / ' + arr.length;
+}
+
+function toggleFollow(b){ b.textContent = b.textContent.indexOf('Đã')>=0 ? '❤ Theo dõi' : '✓ Đã theo dõi'; }
+</script>
+
+<script type="application/json" id="lbDataPhotos"><%- JSON.stringify(ALBUM) %></script>
+<script type="application/json" id="lbDataVideos"><%- JSON.stringify(VIDEOS) %></script>
+
+<%- include('partials/tw-gift-panel') %>
+
+<%- include('partials/tw-footer') %>

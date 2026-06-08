@@ -1,0 +1,54 @@
+/* ===== Breadcrumb ===== */
+.breadcrumb{margin:0 0 16px}
+.breadcrumb ol{display:flex;list-style:none;flex-wrap:wrap;gap:4px;font-size:12px;color:var(--muted);align-items:center}
+.breadcrumb li{display:flex;align-items:center;gap:4px}
+.breadcrumb a{color:var(--muted);transition:color .15s}
+.breadcrumb a:hover{color:var(--pri-2)}
+.breadcrumb .sep{color:var(--dim);margin:0 4px}
+.breadcrumb [aria-current=page]{color:var(--pri-2);font-weight:700}
+
+/* ===== SEO bottom content ===== */
+.seo-content{
+  background:var(--bg-1);border:1px solid var(--border);border-radius:12px;
+  padding:24px;margin-top:32px;color:var(--muted);line-height:1.75;font-size:14px;
+}
+.seo-content h2{color:#fff;font-size:22px;font-weight:800;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.seo-content h2::before{content:'';width:4px;height:22px;background:var(--pri);border-radius:2px}
+.seo-content h3{color:var(--pri-2);font-size:16px;font-weight:700;margin:18px 0 8px}
+.seo-content p{margin-bottom:12px}
+.seo-content a{color:var(--pri-2);text-decoration:underline;text-underline-offset:2px}
+.seo-content a:hover{color:var(--pri)}
+.seo-content strong{color:var(--text)}
+.seo-content ul,.seo-content ol{margin:8px 0 12px 24px}
+.seo-content li{margin-bottom:4px}
+
+/* FAQ */
+.seo-faq{margin-top:12px}
+.seo-faq details{background:var(--bg-2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;transition:.15s}
+.seo-faq details[open]{border-color:var(--pri)}
+.seo-faq summary{padding:14px 18px;cursor:pointer;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;list-style:none;user-select:none}
+.seo-faq summary::-webkit-details-marker{display:none}
+.seo-faq summary::before{content:'+';width:24px;height:24px;background:var(--bg-3);border-radius:50%;display:grid;place-items:center;font-weight:900;flex-shrink:0;transition:transform .15s,background .15s}
+.seo-faq details[open] summary::before{content:'−';background:var(--pri);color:#fff;transform:rotate(180deg)}
+.seo-faq details > div,.seo-faq details > p{padding:0 18px 16px;color:var(--muted);font-size:13.5px;line-height:1.7}
+
+/* SEO related links */
+.seo-related{
+  background:var(--bg-1);border:1px solid var(--border);border-radius:12px;
+  padding:16px 20px;margin-top:18px;
+}
+.seo-related h3{font-size:13px;color:var(--pri-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+.seo-related ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.seo-related li a{display:inline-block;background:var(--bg-3);color:var(--text);padding:5px 12px;border-radius:14px;font-size:12px;font-weight:600;border:1px solid var(--border);transition:.15s}
+.seo-related li a:hover{background:var(--pri);border-color:var(--pri);color:#fff}
+
+/* SEO hero (H1 banner đầu trang) */
+.seo-hero{
+  background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+  border:1px solid var(--border);border-radius:12px;
+  padding:24px 30px;margin-bottom:18px;
+}
+.seo-hero h1{font-size:24px;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.25;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seo-hero .lead{color:var(--muted);font-size:14px;line-height:1.7}
+.seo-hero .lead a{color:var(--pri-2);font-weight:600}
+@media (max-width:560px){ .seo-hero{padding:16px} .seo-hero h1{font-size:20px} }

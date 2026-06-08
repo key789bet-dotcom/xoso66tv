@@ -1,0 +1,39 @@
+<%
+seo = {
+  title: 'Video Highlight Bóng Đá &amp; Thể Thao Mới Nhất - '+brand.name,
+  description: 'Tổng hợp video highlight các trận đấu thể thao mới nhất: bóng đá, bóng rổ, tennis, esports. '+list.length+' video full HD bình luận tiếng Việt tại '+brand.name+'.',
+  keywords: 'video highlight, highlight bóng đá, video thể thao, replay, '+brand.short,
+  canonical: '/video-noi-bat',
+  breadcrumb: [{ name:'Video nổi bật', url:'/video-noi-bat' }],
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="seo-hero">
+  <h1>🎬 Video Nổi Bật - Highlight Thể Thao Mới Nhất</h1>
+  <p class="lead">Bộ sưu tập <strong><%= list.length %> video highlight</strong> chất lượng HD từ các trận đấu thể thao vừa kết thúc. Click vào video để xem hoặc tải về máy.</p>
+</header>
+
+<section class="sec">
+  <% if (!list || list.length === 0) { %>
+    <div class="empty"><div class="ico">🎬</div><div>Chưa có video nào.</div></div>
+  <% } else { %>
+    <div class="stream-grid"><%- include('partials/stream-card', { list }) %></div>
+  <% } %>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2:'Highlight thể thao cập nhật theo phút',
+  intro:'<strong>'+brand.name+'</strong> tự động sync video highlight từ các nguồn chính thức ngay khi trận đấu kết thúc. Bạn không cần phải đợi - thường chỉ 1-2 giờ sau trận là có ngay highlight với bình luận tiếng Việt.',
+  sections: [
+    { h3:'Highlight phủ sóng mọi giải đấu', p:'Từ Champions League, Ngoại Hạng Anh, La Liga, Serie A đến NBA, EuroLeague, ATP/WTA, LCK/LPL esports. Click sang <a href="/lich-phat-song">lịch phát sóng</a> để xem các trận sắp tới.' },
+    { h3:'Xem cùng cộng đồng', p:'Comment, chia sẻ phân tích sau mỗi video. Đăng ký <a href="/dang-ky">tài khoản miễn phí</a> để bình luận và lưu video yêu thích.' },
+  ],
+  faqs: [
+    { q:'Có tải video về máy được không?', a:'Tuỳ video - các video YouTube embed có nút tải tự động. Bạn cũng có thể dùng các tool bên thứ 3.' },
+    { q:'Video có quảng cáo không?', a:'Không. '+brand.name+' cam kết stream sạch không quảng cáo gián đoạn.' },
+  ]
+} }) %>
+
+<%- include('partials/footer') %>

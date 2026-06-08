@@ -1,0 +1,187 @@
+<%
+// Cần require gifts data ở route, hoặc nhúng tại đây
+var GIFTS = (typeof gifts !== 'undefined' && gifts) ? gifts : [
+  { id:'rose',name:'Hoa hồng',icon:'🌹',price:1,tier:'common'},
+  { id:'heart',name:'Trái tim',icon:'❤️',price:2,tier:'common'},
+  { id:'kiss',name:'Nụ hôn',icon:'💋',price:5,tier:'common'},
+  { id:'icecream',name:'Kem que',icon:'🍦',price:10,tier:'common'},
+  { id:'milktea',name:'Trà sữa',icon:'🧋',price:15,tier:'common'},
+  { id:'cake',name:'Bánh kem',icon:'🍰',price:50,tier:'common'},
+  { id:'bouquet',name:'Bó hồng',icon:'💐',price:100,tier:'rare'},
+  { id:'ring',name:'Nhẫn vàng',icon:'💍',price:200,tier:'rare'},
+  { id:'champagne',name:'Champagne',icon:'🍾',price:300,tier:'rare'},
+  { id:'crown',name:'Vương miện',icon:'👑',price:500,tier:'rare'},
+  { id:'diamond',name:'Kim cương',icon:'💎',price:1000,tier:'epic'},
+  { id:'car',name:'Siêu xe',icon:'🏎️',price:3000,tier:'epic'},
+  { id:'castle',name:'Lâu đài',icon:'🏰',price:5000,tier:'epic'},
+  { id:'plane',name:'Máy bay',icon:'✈️',price:8000,tier:'epic'},
+  { id:'yacht',name:'Du thuyền',icon:'🛥️',price:30000,tier:'legendary'},
+  { id:'rocket',name:'Tên lửa',icon:'🚀',price:100000,tier:'legendary'}
+];
+var TIER_RING = {
+  common:    'from-gray-500 to-gray-700',
+  rare:      'from-sky-400 to-blue-600',
+  epic:      'from-purple-400 to-fuchsia-600',
+  legendary: 'from-yellow-300 via-orange-500 to-red-600'
+};
+var TIER_BG = {
+  common:'bg-bg-soft', rare:'bg-sky-500/10', epic:'bg-purple-500/10', legendary:'bg-orange-500/10'
+};
+var TIER_GLOW = {
+  common:'', rare:'shadow-[0_0_15px_rgba(56,189,248,.4)]', epic:'shadow-[0_0_18px_rgba(168,85,247,.45)]', legendary:'shadow-[0_0_24px_rgba(255,165,0,.6)] animate-pulse'
+};
+var TIER_LABEL = { common:'Phổ thông', rare:'Hiếm', epic:'Sử thi', legendary:'Huyền thoại' };
+%>
+
+<!-- Gift panel slide-up (hidden mặc định) -->
+<div id="giftPanel" class="hidden fixed inset-x-0 bottom-0 z-[60] bg-gradient-to-t from-[#0a0d12] to-[#13171f] border-t-2 border-pri rounded-t-2xl shadow-2xl max-h-[70vh] overflow-hidden flex flex-col">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 px-4 py-3 border-b border-line bg-bg-card">
+    <span class="text-2xl">🎁</span>
+    <div class="flex-1">
+      <h3 class="text-white font-extrabold text-base">Tặng quà cho <span id="giftRecipient" class="text-pri-light">Idol</span></h3>
+      <div class="text-[11px] text-muted">Chọn quà để gửi - <span class="text-gold font-bold">X COIN sẽ bị trừ ngay</span></div>
+    </div>
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-bg-deep rounded-lg border border-pri/40">
+      <span class="text-base">🪙</span>
+      <span class="text-[10px] text-muted">Số dư:</span>
+      <span id="giftBalance" class="text-gold font-extrabold tabular-nums text-sm">0</span>
+      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2 py-0.5 rounded ml-1">+ Nạp</a>
+    </div>
+    <button onclick="closeGiftPanel()" class="w-8 h-8 grid place-items-center text-white hover:text-live text-xl" aria-label="Đóng">&times;</button>
+  </div>
+
+  <!-- Tier tabs -->
+  <nav class="flex gap-1 px-3 py-2 border-b border-line/40 overflow-x-auto scrollbar-hide bg-bg-card/40">
+    <% ['all','common','rare','epic','legendary'].forEach(function(t, i){ %>
+      <button class="gp-tab px-3 py-1.5 text-[12px] font-bold rounded-md whitespace-nowrap <%= i===0?'bg-pri text-white':'bg-bg-soft text-gray-200 hover:bg-bg-deep' %> transition-colors" data-tier="<%= t %>">
+        <%= t==='all'?'Tất cả':t==='common'?'Phổ thông':t==='rare'?'Hiếm':t==='epic'?'Sử thi':'Huyền thoại' %>
+      </button>
+    <% }); %>
+  </nav>
+
+  <!-- Grid -->
+  <div class="flex-1 overflow-y-auto p-3 scrollbar-thin">
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5" id="giftGrid">
+      <% GIFTS.forEach(function(g){ %>
+        <button class="gp-item group <%= TIER_BG[g.tier] %> border border-line hover:border-pri rounded-xl p-2.5 text-center transition-all hover:-translate-y-1 <%= TIER_GLOW[g.tier] %>" data-tier="<%= g.tier %>" data-id="<%= g.id %>" data-name="<%= g.name %>" data-icon="<%= g.icon %>" data-price="<%= g.price %>">
+          <div class="relative w-14 h-14 mx-auto rounded-full p-[2px] bg-gradient-to-br <%= TIER_RING[g.tier] %>">
+            <div class="w-full h-full rounded-full bg-bg-deep grid place-items-center text-3xl"><%= g.icon %></div>
+          </div>
+          <div class="mt-1.5 text-[11px] font-bold text-white truncate"><%= g.name %></div>
+          <div class="mt-0.5 flex items-center justify-center gap-1 text-gold font-extrabold text-[11px]">
+            <span class="text-xs">🪙</span>
+            <span class="tabular-nums"><%= g.price.toLocaleString('vi-VN') %></span>
+          </div>
+        </button>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<!-- Floating "Tặng quà" button -->
+<button id="giftFab" class="fixed bottom-5 right-5 z-50 bg-gradient-to-br from-pri to-live hover:scale-110 text-white font-extrabold w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(255,122,24,.55)] grid place-items-center text-2xl transition-transform" aria-label="Tặng quà">
+  🎁
+</button>
+
+<!-- Gift flying animation overlay -->
+<div id="giftAnimLayer" class="fixed inset-0 pointer-events-none z-[70]"></div>
+
+<style>
+@keyframes giftFly { 0%{transform:translate(0,0) scale(1) rotate(0);opacity:1} 50%{transform:translate(0,-300px) scale(1.6) rotate(20deg);opacity:1} 100%{transform:translate(0,-600px) scale(.4) rotate(360deg);opacity:0} }
+@keyframes giftZoom { 0%{transform:scale(0) rotate(-180deg);opacity:0} 30%{transform:scale(1.5) rotate(0);opacity:1} 60%{transform:scale(1) rotate(0);opacity:1} 100%{transform:scale(2.5);opacity:0} }
+@keyframes giftExplode { 0%{transform:scale(0);opacity:0} 20%{transform:scale(1.2);opacity:1} 50%{transform:scale(2);filter:drop-shadow(0 0 20px gold)} 100%{transform:scale(3.5);opacity:0;filter:blur(8px)} }
+.gift-fly    { animation: giftFly 2s ease-out forwards; }
+.gift-zoom   { animation: giftZoom 1.6s ease-out forwards; }
+.gift-explode{ animation: giftExplode 2s ease-out forwards; }
+</style>
+
+<script>
+(function(){
+  var fab    = document.getElementById('giftFab');
+  var panel  = document.getElementById('giftPanel');
+  var grid   = document.getElementById('giftGrid');
+  var anim   = document.getElementById('giftAnimLayer');
+  var balEl  = document.getElementById('giftBalance');
+  var recEl  = document.getElementById('giftRecipient');
+  var TIER_ANIM = { common:'gift-zoom', rare:'gift-zoom', epic:'gift-explode', legendary:'gift-explode' };
+
+  function refreshBal(){
+    try { var u = JSON.parse(localStorage.getItem('x66_user')||'{}'); balEl.textContent = (typeof u.coin==='number'?u.coin:79).toLocaleString('vi-VN'); } catch(e){}
+  }
+
+  window.openGiftPanel = function(recipientName){
+    if (!isLoggedIn()) { if (confirm('Bạn cần đăng nhập để tặng quà. Đăng nhập ngay?')) location.href='/dang-nhap'; return; }
+    if (recipientName) recEl.textContent = recipientName;
+    panel.classList.remove('hidden');
+    refreshBal();
+  };
+  window.closeGiftPanel = function(){ panel.classList.add('hidden'); };
+
+  function isLoggedIn(){ try { var u=JSON.parse(localStorage.getItem('x66_user')||'{}'); return !!u.username; } catch(e){return false;} }
+
+  fab.addEventListener('click', function(){ openGiftPanel(recEl.textContent || 'Idol'); });
+
+  // Tier filter
+  document.querySelectorAll('.gp-tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.gp-tab').forEach(function(x){ x.className = x.className.replace('bg-pri text-white','bg-bg-soft text-gray-200 hover:bg-bg-deep'); });
+      this.className = this.className.replace('bg-bg-soft text-gray-200 hover:bg-bg-deep','bg-pri text-white');
+      var tier = this.getAttribute('data-tier');
+      document.querySelectorAll('.gp-item').forEach(function(it){
+        it.style.display = (tier === 'all' || it.getAttribute('data-tier') === tier) ? '' : 'none';
+      });
+    });
+  });
+
+  // Click gift to send
+  grid.addEventListener('click', function(e){
+    var btn = e.target.closest('.gp-item');
+    if (!btn) return;
+    var name  = btn.getAttribute('data-name');
+    var icon  = btn.getAttribute('data-icon');
+    var price = parseInt(btn.getAttribute('data-price'), 10);
+    var tier  = btn.getAttribute('data-tier');
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      var coin = typeof u.coin==='number' ? u.coin : 79;
+      if (coin < price) {
+        if (confirm('X COIN không đủ! (Cần ' + price + ', còn ' + coin + ').\nNạp thêm ngay?')) location.href='/qua-tang';
+        return;
+      }
+      u.coin = coin - price;
+      localStorage.setItem('x66_user', JSON.stringify(u));
+      refreshBal();
+      // Phát animation
+      playGiftAnim(icon, tier, btn);
+      // Push message vào chat (nếu có)
+      pushChatGift(u.username || 'Bạn', icon, name, price);
+    } catch(e){ alert('Lỗi: ' + e.message); }
+  });
+
+  function playGiftAnim(icon, tier, fromBtn){
+    var rect = fromBtn.getBoundingClientRect();
+    var el = document.createElement('div');
+    el.textContent = icon;
+    el.style.cssText = 'position:absolute;left:'+rect.left+'px;top:'+rect.top+'px;font-size:48px;z-index:80;text-shadow:0 0 20px gold;';
+    el.className = TIER_ANIM[tier] || 'gift-zoom';
+    anim.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 2200);
+  }
+
+  function pushChatGift(user, icon, name, price){
+    var body = document.getElementById('chatBody');
+    if (!body) return;
+    var row = document.createElement('div');
+    row.className = 'flex items-center gap-1.5 px-2.5 py-1.5 my-1 bg-gradient-to-r from-pri/30 to-transparent border-l-4 border-pri rounded text-[12px]';
+    row.innerHTML = '<span class="font-extrabold text-pri-light">' + user + '</span>' +
+                    '<span class="text-white">đã tặng</span>' +
+                    '<span class="text-2xl mx-0.5">' + icon + '</span>' +
+                    '<span class="text-gold font-bold">' + name + '</span>' +
+                    '<span class="text-[10px] text-muted ml-auto">🪙 ' + price.toLocaleString('vi-VN') + '</span>';
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+})();
+</script>

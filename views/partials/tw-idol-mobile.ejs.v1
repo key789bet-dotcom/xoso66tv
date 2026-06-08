@@ -1,0 +1,328 @@
+<%
+// Mobile-only fullscreen live room UI (phong cach QQLive/Bigo)
+// Bien `idol`, `idolId`, `viewers`, `follow`, `tipsToday`, `ALBUM`, `VIDEOS` da co tu tw-idol-room.ejs
+var fakeViewerAvatars = ['🦊','🐯','🐱','🐰','🐼','🐻','🐧','🦁'];
+var marqueeMsgs = [
+  '🎁 Lì xì rơi hàng ngày lên đến 88.888.000đ!!',
+  '🔥 Top 1 tuần được tặng iPhone 15 Pro Max',
+  '⭐ Tặng quà huyền thoại nhận VIP miễn phí 30 ngày'
+];
+%>
+
+<!-- ===== MOBILE FULLSCREEN LIVE ROOM (chi hien tren mobile) ===== -->
+<div class="md:hidden fixed inset-0 z-[60] overflow-hidden" id="mobileLiveRoom" style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))">
+
+  <!-- Background blur overlay -->
+  <div class="absolute inset-0 opacity-50" style="background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.4),transparent 50%),radial-gradient(circle at 70% 50%,rgba(255,255,255,.3),transparent 50%)"></div>
+
+  <!-- Main player visual (emoji giua) -->
+  <div class="absolute inset-0 grid place-items-center z-[1]">
+    <div class="text-[180px] drop-shadow-2xl" style="animation:bounceIdol 1.4s ease-in-out infinite alternate;"><%= idol.emoji || '👑' %></div>
+  </div>
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="absolute top-2 left-2 right-2 z-[10] flex items-start gap-1.5">
+    <!-- Idol card -->
+    <div class="flex items-center gap-1.5 bg-black/55 backdrop-blur-md pl-1 pr-2.5 py-1 rounded-full shrink-0">
+      <div class="w-7 h-7 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-base border border-white/40"><%= idol.emoji || '👑' %></div>
+      <div class="text-white font-extrabold text-[11px] leading-none truncate max-w-[80px]"><%= idol.name %></div>
+      <button class="w-5 h-5 rounded-full bg-pri grid place-items-center text-white text-[9px] font-black shrink-0 hover:scale-110 transition-transform" onclick="mlrToggleFollow(this)" title="Theo dõi">❤</button>
+    </div>
+    <!-- Viewer avatars (last 6) -->
+    <div class="flex -space-x-2 flex-1 overflow-hidden">
+      <% fakeViewerAvatars.slice(0,6).forEach(function(em){ %>
+        <div class="w-7 h-7 rounded-full bg-bg-deep border border-white/30 grid place-items-center text-[13px] shrink-0"><%= em %></div>
+      <% }); %>
+    </div>
+    <!-- Close X -->
+    <a href="/idol-live" class="w-7 h-7 rounded-full bg-black/55 backdrop-blur-md grid place-items-center text-white text-sm shrink-0 hover:bg-live transition-colors" aria-label="Thoát">‹</a>
+  </div>
+
+  <!-- ============ STATS BAR (Coin + Viewer) ============ -->
+  <div class="absolute top-12 left-2 z-[10] flex items-center gap-1.5">
+    <button onclick="openGiftPanel('<%= idol.name %>')" class="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-yellow-500 pl-1 pr-2 py-0.5 rounded-full text-white text-[11px] font-extrabold shadow-lg">
+      <span class="w-5 h-5 rounded-full bg-white/30 grid place-items-center text-[10px]">🎁</span>
+      <span class="tabular-nums" id="mlrCoinCount"><%= tipsToday.toLocaleString('vi-VN') %></span>
+      <span class="text-[9px] opacity-80">›</span>
+    </button>
+    <div class="flex items-center gap-1 bg-black/55 backdrop-blur-md pl-1 pr-2 py-0.5 rounded-full text-white text-[11px] font-bold">
+      <span class="w-5 h-5 rounded-full bg-white/15 grid place-items-center text-[10px]">👁</span>
+      <span class="tabular-nums"><%= viewers.toLocaleString('vi-VN') %></span>
+      <span class="text-[9px] opacity-60">›</span>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT FLOATING WIDGETS ============ -->
+  <div class="absolute right-2 top-1/3 z-[10] flex flex-col gap-2 items-center">
+    <!-- Treasure chest with timer -->
+    <button class="relative bg-gradient-to-b from-pink-500/80 to-purple-700/80 backdrop-blur p-1 rounded-xl border border-yellow-400/60 shadow-lg hover:scale-105 transition-transform">
+      <div class="w-12 h-12 grid place-items-center text-3xl">🎁</div>
+      <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur px-1.5 py-0.5 rounded text-[8px] font-bold text-yellow-300 whitespace-nowrap tabular-nums" id="mlrTimer">05:46:27</div>
+      <div class="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-md text-[8px] font-black text-white px-1 py-0.5">LV42</div>
+    </button>
+    <!-- Penguin cute char (live activity) -->
+    <a href="/game/xuc-xac" class="bg-gradient-to-b from-bg-card/80 to-bg-deep/80 backdrop-blur p-1 rounded-xl border border-line shadow-md hover:scale-105 transition-transform block">
+      <div class="w-11 h-11 grid place-items-center text-2xl">🐧</div>
+      <div class="text-[8px] text-white text-center font-bold whitespace-nowrap">Ngừng c...</div>
+    </a>
+    <!-- Toggle floating game cards (XÓC ĐĨA + TÀI XỈU) -->
+    <button onclick="mlrToggleGameCards(this)" id="mlrGameToggle" class="bg-gradient-to-b from-orange-400/80 to-red-500/80 backdrop-blur p-1 rounded-xl border border-yellow-400/40 shadow-md hover:scale-105 transition-transform block relative">
+      <div class="w-11 h-11 grid place-items-center text-2xl">🎲</div>
+      <div class="text-[8px] text-white text-center font-bold whitespace-nowrap">Mở game</div>
+      <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-bg-deep hidden" id="mlrGameToggleDot"></span>
+    </button>
+  </div>
+
+  <!-- ============ FLOATING MINI-GAME RESULTS (xoc dia + tai xiu) ============ -->
+  <div class="hidden absolute top-[28%] left-1/2 -translate-x-1/2 z-[8] w-[80%] max-w-[280px] space-y-1.5" id="mlrGameCards">
+    <!-- Xoc Dia card -->
+    <div class="bg-black/65 backdrop-blur-md rounded-md p-2 border border-white/10 relative group">
+      <div class="text-white text-[10px] font-bold mb-0.5 flex items-center gap-1">
+        <span class="text-yellow-400">🎰</span> XÓC ĐĨA kỳ <span class="tabular-nums" id="mlrXocDiaKy">20260607</span>
+      </div>
+      <div class="flex gap-1.5 mt-1">
+        <div class="w-7 h-7 rounded-full bg-white shadow-inner"></div>
+        <div class="w-7 h-7 rounded-full bg-red-600 shadow-inner"></div>
+        <div class="w-7 h-7 rounded-full bg-white shadow-inner"></div>
+        <div class="w-7 h-7 rounded-full bg-red-600 shadow-inner"></div>
+      </div>
+    </div>
+    <!-- Tai Xiu card -->
+    <div class="bg-black/65 backdrop-blur-md rounded-md p-2 border border-white/10 relative">
+      <button class="absolute top-1 right-1 w-4 h-4 rounded-full bg-white/15 text-white grid place-items-center text-[10px] hover:bg-live" onclick="this.parentElement.style.display='none'">×</button>
+      <div class="text-white text-[10px] font-bold mb-0.5 flex items-center gap-1">
+        <span class="text-yellow-400">🎲</span> TÀI XỈU kỳ <span class="tabular-nums" id="mlrTaiXiuKy">2026060709</span>
+      </div>
+      <div class="flex gap-1.5 mt-1" id="mlrTaiXiuDice">
+        <span class="w-7 h-7 rounded bg-white text-black grid place-items-center font-black">5</span>
+        <span class="w-7 h-7 rounded bg-white text-black grid place-items-center font-black">3</span>
+        <span class="w-7 h-7 rounded bg-white text-black grid place-items-center font-black">4</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MARQUEE NOTIFICATION ============ -->
+  <div class="absolute left-2 right-2 z-[9] overflow-hidden rounded-full" style="bottom: 38vh;">
+    <div class="bg-gradient-to-r from-yellow-500/85 via-orange-500/85 to-yellow-500/85 backdrop-blur py-1 px-3 flex items-center gap-1.5">
+      <span class="text-base shrink-0">🎊</span>
+      <div class="flex-1 overflow-hidden">
+        <div class="text-white font-bold text-[11px] whitespace-nowrap" style="animation: mlrMarquee 18s linear infinite;" id="mlrMarqueeText">
+          <% marqueeMsgs.forEach(function(m){ %><span class="mr-12"><%= m %></span><% }); %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CHAT OVERLAY (semi-transparent) ============ -->
+  <div class="absolute left-2 right-2 z-[9] pointer-events-none" style="bottom: 60px; max-height: 30vh;">
+    <div class="space-y-1 overflow-hidden flex flex-col-reverse" id="mlrChatBody" style="max-height: 30vh;"></div>
+  </div>
+
+  <!-- ============ BOTTOM ACTION BAR ============ -->
+  <div class="absolute bottom-2 left-2 right-2 z-[10] flex items-center gap-1.5">
+    <!-- Chat input -->
+    <button onclick="mlrOpenChatInput()" class="flex-1 bg-black/55 backdrop-blur-md rounded-full px-3 py-2 text-left text-white text-[12px] flex items-center gap-2 hover:bg-black/70">
+      <span class="text-sm">💬</span>
+      <span class="text-gray-300 text-[11px]">Nói chuyện...</span>
+    </button>
+    <!-- Trophy / Top tippers -->
+    <button onclick="switchChatTab('gift');" class="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-pink-600 grid place-items-center text-white text-base shadow-lg shadow-red-500/40 hover:scale-110 transition-transform" aria-label="Bảng xếp hạng">🏆</button>
+    <!-- Mini game -->
+    <a href="/mini-game" class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-yellow-500 grid place-items-center text-white text-base shadow-lg shadow-orange-500/40 hover:scale-110 transition-transform" aria-label="Mini game">🎮</a>
+    <!-- Gift -->
+    <button onclick="openGiftPanel('<%= idol.name %>')" class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-700 grid place-items-center text-white text-base shadow-lg shadow-pink-500/40 hover:scale-110 transition-transform relative" aria-label="Quà">
+      🎁
+      <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span>
+    </button>
+    <!-- Mute / Hide -->
+    <button onclick="mlrToggleMute(this)" class="w-9 h-9 rounded-full bg-black/55 backdrop-blur-md grid place-items-center text-white text-base hover:bg-black/70" aria-label="Tắt chat">⊘</button>
+    <!-- Close room -->
+    <a href="/idol-live" class="w-9 h-9 rounded-full bg-black/55 backdrop-blur-md grid place-items-center text-white text-base hover:bg-live transition-colors" aria-label="Thoát">✕</a>
+  </div>
+
+  <!-- ============ CHAT INPUT MODAL (slide up khi click) ============ -->
+  <div id="mlrChatInputModal" class="hidden absolute bottom-0 inset-x-0 z-[20] bg-bg-card border-t border-pri rounded-t-2xl p-3 shadow-2xl">
+    <div class="flex gap-2 items-center">
+      <input id="mlrChatInputField" maxlength="200" class="flex-1 bg-bg-deep border border-line text-white px-3 py-2 rounded-full outline-none text-sm focus:border-pri" placeholder="Nhập tin nhắn..." onkeydown="if(event.key==='Enter')mlrSendChat()">
+      <button onclick="mlrSendChat()" class="bg-gradient-to-br from-pri to-live text-white px-4 py-2 rounded-full font-bold text-xs">Gửi</button>
+      <button onclick="mlrCloseChatInput()" class="text-muted text-xl px-1">×</button>
+    </div>
+  </div>
+
+</div>
+
+<style>
+@keyframes bounceIdol { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+@keyframes mlrMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+@keyframes mlrChatIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.mlr-chat-msg { animation: mlrChatIn .25s ease-out; pointer-events: auto; }
+</style>
+
+<script>
+(function(){
+  // Bot chat sample on mobile overlay
+  var BOT_MSGS = [
+    {user:'VTNT.Com', lvl:41, color:'emerald', text:'Hoan nghênh đại gia'},
+    {user:'Max12',    lvl:2,  color:'pink',    text:'Đến rồi'},
+    {user:'nhtky',    lvl:42, color:'emerald', text:'Hoan nghênh đại gia'},
+    {user:'KingX66',  lvl:55, color:'amber',   text:'Idol xinh quá ❤️'},
+    {user:'LinhTrang',lvl:8,  color:'sky',     text:'Mọi người tặng quà ủng hộ nha'},
+    {user:'BoMy_X66', lvl:30, color:'purple',  text:'Vừa nạp 100K coin'},
+    {user:'CauBe88',  lvl:12, color:'pink',    text:'Hello idol'},
+    {user:'GirlVN',   lvl:21, color:'sky',     text:'Phòng vui ghê'}
+  ];
+  var COLOR_BG = { emerald:'bg-emerald-500', pink:'bg-pink-500', amber:'bg-amber-500', sky:'bg-sky-500', purple:'bg-purple-500' };
+
+  function pushMlrChat(user, lvl, color, text, isSystem){
+    var body = document.getElementById('mlrChatBody');
+    if (!body) return;
+    var el = document.createElement('div');
+    el.className = 'mlr-chat-msg bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-[11px] flex items-center gap-1.5 max-w-[85%]';
+    if (isSystem) {
+      el.innerHTML = '<span class="text-white">' + escMlr(text) + '</span>';
+    } else {
+      el.innerHTML = '<span class="' + (COLOR_BG[color]||'bg-gray-500') + ' text-white text-[9px] font-black px-1 rounded">' + lvl + '</span>'
+        + '<span class="font-bold text-yellow-300 truncate">' + escMlr(user) + '</span>'
+        + '<span class="text-white truncate">' + escMlr(text) + '</span>';
+    }
+    body.insertBefore(el, body.firstChild);
+    // Keep max 15 messages
+    while (body.children.length > 15) body.removeChild(body.lastChild);
+  }
+  function escMlr(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+
+  // System welcome
+  setTimeout(function(){ pushMlrChat('','','','Chào mừng đến với phòng phát trực tiếp của <%= idol.name %>', true); }, 500);
+  setTimeout(function(){ pushMlrChat('VTNT.Com', 41, 'emerald', 'Hoan nghênh đại gia'); }, 1500);
+  setTimeout(function(){ pushMlrChat('Max12', 2, 'pink', 'Đến rồi'); }, 2500);
+  setTimeout(function(){ pushMlrChat('nhtky', 42, 'emerald', 'Hoan nghênh đại gia'); }, 3500);
+
+  // Random bot chat every 5-12s
+  function scheduleNext(){
+    var delay = 5000 + Math.random()*7000;
+    setTimeout(function(){
+      var m = BOT_MSGS[Math.floor(Math.random()*BOT_MSGS.length)];
+      pushMlrChat(m.user, m.lvl, m.color, m.text);
+      scheduleNext();
+    }, delay);
+  }
+  scheduleNext();
+
+  // Timer countdown (chest LV42)
+  var timerStart = Date.now();
+  var timerInitial = 5*3600 + 46*60 + 27;
+  setInterval(function(){
+    var elapsed = Math.floor((Date.now()-timerStart)/1000);
+    var total = timerInitial - elapsed;
+    if (total < 0) total = 0;
+    var h = Math.floor(total/3600), m = Math.floor((total%3600)/60), s = total%60;
+    var t = document.getElementById('mlrTimer');
+    if (t) t.textContent = (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  }, 1000);
+
+  // Chat input modal
+  window.mlrOpenChatInput = function(){
+    document.getElementById('mlrChatInputModal').classList.remove('hidden');
+    setTimeout(function(){ document.getElementById('mlrChatInputField').focus(); }, 100);
+  };
+  window.mlrCloseChatInput = function(){
+    document.getElementById('mlrChatInputModal').classList.add('hidden');
+  };
+  window.mlrSendChat = function(){
+    var inp = document.getElementById('mlrChatInputField');
+    if (!inp || !inp.value.trim()) return;
+    var u = {};
+    try { u = JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){}
+    if (!u.username) {
+      if (confirm('Bạn cần đăng nhập để chat. Đăng nhập ngay?')) location.href='/dang-nhap';
+      return;
+    }
+    pushMlrChat(u.username, u.level||1, 'amber', inp.value.trim());
+    inp.value = '';
+    mlrCloseChatInput();
+  };
+
+  // Follow toggle
+  window.mlrToggleFollow = function(b){
+    b.classList.toggle('bg-pri');
+    b.classList.toggle('bg-emerald-500');
+    b.textContent = b.classList.contains('bg-emerald-500') ? '✓' : '❤';
+  };
+
+  // Mute toggle
+  window.mlrToggleMute = function(b){
+    var body = document.getElementById('mlrChatBody');
+    if (!body) return;
+    var hidden = body.style.display === 'none';
+    body.style.display = hidden ? '' : 'none';
+    b.classList.toggle('bg-live', !hidden);
+    b.classList.toggle('bg-black/55', hidden);
+  };
+
+  // Toggle 2 game cards (XÓC ĐĨA + TÀI XỈU) - idol bat moi hien
+  var gameCardsOpen = false;
+  var gameTimers = []; // de pause refresh khi an
+  window.mlrToggleGameCards = function(btn){
+    var cards = document.getElementById('mlrGameCards');
+    var dot   = document.getElementById('mlrGameToggleDot');
+    var label = btn.querySelector('div:nth-child(2)');
+    if (!cards) return;
+    gameCardsOpen = !gameCardsOpen;
+    if (gameCardsOpen){
+      cards.classList.remove('hidden');
+      if (dot) dot.classList.remove('hidden');
+      if (label) label.textContent = 'Đóng';
+      btn.classList.add('ring-2','ring-yellow-300');
+      // Trigger 1 lan refresh ngay khi mo
+      refreshTaiXiuOnce();
+      refreshXocDiaOnce();
+      // Start auto-refresh
+      gameTimers.push(setInterval(refreshTaiXiuOnce, 30000));
+      gameTimers.push(setInterval(refreshXocDiaOnce, 25000));
+      // Notification toast
+      pushMlrChat('','','','Idol đã mở mini-game XÓC ĐĨA & TÀI XỈU 🎲', true);
+    } else {
+      cards.classList.add('hidden');
+      if (dot) dot.classList.add('hidden');
+      if (label) label.textContent = 'Mở game';
+      btn.classList.remove('ring-2','ring-yellow-300');
+      // Stop auto refresh
+      gameTimers.forEach(function(t){ clearInterval(t); });
+      gameTimers = [];
+    }
+  };
+  function refreshTaiXiuOnce(){
+    var dice = document.getElementById('mlrTaiXiuDice');
+    if (!dice) return;
+    dice.innerHTML = '';
+    for (var i=0;i<3;i++){
+      var d = Math.floor(Math.random()*6)+1;
+      var s = document.createElement('span');
+      s.className = 'w-7 h-7 rounded bg-white text-black grid place-items-center font-black';
+      s.textContent = d;
+      dice.appendChild(s);
+    }
+    var ky = document.getElementById('mlrTaiXiuKy');
+    if (ky) ky.textContent = Date.now().toString().slice(0,10);
+  }
+  function refreshXocDiaOnce(){
+    var card = document.querySelector('#mlrGameCards > div:first-child .flex');
+    if (!card) return;
+    card.innerHTML = '';
+    for (var i=0;i<4;i++){
+      var bg = Math.random() < .5 ? 'bg-white' : 'bg-red-600';
+      var d = document.createElement('div');
+      d.className = 'w-7 h-7 rounded-full ' + bg + ' shadow-inner';
+      card.appendChild(d);
+    }
+  }
+
+  // Hook to existing x66RecordGift for live gifts overlay
+  var originalRecord = window.x66RecordGift;
+  window.x66RecordGift = function(user, icon, name, price, tier){
+    if (originalRecord) originalRecord.apply(null, arguments);
+    // Push to mobile chat overlay as gift message
+    pushMlrChat(user, 99, 'amber', 'tặng ' + icon + ' ' + name);
+  };
+})();
+</script>

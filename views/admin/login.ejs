@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login &middot; XOSO66 TV</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/webp" href="/static/img/favicon.webp">
+<%- include('../partials/tailwind-config') %>
+</head>
+<body class="bg-bg text-gray-100 font-sans antialiased min-h-screen grid place-items-center">
+<div class="w-full max-w-md p-8 bg-bg-card border border-line rounded-2xl shadow-2xl">
+  <div class="text-center mb-6">
+    <img src="/static/img/favicon.webp" alt="Admin" class="w-16 h-16 mx-auto rounded-2xl mb-3 shadow-pri object-cover" onerror="this.outerHTML='<div class=&quot;inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-pri to-gold grid place-items-center font-black text-2xl text-bg-soft mb-3 shadow-pri&quot;>A</div>'">
+    <h1 class="text-2xl font-extrabold text-white">Admin Panel</h1>
+    <p class="text-muted text-sm mt-1">Dang nhap de quan ly he thong</p>
+  </div>
+
+  <% if (typeof err !== 'undefined' && err) { %>
+    <div class="bg-live/10 border border-live text-live text-xs font-semibold p-3 rounded-lg mb-4">&#9888; <%= err %></div>
+  <% } %>
+
+  <form method="POST" action="/admin/login">
+    <input type="hidden" name="next" value="<%= typeof nextUrl!=='undefined'?nextUrl:'/admin' %>">
+    <div class="mb-4">
+      <label class="block text-gray-100 text-[13px] font-semibold mb-1.5">Tai khoan</label>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-lg">&#128100;</span>
+        <input name="username" type="text" required class="w-full bg-bg-deep border border-line text-gray-100 pl-10 pr-3 py-2.5 rounded-lg outline-none text-sm focus:border-pri" placeholder="admin" autofocus autocomplete="username">
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="block text-gray-100 text-[13px] font-semibold mb-1.5">Mat khau</label>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-lg">&#128274;</span>
+        <input name="password" type="password" required class="w-full bg-bg-deep border border-line text-gray-100 pl-10 pr-3 py-2.5 rounded-lg outline-none text-sm focus:border-pri" placeholder="********" autocomplete="current-password" value="<%= typeof savedPassword !== 'undefined' ? savedPassword : '' %>">
+      </div>
+    </div>
+    <% if (typeof show2FA !== 'undefined' && show2FA) { %>
+    <div class="mb-4 bg-pri/10 border-2 border-pri rounded-lg p-3">
+      <label class="block text-pri-light text-[13px] font-bold mb-1.5">&#128737; Mã OTP từ Authenticator</label>
+      <input name="otp" type="tel" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" 
+             class="w-full bg-bg-deep border-2 border-pri text-white text-2xl text-center font-black tabular-nums px-3 py-3 rounded-lg outline-none focus:border-pri-light"
+             placeholder="000000" autocomplete="one-time-code">
+      <div class="text-[11px] text-gray-300 mt-1.5 text-center">Nhập 6 số từ Google Authenticator / Authy</div>
+    </div>
+    <% } %>
+    <button type="submit" class="w-full py-3 bg-gradient-to-br from-pri to-live text-white rounded-lg font-extrabold text-[15px] shadow-live hover:-translate-y-0.5 transition-transform">&#128274; DANG NHAP ADMIN</button>
+  </form>
+
+  <div class="mt-5 pt-4 border-t border-line text-center text-xs text-dim">
+    Demo: <b class="text-pri-light">admin</b> / <b class="text-pri-light">admin123</b>
+  </div>
+</div>
+</body>
+</html>

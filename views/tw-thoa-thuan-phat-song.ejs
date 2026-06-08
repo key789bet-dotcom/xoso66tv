@@ -1,0 +1,86 @@
+<% var pageTitle='Thỏa Thuận Phát Sóng Trực Tiếp', pageH1='Thỏa Thuận Phát Sóng Trực Tiếp', breadcrumbName='Thỏa Thuận Phát Sóng', updated='2026-06-05', canonicalPath='/thoa-thuan-phat-song';
+var pageDesc = 'Thỏa thuận phát sóng và bản quyền nội dung của '+brand.name+'. Tuân thủ DMCA và Luật Sở hữu trí tuệ Việt Nam.';
+var contentHtml = `
+<p><strong>${brand.name}</strong> cam kết tôn trọng bản quyền và pháp luật về sở hữu trí tuệ. Thỏa thuận này quy định việc sử dụng và phân phối nội dung phát sóng trực tiếp trên nền tảng.</p>
+
+<h2>1. Bản chất dịch vụ</h2>
+<p><strong>${brand.name}</strong> hoạt động như một <strong>nền tảng tổng hợp link/embed</strong> các stream phát sóng công khai từ nhiều nguồn khác nhau trên Internet (Twitch, YouTube, Acefun, các nhà đài có license công khai...). Chúng tôi <strong>không host video gốc</strong> mà chỉ cung cấp giao diện thuận tiện cho người xem.</p>
+
+<h2>2. Nguồn nội dung</h2>
+<ul>
+  <li><strong>Stream chính thức:</strong> Embed từ các kênh có license (YouTube, Twitch official, đối tác phát sóng)</li>
+  <li><strong>Stream cộng đồng:</strong> BLV độc lập tự stream và đăng ký với hệ thống</li>
+  <li><strong>Highlight &amp; replay:</strong> Embed từ YouTube/Facebook các channel chính chủ</li>
+  <li><strong>Tin tức &amp; livescore:</strong> Sync API từ TheSportsDB, ESPN, BetsAPI</li>
+</ul>
+
+<h2>2. Quyền sở hữu nội dung</h2>
+<p>Mọi nội dung phát sóng (video, âm thanh, hình ảnh trận đấu) đều thuộc về <strong>chủ sở hữu bản quyền gốc</strong>:</p>
+<ul>
+  <li>FIFA, UEFA, Premier League, La Liga, Serie A...</li>
+  <li>NBA, ATP, WTA, ITF...</li>
+  <li>Các nhà đài chính thức: VTVCab, K+, FPT Play, ON Sports...</li>
+  <li>Các nền tảng esports: Riot Games, Valve, Activision Blizzard...</li>
+</ul>
+<p>${brand.name} không tuyên bố sở hữu bất kỳ nội dung video nào của bên thứ ba.</p>
+
+<h2>3. Bản quyền BLV &amp; cộng đồng</h2>
+<p>Bình luận, giọng nói, slogan, biệt danh BLV thuộc về cá nhân BLV. ${brand.name} chỉ là nền tảng host. BLV chịu trách nhiệm về nội dung bình luận của mình.</p>
+
+<h2>4. Quy tắc đăng ký BLV / Idol</h2>
+<p>BLV / Idol muốn stream trên ${brand.name} phải:</p>
+<ol>
+  <li>Đăng ký tài khoản và xác thực CCCD/CMND</li>
+  <li>Gửi yêu cầu cấp <strong>stream key</strong> qua trang <a href="/lien-he">Liên Hệ</a></li>
+  <li>Cam kết không phát nội dung vi phạm bản quyền hoặc thuần phong mỹ tục</li>
+  <li>Tuân thủ giờ phát sóng đã đăng ký</li>
+  <li>Sử dụng OBS Studio hoặc tương đương với cấu hình do ${brand.name} quy định</li>
+</ol>
+
+<h2>5. Báo cáo vi phạm bản quyền (DMCA)</h2>
+<p>Nếu bạn là chủ sở hữu bản quyền và phát hiện nội dung trên ${brand.name} vi phạm quyền của mình, vui lòng gửi <strong>DMCA Takedown Notice</strong> qua email <a href="mailto:dmca@${brand.domain}"><strong>dmca@${brand.domain}</strong></a> với các thông tin sau:</p>
+<ul>
+  <li>Bằng chứng quyền sở hữu (đăng ký bản quyền, hợp đồng cấp phép)</li>
+  <li>URL chính xác của nội dung vi phạm trên ${brand.name}</li>
+  <li>URL nguồn gốc của nội dung</li>
+  <li>Thông tin liên hệ của bạn (tên, email, số điện thoại)</li>
+  <li>Tuyên bố trung thực rằng thông tin trên là chính xác</li>
+</ul>
+<p>Chúng tôi sẽ xử lý trong vòng <strong>24-48 giờ</strong> kể từ khi nhận được notice hợp lệ. Website đã đăng ký bảo vệ DMCA tại <a href="https://www.dmca.com/" target="_blank" rel="noopener">dmca.com</a>.</p>
+
+<h2>6. Quyền &amp; trách nhiệm người xem</h2>
+<h3>Bạn được phép:</h3>
+<ul>
+  <li>Xem stream miễn phí với mục đích cá nhân</li>
+  <li>Chia sẻ link trận đấu qua mạng xã hội</li>
+  <li>Bình luận, tương tác trong phòng chat</li>
+</ul>
+<h3>Bạn KHÔNG được phép:</h3>
+<ul>
+  <li>Record và đăng tải lại stream lên các nền tảng khác</li>
+  <li>Sử dụng cho mục đích thương mại</li>
+  <li>Bypass hệ thống bằng bot, crawler tự động</li>
+  <li>Đăng nội dung vi phạm trong chat (spam, quảng cáo, tục tĩu, chính trị)</li>
+</ul>
+
+<h2>7. Giới hạn trách nhiệm</h2>
+<p>${brand.name} cố gắng cung cấp dịch vụ ổn định nhất nhưng <strong>không cam kết</strong>:</p>
+<ul>
+  <li>Stream luôn 100% uptime (có thể gián đoạn do bảo trì hoặc lỗi nguồn)</li>
+  <li>Chất lượng stream luôn HD (tùy thuộc nguồn gốc)</li>
+  <li>Phát sóng đầy đủ mọi trận đấu (một số giải nhỏ có thể không có nguồn)</li>
+</ul>
+
+<h2>8. Quy định pháp luật áp dụng</h2>
+<p>Thỏa thuận này tuân thủ:</p>
+<ul>
+  <li>Luật Sở hữu trí tuệ Việt Nam (Luật số 50/2005/QH11, sửa đổi 2022)</li>
+  <li>Nghị định 22/2018/NĐ-CP về quyền tác giả</li>
+  <li>DMCA (Digital Millennium Copyright Act) - Mỹ</li>
+  <li>EUCD (EU Copyright Directive)</li>
+</ul>
+
+<h2>9. Liên hệ bản quyền</h2>
+<p>Mọi vấn đề về bản quyền, vui lòng liên hệ: <a href="mailto:dmca@${brand.domain}"><strong>dmca@${brand.domain}</strong></a> hoặc qua <a href="/lien-he">trang Liên Hệ</a>.</p>
+`; %>
+<%- include('partials/tw-static-shell', { pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml, canonicalPath }) %>

@@ -1,0 +1,399 @@
+<%
+// Cần require gifts data ở route, hoặc nhúng tại đây
+var GIFTS = (typeof gifts !== 'undefined' && gifts) ? gifts : [
+  { id:'rose',name:'Hoa hồng',icon:'🌹',price:1,tier:'common'},
+  { id:'heart',name:'Trái tim',icon:'❤️',price:2,tier:'common'},
+  { id:'kiss',name:'Nụ hôn',icon:'💋',price:5,tier:'common'},
+  { id:'icecream',name:'Kem que',icon:'🍦',price:10,tier:'common'},
+  { id:'milktea',name:'Trà sữa',icon:'🧋',price:15,tier:'common'},
+  { id:'cake',name:'Bánh kem',icon:'🍰',price:50,tier:'common'},
+  { id:'bouquet',name:'Bó hồng',icon:'💐',price:100,tier:'rare'},
+  { id:'ring',name:'Nhẫn vàng',icon:'💍',price:200,tier:'rare'},
+  { id:'champagne',name:'Champagne',icon:'🍾',price:300,tier:'rare'},
+  { id:'crown',name:'Vương miện',icon:'👑',price:500,tier:'rare'},
+  { id:'diamond',name:'Kim cương',icon:'💎',price:1000,tier:'epic'},
+  { id:'car',name:'Siêu xe',icon:'🏎️',price:3000,tier:'epic'},
+  { id:'castle',name:'Lâu đài',icon:'🏰',price:5000,tier:'epic'},
+  { id:'plane',name:'Máy bay',icon:'✈️',price:8000,tier:'epic'},
+  { id:'yacht',name:'Du thuyền',icon:'🛥️',price:30000,tier:'legendary'},
+  { id:'rocket',name:'Tên lửa',icon:'🚀',price:100000,tier:'legendary'}
+];
+var TIER_RING = {
+  common:    'from-gray-400 via-gray-500 to-gray-700',
+  rare:      'from-cyan-300 via-sky-500 to-blue-700',
+  epic:      'from-fuchsia-400 via-purple-500 to-violet-700',
+  legendary: 'from-yellow-200 via-amber-400 via-orange-500 to-red-600'
+};
+var TIER_BG_GRAD = {
+  common:    'from-slate-800/80 to-slate-900',
+  rare:      'from-sky-900/40 via-blue-900/30 to-slate-900',
+  epic:      'from-purple-900/40 via-fuchsia-900/30 to-slate-900',
+  legendary: 'from-orange-900/40 via-red-900/30 to-slate-900'
+};
+var TIER_GLOW_HEX = {
+  common:'rgba(148,163,184,.25)',
+  rare:'rgba(56,189,248,.55)',
+  epic:'rgba(168,85,247,.6)',
+  legendary:'rgba(255,180,0,.75)'
+};
+var TIER_LABEL = { common:'PHỔ THÔNG', rare:'HIẾM', epic:'SỬ THI', legendary:'HUYỀN THOẠI' };
+var TIER_BADGE_BG = {
+  common:'bg-slate-700 text-slate-200',
+  rare:'bg-gradient-to-r from-sky-500 to-blue-600 text-white',
+  epic:'bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white',
+  legendary:'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white'
+};
+var TIER_ICON_DECO = {
+  common:'',
+  rare:'⭐',
+  epic:'✨',
+  legendary:'👑'
+};
+%>
+
+<!-- Gift panel slide-up (hidden mặc định) -->
+<div id="giftPanel" class="hidden fixed inset-x-0 bottom-0 z-[70] bg-gradient-to-t from-[#0a0d12] to-[#13171f] border-t-2 border-pri rounded-t-2xl shadow-2xl max-h-[75vh] overflow-hidden flex flex-col">
+
+  <!-- Drag handle (mobile only) -->
+  <div class="md:hidden flex justify-center pt-1.5 pb-1">
+    <div class="w-10 h-1 bg-white/20 rounded-full"></div>
+  </div>
+
+  <!-- Header (compact on mobile) -->
+  <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-1.5 md:py-3 border-b border-line bg-bg-card">
+    <span class="text-lg md:text-2xl shrink-0">🎁</span>
+    <div class="flex-1 min-w-0">
+      <h3 class="text-white font-extrabold text-[13px] md:text-base truncate leading-tight">Tặng <span id="giftRecipient" class="text-pri-light"><%= (typeof idol !== 'undefined' && idol) ? idol.name : 'Idol' %></span></h3>
+      <div class="hidden md:block text-[11px] text-muted">Chọn quà để gửi - <span class="text-gold font-bold">X COIN sẽ bị trừ ngay</span></div>
+    </div>
+    <!-- Balance pill (compact on mobile) -->
+    <div class="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-bg-deep rounded-lg border border-pri/40 shrink-0">
+      <span class="text-sm md:text-base">🪙</span>
+      <span class="hidden md:inline text-[10px] text-muted">Số dư:</span>
+      <span id="giftBalance" class="text-gold font-extrabold tabular-nums text-xs md:text-sm">0</span>
+      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="text-[9px] md:text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-1.5 md:px-2 py-0.5 rounded ml-0.5 md:ml-1">+ Nạp</a>
+    </div>
+    <button onclick="closeGiftPanel()" class="w-7 h-7 md:w-8 md:h-8 grid place-items-center text-white hover:text-live text-lg md:text-xl shrink-0" aria-label="Đóng">&times;</button>
+  </div>
+
+  <!-- Tier tabs (compact mobile) -->
+  <nav class="flex gap-1 px-2 md:px-3 py-1.5 md:py-2 border-b border-line/40 overflow-x-auto scrollbar-hide bg-bg-card/40">
+    <% ['all','common','rare','epic','legendary'].forEach(function(t, i){ %>
+      <button class="gp-tab px-2 md:px-3 py-1 md:py-1.5 text-[10.5px] md:text-[12px] font-bold rounded-md whitespace-nowrap <%= i===0?'bg-pri text-white':'bg-bg-soft text-gray-200 hover:bg-bg-deep' %> transition-colors" data-tier="<%= t %>">
+        <%= t==='all'?'Tất cả':t==='common'?'Phổ thông':t==='rare'?'Hiếm':t==='epic'?'Sử thi':'Huyền thoại' %>
+      </button>
+    <% }); %>
+  </nav>
+
+  <!-- Grid (4 cols mobile) -->
+  <div class="flex-1 overflow-y-auto p-2 md:p-3 scrollbar-thin">
+    <div class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3" id="giftGrid">
+      <% GIFTS.forEach(function(g){ %>
+        <button class="gp-item gp-tier-<%= g.tier %> group relative overflow-hidden bg-gradient-to-b <%= TIER_BG_GRAD[g.tier] %> border border-white/5 rounded-xl md:rounded-2xl p-1.5 md:p-3 text-center transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.04]"
+                data-tier="<%= g.tier %>" data-id="<%= g.id %>" data-name="<%= g.name %>" data-icon="<%= g.icon %>" data-price="<%= g.price %>"
+                style="--tier-glow:<%= TIER_GLOW_HEX[g.tier] %>;">
+          <!-- Inner decorative pattern -->
+          <div class="absolute inset-0 opacity-30 gp-pattern pointer-events-none"></div>
+          <!-- Animated rotating sparkle background for rare+ -->
+          <% if (g.tier !== 'common') { %>
+            <div class="absolute inset-0 opacity-40 gp-rotate-bg pointer-events-none"></div>
+          <% } %>
+
+          <!-- Tier badge top-right -->
+          <span class="absolute top-1.5 right-1.5 z-[3] text-[8px] font-black px-1.5 py-0.5 rounded <%= TIER_BADGE_BG[g.tier] %> shadow-md"><%= TIER_LABEL[g.tier] %></span>
+
+          <!-- Decoration emoji top-left for rare+ -->
+          <% if (TIER_ICON_DECO[g.tier]) { %>
+            <span class="absolute top-1.5 left-1.5 z-[3] text-xs opacity-90 gp-deco-spin"><%= TIER_ICON_DECO[g.tier] %></span>
+          <% } %>
+
+          <!-- 3-layer ring frame around icon -->
+          <div class="relative mx-auto w-12 h-12 md:w-[70px] md:h-[70px] mt-1 md:mt-2 mb-1 md:mb-2 z-[2]">
+            <!-- Outer animated ring (slow rotate) -->
+            <div class="absolute inset-0 rounded-full p-[2px] md:p-[2.5px] bg-gradient-to-br <%= TIER_RING[g.tier] %> gp-ring-rotate">
+              <div class="w-full h-full rounded-full bg-[#0a0d12]"></div>
+            </div>
+            <!-- Inner glow circle -->
+            <div class="absolute inset-[4px] md:inset-[6px] rounded-full bg-gradient-to-b from-white/10 to-black/30 grid place-items-center">
+              <!-- Emoji with multi-layer drop-shadow (3D effect) -->
+              <span class="gp-icon text-[24px] md:text-[40px] group-hover:scale-110 transition-transform duration-300"
+                    style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.6)) drop-shadow(0 0 8px <%= TIER_GLOW_HEX[g.tier] %>) drop-shadow(0 0 16px <%= TIER_GLOW_HEX[g.tier] %>);">
+                <%= g.icon %>
+              </span>
+            </div>
+            <!-- Aura halo for epic/legendary -->
+            <% if (g.tier === 'epic' || g.tier === 'legendary') { %>
+              <div class="absolute -inset-2 rounded-full pointer-events-none gp-halo" style="background:radial-gradient(circle, <%= TIER_GLOW_HEX[g.tier] %> 0%, transparent 70%);"></div>
+            <% } %>
+          </div>
+
+          <!-- Gift name -->
+          <div class="relative z-[2] mt-0.5 md:mt-1 text-[10px] md:text-[12px] font-extrabold text-white truncate px-0.5" style="text-shadow:0 1px 3px rgba(0,0,0,.7);"><%= g.name %></div>
+
+          <!-- Price pill (gold gradient) -->
+          <div class="relative z-[2] mt-1 md:mt-1.5 mx-auto inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-500/30 via-yellow-400/40 to-yellow-500/30 border border-yellow-400/40 shadow-inner">
+            <span class="text-[9px] md:text-[11px]">🪙</span>
+            <span class="tabular-nums font-black text-[9.5px] md:text-[11px] text-yellow-300" style="text-shadow:0 1px 2px rgba(0,0,0,.6);"><%= g.price.toLocaleString('vi-VN') %></span>
+          </div>
+
+          <!-- Bottom shine bar (hover only) -->
+          <div class="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-70 transition-opacity"></div>
+        </button>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<!-- Floating "Tặng quà" button -->
+<button id="giftFab" class="fixed bottom-5 right-5 z-50 bg-gradient-to-br from-pri to-live hover:scale-110 text-white font-extrabold w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(255,122,24,.55)] grid place-items-center text-2xl transition-transform" aria-label="Tặng quà">
+  🎁
+</button>
+
+<!-- Gift flying animation overlay -->
+<div id="giftAnimLayer" class="fixed inset-0 pointer-events-none z-[70]"></div>
+
+
+<style>
+/* ===== GIFT CARD PREMIUM DESIGN ===== */
+.gp-item { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.04) inset; }
+.gp-item:hover { box-shadow: 0 12px 32px rgba(0,0,0,.5), 0 0 30px var(--tier-glow), 0 0 0 1px var(--tier-glow) inset; }
+.gp-tier-legendary { animation: gpLegendBreathe 2s ease-in-out infinite; }
+@keyframes gpLegendBreathe {
+  0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 20px rgba(255,180,0,.4); }
+  50%     { box-shadow: 0 8px 28px rgba(0,0,0,.4), 0 0 40px rgba(255,180,0,.7); }
+}
+.gp-tier-epic { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 18px rgba(168,85,247,.35); }
+.gp-tier-rare { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 14px rgba(56,189,248,.3); }
+.gp-pattern {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.06) 0, transparent 30%),
+    radial-gradient(circle at 80% 80%, rgba(255,255,255,.04) 0, transparent 30%);
+  background-size: 40px 40px;
+}
+.gp-rotate-bg {
+  background: conic-gradient(from 0deg, transparent 0deg, var(--tier-glow) 30deg, transparent 60deg, transparent 180deg, var(--tier-glow) 210deg, transparent 240deg);
+  animation: gpRotate 8s linear infinite;
+  filter: blur(8px);
+}
+@keyframes gpRotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.gp-ring-rotate { animation: gpRingSpin 6s linear infinite; }
+@keyframes gpRingSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.gp-halo { animation: gpHaloPulse 2s ease-in-out infinite; }
+@keyframes gpHaloPulse {
+  0%,100% { opacity: .4; transform: scale(1); }
+  50%     { opacity: .8; transform: scale(1.15); }
+}
+.gp-deco-spin {
+  display: inline-block;
+  animation: gpDecoFloat 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px gold);
+}
+@keyframes gpDecoFloat {
+  0%,100% { transform: translateY(0) rotate(-10deg); }
+  50%     { transform: translateY(-2px) rotate(10deg); }
+}
+.gp-icon { display: inline-block; animation: gpIconFloat 3s ease-in-out infinite; }
+@keyframes gpIconFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-3px); }
+}
+
+/* ===== GIFT ANIMATIONS ON PLAYER ===== */
+@keyframes giftZoom { 0%{transform:scale(0) rotate(-180deg);opacity:0} 30%{transform:scale(1.8) rotate(0);opacity:1} 70%{transform:scale(1.4);opacity:1} 100%{transform:scale(1.8);opacity:0} }
+@keyframes giftExplode { 0%{transform:scale(0);opacity:0} 20%{transform:scale(1.5);opacity:1} 50%{transform:scale(2.5);filter:drop-shadow(0 0 30px gold)} 100%{transform:scale(4);opacity:0;filter:blur(8px)} }
+@keyframes giftLegend { 0%{transform:scale(0) rotate(0);opacity:0} 15%{transform:scale(2) rotate(-15deg);opacity:1} 40%{transform:scale(3) rotate(15deg);filter:drop-shadow(0 0 40px gold)} 70%{transform:scale(3.5) rotate(0);filter:drop-shadow(0 0 60px #ff5722)} 100%{transform:scale(5);opacity:0;filter:blur(10px)} }
+@keyframes giftBannerSlide { 0%{transform:translateX(-120%);opacity:0} 15%{transform:translateX(0);opacity:1} 85%{transform:translateX(0);opacity:1} 100%{transform:translateX(120%);opacity:0} }
+@keyframes giftFlash { 0%,100%{opacity:0} 10%,30%,50%{opacity:1} 20%,40%,60%{opacity:0} }
+@keyframes giftConfetti { 0%{transform:translateY(0) rotate(0);opacity:1} 100%{transform:translateY(120vh) rotate(720deg);opacity:0} }
+@keyframes giftPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+@keyframes giftSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+.gift-zoom    { animation: giftZoom 2.2s ease-out forwards; }
+.gift-explode { animation: giftExplode 2.5s ease-out forwards; }
+.gift-legend  { animation: giftLegend 4s ease-out forwards; }
+.gift-banner  { animation: giftBannerSlide 4s ease-in-out forwards; }
+.gift-flash   { animation: giftFlash 1.2s ease-out forwards; }
+.gift-confetti{ position:absolute; top:-20px; font-size:24px; animation: giftConfetti 3s linear forwards; }
+.gift-glow-aura { position:absolute; inset:-30px; border-radius:50%; background:radial-gradient(circle, rgba(255,200,0,.5) 0%, rgba(255,100,0,.2) 40%, transparent 70%); filter:blur(20px); animation: giftPulse 1.5s ease-in-out infinite; }
+.gift-ring-orbit { position:absolute; inset:-10px; border:3px dashed rgba(255,215,0,.7); border-radius:50%; animation: giftSpin 3s linear infinite; }
+</style>
+
+<script>
+(function(){
+  var fab    = document.getElementById('giftFab');
+  var panel  = document.getElementById('giftPanel');
+  var grid   = document.getElementById('giftGrid');
+  var anim   = document.getElementById('giftAnimLayer');
+  var balEl  = document.getElementById('giftBalance');
+  var recEl  = document.getElementById('giftRecipient');
+  var TIER_ANIM = { common:'gift-zoom', rare:'gift-zoom', epic:'gift-explode', legendary:'gift-legend' };
+  var TIER_COLOR = { common:'#9ca3af', rare:'#38bdf8', epic:'#a855f7', legendary:'#fbbf24' };
+
+  function refreshBal(){
+    try { var u = JSON.parse(localStorage.getItem('x66_user')||'{}'); balEl.textContent = (typeof u.coin==='number'?u.coin:79).toLocaleString('vi-VN'); } catch(e){}
+  }
+  function isLoggedIn(){ try { var u=JSON.parse(localStorage.getItem('x66_user')||'{}'); return !!u.username; } catch(e){return false;} }
+
+  window.openGiftPanel = function(recipientName){
+    if (!isLoggedIn()) { if (confirm('Ban can dang nhap de tang qua. Dang nhap ngay?')) location.href='/dang-nhap'; return; }
+    if (recipientName) recEl.textContent = recipientName;
+    panel.classList.remove('hidden');
+    refreshBal();
+  };
+  window.closeGiftPanel = function(){ panel.classList.add('hidden'); };
+
+  if (fab) fab.addEventListener('click', function(){ openGiftPanel(recEl.textContent || 'Idol'); });
+
+  // Tier filter
+  document.querySelectorAll('.gp-tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.gp-tab').forEach(function(x){ x.className = x.className.replace('bg-pri text-white','bg-bg-soft text-gray-200 hover:bg-bg-deep'); });
+      this.className = this.className.replace('bg-bg-soft text-gray-200 hover:bg-bg-deep','bg-pri text-white');
+      var tier = this.getAttribute('data-tier');
+      document.querySelectorAll('.gp-item').forEach(function(it){
+        it.style.display = (tier === 'all' || it.getAttribute('data-tier') === tier) ? '' : 'none';
+      });
+    });
+  });
+
+  // Click gift to send
+  if (grid) grid.addEventListener('click', function(e){
+    var btn = e.target.closest('.gp-item');
+    if (!btn) return;
+    var name  = btn.getAttribute('data-name');
+    var icon  = btn.getAttribute('data-icon');
+    var price = parseInt(btn.getAttribute('data-price'), 10);
+    var tier  = btn.getAttribute('data-tier');
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      var coin = typeof u.coin==='number' ? u.coin : 79;
+      if (coin < price) {
+        if (confirm('X COIN khong du! (Can ' + price + ', con ' + coin + ').\nNap them ngay?')) location.href='/qua-tang';
+        return;
+      }
+      u.coin = coin - price;
+      localStorage.setItem('x66_user', JSON.stringify(u));
+      refreshBal();
+      var uname = u.username || 'Ban';
+      playGiftOnPlayer(icon, name, tier, uname, u.fullname || uname);
+      pushChatGift(uname, icon, name, price);
+      if (typeof window.x66RecordGift === 'function') window.x66RecordGift(uname, icon, name, price, tier);
+    } catch(e){ alert('Loi: ' + e.message); }
+  });
+
+  // === MAIN: phat hieu ung tren PLAYER ===
+  function playGiftOnPlayer(icon, name, tier, username, displayName){
+    var player = document.getElementById('livePlayer');
+    if (!player) return;
+
+    // Tao container overlay tren player
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;z-index:50;pointer-events:none;overflow:hidden;';
+    player.appendChild(overlay);
+
+    // 1. BANNER thong bao tu trai sang
+    var banner = document.createElement('div');
+    var color = TIER_COLOR[tier];
+    banner.className = 'gift-banner';
+    banner.style.cssText = 'position:absolute;top:20%;left:0;background:linear-gradient(90deg,'+color+'cc,'+color+'66,transparent);color:white;padding:8px 16px 8px 20px;border-left:4px solid '+color+';border-radius:0 999px 999px 0;font-weight:800;font-size:14px;text-shadow:0 2px 6px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px '+color+'80;max-width:75%;';
+    banner.innerHTML = '<span style="font-size:20px;">🎁</span>'
+      + '<span style="color:#ffd700;">'+escapeHtml(displayName)+'</span>'
+      + '<span style="font-weight:400;opacity:.9;">vua tang</span>'
+      + '<span style="font-size:24px;">'+icon+'</span>'
+      + '<span style="color:#fff;font-weight:800;">'+escapeHtml(name)+'</span>';
+    overlay.appendChild(banner);
+
+    // 2. FLASH overlay (epic/legendary)
+    if (tier === 'epic' || tier === 'legendary'){
+      var flash = document.createElement('div');
+      flash.className = 'gift-flash';
+      flash.style.cssText = 'position:absolute;inset:0;background:radial-gradient(circle,'+color+'80,transparent 70%);';
+      overlay.appendChild(flash);
+    }
+
+    // 3. ICON QUA TANG to o giua player
+    var iconWrap = document.createElement('div');
+    iconWrap.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;text-shadow:0 0 30px '+color+',0 0 60px '+color+';filter:drop-shadow(0 0 20px gold);z-index:2;';
+    iconWrap.className = TIER_ANIM[tier] || 'gift-zoom';
+    iconWrap.textContent = icon;
+    // Aura + ring cho rare/epic/legendary
+    if (tier !== 'common'){
+      var aura = document.createElement('div'); aura.className='gift-glow-aura'; iconWrap.appendChild(aura);
+    }
+    if (tier === 'legendary'){
+      var ring = document.createElement('div'); ring.className='gift-ring-orbit'; iconWrap.appendChild(ring);
+    }
+    overlay.appendChild(iconWrap);
+
+    // 4. CONFETTI cho legendary
+    if (tier === 'legendary'){
+      var emojis = ['🎉','🎊','✨','⭐','💫','🌟','🎁','💖','💎','🏆'];
+      for (var i=0;i<30;i++){
+        var c = document.createElement('div');
+        c.className = 'gift-confetti';
+        c.textContent = emojis[i % emojis.length];
+        c.style.left = (Math.random()*100)+'%';
+        c.style.animationDelay = (Math.random()*1.5)+'s';
+        c.style.animationDuration = (2.5 + Math.random()*2)+'s';
+        overlay.appendChild(c);
+      }
+    }
+
+    // 5. Sparkles cho rare/epic
+    if (tier === 'rare' || tier === 'epic'){
+      for (var j=0;j<8;j++){
+        var s = document.createElement('div');
+        s.style.cssText = 'position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff,0 0 20px '+color+';top:'+(30+Math.random()*40)+'%;left:'+(20+Math.random()*60)+'%;animation:giftPulse 1.5s ease-in-out infinite;animation-delay:'+(Math.random()*1)+'s;';
+        overlay.appendChild(s);
+      }
+    }
+
+    // Tu xoa sau 4s (banner ngan nhat) hoac 5s (legendary)
+    var ttl = (tier === 'legendary') ? 5000 : 4000;
+    setTimeout(function(){ overlay.remove(); }, ttl);
+  }
+
+  function pushChatGift(user, icon, name, price){
+    var body = document.getElementById('chatBody');
+    if (!body) return;
+    var row = document.createElement('div');
+    row.className = 'flex items-center gap-1.5 px-2.5 py-1.5 my-1 bg-gradient-to-r from-pri/30 to-transparent border-l-4 border-pri rounded text-[12px]';
+    row.innerHTML = '<span class="font-extrabold text-pri-light">' + escapeHtml(user) + '</span>'
+                  + '<span class="text-white">da tang</span>'
+                  + '<span class="text-2xl mx-0.5">' + icon + '</span>'
+                  + '<span class="text-gold font-bold">' + escapeHtml(name) + '</span>'
+                  + '<span class="text-[10px] text-muted ml-auto">🪙 ' + price.toLocaleString('vi-VN') + '</span>';
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function escapeHtml(s){ return String(s||'').replace(/[<>&"]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+
+  // ===== SIMULATE: bot khac tang qua de demo dong bo (random moi 30-60s) =====
+  var BOT_NAMES = ['vipFan88','Le_HoaiAnh','TranMinh','BoMy_X66','HoangLong','MissT'];
+  function simulateOtherGift(){
+    if (!document.getElementById('livePlayer')) return;
+    var items = document.querySelectorAll('.gp-item');
+    if (!items.length) return;
+    // 80% chon common/rare, 20% chon epic/legendary
+    var pool = Math.random() < .8
+      ? Array.from(items).filter(function(b){var t=b.getAttribute('data-tier');return t==='common'||t==='rare';})
+      : Array.from(items).filter(function(b){var t=b.getAttribute('data-tier');return t==='epic'||t==='legendary';});
+    if (!pool.length) pool = Array.from(items);
+    var b = pool[Math.floor(Math.random()*pool.length)];
+    var name = b.getAttribute('data-name'), icon = b.getAttribute('data-icon'), tier = b.getAttribute('data-tier');
+    var who = BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)];
+    var fakePrice = parseInt(b.getAttribute('data-price'), 10) || 0;
+    playGiftOnPlayer(icon, name, tier, who, who);
+    pushChatGift(who, icon, name, fakePrice);
+    if (typeof window.x66RecordGift === 'function') window.x66RecordGift(who, icon, name, fakePrice, tier);
+  }
+  // Random interval 30-70s
+  function scheduleNext(){
+    var delay = 30000 + Math.random()*40000;
+    setTimeout(function(){ simulateOtherGift(); scheduleNext(); }, delay);
+  }
+  // Bat dau sau 15s ke tu khi load page
+  setTimeout(scheduleNext, 15000);
+})();
+</script>

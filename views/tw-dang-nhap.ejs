@@ -1,0 +1,180 @@
+<%
+seo = {
+  title: 'Đăng nhập '+brand.name+' - Xem live thể thao HD',
+  description: 'Đăng nhập '+brand.name+' xem bóng đá, casino, idol live HD miễn phí 24/7.',
+  canonical: '/dang-nhap',
+  noindex: true
+};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<div class="min-h-[calc(100vh-220px)] grid place-items-center px-4 py-8 relative">
+  <a href="/" class="absolute top-2 right-2 w-9 h-9 rounded-full bg-pri text-white grid place-items-center font-black text-lg hover:bg-pri-dark transition-colors shadow-lg" aria-label="Đóng">&times;</a>
+
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-5">
+      <a href="/" class="inline-block">
+        <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="h-16 mx-auto drop-shadow-lg" onerror="this.outerHTML='<div class=&quot;text-3xl font-black text-white&quot;><%= brand.name %></div>'">
+      </a>
+    </div>
+
+    <section class="bg-[#1a1f29] border border-line/60 rounded-2xl shadow-2xl overflow-hidden">
+
+      <nav class="grid grid-cols-2 gap-1 p-3 bg-[#11151c]">
+        <a href="/dang-nhap" class="text-center py-3 rounded-lg font-extrabold text-base text-white" style="background:linear-gradient(135deg,#ff7a18,#ff9933)">Đăng Nhập</a>
+        <a href="/dang-ky" class="text-center py-3 rounded-lg font-extrabold text-base text-pri hover:bg-pri/10 transition-colors">Đăng ký</a>
+      </nav>
+
+      <form id="loginForm" class="p-5 space-y-3.5" novalidate>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">&#128100;</span>
+          <input id="username" name="username" type="text" required minlength="3" autocomplete="username"
+                 class="w-full bg-[#0e1218] border border-line text-gray-100 pl-11 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 transition-all"
+                 placeholder="Nhập tên tài khoản của bạn">
+        </div>
+
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">&#128274;</span>
+          <input id="password" type="password" required minlength="6" autocomplete="current-password"
+                 class="w-full bg-[#0e1218] border border-line text-gray-100 pl-11 pr-12 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 transition-all"
+                 placeholder="Nhập mật khẩu của bạn">
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-pri-light bg-transparent border-0 text-lg p-1" onclick="togglePw('password',this)" aria-label="Hiện/Ẩn mật khẩu">&#128065;</button>
+        </div>
+
+        <div class="flex items-stretch gap-2">
+          <div class="flex-1 relative">
+            <input id="captchaInput" type="text" required maxlength="5" inputmode="numeric" pattern="[0-9]{5}" autocomplete="off"
+                   class="w-full bg-[#0e1218] border border-line text-gray-100 pl-4 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 tracking-widest"
+                   placeholder="Mã CAPTCHA">
+          </div>
+          <div id="captchaBox" class="w-[130px] h-[48px] bg-white rounded-lg cursor-pointer overflow-hidden" onclick="renderCaptcha('captchaBox')" title="Click để đổi mã"></div>
+          <button type="button" onclick="renderCaptcha('captchaBox')" class="w-12 h-12 bg-pri hover:bg-pri-dark text-white rounded-lg grid place-items-center text-lg font-bold transition-colors" aria-label="Đổi mã captcha">&#8635;</button>
+        </div>
+
+        <div id="otpBox" class="hidden mb-3">
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">🛡️ Mã OTP 2FA (6 số từ app)</label>
+        <input id="otpInput" type="tel" maxlength="6" placeholder="000000" class="w-full bg-bg-deep border-2 border-pri text-white text-2xl text-center font-black tabular-nums px-3 py-3 rounded-lg outline-none focus:border-pri-light">
+      </div>
+      <button type="submit" class="w-full py-3.5 bg-gradient-to-b from-pri to-pri-dark text-white rounded-lg font-extrabold text-base shadow-pri hover:brightness-110 transition-all">Đăng Nhập</button>
+
+        <div class="flex items-center justify-between text-[13px] pt-1">
+          <label class="flex items-center gap-2 text-muted cursor-pointer">
+            <input type="checkbox" name="remember" class="accent-pri w-4 h-4"> Lưu tài khoản
+          </label>
+          <a href="/quen-mat-khau" class="text-pri-light font-semibold hover:underline">Quên mật khẩu</a>
+        </div>
+
+        <div class="flex items-center gap-3 py-2">
+          <div class="flex-1 h-px bg-line"></div>
+          <span class="text-pri-light text-sm italic">Hoặc</span>
+          <div class="flex-1 h-px bg-line"></div>
+        </div>
+
+        <a href="<%= partner.login %>&via=google" target="_blank" rel="noopener"
+           class="flex items-center justify-center gap-2.5 w-full py-3 bg-transparent border-2 border-pri/60 hover:border-pri rounded-lg text-pri-light hover:bg-pri/10 font-bold text-[14px] transition-all">
+          Đăng nhập nhanh bằng Google
+          <svg width="22" height="22" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.5 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.7 35.5 44 30.2 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        </a>
+      </form>
+    </section>
+
+    <p class="text-center text-muted text-xs mt-4">Chưa có tài khoản? <a href="/dang-ky" class="text-pri-light font-semibold">Đăng ký ngay &rarr;</a></p>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-20 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
+
+<script src="/static/js/captcha.js"></script>
+<script>
+function togglePw(id, btn){ var i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; }
+function showToast(msg, kind){
+  var t=document.getElementById('toast');
+  var c=kind==='success'?'!border-l-emerald-500':kind==='error'?'!border-l-live':'!border-l-pri';
+  t.className='fixed top-20 right-5 bg-bg-card border border-line border-l-4 px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-0 transition-transform '+c;
+  t.textContent=msg;
+  setTimeout(function(){ t.className=t.className.replace('translate-x-0','translate-x-[120%]') }, 3500);
+}
+
+renderCaptcha('captchaBox');
+
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var u = this.username.value.trim();
+  var p = document.getElementById('password').value;
+  var cap = document.getElementById('captchaInput').value.trim();
+
+  if (u.length < 3) { showToast('Tài khoản phải ít nhất 3 ký tự','error'); return; }
+  if (p.length < 6) { showToast('Mật khẩu phải ít nhất 6 ký tự','error'); return; }
+  if (!verifyCaptcha(cap)) {
+    showToast('Mã CAPTCHA không đúng','error');
+    document.getElementById('captchaInput').value = '';
+    renderCaptcha('captchaBox');
+    return;
+  }
+
+  var btn = this.querySelector('button[type=submit]');
+  btn.disabled = true;
+  var oldText = btn.textContent; btn.textContent = 'Đang xử lý...';
+
+  try {
+    // Call REAL auth API: set HTTP-only cookie + return role
+    var r = await fetch('/api/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify({ username:u, password:p, otp: (document.getElementById('otpInput')||{}).value || '' })
+    });
+    var j = await r.json();
+    if (!j.ok && j.needs2FA) {
+      // 2FA needed - show OTP input
+      var otpBox = document.getElementById('otpBox');
+      if (otpBox) otpBox.classList.remove('hidden');
+      showToast('Vui lòng nhập mã OTP từ app Authenticator','info');
+      btn.disabled = false; btn.textContent = oldText;
+      var oi = document.getElementById('otpInput'); if (oi) oi.focus();
+      return;
+    }
+    if (j.ok) {
+      try {
+        var role = j.role || 'user';
+        var isAdminUser = role === 'admin';
+        var isStreamer = ['admin','idol','blv'].indexOf(role) >= 0;
+        localStorage.setItem('x66_user', JSON.stringify({
+          username: j.username || u,
+          fullname: j.username || u,
+          role: role,
+          isAdmin: isAdminUser,
+          isIdol: role === 'idol',
+          isBlv:  role === 'blv',
+          vip: isAdminUser ? 99 : (isStreamer ? 50 : 1),
+          coin: isAdminUser ? 999999999 : 79,
+          loggedAt: Date.now()
+        }));
+      } catch(e){}
+      // Check next URL from query string (for redirect after streamer auth)
+      var rawNext = new URLSearchParams(location.search).get('next') || '/';
+      // Chỉ cho path nội bộ, không cho redirect ra ngoài
+      var nextUrl = (rawNext && rawNext.charAt(0) === '/' && rawNext.charAt(1) !== '/') ? rawNext : '/';
+      // Admin → đi thẳng vào /admin để vào dashboard
+      if ((j.role || '') === 'admin' && nextUrl === '/') nextUrl = '/admin';
+      showToast('Đăng nhập thành công (role: ' + (j.role||'user') + '), chuyển hướng...', 'success');
+      console.log('[LOGIN] Success, redirecting to:', nextUrl);
+      // Redirect ngay sau 400ms để user thấy toast nhưng không bị kẹt
+      setTimeout(function(){
+        console.log('[LOGIN] Executing redirect now');
+        location.replace(nextUrl);
+      }, 400);
+    } else {
+      showToast(j.error || j.message || 'Sai tài khoản/mật khẩu','error');
+      renderCaptcha('captchaBox');
+      document.getElementById('captchaInput').value = '';
+      btn.disabled = false; btn.textContent = oldText;
+    }
+  } catch(err){
+    showToast('Lỗi kết nối','error');
+    btn.disabled = false; btn.textContent = oldText;
+  }
+});
+</script>
+
+<%- include('partials/tw-footer') %>

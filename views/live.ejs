@@ -1,0 +1,134 @@
+<%
+const _matchName = match.home + ' vs ' + match.away;
+const _scoreStr = match.score ? (' '+match.score[0]+'-'+match.score[1]) : '';
+seo = {
+  title: _matchName + _scoreStr + ' Trực Tiếp '+match.league+' - '+brand.name,
+  description: 'Xem trực tiếp '+_matchName+' tại '+match.league+(match.venue?' trên sân '+match.venue:'')+' ngày '+match.date+(match.time?' lúc '+match.time:'')+'. Stream HD, bình luận tiếng Việt, chat realtime tại '+brand.name+'.',
+  keywords: 'trực tiếp '+_matchName+', '+match.home+' vs '+match.away+', '+match.league+', xem live '+match.sport,
+  canonical: '/live/'+(match.slug||match.id),
+  ogType: 'video.other',
+  breadcrumb: [
+    { name:match.sport==='Soccer'?'Bóng đá':match.sport==='Basketball'?'Bóng rổ':match.sport==='Tennis'?'Tennis':match.sport, url:'/the-thao/'+(match.sport==='Soccer'?'bong-da':match.sport==='Basketball'?'bong-ro':'tennis') },
+    { name:_matchName, url:'/live/'+(match.slug||match.id) }
+  ],
+  jsonld: {
+    "@type":"SportsEvent",
+    "name": _matchName + ' - ' + match.league,
+    "description": 'Trực tiếp '+_matchName+' tại '+match.league,
+    "startDate": match.matchTs ? new Date(match.matchTs).toISOString() : match.date,
+    "eventStatus": match.status==='live'?"https://schema.org/EventScheduled":match.status==='finished'?"https://schema.org/EventScheduled":"https://schema.org/EventScheduled",
+    "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+    "location": { "@type":"VirtualLocation", "url": 'https://'+brand.domain+'/live/'+(match.slug||match.id) },
+    "homeTeam": { "@type":"SportsTeam", "name": match.home, "logo": match.homeBadge },
+    "awayTeam": { "@type":"SportsTeam", "name": match.away, "logo": match.awayBadge },
+    "competitor": [
+      { "@type":"SportsTeam", "name": match.home },
+      { "@type":"SportsTeam", "name": match.away }
+    ]
+  }
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<article class="room-wrap" itemscope itemtype="https://schema.org/SportsEvent">
+  <meta itemprop="name" content="<%= _matchName %>">
+  <meta itemprop="startDate" content="<%= match.matchTs ? new Date(match.matchTs).toISOString() : (match.date||'') %>">
+
+  <div>
+    <div class="room-player" itemscope itemtype="https://schema.org/VideoObject">
+      <meta itemprop="name" content="Trực tiếp <%= _matchName %>">
+      <meta itemprop="description" content="<%= seo.description %>">
+      <meta itemprop="uploadDate" content="<%= new Date().toISOString() %>">
+      <meta itemprop="thumbnailUrl" content="<%= match.poster || match.homeBadge || '' %>">
+      <div class="place" id="playerPh" data-title="<%= _matchName %>">
+        <div class="play-btn" onclick="startStream()" role="button" aria-label="Phát stream">▶</div>
+        <h2 style="font-weight:800;font-size:18px"><%= match.home %> vs <%= match.away %></h2>
+        <div style="color:var(--muted);font-size:13px;margin-top:6px"><%= match.league %> • <time datetime="<%= match.date %>"><%= match.date %></time> <%= match.time %></div>
+        <div style="margin-top:14px;color:var(--pri-2);font-size:12px">Click ▶ để vào phòng xem trực tiếp HD</div>
+      </div>
+    </div>
+
+    <div class="room-bar">
+      <div class="teams-mini" itemprop="homeTeam" itemscope itemtype="https://schema.org/SportsTeam">
+        <% if (match.homeBadge) { %><img src="<%= match.homeBadge %>" alt="<%= match.home %>" loading="lazy" onerror="this.style.display='none'"><% } %>
+        <span itemprop="name"><%= match.home %></span>
+      </div>
+      <div class="score-mini" aria-label="Tỉ số">
+        <% if (match.score) { %><%= match.score[0] %> : <%= match.score[1] %><% } else { %>-- : --<% } %>
+      </div>
+      <div class="teams-mini" style="justify-content:flex-end" itemprop="awayTeam" itemscope itemtype="https://schema.org/SportsTeam">
+        <span itemprop="name"><%= match.away %></span>
+        <% if (match.awayBadge) { %><img src="<%= match.awayBadge %>" alt="<%= match.away %>" loading="lazy" onerror="this.style.display='none'"><% } %>
+      </div>
+      <div class="actions">
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="bet">💰 Đặt cược</a>
+        <a href="#chatBody" class="primary">💬 Chat</a>
+        <a href="#" onclick="navigator.share && navigator.share({url:location.href, title:document.title});return false">📤 Chia sẻ</a>
+      </div>
+    </div>
+
+    <div class="blv-strip" role="tablist" aria-label="Chọn bình luận viên">
+      <% ['BLV X66 Chính','BLV Anh Quân','BLV Tùng Móm','BLV Quang Huy','BLV Tạ Biên Cương'].forEach((b, i) => { %>
+        <div class="blv-chip <%= i===0?'active':'' %>" role="tab" onclick="document.querySelectorAll('.blv-chip').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
+          <img src="https://i.pravatar.cc/40?img=<%= 10+i %>" alt=""><span><%= b %></span>
+          <% if (i===0) { %><span class="live-dot"></span><% } %>
+        </div>
+      <% }); %>
+    </div>
+
+    <aside class="match-info-box">
+      <h3>📋 Thông tin trận đấu</h3>
+      <div class="info-row"><b>🏆 Giải đấu:</b> <%= match.league %></div>
+      <div class="info-row"><b>⚽ Môn:</b> <%= match.sport %></div>
+      <div class="info-row"><b>⏰ Thời gian:</b> <%= match.date %> lúc <%= match.time %></div>
+      <% if (match.venue) { %><div class="info-row"><b>🏟 Sân vận động:</b> <%= match.venue %></div><% } %>
+      <% if (match.round) { %><div class="info-row"><b>🔢 Vòng:</b> <%= match.round %></div><% } %>
+      <% if (match.season) { %><div class="info-row"><b>📆 Mùa giải:</b> <%= match.season %></div><% } %>
+      <div class="info-row"><b>📺 Chất lượng:</b> Full HD 1080p, bình luận tiếng Việt</div>
+    </aside>
+
+    <% if (others && others.length) { %>
+    <section class="sec" aria-label="Phòng khác">
+      <div class="sec-head"><h2 class="ttl">🔴 Phòng khác đang LIVE</h2></div>
+      <div class="stream-grid"><%- include('partials/stream-card', { list: others }) %></div>
+    </section>
+    <% } %>
+
+    <%- include('partials/seo-bottom', { seoContent: {
+      h2: 'Xem trực tiếp '+_matchName+' tại '+brand.name,
+      intro: 'Trận đấu giữa <strong>'+match.home+'</strong> và <strong>'+match.away+'</strong> thuộc khuôn khổ <strong>'+match.league+'</strong>'+(match.venue?', diễn ra tại sân '+match.venue:'')+'. Tường thuật full HD bình luận tiếng Việt miễn phí.',
+      sections: [
+        { h3:'Thông tin trận đấu', p:'Bạn có thể theo dõi diễn biến trận đấu theo từng phút tại <a href="/livescore">livescore</a>, xem <a href="/video-noi-bat">highlight</a> sau khi trận kết thúc, hoặc đặt cược live tại <a href="'+partner.sportbet+'" target="_blank" rel="noopener">'+brand.domain+'</a>.' },
+        { h3:'Chat &amp; tương tác', p:'Tham gia <strong>chat realtime</strong> cùng hàng nghìn fan đang xem. Đăng ký <a href="/dang-ky">tài khoản miễn phí</a> để gửi tin nhắn và nhận VIP badge.' },
+      ],
+      faqs: [
+        { q:'Trận đấu này có phát lại không?', a:'Có. Sau khi trận kết thúc, video highlight + full match replay sẽ được đăng tại <a href="/video-noi-bat">Video nổi bật</a> trong 1-2 giờ.' },
+        { q:'Stream bị lag/giật phải làm sao?', a:'Đổi BLV khác hoặc giảm chất lượng từ HD xuống 720p/480p. Kiểm tra mạng wifi của bạn (cần ≥3 Mbps).' },
+      ]
+    } }) %>
+  </div>
+
+  <aside class="chat" aria-label="Chat phòng">
+    <div class="chat-tabs" role="tablist">
+      <button class="active" onclick="switchChatTab(this)">💬 Chat phòng</button>
+      <button onclick="switchChatTab(this)">📨 Telegram</button>
+      <button onclick="switchChatTab(this)">📘 Facebook</button>
+    </div>
+    <div class="chat-info-bar">
+      <span class="online">2.487 online</span>
+      <span>Bình luận: <b style="color:var(--pri-2)"><%= (Math.random()*5000|0)+1000 %></b></span>
+    </div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-banner" onclick="window.open('<%= partner.register %>','_blank')">🎁 ĐĂNG KÝ NGAY - NHẬN 100% TIỀN THƯỞNG LẦN ĐẦU</div>
+    <div class="chat-input">
+      <label class="visually-hidden" for="chatInput">Tin nhắn</label>
+      <input id="chatInput" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
+      <button onclick="sendChat('chatInput','chatBody')">Gửi</button>
+    </div>
+  </aside>
+</article>
+
+<script>startChat('chatBody');</script>
+
+<%- include('partials/footer') %>

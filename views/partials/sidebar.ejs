@@ -1,0 +1,49 @@
+<aside class="area-sidebar bg-gradient-to-b from-[#13171f] to-bg border-r border-line overflow-y-auto sticky top-0 h-screen scrollbar-thin fixed md:relative left-0 top-0 bottom-0 w-72 md:w-auto z-50 -translate-x-full md:translate-x-0 transition-transform" id="sidebar">
+  <div class="flex items-center gap-2.5 px-4 py-3 border-b border-line sticky top-0 bg-[#13171f] z-10">
+    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-pri to-gold grid place-items-center font-black text-lg text-bg-soft shadow-pri"><%= brand.logoText %></div>
+    <div class="font-black text-lg tracking-wider leading-none"><%= brand.short %><span class="block text-xs text-pri-light font-bold tracking-widest mt-0.5">LIVE TV</span></div>
+  </div>
+
+  <nav class="p-2">
+    <%
+      var items = [
+        { href:'/',              ico:'🏠', text:'Trang chủ',             a:'home' },
+        { href:'/lich-phat-song',ico:'📅', text:'Lịch phát sóng',        a:'lich' },
+        { href:'/su-kien',       ico:'🎁', text:'Sự kiện & Khuyến mãi',  a:'su-kien', hot:true },
+        { href:'/qua-tang',      ico:'💰', text:'Quà tặng',              a:'qua-tang' },
+        { href:'/video-noi-bat', ico:'🎬', text:'Video nổi bật',         a:'video' },
+        { href:'/tin-tuc',       ico:'📰', text:'Tin tức',               a:'news' },
+        { href:'/mini-game',     ico:'🎮', text:'Mini Game',             a:'mini' },
+      ];
+    %>
+    <% items.forEach(function(it){ var ac = active===it.a; %>
+      <a href="<%= it.href %>" class="relative flex items-center gap-2.5 px-3 py-2.5 my-0.5 rounded-lg text-sm font-semibold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/20 to-transparent text-pri-light before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-pri before:rounded-r' : 'text-gray-100 hover:bg-bg-soft hover:text-white' %>">
+        <span class="text-lg w-6 text-center shrink-0"><%= it.ico %></span>
+        <span class="flex-1"><%= it.text %></span>
+        <% if (it.hot) { %><span class="text-base">🔥</span><% } %>
+      </a>
+    <% }); %>
+
+    <div class="mt-3">
+      <div class="px-3 pt-2.5 pb-1.5 text-dim text-[11px] uppercase tracking-widest font-extrabold flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span> Danh mục phát sóng
+      </div>
+      <% Object.entries(cats).forEach(function(pair){ var key=pair[0], c=pair[1]; var ac = activeCat===key;
+         var href = key==='casino'?'/casino':key==='idol'?'/idol-live':key==='esports'?'/esports':key==='hot'?'/':'/the-thao/'+key;
+         var cnt = catCounts[key] || 0;
+      %>
+        <a href="<%= href %>" class="relative flex items-center gap-2.5 px-3 py-2.5 my-0.5 rounded-lg text-sm font-semibold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/20 to-transparent text-pri-light before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-pri before:rounded-r' : 'text-gray-100 hover:bg-bg-soft hover:text-white' %>">
+          <span class="text-lg w-6 text-center shrink-0"><%= c.icon %></span>
+          <span class="flex-1"><%= c.name %></span>
+          <% if (cnt > 0) { %><span class="<%= ac?'bg-pri text-white':'bg-bg-deep text-pri-light' %> px-2 py-0.5 rounded-full text-[11px] font-extrabold min-w-[22px] text-center"><%= cnt %></span><% } %>
+        </a>
+      <% }); %>
+    </div>
+  </nav>
+
+  <div class="mx-2 my-4 p-3.5 bg-gradient-to-br from-[#1a3024] to-[#13171f] border border-line rounded-xl text-center">
+    <div class="text-emerald-500 font-extrabold text-[13px] mb-1.5 flex items-center justify-center gap-1.5">CSKH <span class="bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded">24/7</span></div>
+    <div class="text-muted text-[11px] leading-snug mb-2">Hỗ trợ nạp/rút, kỹ thuật</div>
+    <a href="<%= partner.telegram %>" target="_blank" rel="noopener" class="block bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-md text-xs font-bold transition-colors">📨 Liên hệ Telegram</a>
+  </div>
+</aside>

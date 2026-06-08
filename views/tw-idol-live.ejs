@@ -1,0 +1,149 @@
+<%
+seo = {
+  title: 'Idol Live Show 24/7 - '+brand.name,
+  description: 'Idol live show 24/7 tại '+brand.name+'. Phòng chat riêng, dance show, karaoke, phòng VIP mở khóa X COIN.',
+  keywords: 'idol live, hotgirl live show, live stream idol',
+  canonical: '/idol-live',
+  breadcrumb: [{ name:'Idol Live', url:'/idol-live' }]
+};
+var IDOLS = (typeof dbIdols !== 'undefined' && dbIdols) ? dbIdols : [];
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<header class="bg-gradient-to-br from-purple via-pink to-orange-500 p-10 rounded-2xl text-center mb-6 text-white">
+  <div class="text-6xl mb-3.5">&#128081;</div>
+  <h1 class="text-4xl font-black drop-shadow-lg mb-2">Idol Live Show 24/7</h1>
+  <p class="opacity-95 text-base mb-3">Hàng trăm idol xinh đẹp - Live show riêng tư - Trò chuyện cùng hotgirl yêu thích</p>
+  <% if (IDOLS.length) { %>
+  <div class="flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
+    <span class="bg-emerald-500/30 backdrop-blur border border-emerald-400 px-3 py-1.5 rounded-full">🔓 Free</span>
+    <span class="bg-sky-500/30 backdrop-blur border border-sky-400 px-3 py-1.5 rounded-full">🪙 50 - Karaoke</span>
+    <span class="bg-purple-500/30 backdrop-blur border border-purple-400 px-3 py-1.5 rounded-full">🪙 200 - VIP</span>
+    <span class="bg-pink-500/30 backdrop-blur border border-pink-400 px-3 py-1.5 rounded-full">🪙 500 - Chat 1-1</span>
+    <span class="bg-orange-500/30 backdrop-blur border border-orange-400 px-3 py-1.5 rounded-full animate-pulse">🪙 1000 - Show riêng</span>
+  </div>
+  <% } %>
+</header>
+
+<section class="mb-6">
+  <div class="flex items-center gap-2.5 mb-3.5">
+    <span class="w-1 h-5 bg-pri rounded-sm"></span>
+    <h2 class="text-lg font-extrabold text-white">&#128293; Idol đang LIVE</h2>
+    <span class="ml-auto text-xs text-muted">Cập nhật realtime từ <%= brand.domain %></span>
+  </div>
+
+  <% if (IDOLS.length === 0) { %>
+    <!-- Empty state -->
+    <div class="bg-bg-card border-2 border-dashed border-line rounded-xl p-12 text-center">
+      <div class="text-6xl mb-3 opacity-50">👑</div>
+      <h3 class="text-white text-lg font-bold mb-2">Hiện chưa có Idol đăng ký</h3>
+      <p class="text-muted text-sm mb-4">Admin chưa duyệt Idol nào hoặc tất cả đang offline. Quay lại sau nhé!</p>
+      <a href="/" class="inline-block px-5 py-2 bg-pri text-white font-bold rounded-lg text-sm">← Về trang chủ</a>
+    </div>
+  <% } else { %>
+    <%
+    function lockTier(lock){
+      if (!lock || lock === 0) return { bg:'bg-emerald-500',   ring:'border-emerald-500',   text:'FREE',                badge:'bg-emerald-600' };
+      if (lock <= 50)    return { bg:'bg-sky-500',       ring:'border-sky-500',       text:lock+' 🪙',            badge:'bg-sky-600' };
+      if (lock <= 200)   return { bg:'bg-purple-500',    ring:'border-purple-500',    text:lock+' 🪙',            badge:'bg-purple-600' };
+      if (lock <= 500)   return { bg:'bg-pink-500',      ring:'border-pink-500',      text:lock+' 🪙',            badge:'bg-pink-600' };
+      if (lock <= 1000)  return { bg:'bg-orange-500',    ring:'border-orange-500',    text:lock+' 🪙',            badge:'bg-orange-600' };
+      return                    { bg:'bg-gradient-to-r from-yellow-400 to-red-600', ring:'border-yellow-400', text:lock+' 🪙', badge:'bg-yellow-600' };
+    }
+    %>
+    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
+      <% IDOLS.forEach(function(idol, i){
+         var t = lockTier(idol.lock);
+         var viewers = idol.viewers || ((idol.name.charCodeAt(0)+i) * 37 % 9000 + 500);
+         var color = typeof idol.color==='number' ? idol.color : (idol.name.charCodeAt(0) * 7 % 360);
+      %>
+        <article class="idol-card group bg-bg-card border-2 <%= t.ring %> rounded-xl overflow-hidden relative transition-all hover:-translate-y-1 cursor-pointer"
+                 data-id="<%= idol.id %>"
+                 data-name="<%= idol.name %>"
+                 data-room="<%= idol.room || 'Phòng' %>"
+                 data-lock="<%= idol.lock || 0 %>"
+                 data-emoji="<%= idol.emoji || '👑' %>"
+                 onclick="tryEnterIdol(this)">
+          <div class="aspect-[3/4] grid place-items-center text-white text-6xl relative" style="background:linear-gradient(135deg, hsl(<%= color %>,70%,40%), hsl(<%= color+60 %>,70%,50%))">
+            <% if (idol.liveNow) { %>
+            <span class="absolute top-2.5 left-2.5 z-[2] bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+            <% } else { %>
+            <span class="absolute top-2.5 left-2.5 z-[2] bg-gray-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">OFFLINE</span>
+            <% } %>
+            <span class="absolute top-2.5 right-2.5 z-[2] bg-black/70 text-gold text-[11px] font-bold px-2 py-0.5 rounded">&#128065; <%= viewers.toLocaleString('vi-VN') %></span>
+
+            <% if (idol.lock > 0) { %>
+              <div class="absolute inset-0 z-[1] bg-black/55 backdrop-blur-[1px] grid place-items-center idol-lock-overlay">
+                <div class="text-center">
+                  <div class="text-5xl mb-1">&#128274;</div>
+                  <div class="<%= t.badge %> text-white font-extrabold text-xs px-3 py-1.5 rounded-full inline-flex items-center gap-1"><%= idol.lock.toLocaleString('vi-VN') %> 🪙 để mở</div>
+                </div>
+              </div>
+            <% } %>
+
+            <%- idol.emoji || '👑' %>
+
+            <div class="absolute inset-x-0 bottom-0 px-3 py-2.5 z-[2] bg-gradient-to-t from-black/90 to-transparent text-white">
+              <div class="font-extrabold text-sm flex items-center gap-1.5"><%= idol.name %>
+                <% if (!idol.lock) { %><span class="text-[9px] bg-emerald-500 text-white px-1.5 py-0 rounded font-extrabold">FREE</span><% } %>
+              </div>
+              <div class="text-[11px] text-white/70 mt-0.5 flex items-center gap-1">
+                <span><%= idol.room || 'Phòng' %></span>
+                <span class="ml-auto <%= t.bg %> text-white text-[10px] px-1.5 py-0 rounded font-bold"><%= t.text %></span>
+              </div>
+            </div>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <aside class="mt-7 bg-gradient-to-br from-pink to-purple p-6 rounded-xl text-white text-center">
+      <h2 class="text-xl font-black mb-2">&#128142; Trở thành VIP để xem show riêng giảm 50%</h2>
+      <p class="opacity-95 mb-3.5">Nạp tối thiểu 500K nhận ngay 1000 X COIN + giảm 50% phí mở khóa idol VIP suốt 30 ngày</p>
+      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="inline-block bg-white text-pink-700 px-7 py-3 rounded-md font-extrabold">&#128150; Đăng ký VIP</a>
+    </aside>
+  <% } %>
+</section>
+
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2:'Idol Live - giải trí đỉnh cao 24/7',
+  intro:'<strong>'+brand.name+'</strong> liên kết với các <strong>idol Việt Nam chính chủ</strong>, live show trực tiếp từ studio chuyên nghiệp. Phòng phổ thông miễn phí, phòng VIP mở khóa bằng X COIN.',
+  sections: [
+    { h3:'5 tier phòng theo X COIN', p:'<strong>Free</strong> → <strong>50 xu</strong> (Karaoke) → <strong>200 xu</strong> (VIP) → <strong>500 xu</strong> (Chat 1-1) → <strong>1000+ xu</strong> (Show riêng).' },
+    { h3:'Quà tặng & xếp hạng', p:'Tặng quà cho idol yêu thích từ <a href="/bo-suu-tap-qua">bộ sưu tập 16 quà</a>.' }
+  ],
+  faqs: [
+    { q:'Idol có thật không?', a:'100% idol thật, live trực tiếp. '+brand.name+' không chấp nhận deepfake.' },
+    { q:'Mở khóa 1 lần xem được bao lâu?', a:'30 phút/lượt mở khóa.' },
+    { q:'X COIN không đủ thì làm sao?', a:'<a href="/qua-tang">Quay vòng quay miễn phí</a>, <a href="/profile?tab=checkin">điểm danh hàng ngày</a> hoặc <a href="'+partner.register+'" target="_blank">nạp tiền</a>.' },
+    { q:'18+? Có kiểm duyệt nội dung không?', a:'Bắt buộc 18+. Tuân thủ pháp luật Việt Nam.' }
+  ]
+}}) %>
+
+<%- include('partials/tw-unlock-dialog') %>
+<%- include('partials/tw-gift-panel') %>
+
+<script>
+function tryEnterIdol(card){
+  var id     = card.getAttribute('data-id');
+  var name   = card.getAttribute('data-name');
+  var room   = card.getAttribute('data-room');
+  var lock   = parseInt(card.getAttribute('data-lock'), 10) || 0;
+  var emoji  = card.getAttribute('data-emoji') || '👑';
+  openUnlockDialog({
+    id: id, name: name, room: room, price: lock, avatar: emoji, duration: 30,
+    redirectUrl: '/idol/' + id
+  });
+}
+(function(){
+  document.querySelectorAll('.idol-card').forEach(function(card){
+    if (window.isIdolUnlocked && isIdolUnlocked(card.getAttribute('data-id'))) {
+      var overlay = card.querySelector('.idol-lock-overlay');
+      if (overlay) overlay.remove();
+    }
+  });
+})();
+</script>
+
+<%- include('partials/tw-footer') %>

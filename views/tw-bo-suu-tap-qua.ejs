@@ -1,0 +1,117 @@
+<%
+seo = {
+  title: 'Bộ Sưu Tập Quà Tặng - Tặng Idol Live - '+brand.name,
+  description: '16 món quà X COIN từ Hoa hồng đến Tên lửa. Gửi quà cho idol/BLV yêu thích trong live show.',
+  keywords: 'quà tặng idol, gift catalog, X COIN, tặng quà live',
+  canonical: '/bo-suu-tap-qua'
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb', { crumbs: [{ name:'Bộ Sưu Tập Quà', url:'/bo-suu-tap-qua' }] }) %>
+
+<header class="bg-gradient-to-br from-purple via-pink to-orange-500 p-8 rounded-2xl text-center mb-6 text-white relative overflow-hidden">
+  <div class="absolute inset-0 opacity-30" style="background:radial-gradient(circle at 20% 50%,#fff,transparent 40%),radial-gradient(circle at 80% 50%,#fff,transparent 40%)"></div>
+  <div class="relative z-10">
+    <div class="text-6xl mb-3">🎁</div>
+    <h1 class="text-3xl md:text-4xl font-black drop-shadow-lg mb-2">Bộ Sưu Tập Quà Tặng</h1>
+    <p class="opacity-95 text-sm md:text-base mb-5">16 món quà từ phổ thông đến huyền thoại - Dùng <strong>X COIN</strong> để gửi cho Idol/BLV bạn yêu thích</p>
+    <div class="flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
+      <span class="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">🥉 Phổ thông: 6 quà</span>
+      <span class="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">🥈 Hiếm: 4 quà</span>
+      <span class="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">🥇 Sử thi: 4 quà</span>
+      <span class="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full animate-pulse">💎 Huyền thoại: 2 quà</span>
+    </div>
+  </div>
+</header>
+
+<% var TIERS = [
+  { key:'common',    name:'Phổ Thông',    desc:'Quà ngọt ngào dành cho mọi fan',           emoji:'🥉', ring:'from-gray-500 to-gray-700',                  bg:'bg-bg-soft',         glow:'' },
+  { key:'rare',      name:'Hiếm',         desc:'Quà đặc biệt thể hiện sự yêu mến',         emoji:'🥈', ring:'from-sky-400 to-blue-600',                   bg:'bg-sky-500/10',      glow:'shadow-[0_0_15px_rgba(56,189,248,.4)]' },
+  { key:'epic',      name:'Sử Thi',       desc:'Quà cao cấp - bùng nổ trong phòng live',   emoji:'🥇', ring:'from-purple-400 to-fuchsia-600',             bg:'bg-purple-500/10',   glow:'shadow-[0_0_18px_rgba(168,85,247,.45)]' },
+  { key:'legendary', name:'Huyền Thoại',  desc:'Quà siêu đỉnh - hiệu ứng vũ trụ',          emoji:'💎', ring:'from-yellow-300 via-orange-500 to-red-600',  bg:'bg-orange-500/10',   glow:'shadow-[0_0_24px_rgba(255,165,0,.6)] animate-pulse' }
+];
+var GIFTS_BY_TIER = {
+  common: [
+    { name:'Hoa hồng',    icon:'🌹', price:1 },
+    { name:'Trái tim',    icon:'❤️', price:2 },
+    { name:'Nụ hôn',      icon:'💋', price:5 },
+    { name:'Kem que',     icon:'🍦', price:10 },
+    { name:'Trà sữa',     icon:'🧋', price:15 },
+    { name:'Bánh kem',    icon:'🍰', price:50 }
+  ],
+  rare: [
+    { name:'Bó hồng',     icon:'💐', price:100 },
+    { name:'Nhẫn vàng',   icon:'💍', price:200 },
+    { name:'Champagne',   icon:'🍾', price:300 },
+    { name:'Vương miện',  icon:'👑', price:500 }
+  ],
+  epic: [
+    { name:'Kim cương',   icon:'💎', price:1000 },
+    { name:'Siêu xe',     icon:'🏎️', price:3000 },
+    { name:'Lâu đài',     icon:'🏰', price:5000 },
+    { name:'Máy bay',     icon:'✈️', price:8000 }
+  ],
+  legendary: [
+    { name:'Du thuyền',   icon:'🛥️', price:30000 },
+    { name:'Tên lửa',     icon:'🚀', price:100000 }
+  ]
+}; %>
+
+<% TIERS.forEach(function(t){ %>
+<section class="mb-8" aria-label="<%= t.name %>">
+  <div class="flex items-center gap-3 mb-4">
+    <span class="text-2xl"><%= t.emoji %></span>
+    <div>
+      <h2 class="text-xl font-extrabold text-white"><%= t.name %></h2>
+      <p class="text-muted text-xs"><%= t.desc %></p>
+    </div>
+    <span class="ml-auto text-[11px] bg-bg-soft border border-line text-pri-light px-2.5 py-1 rounded-full font-bold"><%= GIFTS_BY_TIER[t.key].length %> quà</span>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+    <% GIFTS_BY_TIER[t.key].forEach(function(g){ %>
+      <article class="<%= t.bg %> border border-line hover:border-pri rounded-xl p-4 text-center transition-all hover:-translate-y-1 cursor-pointer <%= t.glow %>" onclick="openGiftPanel('Idol yêu thích')">
+        <div class="relative w-20 h-20 mx-auto rounded-full p-[3px] bg-gradient-to-br <%= t.ring %>">
+          <div class="w-full h-full rounded-full bg-bg-deep grid place-items-center text-5xl"><%= g.icon %></div>
+        </div>
+        <h3 class="text-white font-extrabold text-sm mt-2.5"><%= g.name %></h3>
+        <div class="mt-1 flex items-center justify-center gap-1 text-gold font-extrabold">
+          <span class="text-base">🪙</span>
+          <span class="tabular-nums"><%= g.price.toLocaleString('vi-VN') %></span>
+        </div>
+        <div class="text-[10px] text-muted mt-0.5">X COIN</div>
+      </article>
+    <% }); %>
+  </div>
+</section>
+<% }); %>
+
+<!-- Cách kiếm X COIN -->
+<section class="bg-bg-card border border-line rounded-xl p-6 mb-6">
+  <h2 class="text-lg font-extrabold text-white mb-4 flex items-center gap-2"><span class="w-1 h-5 bg-pri rounded-sm"></span>💡 Cách kiếm X COIN miễn phí</h2>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <a href="/profile?tab=checkin" class="bg-bg-soft hover:bg-bg-deep border border-line hover:border-pri rounded-lg p-4 text-center transition-all">
+      <div class="text-3xl mb-1">📅</div>
+      <div class="font-bold text-white text-sm">Điểm danh hàng ngày</div>
+      <div class="text-xs text-muted mt-1">Tới <span class="text-gold font-bold">+88</span> mỗi tuần</div>
+    </a>
+    <a href="/qua-tang" class="bg-bg-soft hover:bg-bg-deep border border-line hover:border-pri rounded-lg p-4 text-center transition-all">
+      <div class="text-3xl mb-1">🎡</div>
+      <div class="font-bold text-white text-sm">Vòng quay may mắn</div>
+      <div class="text-xs text-muted mt-1">Trúng <span class="text-gold font-bold">tới 1.000</span> mỗi lần</div>
+    </a>
+    <a href="/mini-game" class="bg-bg-soft hover:bg-bg-deep border border-line hover:border-pri rounded-lg p-4 text-center transition-all">
+      <div class="text-3xl mb-1">🎮</div>
+      <div class="font-bold text-white text-sm">Mini game</div>
+      <div class="text-xs text-muted mt-1">Chơi free <span class="text-gold font-bold">đổi xu</span></div>
+    </a>
+    <a href="<%= partner.register %>" target="_blank" rel="noopener" class="bg-gradient-to-br from-emerald-600 to-emerald-700 hover:brightness-110 border border-emerald-500 rounded-lg p-4 text-center transition-all">
+      <div class="text-3xl mb-1">💵</div>
+      <div class="font-bold text-white text-sm">Nạp tiền X COIN</div>
+      <div class="text-xs text-white/80 mt-1">1.000đ = <span class="font-bold">10 xu</span></div>
+    </a>
+  </div>
+</section>
+
+<%- include('partials/tw-gift-panel') %>
+<%- include('partials/tw-footer') %>

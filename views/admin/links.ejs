@@ -1,0 +1,57 @@
+<%- include('partials/layout-start', { title:'Quản lý Link liên kết', active:'links', obsPending:obsPending, adminUser:adminUser }) %>
+
+<section class="bg-gradient-to-br from-pri/15 to-pri-dark/5 border-2 border-pri/40 rounded-xl p-5 mb-5">
+  <h2 class="text-pri-light font-extrabold text-base mb-2 flex items-center gap-2">🔗 Quản lý URL liên kết hệ thống</h2>
+  <p class="text-muted text-sm mb-2">Set link mặc định cho <strong class="text-white">tất cả các nút button + banner</strong> trên website. Đổi 1 chỗ → cập nhật toàn site ngay.</p>
+  <ul class="text-[12px] text-gray-200 space-y-1 mt-2">
+    <li>💡 Khi bạn đổi domain xoso66 (vd: xoso66.com → xoso67.com) — chỉ cần update 12 link này, **không cần sửa code**</li>
+    <li>✅ Áp dụng tự động cho: hero banner, idol live, "Nạp ngay", "Tặng quà", CSKH Telegram, footer, profile</li>
+    <li>🔁 Có thể reset về mặc định (lưu trong <code class="text-pri-light">lib/partners.js</code>) bất cứ lúc nào</li>
+  </ul>
+</section>
+
+<form action="/admin/links" method="POST" class="space-y-5">
+
+  <% Object.keys(grouped).forEach(function(group){ %>
+    <section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <header class="px-5 py-3 bg-bg-soft border-b border-line">
+        <h3 class="text-white font-extrabold text-sm flex items-center gap-2">
+          <% if (group==='Chính') { %><span>🏠</span><% } %>
+          <% if (group==='Sản phẩm') { %><span>🛒</span><% } %>
+          <% if (group==='Marketing') { %><span>📣</span><% } %>
+          <%= group %>
+        </h3>
+      </header>
+      <div class="divide-y divide-line/40">
+        <% grouped[group].forEach(function(it){ %>
+          <div class="p-4 flex flex-col md:flex-row md:items-center gap-3">
+            <div class="md:w-[200px] shrink-0">
+              <div class="text-sm font-bold text-white"><%= it.label %></div>
+              <div class="text-[11px] text-muted mt-0.5"><%= it.desc %></div>
+              <div class="text-[10px] text-dim mt-1 font-mono">key: <%= it.key %></div>
+            </div>
+            <div class="flex-1">
+              <input name="<%= it.key %>" type="url" value="<%= it.value %>" required placeholder="https://..."
+                class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri text-xs font-mono">
+              <% if (it.value !== it.defaultValue) { %>
+                <div class="text-[10px] text-pri-light mt-1 flex items-center gap-1">
+                  ✏ Đã sửa khỏi mặc định: <code class="text-dim"><%= it.defaultValue %></code>
+                </div>
+              <% } %>
+            </div>
+            <a href="<%= it.value %>" target="_blank" rel="noopener" class="px-3 py-2 bg-bg-soft hover:bg-bg-deep text-pri-light text-xs font-bold rounded border border-line whitespace-nowrap">↗ Test</a>
+          </div>
+        <% }); %>
+      </div>
+    </section>
+  <% }); %>
+
+  <div class="flex gap-2 sticky bottom-0 bg-bg-card/95 backdrop-blur p-3 -mx-6 border-t border-line">
+    <button type="submit" class="px-6 py-3 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white rounded-lg font-extrabold shadow-pri">💾 Lưu tất cả thay đổi</button>
+    <button type="button" onclick="if(confirm('Reset tất cả về URL mặc định trong code?')) location.href='/admin/links/reset'" class="px-6 py-3 bg-bg-deep hover:bg-live text-muted hover:text-white border border-line rounded-lg font-bold">🔄 Reset mặc định</button>
+    <div class="flex-1"></div>
+    <a href="/" target="_blank" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">👁 Xem trang chủ</a>
+  </div>
+</form>
+
+<%- include('partials/layout-end') %>

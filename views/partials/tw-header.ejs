@@ -1,0 +1,292 @@
+<header class="bg-gradient-to-b from-[#1a1f29] to-[#13171f] border-b border-line flex items-center gap-3.5 px-5 sticky top-0 z-40 h-16">
+  <button class="md:hidden bg-transparent border-0 text-white text-2xl px-1.5" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
+  <div class="flex-1 hidden sm:flex items-center gap-3.5 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 px-4 rounded-lg text-white font-bold text-[13px] overflow-hidden relative h-11">
+    <span class="text-xl">&#127873;</span>
+    <span class="flex-1 drop-shadow truncate">V&Eacute; C&Uacute;&#7906;C THUA TH&#7874; THAO &#272;&#7846;U TI&Ecirc;N - HO&Agrave;N 100%</span>
+    <a href="<%= partner.promo %>" target="_blank" rel="noopener" class="bg-black/30 px-3.5 py-1.5 rounded-md text-xs backdrop-blur whitespace-nowrap">Nh&#7853;n ngay &rarr;</a>
+  </div>
+
+  <button id="themeToggle" onclick="toggleTheme()" class="ml-auto sm:ml-0 w-10 h-10 rounded-full bg-bg-soft hover:bg-bg-deep border border-line grid place-items-center text-pri transition-colors shrink-0" aria-label="Theme" title="Theme">
+    <svg id="themeIconDark" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="themeIconLight" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  </button>
+
+  <div id="hdrGuest" class="flex items-center gap-2">
+    <a href="/dang-nhap" class="px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap border-2 border-pri text-pri-light hover:bg-pri/10 transition-colors">&#128100; &#272;&#259;ng Nh&#7853;p</a>
+    <a href="/dang-ky" class="px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap bg-gradient-to-br from-pri to-live text-white shadow-live hover:-translate-y-0.5 transition-transform">&#128640; &#272;&#259;ng K&yacute;</a>
+  </div>
+
+  <div id="hdrUser" class="hidden items-center gap-3 relative">
+    <div class="relative">
+      <button id="hdrBellBtn" class="relative w-10 h-10 rounded-full bg-bg-soft hover:bg-bg-deep border border-line grid place-items-center text-white transition-colors" aria-label="Notif">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="hdrBellBadge" class="hidden absolute -top-1 -right-1 bg-live text-white text-[10px] font-extrabold rounded-full min-w-[18px] h-[18px] grid place-items-center px-1 animate-pulse">0</span>
+      </button>
+      <div id="hdrNotifPanel" class="hidden fixed sm:absolute right-2 sm:right-0 top-14 sm:top-12 left-2 sm:left-auto sm:w-[340px] bg-bg-card border border-line rounded-xl shadow-2xl overflow-hidden z-50">
+        <div class="absolute -top-2 right-4 w-4 h-4 bg-bg-card border-l border-t border-line rotate-45"></div>
+        <div class="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-pri/20 to-bg-card border-b border-line">
+          <h3 class="text-white font-extrabold text-[13px] flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+            Th&ocirc;ng b&aacute;o
+            <span id="hdrNotifUnreadCount" class="text-[9px] bg-live text-white font-bold px-1 py-0.5 rounded">0</span>
+          </h3>
+          <button onclick="hdrNotifMarkAllRead()" class="text-[10px] text-pri-light hover:text-pri font-semibold whitespace-nowrap">&#10003; &#272;&atilde; &#273;&#7885;c</button>
+        </div>
+        <div class="flex gap-1 px-2 py-1.5 bg-bg-soft/40 border-b border-line/40 overflow-x-auto scrollbar-hide">
+          <button class="hdr-notif-tab shrink-0 px-2 py-0.5 text-[10px] font-bold rounded bg-pri text-white" data-filter="all">T&#7845;t c&#7843;</button>
+          <button class="hdr-notif-tab shrink-0 px-2 py-0.5 text-[10px] font-bold rounded bg-bg-deep text-gray-200 hover:bg-bg-soft" data-filter="unread">Ch&#432;a &#273;&#7885;c</button>
+          <button class="hdr-notif-tab shrink-0 px-2 py-0.5 text-[10px] font-bold rounded bg-bg-deep text-gray-200 hover:bg-bg-soft" data-filter="gift">Qu&agrave;</button>
+          <button class="hdr-notif-tab shrink-0 px-2 py-0.5 text-[10px] font-bold rounded bg-bg-deep text-gray-200 hover:bg-bg-soft" data-filter="system">H&#7879; th&#7889;ng</button>
+        </div>
+        <div id="hdrNotifList" class="max-h-[60vh] sm:max-h-[400px] overflow-y-auto scrollbar-thin"></div>
+        <div class="flex items-center justify-between px-3 py-2 border-t border-line bg-bg-soft/40">
+          <button onclick="hdrNotifClearAll()" class="text-[10px] text-muted hover:text-live transition-colors flex items-center gap-1">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+            X&oacute;a h&#7871;t
+          </button>
+          <a href="/profile?tab=notif" class="text-[10px] text-pri-light hover:text-pri font-semibold">Xem t&#7845;t c&#7843; &rarr;</a>
+        </div>
+      </div>
+    </div>
+    <a href="/profile?tab=follow" class="w-10 h-10 rounded-full bg-bg-soft hover:bg-bg-deep border border-line grid place-items-center text-white transition-colors" aria-label="Follow">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </a>
+    <div class="relative">
+      <button id="hdrAvatarBtn" class="w-10 h-10 rounded-full border-2 border-pri bg-bg-deep grid place-items-center text-pri font-extrabold text-base shadow-pri hover:scale-105 transition-transform" aria-label="Account">
+        <span id="hdrAvatarLetter">U</span>
+      </button>
+      <div id="hdrDropdown" class="hidden absolute right-0 top-12 w-72 bg-bg-card border border-line rounded-xl shadow-2xl overflow-hidden z-50">
+        <div class="absolute -top-2 right-4 w-4 h-4 bg-bg-card border-l border-t border-line rotate-45"></div>
+        <div class="p-4 bg-gradient-to-br from-bg-soft to-bg-card border-b border-line">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-full border-2 border-pri bg-bg-deep grid place-items-center text-pri font-extrabold text-xl shrink-0" id="hdrDropAvatar">U</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-extrabold text-white truncate text-sm" id="hdrDropName">USER</div>
+              <div class="text-[10.5px] text-muted truncate">ID: <span class="text-pri-light font-mono" id="hdrDropId">FB7B855</span></div>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-center gap-1.5">
+            <span class="text-base">&#129689;</span>
+            <span class="text-[11px] text-muted">X COIN:</span>
+            <span class="text-gold font-extrabold ml-auto tabular-nums" id="hdrDropCoin">79</span>
+          </div>
+        </div>
+        <nav class="p-2">
+          <a href="/profile?tab=info"    class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#128100;</span> Th&ocirc;ng tin c&aacute; nh&acirc;n</a>
+          <a href="/profile?tab=wallet"  class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#128176;</span> V&iacute; c&#7911;a t&ocirc;i</a>
+          <a href="/profile?tab=checkin" class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#128197;</span> &#272;i&#7875;m danh</a>
+          <a href="/profile?tab=history" class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#127873;</span> L&#7883;ch s&#7917; &#273;&#7893;i qu&agrave;</a>
+          <a href="/profile?tab=follow"  class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#10084;</span> Theo d&otilde;i</a>
+          <div class="h-px bg-line/40 my-1.5"></div>
+        </nav>
+        <div class="p-3 flex gap-2 bg-bg-soft/40">
+          <a href="/profile" class="flex-1 text-center bg-gradient-to-br from-pri to-pri-dark text-white py-2 rounded-md font-bold text-[12px] hover:brightness-110 transition-all">Trang c&aacute; nh&acirc;n</a>
+          <button onclick="hdrLogout()" class="flex-1 text-center bg-bg-deep hover:bg-live text-white border border-line hover:border-live py-2 rounded-md font-bold text-[12px] transition-all">&#272;&#259;ng xu&#7845;t</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+window.isUserAdmin = function(){
+  try {
+    var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+    return !!(u && (u.isAdmin === true || (u.username||'').toLowerCase() === 'admin'));
+  } catch(e){ return false; }
+};
+window.x66ShowAdminBadge = function(){
+  if (!window.isUserAdmin() || document.getElementById('x66AdminBadge')) return;
+  var b = document.createElement('div');
+  b.id = 'x66AdminBadge';
+  b.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(90deg,#10b981,#059669);color:#fff;font-weight:900;font-size:11px;padding:4px 12px;border-radius:999px;box-shadow:0 4px 12px rgba(16,185,129,.5);pointer-events:none;';
+  b.textContent = 'ADMIN VIEW - Full access';
+  document.body.appendChild(b);
+  setTimeout(function(){ if (b.parentNode) b.remove(); }, 4000);
+};
+
+(function(){
+  function paintHeader(){
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user') || 'null');
+      var guest = document.getElementById('hdrGuest');
+      var user  = document.getElementById('hdrUser');
+      if (u && u.username) {
+        guest.classList.add('hidden');
+        user.classList.remove('hidden');
+        user.classList.add('flex');
+        var name = (u.fullname || u.username).toUpperCase();
+        var letter = name.charAt(0);
+        var id = u.id || (u.username.toUpperCase() + 'X66X66').slice(0,7);
+        document.getElementById('hdrAvatarLetter').textContent = letter;
+        document.getElementById('hdrDropAvatar').textContent  = letter;
+        document.getElementById('hdrDropName').textContent    = name;
+        document.getElementById('hdrDropId').textContent      = id;
+        document.getElementById('hdrDropCoin').textContent    = (typeof u.coin==='number'?u.coin:79).toLocaleString('vi-VN');
+        hdrNotifSeedIfEmpty(name);
+        hdrNotifRender();
+      } else {
+        guest.classList.remove('hidden');
+        user.classList.add('hidden');
+        user.classList.remove('flex');
+      }
+    } catch(e){}
+  }
+  paintHeader();
+  window.addEventListener('storage', paintHeader);
+
+  var btn  = document.getElementById('hdrAvatarBtn');
+  var drop = document.getElementById('hdrDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var np = document.getElementById('hdrNotifPanel'); if (np) np.classList.add('hidden');
+      drop.classList.toggle('hidden');
+    });
+    document.addEventListener('click', function(e){
+      if (!drop.contains(e.target) && e.target !== btn) drop.classList.add('hidden');
+    });
+  }
+
+  var bellBtn   = document.getElementById('hdrBellBtn');
+  var notifPanel= document.getElementById('hdrNotifPanel');
+  var notifList = document.getElementById('hdrNotifList');
+  var notifBadge= document.getElementById('hdrBellBadge');
+  var notifCount= document.getElementById('hdrNotifUnreadCount');
+  var currentFilter = 'all';
+
+  if (bellBtn && notifPanel) {
+    bellBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (drop) drop.classList.add('hidden');
+      notifPanel.classList.toggle('hidden');
+      if (!notifPanel.classList.contains('hidden')) hdrNotifRender();
+    });
+    document.addEventListener('click', function(e){
+      if (!notifPanel.contains(e.target) && !bellBtn.contains(e.target)) notifPanel.classList.add('hidden');
+    });
+    document.querySelectorAll('.hdr-notif-tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        document.querySelectorAll('.hdr-notif-tab').forEach(function(x){
+          x.className = x.className.replace('bg-pri text-white','bg-bg-deep text-gray-200 hover:bg-bg-soft');
+        });
+        this.className = this.className.replace('bg-bg-deep text-gray-200 hover:bg-bg-soft','bg-pri text-white');
+        currentFilter = this.getAttribute('data-filter');
+        hdrNotifRender();
+      });
+    });
+  }
+
+  function hdrNotifGet(){ try { return JSON.parse(localStorage.getItem('x66_notifs') || '[]'); } catch(e){ return []; } }
+  function hdrNotifSave(list){ try { localStorage.setItem('x66_notifs', JSON.stringify(list)); } catch(e){} hdrNotifUpdateBadge(); }
+  function hdrNotifUpdateBadge(){
+    var list = hdrNotifGet();
+    var unread = list.filter(function(n){ return !n.read; }).length;
+    if (notifBadge){
+      if (unread > 0){ notifBadge.classList.remove('hidden'); notifBadge.textContent = unread > 99 ? '99+' : unread; }
+      else { notifBadge.classList.add('hidden'); }
+    }
+    if (notifCount) notifCount.textContent = unread;
+  }
+  function hdrNotifSeedIfEmpty(displayName){
+    var list = hdrNotifGet();
+    if (list.length > 0) return;
+    var now = Date.now();
+    hdrNotifSave([
+      { id:'n1', type:'system', icon:'👋', title:'Chao mung '+displayName+'!', body:'Cam on ban da tham gia.', link:'/profile?tab=wallet', time:now-300000, read:false },
+      { id:'n2', type:'gift',   icon:'🎁', title:'Qua diem danh', body:'Diem danh hom nay.', link:'/profile?tab=checkin', time:now-3600000, read:false },
+      { id:'n3', type:'system', icon:'🔥', title:'Su kien hot', body:'Ve cuoc thua HOAN 100%', link:'/su-kien', time:now-7200000, read:false }
+    ]);
+  }
+  function hdrEsc(s){ return String(s||'').replace(/[<>&]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c];}); }
+  function hdrNotifAgo(ts){
+    var diff = Date.now() - ts;
+    var s = Math.floor(diff/1000);
+    if (s < 60) return s+'s';
+    var m = Math.floor(s/60); if (m < 60) return m+' phut';
+    var h = Math.floor(m/60); if (h < 24) return h+' gio';
+    return Math.floor(h/24)+' ngay';
+  }
+  function hdrNotifRender(){
+    if (!notifList) return;
+    var list = hdrNotifGet();
+    var filtered = list;
+    if (currentFilter === 'unread') filtered = list.filter(function(n){return !n.read;});
+    else if (currentFilter === 'gift')   filtered = list.filter(function(n){return n.type==='gift';});
+    else if (currentFilter === 'system') filtered = list.filter(function(n){return n.type==='system';});
+    filtered.sort(function(a,b){ return b.time - a.time; });
+    if (filtered.length === 0){
+      notifList.innerHTML = '<div class="px-4 py-12 text-center text-muted text-[13px]"><div class="text-4xl mb-2 opacity-60">📭</div>Khong co thong bao</div>';
+      hdrNotifUpdateBadge();
+      return;
+    }
+    notifList.innerHTML = filtered.map(function(n){
+      var ago = hdrNotifAgo(n.time);
+      var ucls = n.read ? '' : 'bg-pri/5 border-l-2 border-pri';
+      var tcls = n.read ? 'text-gray-200' : 'text-white';
+      return '<a href="'+(n.link||'#')+'" data-id="'+n.id+'" class="hdr-notif-item block px-2.5 py-2 border-b border-line/40 hover:bg-bg-soft transition-colors '+ucls+'"><div class="flex items-start gap-2"><div class="w-7 h-7 rounded-full bg-bg-deep grid place-items-center text-base shrink-0">'+n.icon+'</div><div class="flex-1 min-w-0"><div class="flex items-start gap-1"><div class="font-bold text-[12px] '+tcls+' flex-1 truncate">'+hdrEsc(n.title)+'</div>'+(n.read?'':'<span class="w-1.5 h-1.5 rounded-full bg-live mt-1.5 shrink-0"></span>')+'</div><div class="text-[10.5px] text-muted mt-0.5 leading-snug">'+hdrEsc(n.body)+'</div><div class="text-[9.5px] text-pri-light/70 mt-0.5">'+ago+'</div></div></div></a>';
+    }).join('');
+    notifList.querySelectorAll('.hdr-notif-item').forEach(function(a){
+      a.addEventListener('click', function(){
+        var id = this.getAttribute('data-id');
+        var lst = hdrNotifGet();
+        lst.forEach(function(n){ if (n.id === id) n.read = true; });
+        hdrNotifSave(lst);
+      });
+    });
+    hdrNotifUpdateBadge();
+  }
+  window.hdrNotifMarkAllRead = function(){
+    var lst = hdrNotifGet();
+    lst.forEach(function(n){ n.read = true; });
+    hdrNotifSave(lst);
+    hdrNotifRender();
+  };
+  window.hdrNotifClearAll = function(){
+    if (!confirm('Xoa toan bo thong bao?')) return;
+    hdrNotifSave([]);
+    hdrNotifRender();
+  };
+  window.x66NotifPush = function(notif){
+    var lst = hdrNotifGet();
+    notif.id = notif.id || ('n_'+Date.now());
+    notif.time = notif.time || Date.now();
+    notif.read = false;
+    lst.unshift(notif);
+    if (lst.length > 50) lst = lst.slice(0,50);
+    hdrNotifSave(lst);
+    if (notifPanel && !notifPanel.classList.contains('hidden')) hdrNotifRender();
+  };
+})();
+
+function toggleTheme(){
+  var html = document.documentElement;
+  var isDark = html.classList.contains('dark');
+  if (isDark) { html.classList.remove('dark'); try { localStorage.setItem('x66_theme','light'); } catch(e){} }
+  else        { html.classList.add('dark');    try { localStorage.setItem('x66_theme','dark');  } catch(e){} }
+  updateThemeIcon();
+}
+function updateThemeIcon(){
+  var isDark = document.documentElement.classList.contains('dark');
+  var d = document.getElementById('themeIconDark');
+  var l = document.getElementById('themeIconLight');
+  if (d && l) { d.classList.toggle('hidden', !isDark); l.classList.toggle('hidden', isDark); }
+}
+(function(){
+  try {
+    var saved = localStorage.getItem('x66_theme');
+    if (saved === 'light') document.documentElement.classList.remove('dark');
+    else if (saved === 'dark') document.documentElement.classList.add('dark');
+  } catch(e){}
+  if (document.readyState !== 'loading') updateThemeIcon();
+  else document.addEventListener('DOMContentLoaded', updateThemeIcon);
+})();
+function hdrLogout(){
+  if (!confirm('Ban co chac muon dang xuat?')) return;
+  try { localStorage.removeItem('x66_user'); } catch(e){}
+  // Also clear server cookie
+  fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }).catch(function(){}).finally(function(){
+    location.href = '/';
+  });
+}
+</script>

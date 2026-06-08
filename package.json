@@ -1,0 +1,24 @@
+{
+  "name": "xoso66tv-live",
+  "version": "1.0.0",
+  "description": "Xoso66TV - Trang phát sóng trực tiếp đa môn thể thao, liên kết affiliate xoso66tv.com",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "nodemailer": "^6.10.1",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

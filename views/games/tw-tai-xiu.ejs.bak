@@ -1,0 +1,391 @@
+<%
+seo = {
+  title: 'Tài Xỉu Xổ Số Nhanh 1 Phút - Casino Online - '+brand.name,
+  description: 'Tài Xỉu casino online phiên 1 phút, cược X COIN, thắng x2. Giao diện casino chuyên nghiệp.',
+  canonical: '/game/tai-xiu'
+};
+%>
+<%- include('../partials/tw-layout-start') %>
+
+<script>
+(function(){ try { if (!localStorage.getItem('x66_user')) { if(confirm('Cần đăng nhập để chơi. Đăng nhập ngay?')) location.href='/dang-nhap'; else location.href='/mini-game'; } } catch(e){} })();
+</script>
+
+<section class="max-w-5xl mx-auto mb-6">
+
+  <!-- ===== TOP BAR: Balance + Jackpot ===== -->
+  <header class="bg-gradient-to-r from-amber-950 via-yellow-900 to-amber-950 border-2 border-yellow-600/50 rounded-t-2xl px-5 py-3 flex items-center gap-3 shadow-2xl">
+    <div class="flex items-center gap-2 bg-black/40 backdrop-blur px-3 py-2 rounded-lg border border-yellow-600/40">
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-yellow-700 grid place-items-center text-white font-black text-sm shadow-lg" id="txAvatar">U</div>
+      <div class="text-[10px] text-yellow-200/70 font-bold uppercase tracking-wider" id="txUsername">guest</div>
+    </div>
+    <div class="flex-1 text-center">
+      <div class="text-[10px] text-yellow-300 uppercase tracking-widest">💎 JACKPOT</div>
+      <div class="text-yellow-300 font-black text-xl drop-shadow-[0_0_8px_rgba(252,211,77,.8)] tabular-nums" id="txJackpot">128,700,000</div>
+    </div>
+    <div class="flex items-center gap-1.5 bg-black/40 backdrop-blur px-4 py-2 rounded-lg border border-yellow-600/40">
+      <span class="text-yellow-300 text-base">🪙</span>
+      <span class="text-yellow-200 text-[10px] font-bold uppercase">X COIN</span>
+      <span class="text-yellow-300 font-black tabular-nums text-base" id="txBalance">0</span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN GAME PANEL (đỏ thẫm casino) ===== -->
+  <main class="bg-gradient-to-b from-red-950 via-red-900 to-red-950 border-x-2 border-yellow-600/50 px-4 md:px-6 py-5 shadow-2xl" style="background-image:radial-gradient(circle at 20% 30%,rgba(255,200,80,.1),transparent 60%),radial-gradient(circle at 80% 70%,rgba(255,150,50,.1),transparent 60%)">
+
+    <!-- Game title with ID + countdown -->
+    <div class="text-center mb-4">
+      <div class="inline-flex items-center gap-2 mb-1">
+        <span class="text-3xl">🎲</span>
+        <h1 class="text-3xl font-black bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-400 bg-clip-text text-transparent drop-shadow-lg tracking-wide">TÀI XỈU</h1>
+        <span class="text-3xl">🎲</span>
+      </div>
+      <div class="text-[11px] text-yellow-200/80 font-bold tabular-nums">Phiên #<span id="txRoundId">000001</span> · Đóng cược sau <span id="txCountdown" class="text-yellow-300 font-black text-base">60s</span></div>
+    </div>
+
+    <!-- 3 PANELS: TAI | DICE | XIU -->
+    <div class="grid grid-cols-[1fr_auto_1fr] gap-2 md:gap-4 items-center mb-4">
+
+      <!-- TÀI panel -->
+      <button onclick="selectSide('tai')" id="txTaiBox" class="ts-side group bg-gradient-to-br from-red-700 via-red-800 to-red-950 border-2 border-yellow-500/60 hover:border-yellow-300 rounded-2xl px-3 md:px-6 py-5 text-center transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(239,68,68,.5)]">
+        <div class="text-yellow-300/80 text-[10px] font-bold uppercase tracking-widest mb-1"><span id="txTaiCount">2.093</span> người</div>
+        <div class="text-4xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.5)] mb-1" style="text-shadow:0 0 12px rgba(255,200,80,.6)">TÀI</div>
+        <div class="text-[10px] text-yellow-200/70 font-bold">Tổng 11 - 17</div>
+        <div class="mt-2 bg-black/40 backdrop-blur rounded-md py-1 text-yellow-300 font-extrabold tabular-nums text-sm" id="txTaiPool">741,648,460</div>
+        <div class="text-[9px] text-yellow-200/60 mt-0.5">cược của bạn: <b class="text-yellow-300" id="txTaiMyBet">0</b> 🪙</div>
+      </button>
+
+      <!-- DICE CENTER -->
+      <div class="relative">
+        <div class="w-32 md:w-40 h-32 md:h-40 rounded-full bg-gradient-to-br from-yellow-700 via-amber-900 to-red-950 grid place-items-center border-4 border-yellow-500/60 shadow-[inset_0_0_24px_rgba(0,0,0,.6)]" id="txDiceWrap">
+          <div class="flex items-center justify-center gap-1.5" id="txDice">
+            <div class="dice-3d w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-xl grid place-items-center p-1.5"><svg viewBox="0 0 24 24" class="w-full h-full"><circle cx="12" cy="12" r="2.5" fill="#7c1d1d"/></svg></div>
+            <div class="dice-3d w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-xl grid place-items-center p-1.5"><svg viewBox="0 0 24 24" class="w-full h-full"><circle cx="12" cy="12" r="2.5" fill="#7c1d1d"/></svg></div>
+            <div class="dice-3d w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-xl grid place-items-center p-1.5"><svg viewBox="0 0 24 24" class="w-full h-full"><circle cx="12" cy="12" r="2.5" fill="#7c1d1d"/></svg></div>
+          </div>
+        </div>
+        <div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-600 to-yellow-400 text-red-900 text-[10px] font-black px-3 py-0.5 rounded-full shadow-lg" id="txSumBadge">?</div>
+      </div>
+
+      <!-- XỈU panel -->
+      <button onclick="selectSide('xiu')" id="txXiuBox" class="ts-side group bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-950 border-2 border-yellow-500/60 hover:border-yellow-300 rounded-2xl px-3 md:px-6 py-5 text-center transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(59,130,246,.5)]">
+        <div class="text-yellow-300/80 text-[10px] font-bold uppercase tracking-widest mb-1"><span id="txXiuCount">1.805</span> người</div>
+        <div class="text-4xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.5)] mb-1" style="text-shadow:0 0 12px rgba(255,200,80,.6)">XỈU</div>
+        <div class="text-[10px] text-yellow-200/70 font-bold">Tổng 4 - 10</div>
+        <div class="mt-2 bg-black/40 backdrop-blur rounded-md py-1 text-yellow-300 font-extrabold tabular-nums text-sm" id="txXiuPool">741,648,460</div>
+        <div class="text-[9px] text-yellow-200/60 mt-0.5">cược của bạn: <b class="text-yellow-300" id="txXiuMyBet">0</b> 🪙</div>
+      </button>
+    </div>
+
+    <!-- Selected amount display + result text -->
+    <div class="bg-black/40 backdrop-blur rounded-xl py-3 text-center mb-3 border border-yellow-600/30">
+      <div class="text-[10px] text-yellow-200/70 uppercase tracking-widest font-bold">Số cược đã chọn</div>
+      <div class="text-3xl font-black text-yellow-300 tabular-nums drop-shadow" id="txSelectedAmt">0</div>
+      <div class="text-[10px] text-yellow-200/60 mt-0.5" id="txResultText">Chọn mức cược → Click TÀI hoặc XỈU</div>
+    </div>
+
+    <!-- BET CHIPS (1K - 50M tương tự game gốc, nhưng dùng X COIN) -->
+    <div class="grid grid-cols-4 md:grid-cols-8 gap-1.5 md:gap-2 mb-3">
+      <% [
+        { v:10,    l:'10' },
+        { v:50,    l:'50' },
+        { v:100,   l:'100' },
+        { v:500,   l:'500' },
+        { v:1000,  l:'1K' },
+        { v:5000,  l:'5K' },
+        { v:10000, l:'10K' },
+        { v:50000, l:'50K' }
+      ].forEach(function(c){ %>
+        <button class="tx-chip relative px-2 py-2.5 bg-gradient-to-br from-yellow-500 to-amber-700 hover:from-yellow-400 hover:to-amber-600 text-red-900 rounded-full font-black text-xs md:text-sm shadow-[0_3px_0_rgba(0,0,0,.3),inset_0_2px_0_rgba(255,255,255,.4)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(0,0,0,.3)] transition-all border-2 border-yellow-300" data-amt="<%= c.v %>"><%= c.l %></button>
+      <% }); %>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="grid grid-cols-3 gap-2">
+      <button onclick="allIn()" class="bg-gradient-to-br from-purple-600 to-pink-700 hover:brightness-110 text-white py-2.5 rounded-full font-black text-sm shadow-lg border-2 border-pink-400">💎 ALL-IN</button>
+      <button onclick="confirmBet()" class="bg-gradient-to-br from-emerald-500 to-green-700 hover:brightness-110 text-white py-2.5 rounded-full font-black text-sm shadow-lg border-2 border-emerald-300">✓ ĐẶT CƯỢC</button>
+      <button onclick="cancelBet()" class="bg-gradient-to-br from-red-600 to-red-800 hover:brightness-110 text-white py-2.5 rounded-full font-black text-sm shadow-lg border-2 border-red-400">✕ HỦY</button>
+    </div>
+
+  </main>
+
+  <!-- ===== BOTTOM TABS ===== -->
+  <footer class="bg-gradient-to-r from-amber-950 via-yellow-900 to-amber-950 border-2 border-yellow-600/50 border-t-0 rounded-b-2xl px-3 py-2 grid grid-cols-4 gap-1">
+    <button onclick="toggleSection('history')" class="text-yellow-200 hover:text-yellow-300 text-[11px] font-bold flex flex-col items-center gap-0.5 py-1">
+      <span class="text-lg">📊</span><span>Lịch sử</span>
+    </button>
+    <button onclick="toggleSection('rules')" class="text-yellow-200 hover:text-yellow-300 text-[11px] font-bold flex flex-col items-center gap-0.5 py-1">
+      <span class="text-lg">📖</span><span>Luật</span>
+    </button>
+    <button onclick="toggleSection('top')" class="text-yellow-200 hover:text-yellow-300 text-[11px] font-bold flex flex-col items-center gap-0.5 py-1">
+      <span class="text-lg">🏆</span><span>Xếp hạng</span>
+    </button>
+    <a href="<%= partner.telegram %>" target="_blank" class="text-yellow-200 hover:text-yellow-300 text-[11px] font-bold flex flex-col items-center gap-0.5 py-1">
+      <span class="text-lg">💬</span><span>Hotline</span>
+    </a>
+  </footer>
+
+  <!-- ===== EXPANDABLE SECTIONS ===== -->
+  <div id="txHistory" class="hidden bg-bg-card border border-line rounded-xl p-4 mt-3">
+    <h3 class="text-base font-extrabold text-white mb-3">📊 Lịch sử 10 phiên gần nhất</h3>
+    <div class="flex gap-1.5 flex-wrap" id="txHistoryList"><div class="text-muted text-sm">Chưa có lịch sử...</div></div>
+  </div>
+  <div id="txRules" class="hidden bg-bg-card border border-line rounded-xl p-4 mt-3 text-sm text-gray-200">
+    <h3 class="text-base font-extrabold text-white mb-2">📖 Luật chơi Tài Xỉu</h3>
+    <ul class="space-y-1.5 leading-relaxed">
+      <li>• Mỗi phiên kéo dài <strong>60 giây</strong>, hệ thống tự tung 3 xúc xắc</li>
+      <li>• <strong class="text-red-400">TÀI</strong> = tổng 3 xúc xắc <strong>11-17</strong>, <strong class="text-blue-400">XỈU</strong> = tổng <strong>4-10</strong></li>
+      <li>• Đoán đúng → nhận <strong class="text-yellow-300">x2 tiền cược</strong></li>
+      <li>• <strong class="text-yellow-400">BÃO</strong>: 3 xúc xắc giống nhau → Tài/Xỉu đều thua, jackpot riêng</li>
+      <li>• Trước khi đóng cược 5s, không thể đặt thêm</li>
+    </ul>
+  </div>
+  <div id="txTop" class="hidden bg-bg-card border border-line rounded-xl p-4 mt-3">
+    <h3 class="text-base font-extrabold text-white mb-3">🏆 Top thắng hôm nay</h3>
+    <div class="space-y-2">
+      <% ['highRoller_88','luckyTai99','xiu_master','vipFan88','BoMy_X66'].forEach(function(n,i){ var amt=(5-i)*2300+800; %>
+        <div class="flex items-center gap-2 bg-bg-soft border border-line rounded-lg p-2.5 text-sm">
+          <span class="text-xl"><%= ['🥇','🥈','🥉','4️⃣','5️⃣'][i] %></span>
+          <span class="flex-1 font-bold text-white"><%= n %></span>
+          <span class="text-yellow-300 font-extrabold tabular-nums">+<%= amt.toLocaleString('vi-VN') %> 🪙</span>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</section>
+
+<style>
+.dice-3d { transition: transform .3s; transform-style: preserve-3d; }
+.dice-3d.rolling { animation: rollDice .25s linear infinite; }
+@keyframes rollDice {
+  0%   { transform: rotateX(0)    rotateY(0); }
+  25%  { transform: rotateX(90deg) rotateY(90deg); }
+  50%  { transform: rotateX(180deg) rotateY(180deg); }
+  75%  { transform: rotateX(270deg) rotateY(270deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+.tx-chip.is-selected { background:linear-gradient(135deg,#fff,#fef3c7) !important; color:#7c2d12 !important; transform:scale(1.1); box-shadow:0 0 16px rgba(252,211,77,.8) !important; }
+.ts-side.is-selected { box-shadow: 0 0 0 4px #fde047, 0 0 32px rgba(253,224,71,.6) !important; transform: scale(1.03); }
+.win-flash { animation: winFlash .5s ease-in-out 3; }
+@keyframes winFlash { 0%,100%{box-shadow:0 0 0 4px #10b981} 50%{box-shadow:0 0 32px 8px #10b981} }
+</style>
+
+<script>
+(function(){
+  if (typeof window.showToast !== 'function') {
+    window.showToast = function(msg, kind){
+      var t=document.createElement('div'); var col=kind==='error'?'#ff3b3b':kind==='success'?'#27ae60':'#ff7a18';
+      t.style.cssText='position:fixed;bottom:20px;right:20px;background:#161a22;color:#fff;padding:12px 18px;border-radius:8px;border-left:4px solid '+col+';z-index:9999;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+      t.textContent=msg; document.body.appendChild(t);
+      setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; }, 2500);
+      setTimeout(function(){ t.remove(); }, 3000);
+    };
+  }
+
+  // Render xúc xắc với chấm tròn theo từng số (1-6)
+  function diceSvg(n){
+    // Vị trí 7 chấm trong layout 3x3
+    var dots = {
+      1: [[12,12]],
+      2: [[6,6],[18,18]],
+      3: [[6,6],[12,12],[18,18]],
+      4: [[6,6],[18,6],[6,18],[18,18]],
+      5: [[6,6],[18,6],[12,12],[6,18],[18,18]],
+      6: [[6,6],[18,6],[6,12],[18,12],[6,18],[18,18]]
+    };
+    var d = dots[n] || dots[1];
+    var circles = d.map(function(p){ return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.4" fill="#7c1d1d"/>'; }).join('');
+    return '<svg viewBox="0 0 24 24" class="w-full h-full">' + circles + '</svg>';
+  }
+
+  var ROUND_DURATION = 60;
+  var state = {
+    roundId: 1, secLeft: 60, selectedAmt: 0,
+    selectedSide: null, myBet: null, history: [], rolling: false,
+    taiPool: 741648460, xiuPool: 741648460, taiCount: 2093, xiuCount: 1805,
+    jackpot: 128700000
+  };
+
+  function getUser(){ try { return JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){ return {}; } }
+  function setUser(u){ try { localStorage.setItem('x66_user', JSON.stringify(u)); } catch(e){} }
+  function getCoin(){ var u=getUser(); return typeof u.coin==='number'?u.coin:79; }
+  function setCoin(c){ var u=getUser(); u.coin=c; setUser(u); refresh(); }
+
+  function refresh(){
+    var u = getUser();
+    document.getElementById('txBalance').textContent = getCoin().toLocaleString('vi-VN');
+    document.getElementById('txUsername').textContent = (u.username||'guest').toLowerCase();
+    document.getElementById('txAvatar').textContent = (u.username||'U').charAt(0).toUpperCase();
+  }
+
+  try { var ss = JSON.parse(localStorage.getItem('x66_tx_state')||'null'); if (ss) { state.roundId = ss.roundId||1; state.history = ss.history||[]; } } catch(e){}
+  function saveState(){ try { localStorage.setItem('x66_tx_state', JSON.stringify({roundId:state.roundId, history:state.history.slice(0,30)})); } catch(e){} }
+
+  function updateRound(){
+    document.getElementById('txRoundId').textContent = String(state.roundId).padStart(6,'0');
+    var sec = state.secLeft, el = document.getElementById('txCountdown');
+    el.textContent = sec + 's';
+    el.className = 'font-black text-base ' + (sec>30?'text-emerald-400':sec>10?'text-yellow-300':'text-red-400 animate-pulse');
+    // Tăng pool dynamically (giả lập đông người chơi)
+    document.getElementById('txTaiPool').textContent = state.taiPool.toLocaleString('vi-VN');
+    document.getElementById('txXiuPool').textContent = state.xiuPool.toLocaleString('vi-VN');
+    document.getElementById('txTaiCount').textContent = state.taiCount.toLocaleString('vi-VN');
+    document.getElementById('txXiuCount').textContent = state.xiuCount.toLocaleString('vi-VN');
+    document.getElementById('txJackpot').textContent = state.jackpot.toLocaleString('vi-VN');
+  }
+
+  // Chip chọn mức
+  document.querySelectorAll('.tx-chip').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.tx-chip').forEach(function(x){ x.classList.remove('is-selected'); });
+      this.classList.add('is-selected');
+      state.selectedAmt = parseInt(this.getAttribute('data-amt'),10);
+      document.getElementById('txSelectedAmt').textContent = state.selectedAmt.toLocaleString('vi-VN');
+      document.getElementById('txResultText').textContent = 'Đã chọn ' + state.selectedAmt + ' 🪙 - Click TÀI hoặc XỈU';
+    });
+  });
+
+  // Click TÀI/XỈU = chọn side luôn → đặt cược
+  window.selectSide = function(side){
+    if (state.rolling) { showToast('Đang ra kết quả','error'); return; }
+    if (state.secLeft < 5) { showToast('Còn dưới 5s, không thể cược','error'); return; }
+    if (state.selectedAmt <= 0) { showToast('Chọn mức cược trước (chip vàng phía dưới)','error'); return; }
+    var coin = getCoin();
+    if (coin < state.selectedAmt) { showToast('X COIN không đủ! Còn ' + coin, 'error'); return; }
+    // Nếu đã có bet, cộng dồn
+    if (state.myBet && state.myBet.side !== side) { showToast('Bạn đã đặt vào ' + (state.myBet.side==='tai'?'TÀI':'XỈU') + ' rồi','error'); return; }
+    setCoin(coin - state.selectedAmt);
+    if (!state.myBet) state.myBet = { side: side, amt: 0 };
+    state.myBet.amt += state.selectedAmt;
+    if (side === 'tai') { state.taiPool += state.selectedAmt; document.getElementById('txTaiMyBet').textContent = state.myBet.amt.toLocaleString('vi-VN'); }
+    else                { state.xiuPool += state.selectedAmt; document.getElementById('txXiuMyBet').textContent = state.myBet.amt.toLocaleString('vi-VN'); }
+    // Highlight
+    document.getElementById('tx'+(side==='tai'?'Tai':'Xiu')+'Box').classList.add('is-selected');
+    showToast('Đặt ' + state.selectedAmt + ' 🪙 vào ' + (side==='tai'?'TÀI':'XỈU'), 'success');
+  };
+
+  window.allIn = function(){
+    var coin = getCoin();
+    if (coin <= 0) { showToast('Không có X COIN để all-in','error'); return; }
+    state.selectedAmt = coin;
+    document.getElementById('txSelectedAmt').textContent = coin.toLocaleString('vi-VN');
+    document.querySelectorAll('.tx-chip').forEach(function(x){ x.classList.remove('is-selected'); });
+    showToast('All-in: ' + coin + ' 🪙. Chọn TÀI hoặc XỈU!', 'info');
+  };
+
+  window.confirmBet = function(){
+    if (!state.myBet) { showToast('Bạn chưa đặt cược','error'); return; }
+    showToast('✓ Đã xác nhận cược ' + state.myBet.amt + ' 🪙 vào ' + (state.myBet.side==='tai'?'TÀI':'XỈU'), 'success');
+  };
+
+  window.cancelBet = function(){
+    if (!state.myBet) { showToast('Chưa có cược để hủy','error'); return; }
+    if (state.secLeft < 10) { showToast('Còn dưới 10s, không thể hủy','error'); return; }
+    setCoin(getCoin() + state.myBet.amt);
+    if (state.myBet.side === 'tai') state.taiPool -= state.myBet.amt; else state.xiuPool -= state.myBet.amt;
+    state.myBet = null;
+    document.getElementById('txTaiMyBet').textContent = '0';
+    document.getElementById('txXiuMyBet').textContent = '0';
+    document.getElementById('txTaiBox').classList.remove('is-selected');
+    document.getElementById('txXiuBox').classList.remove('is-selected');
+    showToast('Đã hủy cược, hoàn tiền', 'success');
+  };
+
+  window.toggleSection = function(name){
+    var ids = ['history','rules','top'];
+    ids.forEach(function(id){
+      var el = document.getElementById('tx' + id.charAt(0).toUpperCase()+id.slice(1));
+      if (el) el.classList.toggle('hidden', id !== name || !el.classList.contains('hidden') ? id !== name : true);
+    });
+  };
+
+  function rollAndReveal(){
+    state.rolling = true;
+    var dEls = document.querySelectorAll('#txDice .dice-3d');
+    dEls.forEach(function(d){ d.classList.add('rolling'); d.innerHTML = diceSvg(Math.floor(Math.random()*6)+1); });
+    document.getElementById('txSumBadge').textContent = '?';
+    document.getElementById('txResultText').textContent = '🎲 Đang lắc...';
+
+    setTimeout(function(){
+      var d1 = Math.floor(Math.random()*6)+1, d2 = Math.floor(Math.random()*6)+1, d3 = Math.floor(Math.random()*6)+1;
+      var sum = d1+d2+d3;
+      var isBao = (d1===d2 && d2===d3);
+      var result = isBao ? 'bao' : (sum >= 11 ? 'tai' : 'xiu');
+
+      dEls[0].classList.remove('rolling'); dEls[0].innerHTML = diceSvg(d1);
+      dEls[1].classList.remove('rolling'); dEls[1].innerHTML = diceSvg(d2);
+      dEls[2].classList.remove('rolling'); dEls[2].innerHTML = diceSvg(d3);
+      document.getElementById('txSumBadge').textContent = sum;
+
+      var resultLabel = isBao ? '⚡ BÃO' : result==='tai' ? '🔴 TÀI' : '🔵 XỈU';
+      document.getElementById('txResultText').innerHTML = '<span class="text-yellow-300 text-base font-black">' + resultLabel + ' · Tổng ' + sum + '</span>';
+
+      if (state.myBet) {
+        var win = !isBao && state.myBet.side === result;
+        if (win) {
+          var payout = state.myBet.amt * 2;
+          setCoin(getCoin() + payout);
+          showToast('🎉 THẮNG! +' + payout.toLocaleString('vi-VN') + ' 🪙', 'success');
+          document.getElementById('tx'+(state.myBet.side==='tai'?'Tai':'Xiu')+'Box').classList.add('win-flash');
+        } else {
+          showToast(isBao?'⚡ BÃO - thua':'😢 Thua ' + state.myBet.amt + ' 🪙', 'error');
+        }
+      }
+
+      state.history.unshift({ round: state.roundId, dice:[d1,d2,d3], sum:sum, result:result });
+      saveState();
+      renderHistory();
+
+      setTimeout(function(){
+        state.roundId++;
+        state.secLeft = ROUND_DURATION;
+        state.myBet = null; state.rolling = false;
+        document.getElementById('txTaiMyBet').textContent = '0';
+        document.getElementById('txXiuMyBet').textContent = '0';
+        document.getElementById('txTaiBox').classList.remove('is-selected','win-flash');
+        document.getElementById('txXiuBox').classList.remove('is-selected','win-flash');
+        // Reset pool về random gần giá trị seed
+        state.taiPool = 700000000 + Math.floor(Math.random()*100000000);
+        state.xiuPool = 700000000 + Math.floor(Math.random()*100000000);
+        state.taiCount = 1800 + Math.floor(Math.random()*500);
+        state.xiuCount = 1700 + Math.floor(Math.random()*500);
+        state.jackpot += Math.floor(Math.random()*200000);
+        updateRound();
+      }, 4000);
+    }, 1500);
+  }
+
+  function renderHistory(){
+    var el = document.getElementById('txHistoryList');
+    if (!state.history.length) { el.innerHTML = '<div class="text-muted text-sm">Chưa có lịch sử...</div>'; return; }
+    el.innerHTML = state.history.slice(0,10).map(function(h){
+      var clr = h.result==='tai'?'bg-red-600':h.result==='xiu'?'bg-blue-600':'bg-yellow-500';
+      var lbl = h.result==='tai'?'T':h.result==='xiu'?'X':'B';
+      return '<div class="text-center" title="Phiên #'+h.round+' = '+h.sum+'"><div class="w-10 h-10 rounded-full '+clr+' grid place-items-center text-white font-black">'+lbl+'</div><div class="text-[10px] text-muted mt-0.5">'+h.sum+'</div></div>';
+    }).join('');
+  }
+
+  function tick(){
+    try {
+      if (!state.rolling) {
+        state.secLeft--;
+        // Mỗi giây tăng pool nhẹ (giả lập)
+        state.taiPool += Math.floor(Math.random()*50000);
+        state.xiuPool += Math.floor(Math.random()*50000);
+        state.taiCount += Math.floor(Math.random()*3);
+        state.xiuCount += Math.floor(Math.random()*3);
+        state.jackpot += Math.floor(Math.random()*5000);
+        if (state.secLeft <= 0) rollAndReveal();
+        else updateRound();
+      }
+    } catch(e){ console.error('tick err:', e); }
+  }
+
+  refresh();
+  updateRound();
+  renderHistory();
+  setInterval(tick, 1000);
+})();
+</script>
+
+<%- include('../partials/tw-footer') %>

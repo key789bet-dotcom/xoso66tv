@@ -1,0 +1,42 @@
+  </main>
+  <footer class="bg-gradient-to-b from-[#13171f] to-[#0a0d12] border-t border-line px-6 py-7 mt-8">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div>
+        <h4 class="text-pri-light text-sm font-bold mb-3 uppercase tracking-wider"><%= brand.name %></h4>
+        <p class="text-muted text-[12.5px] leading-relaxed">Nền tảng phát sóng đa môn 24/7. Đối tác chính thức <a href="<%= partner.home %>" target="_blank" rel="noopener" class="text-pri-light font-bold hover:text-pri"><%= brand.domain %></a>.</p>
+      </div>
+      <div>
+        <h4 class="text-pri-light text-sm font-bold mb-3 uppercase tracking-wider">Liên kết nhanh</h4>
+        <ul class="space-y-1.5 text-[12.5px]">
+          <li><a href="/lich-phat-song" class="text-muted hover:text-pri-light">Lịch phát sóng</a></li>
+          <li><a href="/video-noi-bat" class="text-muted hover:text-pri-light">Video nổi bật</a></li>
+          <li><a href="/tin-tuc" class="text-muted hover:text-pri-light">Tin tức</a></li>
+          <li><a href="/su-kien" class="text-muted hover:text-pri-light">Sự kiện khuyến mãi</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-pri-light text-sm font-bold mb-3 uppercase tracking-wider">Hỗ trợ</h4>
+        <ul class="space-y-1.5 text-[12.5px]">
+          <li><a href="<%= partner.cskh %>" target="_blank" rel="noopener" class="text-muted hover:text-pri-light">CSKH 24/7</a></li>
+          <li><a href="<%= partner.telegram %>" target="_blank" rel="noopener" class="text-muted hover:text-pri-light">Telegram Support</a></li>
+          <li><a href="#" class="text-muted hover:text-pri-light">Điều khoản sử dụng</a></li>
+          <li><a href="#" class="text-muted hover:text-pri-light">Chính sách bảo mật</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-pri-light text-sm font-bold mb-3 uppercase tracking-wider">Nạp/Rút</h4>
+        <div class="flex flex-wrap gap-1.5">
+          <% ['Momo','ZaloPay','VietQR','ViettelPay','USDT','Bank'].forEach(function(p){ %>
+            <span class="bg-bg-soft px-2.5 py-1 rounded text-[11px] text-gray-100"><%= p %></span>
+          <% }); %>
+        </div>
+        <p class="text-muted text-[12.5px] mt-3">📱 Tải app:</p>
+        <a href="<%= partner.download %>" target="_blank" rel="noopener" class="inline-block bg-pri hover:bg-pri-dark text-white px-4 py-1.5 rounded-md text-xs font-bold mt-1.5 transition-colors">⬇ Tải APP <%= brand.short %></a>
+      </div>
+    </div>
+    <div class="text-center text-dim mt-5 pt-4 border-t border-line text-xs">© <%= new Date().getFullYear() %> <%= brand.name %> · Liên kết bởi <%= brand.domain %>. Cấm trẻ vị thành niên.</div>
+  </footer>
+</div>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

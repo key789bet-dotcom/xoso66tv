@@ -1,0 +1,284 @@
+<header class="mb-5">
+  <h1 class="text-xl font-extrabold text-white mb-1 flex items-center gap-2">🔗 Liên kết tài khoản <%= brand.short %></h1>
+  <p class="text-muted text-sm">Liên kết tài khoản <strong class="text-pri-light"><%= brand.domain %></strong> với tài khoản chơi <strong class="text-pri-light">xoso66.com</strong>. Khi bạn nạp tiền bên xoso66, X COIN sẽ tự động cộng vào ví bên này.</p>
+</header>
+
+<!-- Status box -->
+<div id="linkStatus" class="mb-5 rounded-xl p-5 transition-all">
+  <div class="text-center text-muted py-4">Đang kiểm tra trạng thái liên kết...</div>
+</div>
+
+<!-- LINK FORM -->
+<div id="linkBox" class="hidden bg-bg-card border-2 border-emerald-500/40 rounded-xl p-5 mb-5">
+  <h3 class="text-base font-extrabold text-white mb-3 flex items-center gap-2">📌 Bắt đầu liên kết</h3>
+
+  <!-- Stepper -->
+  <div class="flex items-center justify-between mb-5 relative">
+    <div class="absolute top-3.5 left-[10%] right-[10%] h-0.5 bg-line z-0"></div>
+    <% [1,2,3].forEach(function(n){ var labels=['Nhập username','Nhận mã','Hoàn tất']; %>
+      <div class="link-step flex flex-col items-center gap-1.5 relative z-[1]" data-step="<%= n %>">
+        <div class="num w-7 h-7 rounded-full grid place-items-center font-extrabold text-[12px] <%= n===1?'bg-pri border-2 border-pri text-white':'bg-bg-deep border-2 border-line text-muted' %>"><%= n %></div>
+        <div class="lbl text-[11px] font-semibold <%= n===1?'text-gray-100':'text-muted' %>"><%= labels[n-1] %></div>
+      </div>
+    <% }); %>
+  </div>
+
+  <!-- STEP 1: Nhập username -->
+  <form id="lkStep1" class="space-y-3">
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Username xoso66.com của bạn</span>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">👤</span>
+        <input id="lkXoso66" type="text" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+" class="w-full bg-bg-deep border border-line text-white pl-10 pr-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="VD: lkgg-hushang">
+      </div>
+      <div class="text-[11px] text-muted mt-1.5">Username bên xoso66 (3-30 ký tự, chữ/số/_). Sai sẽ không nhận được X COIN.</div>
+    </label>
+
+    <div class="bg-sky-500/10 border border-sky-500/40 rounded-lg p-3 text-xs text-sky-300">
+      <div class="font-bold mb-1">💡 Cách tìm username xoso66</div>
+      Đăng nhập <a href="https://xoso66tv.com" target="_blank" class="text-white underline font-bold">xoso66.com</a> → góc phải hiện <strong>username</strong>. Nếu chưa có tài khoản, <a href="<%= partner.register %>" target="_blank" rel="noopener" class="text-white underline font-bold">đăng ký ngay</a>.
+    </div>
+
+    <button type="submit" class="w-full px-4 py-3 bg-gradient-to-br from-pri to-pri-dark text-white rounded-lg font-extrabold shadow-pri">📤 Tạo mã xác thực</button>
+  </form>
+
+  <!-- STEP 2: Nhập code -->
+  <form id="lkStep2" class="space-y-3 hidden">
+    <div class="bg-emerald-500/10 border border-emerald-500 rounded-lg p-3 text-emerald-300 text-sm">
+      ✓ Yêu cầu đã tạo cho username <b id="lkX66Show" class="text-white">-</b>
+    </div>
+
+    <!-- Channel info -->
+    <div id="lkChannelInfo" class="hidden bg-gradient-to-br from-emerald-500/15 to-emerald-700/5 border-2 border-emerald-500/40 rounded-lg p-4 text-center">
+      <div class="text-3xl mb-2">📨</div>
+      <div class="text-emerald-300 font-extrabold text-base mb-1">Đã gửi mã qua <span id="lkChannelNames">-</span></div>
+      <div class="text-xs text-muted">Kiểm tra trong vài giây và nhập mã 6 số bên dưới</div>
+      <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-bg-soft border border-line rounded p-2">
+          <div class="text-[10px] text-muted uppercase">⏰ Hết hạn</div>
+          <div class="text-pri-light font-bold" id="lkExpire">10:00</div>
+        </div>
+        <div class="bg-bg-soft border border-line rounded p-2">
+          <div class="text-[10px] text-muted uppercase">📤 Đã gửi tới</div>
+          <div class="text-white font-bold text-[11px]" id="lkChannelDetail">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo mode show code -->
+    <div id="lkDemoBox" class="hidden bg-yellow-500/10 border-2 border-yellow-500/40 rounded-lg p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xl">⚡</span>
+        <div>
+          <div class="text-yellow-400 font-bold text-sm">DEMO mode</div>
+          <div class="text-[11px] text-muted">Hệ thống chưa cấu hình email/Telegram → mã hiển thị thẳng dưới đây</div>
+        </div>
+      </div>
+      <div class="font-mono font-black text-4xl text-gold tabular-nums tracking-widest text-center py-3" id="lkCodeShow">------</div>
+      <div class="text-[10px] text-muted text-center">Hết hạn sau 10 phút</div>
+    </div>
+
+    <!-- How to get code in production -->
+    <details class="bg-bg-deep border border-line rounded-lg">
+      <summary class="px-3 py-2 cursor-pointer text-xs font-bold text-pri-light hover:bg-bg-soft select-none">💡 Không nhận được mã? Click để xem hướng dẫn</summary>
+      <div class="px-3 py-3 text-xs text-gray-200 space-y-2 border-t border-line">
+        <div><strong class="text-white">📱 Telegram:</strong> Vào <a href="/profile?tab=info" class="text-pri-light underline">Thông tin cá nhân</a> → kết nối Telegram → mở app Telegram → tìm bot XOSO66 → mã sẽ gửi trong giây lát.</div>
+        <div><strong class="text-white">📧 Email:</strong> Kiểm tra inbox + thư mục Spam của email đã đăng ký.</div>
+        <div><strong class="text-white">🆘 Vẫn không nhận được?</strong> Liên hệ <a href="<%= partner.telegram %>" target="_blank" class="text-pri-light underline">CSKH Telegram 24/7</a> để được hỗ trợ.</div>
+      </div>
+    </details>
+
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Nhập lại mã 6 số để xác nhận</span>
+      <input id="lkCodeInput" type="text" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" class="w-full bg-bg-deep border border-line text-white text-center text-2xl font-extrabold tracking-widest px-3 py-3 rounded-lg outline-none focus:border-pri tabular-nums" placeholder="000000">
+    </label>
+
+    <div class="flex gap-2">
+      <button type="button" onclick="backStep1()" class="flex-1 px-4 py-2.5 bg-bg-deep hover:bg-bg-soft text-white rounded-lg font-bold text-sm border border-line">← Quay lại</button>
+      <button type="submit" class="flex-[2] px-4 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-700 hover:brightness-110 text-white rounded-lg font-extrabold">✓ Xác nhận liên kết</button>
+    </div>
+  </form>
+</div>
+
+<!-- ALREADY LINKED -->
+<div id="linkedBox" class="hidden bg-gradient-to-br from-emerald-500/10 to-emerald-700/5 border-2 border-emerald-500/50 rounded-xl p-5 mb-5">
+  <div class="flex items-center gap-3 mb-4">
+    <div class="w-14 h-14 rounded-full bg-emerald-500 grid place-items-center text-3xl text-white shrink-0">✓</div>
+    <div class="flex-1 min-w-0">
+      <h3 class="text-lg font-extrabold text-white">Đã liên kết thành công!</h3>
+      <p class="text-xs text-muted">Bạn sẽ nhận X COIN tự động mỗi khi nạp tiền tại xoso66</p>
+    </div>
+    <button onclick="confirmUnlink()" class="px-3 py-1.5 bg-live/10 hover:bg-live text-live hover:text-white border border-live/40 rounded-md font-bold text-xs">🔗 Hủy liên kết</button>
+  </div>
+
+  <div class="grid sm:grid-cols-3 gap-3">
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[10px] text-muted uppercase font-bold mb-1">Username xoso66</div>
+      <div class="text-pri-light font-extrabold font-mono text-sm" id="lkShowName">-</div>
+    </div>
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[10px] text-muted uppercase font-bold mb-1">Liên kết từ</div>
+      <div class="text-white font-bold text-sm" id="lkShowDate">-</div>
+    </div>
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[10px] text-muted uppercase font-bold mb-1">Tổng đã nhận</div>
+      <div class="text-gold font-extrabold text-sm tabular-nums" id="lkShowTotal">0 VND</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="bg-bg-card border border-line rounded-xl p-5">
+  <h3 class="text-base font-extrabold text-white mb-3 flex items-center gap-2">🎯 Cách hoạt động</h3>
+  <ol class="space-y-3 text-sm text-gray-200">
+    <li class="flex gap-3"><span class="shrink-0 w-7 h-7 rounded-full bg-pri text-white grid place-items-center font-extrabold">1</span><div><strong>Liên kết tài khoản</strong> bằng cách nhập username xoso66 + xác thực mã 6 số (chỉ làm 1 lần).</div></li>
+    <li class="flex gap-3"><span class="shrink-0 w-7 h-7 rounded-full bg-pri text-white grid place-items-center font-extrabold">2</span><div><strong>Nạp tiền tại xoso66.com</strong> bất kỳ lúc nào - bằng Momo/Bank/ZaloPay/USDT.</div></li>
+    <li class="flex gap-3"><span class="shrink-0 w-7 h-7 rounded-full bg-pri text-white grid place-items-center font-extrabold">3</span><div><strong>X COIN tự cộng</strong> ngay vào ví xoso66tv.com theo công thức: <strong class="text-gold">1.000 VND = 1 X COIN</strong> + bonus tier theo mức nạp.</div></li>
+    <li class="flex gap-3"><span class="shrink-0 w-7 h-7 rounded-full bg-pri text-white grid place-items-center font-extrabold">4</span><div><strong>Đổi X COIN</strong> lấy quà tặng XOSO66 tại trang <a href="/qua-tang" class="text-pri-light underline">Quà tặng</a> - giao hàng tận nơi miễn phí.</div></li>
+  </ol>
+
+  <div class="mt-4 p-3 bg-gold/10 border border-gold/40 rounded-lg text-xs text-gold">
+    💡 <strong>Bonus nạp lần đầu:</strong> Nạp ≥ 500K nhận +300 X COIN bonus · Nạp ≥ 1tr nhận +1.000 X COIN · Nạp ≥ 5tr nhận +8.000 X COIN
+  </div>
+</section>
+
+<script>
+(function(){
+  function getUser(){ try { return JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){ return {}; } }
+  function setUser(u){ try { localStorage.setItem('x66_user', JSON.stringify(u)); } catch(e){} }
+
+  function showStep(n){
+    [1,2].forEach(function(i){
+      document.getElementById('lkStep'+i).classList.toggle('hidden', i!==n);
+    });
+    document.querySelectorAll('.link-step').forEach(function(s, idx){
+      var i = idx + 1;
+      var num = s.querySelector('.num');
+      var lbl = s.querySelector('.lbl');
+      num.className = 'num w-7 h-7 rounded-full grid place-items-center font-extrabold text-[12px] ' +
+        (i < n ? 'bg-emerald-500 border-2 border-emerald-500 text-white' :
+         i === n ? 'bg-pri border-2 border-pri text-white' :
+         'bg-bg-deep border-2 border-line text-muted');
+      lbl.className = 'lbl text-[11px] font-semibold ' + (i <= n ? 'text-gray-100' : 'text-muted');
+    });
+  }
+
+  window.backStep1 = function(){ showStep(1); };
+
+  // Check status
+  async function loadStatus(){
+    var u = getUser();
+    if (!u.username) return;
+    try {
+      var r = await fetch('/api/link/xoso66/status?username=' + encodeURIComponent(u.username));
+      var j = await r.json();
+      var statusBox = document.getElementById('linkStatus');
+      if (j.linked) {
+        statusBox.className = 'mb-5 rounded-xl p-4 bg-emerald-500/10 border border-emerald-500/40';
+        statusBox.innerHTML = '<div class="text-emerald-400 font-bold text-center">✓ Đã liên kết với tài khoản xoso66: <span class="text-white">'+j.xoso66Username+'</span></div>';
+        document.getElementById('linkedBox').classList.remove('hidden');
+        document.getElementById('linkBox').classList.add('hidden');
+        document.getElementById('lkShowName').textContent = j.xoso66Username;
+        document.getElementById('lkShowDate').textContent = new Date(j.linkedAt).toLocaleDateString('vi-VN');
+        document.getElementById('lkShowTotal').textContent = (j.totalReceived||0).toLocaleString('vi-VN') + ' VND';
+      } else {
+        statusBox.className = 'mb-5 rounded-xl p-4 bg-live/10 border border-live/40';
+        statusBox.innerHTML = '<div class="text-live font-bold text-center">🔓 Chưa liên kết - Mỗi lần nạp xoso66 bạn sẽ không nhận được X COIN. Liên kết ngay!</div>';
+        document.getElementById('linkedBox').classList.add('hidden');
+        document.getElementById('linkBox').classList.remove('hidden');
+      }
+    } catch(e){
+      console.error(e);
+    }
+  }
+
+  // Step 1 submit: tạo yêu cầu
+  document.getElementById('lkStep1').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var u = getUser();
+    if (!u.username) { showToast('Bạn cần đăng nhập','error'); return; }
+    var x = document.getElementById('lkXoso66').value.trim();
+    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(x)) { showToast('Username xoso66 không hợp lệ','error'); return; }
+    try {
+      var r = await fetch('/api/link/xoso66/request', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ x66tvUsername: u.username, xoso66Username: x })
+      });
+      var j = await r.json();
+      if (!j.ok) { showToast(j.message || 'Có lỗi','error'); return; }
+      document.getElementById('lkX66Show').textContent = x;
+      window._lkX = x;
+      showStep(2);
+
+      // Hien channel info hoac demo code
+      if (j.channels && j.channels.length > 0) {
+        document.getElementById('lkChannelInfo').classList.remove('hidden');
+        document.getElementById('lkDemoBox').classList.add('hidden');
+        var labels = j.channels.map(function(c){
+          if (c==='telegram') return '📱 Telegram';
+          if (c==='email')    return '📧 Email';
+          return c;
+        }).join(' + ');
+        document.getElementById('lkChannelNames').textContent = labels;
+        document.getElementById('lkChannelDetail').textContent = labels;
+        showToast('✓ Đã gửi mã qua ' + labels, 'success');
+        // Countdown
+        var sec = j.expiresIn || 600;
+        var timer = setInterval(function(){
+          sec--;
+          var m = Math.floor(sec/60), s2 = sec%60;
+          document.getElementById('lkExpire').textContent = String(m).padStart(2,'0') + ':' + String(s2).padStart(2,'0');
+          if (sec <= 0) { clearInterval(timer); document.getElementById('lkExpire').textContent = '⏰ Hết hạn'; }
+        }, 1000);
+      } else {
+        // Demo mode
+        document.getElementById('lkDemoBox').classList.remove('hidden');
+        document.getElementById('lkChannelInfo').classList.add('hidden');
+        document.getElementById('lkCodeShow').textContent = j.code || '------';
+        showToast('⚡ DEMO: mã hiển thị trên màn hình','info');
+      }
+    } catch(err){ showToast('Lỗi kết nối','error'); }
+  });
+
+  // Step 2 submit: confirm code
+  document.getElementById('lkStep2').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var u = getUser();
+    var code = document.getElementById('lkCodeInput').value.trim();
+    try {
+      var r = await fetch('/api/link/xoso66/confirm', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ x66tvUsername: u.username, xoso66Username: window._lkX, code: code })
+      });
+      var j = await r.json();
+      if (!j.ok) { showToast(j.message || 'Sai mã','error'); return; }
+      // Cập nhật localStorage
+      u.xoso66Username = window._lkX;
+      setUser(u);
+      showToast('🎉 Đã liên kết thành công!','success');
+      setTimeout(loadStatus, 600);
+    } catch(err){ showToast('Lỗi kết nối','error'); }
+  });
+
+  // Unlink
+  window.confirmUnlink = async function(){
+    if (!confirm('Bạn có chắc muốn hủy liên kết? Sau khi hủy, X COIN từ nạp xoso66 sẽ KHÔNG được cộng nữa.')) return;
+    var u = getUser();
+    try {
+      var r = await fetch('/api/link/xoso66/unlink', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ x66tvUsername: u.username })
+      });
+      var j = await r.json();
+      if (j.ok) {
+        delete u.xoso66Username;
+        setUser(u);
+        showToast('Đã hủy liên kết','success');
+        setTimeout(loadStatus, 600);
+      }
+    } catch(e){ showToast('Lỗi','error'); }
+  };
+
+  loadStatus();
+})();
+</script>

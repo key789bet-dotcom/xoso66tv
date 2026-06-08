@@ -1,0 +1,60 @@
+<%
+seo = {
+  title: 'Mini Game Miễn Phí - Tài Xỉu, Bắn Cá, Slot - '+brand.name,
+  description: 'Chơi mini game miễn phí 24/7 tại '+brand.name+': Tài Xỉu, Bắn Cá, Sâm Lốc, Slot, Bingo.',
+  keywords: 'mini game, tài xỉu, bắn cá, slot game',
+  canonical: '/mini-game',
+  breadcrumb: [{ name:'Mini Game', url:'/mini-game' }]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5"><span class="text-2xl">&#127918;</span> <span class="text-shimmer">Mini Game Miễn Phí - Vừa Chơi Vừa Đổi Thưởng</span></h1>
+  <p class="text-muted text-sm">Bộ sưu tập <strong class="text-white">200+ mini game</strong> giải trí 24/7 tại <a href="<%= partner.minigame %>" target="_blank" rel="noopener" class="text-pri-light"><%= brand.domain %></a>: Tài Xỉu, Bắn Cá, Sâm Lốc, Slot, Bingo, Đá Penalty.</p>
+</header>
+
+<section class="mb-6">
+  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
+    <% [
+      { ico:'&#127919;', n:'Tài Xỉu', d:'1 phút 1 phiên', url:'/game/tai-xiu', free:true },
+      { ico:'&#129836;', n:'Xóc Đĩa', d:'Chẵn Lẻ x15',    url:'/game/xoc-dia', free:true },
+      { ico:'&#127905;', n:'Vòng Quay', d:'Quay là trúng', url:'/game/vong-quay', free:true },
+      { ico:'&#127183;', n:'Sâm Lốc', d:'Đánh bài cùng AI', url:partner.minigame, free:false },
+      { ico:'&#128031;', n:'Bắn Cá', d:'Thưởng x100',     url:partner.minigame, free:false },
+      { ico:'&#127920;', n:'Slot Game', d:'Hàng nghìn slot', url:partner.minigame, free:false },
+      { ico:'&#9917;', n:'Đá Penalty', d:'Skill bóng đá', url:partner.minigame, free:false },
+      { ico:'&#127936;', n:'Ném Rổ', d:'Mini basketball', url:partner.minigame, free:false }
+    ].forEach(function(g){ %>
+      <article class="bg-bg-card border-2 <%= g.free ? 'border-emerald-500/60 hover:border-emerald-400' : 'border-line hover:border-pri' %> rounded-xl text-center px-4 py-6 transition-all hover:-translate-y-1 relative">
+        <% if (g.free) { %><span class="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">FREE</span><% } %>
+        <div class="text-5xl mb-2.5 drop-shadow"><%- g.ico %></div>
+        <h2 class="font-extrabold text-white mb-1"><%= g.n %></h2>
+        <p class="text-muted text-xs mb-3.5"><%= g.d %></p>
+        <a href="<%= g.url %>" <%= g.free ? '' : 'target="_blank" rel="noopener"' %> class="inline-block <%= g.free ? 'bg-gradient-to-br from-emerald-500 to-emerald-700' : 'bg-pri' %> text-white px-4 py-1.5 rounded-md font-bold text-xs"><%= g.free ? 'Chơi ngay' : 'Chơi ngay ↗' %></a>
+      </article>
+    <% }); %>
+  </div>
+
+  <aside class="mt-7 bg-gradient-to-br from-teal-600 to-teal-700 p-6 rounded-xl text-white text-center">
+    <h2 class="text-xl font-black mb-2">&#127918; Tải app để có trải nghiệm tốt nhất</h2>
+    <p class="opacity-95 mb-3.5">Hơn 200+ mini game miễn phí, chơi và đổi quà thật trên app <%= brand.short %></p>
+    <a href="<%= partner.download %>" target="_blank" rel="noopener" class="inline-block bg-white text-teal-700 px-7 py-3 rounded-md font-extrabold">&darr; Tải APP ngay</a>
+  </aside>
+</section>
+
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2:'Mini game giải trí lành mạnh tại '+brand.name,
+  intro:'Mini game thiết kế cho phép bạn chơi miễn phí giải trí hoặc dùng điểm thưởng tích lũy để chơi cao cấp.',
+  sections: [
+    { h3:'Mini game phổ biến nhất', p:'<strong>Tài Xỉu</strong> (1 phiên/phút), <strong>Bắn Cá</strong> (cộng đồng), <strong>Slot Game</strong> (theme đa dạng), <strong>Sâm Lốc</strong> (đấu AI hoặc PvP).' },
+    { h3:'Đổi điểm thưởng', p:'Điểm thưởng từ mini game có thể đổi voucher, tiền thật về tài khoản, hoặc tham gia <a href="/qua-tang">vòng quay may mắn</a>.' }
+  ],
+  faqs: [
+    { q:'Có cần đăng ký để chơi không?', a:'Chơi thử miễn phí thì không cần. Chơi ăn thưởng thật phải <a href="/dang-ky">đăng ký tài khoản</a>.' },
+    { q:'Mini game có công bằng không?', a:'Có. Tất cả game sử dụng RNG được cấp phép quốc tế (PAGCOR, GLI).' }
+  ]
+}}) %>
+
+<%- include('partials/tw-footer') %>

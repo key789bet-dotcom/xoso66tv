@@ -1,0 +1,105 @@
+<header class="mb-4">
+  <h1 class="text-xl font-extrabold text-white mb-1.5">Điểm danh</h1>
+  <p class="text-muted text-sm">Điểm danh liên tiếp để nhận X COIN. Bỏ lỡ 2 ngày sẽ bắt đầu lại từ ngày 1.</p>
+</header>
+
+<!-- Stats row -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+  <div class="bg-bg-soft border border-line rounded-lg p-4">
+    <div class="text-[11px] text-muted uppercase font-bold tracking-wide mb-1">Chuỗi hiện tại</div>
+    <div class="text-2xl font-black text-white"><span id="ckStreak">0</span> <span class="text-sm font-bold text-muted">ngày</span></div>
+  </div>
+  <div class="bg-bg-soft border border-line rounded-lg p-4">
+    <div class="text-[11px] text-muted uppercase font-bold tracking-wide mb-1">X COIN hiện có</div>
+    <div class="text-2xl font-black text-gold tabular-nums" id="ckCoin">79</div>
+  </div>
+  <button onclick="doCheckin()" id="ckBtn" class="bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white rounded-lg p-4 font-extrabold flex items-center justify-center gap-2 transition-all shadow-pri">
+    &#128197; Điểm danh
+  </button>
+</div>
+
+<!-- 28-day grid -->
+<%
+var REWARDS = [];
+for (var i=1; i<=28; i++) {
+  var bonus = 1;
+  if (i === 3)  bonus = 8;
+  if (i === 7)  bonus = 38;
+  if (i === 14) bonus = 58;
+  if (i === 17) bonus = 8;
+  if (i === 21) bonus = 38;
+  if (i === 28) bonus = 88;
+  REWARDS.push({ day:i, coin:bonus, special: bonus>1 });
+}
+%>
+<div class="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-5">
+  <% REWARDS.forEach(function(r){ %>
+    <div class="ck-cell border-2 border-line bg-bg-soft rounded-lg p-2.5 text-center transition-all" data-day="<%= r.day %>">
+      <div class="text-[11px] font-bold text-muted">Ngày <%= r.day %></div>
+      <div class="text-[13px] font-extrabold mt-1 <%= r.special ? 'text-gold' : 'text-pri-light' %>">+<%= r.coin %> X COIN</div>
+      <% if (r.day === 28) { %>
+        <div class="text-[10px] text-pri mt-0.5">+ quà</div>
+      <% } %>
+    </div>
+  <% }); %>
+</div>
+
+<!-- Bottom 28-day reward card -->
+<div class="bg-gradient-to-r from-pri/10 to-transparent border border-pri/40 rounded-lg p-4 flex items-center gap-4">
+  <div class="text-3xl">&#127942;</div>
+  <div class="flex-1">
+    <h3 class="text-pri-light font-extrabold text-base mb-0.5">Quà 28 ngày</h3>
+    <p class="text-muted text-sm">Hoàn thành <strong class="text-white">28 ngày điểm danh liên tiếp</strong></p>
+    <p class="text-xs text-pri mt-1">Thưởng thêm: <span class="font-bold text-gold">88 X COIN + iPhone 16 Pro Max</span></p>
+  </div>
+</div>
+
+<style>
+.ck-cell.is-done { border-color:#27ae60; background:rgba(39,174,96,.1); }
+.ck-cell.is-done::after { content:'✓'; display:block; color:#27ae60; font-weight:900; }
+.ck-cell.is-today { border-color:#ff7a18; background:rgba(255,122,24,.15); box-shadow:0 0 0 3px rgba(255,122,24,.2); }
+</style>
+
+<script>
+(function(){
+  // Demo: streak 0, today is day 1
+  var doneDays = []; // ngày đã điểm danh trong chu kỳ hiện tại
+  try {
+    var ck = JSON.parse(localStorage.getItem('x66_checkin') || '{}');
+    doneDays = ck.done || [];
+    document.getElementById('ckStreak').textContent = doneDays.length;
+  } catch(e){}
+  var today = doneDays.length + 1;
+  if (today > 28) today = 28;
+  document.querySelectorAll('.ck-cell').forEach(function(c){
+    var d = parseInt(c.getAttribute('data-day'),10);
+    if (doneDays.indexOf(d) >= 0) c.classList.add('is-done');
+    else if (d === today) c.classList.add('is-today');
+  });
+})();
+
+function doCheckin(){
+  try {
+    var u  = JSON.parse(localStorage.getItem('x66_user') || '{}');
+    var ck = JSON.parse(localStorage.getItem('x66_checkin') || '{"done":[],"lastDate":""}');
+    var today = (new Date()).toDateString();
+    if (ck.lastDate === today) { showToast('Hôm nay bạn đã điểm danh rồi!','error'); return; }
+    var nextDay = (ck.done.length || 0) + 1;
+    if (nextDay > 28) { ck.done = []; nextDay = 1; }
+    var bonus = 1;
+    if (nextDay === 3) bonus = 8;
+    if (nextDay === 7) bonus = 38;
+    if (nextDay === 14) bonus = 58;
+    if (nextDay === 17) bonus = 8;
+    if (nextDay === 21) bonus = 38;
+    if (nextDay === 28) bonus = 88;
+    ck.done.push(nextDay);
+    ck.lastDate = today;
+    localStorage.setItem('x66_checkin', JSON.stringify(ck));
+    u.coin = (u.coin || 79) + bonus;
+    localStorage.setItem('x66_user', JSON.stringify(u));
+    showToast('Đã nhận +' + bonus + ' X COIN! Tổng: ' + u.coin, 'success');
+    setTimeout(function(){ location.reload(); }, 1200);
+  } catch(e){ showToast('Lỗi: ' + e.message, 'error'); }
+}
+</script>

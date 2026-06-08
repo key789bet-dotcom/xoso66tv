@@ -1,0 +1,27 @@
+<%
+seo = { title: '403 - Không có quyền truy cập - ' + brand.name, noindex: true };
+%>
+<%- include('partials/tw-layout-start') %>
+
+<section class="max-w-md mx-auto my-12 bg-bg-card border-2 border-red-500/40 rounded-2xl p-6 text-center shadow-2xl">
+  <div class="text-6xl mb-4">🚫</div>
+  <h1 class="text-3xl font-black text-red-400 mb-2">403</h1>
+  <h2 class="text-xl font-extrabold text-white mb-2">Không có quyền truy cập</h2>
+  <p class="text-muted text-sm mb-1">Trang này chỉ dành cho <b class="text-pri-light">Admin, Idol, hoặc BLV</b>.</p>
+  <p class="text-muted text-sm mb-4">Tài khoản của bạn: <b class="text-white"><%= typeof username !== 'undefined' ? username : '?' %></b> (role: <span class="text-yellow-300"><%= typeof role !== 'undefined' ? role : 'user' %></span>)</p>
+  
+  <div class="bg-bg-soft border border-line rounded-lg p-3 mb-4 text-left text-[12px] text-gray-300">
+    💡 Để trở thành streamer:
+    <ul class="mt-1 space-y-1 list-disc list-inside">
+      <li>Liên hệ admin để được duyệt làm <b>Idol</b> hoặc <b>BLV</b></li>
+      <li>Hoặc đăng nhập với tài khoản admin (nếu bạn là admin)</li>
+    </ul>
+  </div>
+  
+  <div class="grid grid-cols-2 gap-2">
+    <a href="/" class="bg-bg-soft border border-line hover:border-pri text-white py-2.5 rounded-xl font-bold text-sm">← Trang chủ</a>
+    <a href="<%= partner.telegram %>" target="_blank" class="bg-gradient-to-r from-pri to-live text-white py-2.5 rounded-xl font-bold text-sm">💬 Liên hệ Admin</a>
+  </div>
+</section>
+
+<%- include('partials/tw-footer') %>

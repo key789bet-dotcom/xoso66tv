@@ -1,0 +1,57 @@
+<%
+seo = {
+  title: title + ' - '+brand.name,
+  description: desc,
+  keywords: cat.name.toLowerCase()+' trực tuyến, '+brand.short+', '+brand.domain,
+  canonical: '/'+activeCat,
+  breadcrumb: [{ name:cat.name, url:'/'+activeCat }]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<header class="bg-gradient-to-br from-purple via-red-700 to-orange-500 p-12 rounded-2xl text-center mb-6 relative overflow-hidden">
+  <div class="text-6xl mb-3.5"><%= cat.icon %></div>
+  <h1 class="text-4xl font-black text-white drop-shadow-lg mb-2"><%= title %></h1>
+  <p class="text-white/95 text-base mb-5"><%= desc %></p>
+  <a href="<%= target %>" target="_blank" rel="noopener" class="inline-block bg-white text-red-700 px-9 py-3.5 rounded-full font-black text-sm shadow-lg">&#128640; Vào sảnh ngay</a>
+</header>
+
+<section class="mb-6">
+  <div class="flex items-center gap-2.5 mb-3.5"><span class="w-1 h-5 bg-pri rounded-sm"></span><h2 class="text-lg font-extrabold text-white">Các loại game phổ biến</h2></div>
+  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
+    <% games.forEach(function(g){ %>
+      <article class="bg-bg-card border border-line rounded-xl text-center px-4 py-6 transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri">
+        <div class="text-5xl mb-2.5 drop-shadow"><%- g.icon %></div>
+        <h3 class="font-extrabold text-white mb-1"><%= g.name %></h3>
+        <p class="text-muted text-xs mb-3.5"><%= g.desc %></p>
+        <a href="<%= target %>" target="_blank" rel="noopener" class="inline-block bg-pri text-white px-4 py-1.5 rounded-md font-bold text-xs">Chơi ngay</a>
+      </article>
+    <% }); %>
+  </div>
+</section>
+
+<aside class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3.5">
+  <% banners.forEach(function(b){ %>
+    <div class="p-5 rounded-xl text-white" style="background:<%= b.bg %>">
+      <h3 class="font-black text-base mb-2"><%= b.title %></h3>
+      <p class="opacity-95 text-xs mb-3"><%= b.desc %></p>
+      <a href="<%= b.url %>" target="_blank" rel="noopener" class="inline-block bg-white text-red-700 px-4 py-1.5 rounded-md font-bold text-xs"><%= b.cta %> &rarr;</a>
+    </div>
+  <% }); %>
+</aside>
+
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2:'Về sảnh '+cat.name+' tại '+brand.name,
+  intro:'<strong>'+brand.name+'</strong> hợp tác với <a href="'+partner.home+'" target="_blank" rel="noopener">'+brand.domain+'</a> mang đến trải nghiệm '+cat.name.toLowerCase()+' đẳng cấp với hàng nghìn game từ Evolution, Pragmatic Play, NetEnt, PG Soft, Microgaming.',
+  sections: [
+    { h3:'An toàn & bảo mật', p:'Hệ thống được cấp phép PAGCOR & GLI, mã hóa SSL 256-bit, RNG kiểm định công bằng. Mọi giao dịch minh bạch.' },
+    { h3:'Nạp/rút siêu nhanh', p:'Hỗ trợ Momo, ZaloPay, ViettelPay, Banking, USDT. Nạp tức thì, rút trong vòng 5 phút.' }
+  ],
+  faqs: [
+    { q:'Có cần KYC khi rút tiền không?', a:'Có, để bảo vệ tài khoản. Chỉ cần CCCD + selfie 1 lần đầu.' },
+    { q:'Tối thiểu nạp/rút là bao nhiêu?', a:'Nạp tối thiểu 50K, rút tối thiểu 200K. Không giới hạn tối đa.' }
+  ]
+}}) %>
+
+<%- include('partials/tw-footer') %>

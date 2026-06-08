@@ -1,0 +1,18 @@
+<% var _crumbs = (typeof seo !== 'undefined' && seo && seo.breadcrumb) ? seo.breadcrumb : (typeof crumbs !== 'undefined' ? crumbs : []); %>
+<% if (_crumbs && _crumbs.length) { %>
+<nav class="mb-4" aria-label="Breadcrumb">
+  <ol class="flex flex-wrap gap-1 text-xs text-muted items-center">
+    <li><a href="/" class="text-muted hover:text-pri-light transition-colors">&#127968; Trang chu</a></li>
+    <% _crumbs.forEach(function(c, i){ %>
+      <li class="flex items-center gap-1">
+        <span class="text-dim mx-1">/</span>
+        <% if (i === _crumbs.length - 1) { %>
+          <span class="text-pri-light font-bold" aria-current="page"><%= c.name %></span>
+        <% } else { %>
+          <a href="<%= c.url %>" class="text-muted hover:text-pri-light transition-colors"><%= c.name %></a>
+        <% } %>
+      </li>
+    <% }); %>
+  </ol>
+</nav>
+<% } %>

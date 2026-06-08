@@ -1,0 +1,32 @@
+<%- include('partials/layout-start', { title:'Audit Log', active:'audit', obsPending: obsPending, adminUser: adminUser }) %>
+
+<div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-bg-soft text-muted text-[11px] uppercase tracking-wider">
+        <tr>
+          <th class="px-4 py-3 text-left">Thoi gian</th>
+          <th class="px-4 py-3 text-left">Hanh dong</th>
+          <th class="px-4 py-3 text-left">Doi tuong</th>
+          <th class="px-4 py-3 text-left">By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!log.length) { %>
+          <tr><td colspan="4" class="text-center py-12 text-muted">Chua co log nao</td></tr>
+        <% } %>
+        <% log.forEach(function(l){ %>
+          <tr class="border-t border-line hover:bg-bg-soft/50">
+            <td class="px-4 py-3 text-xs text-muted whitespace-nowrap"><%= new Date(l.at).toLocaleString('vi-VN') %></td>
+            <td class="px-4 py-3 font-bold text-white"><%= l.action %></td>
+            <td class="px-4 py-3 text-pri-light"><%= l.target %></td>
+            <td class="px-4 py-3 text-xs text-muted"><%= l.by %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <div class="px-4 py-3 border-t border-line text-xs text-muted bg-bg-soft">Tong <b class="text-white"><%= log.length %></b> ban ghi (gioi han 500 gan nhat)</div>
+</div>
+
+<%- include('partials/layout-end') %>

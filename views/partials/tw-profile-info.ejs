@@ -1,0 +1,90 @@
+<header class="mb-5 flex items-center justify-between flex-wrap gap-3">
+  <div>
+    <h1 class="text-xl font-extrabold text-white mb-1">Thông tin cá nhân</h1>
+    <p class="text-muted text-sm">Cập nhật thông tin tài khoản của bạn.</p>
+  </div>
+  <div class="text-xs text-muted">ID: <span class="text-pri-light font-bold" id="pfId">FB7B855</span></div>
+</header>
+
+<form id="infoForm" class="space-y-4" novalidate>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Tên hiển thị</span>
+      <input id="inFullname" type="text" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="Tên đầy đủ">
+    </label>
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Username</span>
+      <input id="inUsername" type="text" readonly class="w-full bg-bg-deep/50 border border-line text-muted px-3 py-2.5 rounded-lg outline-none cursor-not-allowed">
+    </label>
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Số điện thoại</span>
+      <input id="inPhone" type="tel" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="09xxxxxxxx">
+    </label>
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Email</span>
+      <input id="inEmail" type="email" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="email@example.com">
+    </label>
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Giới tính</span>
+      <select id="inGender" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+        <option value="">-- Chọn --</option>
+        <option value="male">Nam</option>
+        <option value="female">Nữ</option>
+        <option value="other">Khác</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Ngày sinh</span>
+      <input id="inBirthday" type="date" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+    </label>
+    <label class="block sm:col-span-2">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Tỉnh / Thành phố</span>
+      <input id="inProvince" type="text" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="VD: TP. Hồ Chí Minh">
+    </label>
+    <label class="block sm:col-span-2">
+      <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Tiểu sử (bio)</span>
+      <textarea id="inBio" rows="3" maxlength="200" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri resize-none" placeholder="Giới thiệu vài dòng về bạn..."></textarea>
+    </label>
+  </div>
+
+  <div class="flex gap-2 pt-2">
+    <button type="submit" class="px-6 py-2.5 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white rounded-lg font-extrabold shadow-pri">&#128190; Lưu thay đổi</button>
+    <button type="button" onclick="loadInfo()" class="px-6 py-2.5 bg-bg-soft hover:bg-bg-deep text-white rounded-lg font-bold border border-line">Hoàn tác</button>
+  </div>
+</form>
+
+<script>
+function loadInfo(){
+  try {
+    var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+    document.getElementById('inFullname').value = u.fullname || '';
+    document.getElementById('inUsername').value = u.username || '';
+    document.getElementById('inPhone').value    = u.phone    || '';
+    document.getElementById('inEmail').value    = u.email    || '';
+    document.getElementById('inGender').value   = u.gender   || '';
+    document.getElementById('inBirthday').value = u.birthday || '';
+    document.getElementById('inProvince').value = u.province || '';
+    document.getElementById('inBio').value      = u.bio      || '';
+    if (u.id) document.getElementById('pfId').textContent = u.id;
+    else      document.getElementById('pfId').textContent = (u.username||'XX').toUpperCase() + Math.floor(Math.random()*1e6).toString(16).toUpperCase().padStart(6,'0');
+  } catch(e){}
+}
+loadInfo();
+
+document.getElementById('infoForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  try {
+    var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+    u.fullname = document.getElementById('inFullname').value.trim();
+    u.phone    = document.getElementById('inPhone').value.trim();
+    u.email    = document.getElementById('inEmail').value.trim();
+    u.gender   = document.getElementById('inGender').value;
+    u.birthday = document.getElementById('inBirthday').value;
+    u.province = document.getElementById('inProvince').value.trim();
+    u.bio      = document.getElementById('inBio').value.trim();
+    localStorage.setItem('x66_user', JSON.stringify(u));
+    showToast('Đã lưu thông tin!', 'success');
+    setTimeout(function(){ location.reload(); }, 800);
+  } catch(e){ showToast('Lỗi: ' + e.message, 'error'); }
+});
+</script>

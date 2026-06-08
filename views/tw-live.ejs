@@ -1,0 +1,117 @@
+<%
+var _matchName = match.home + ' vs ' + match.away;
+var _scoreStr = match.score ? (' '+match.score[0]+'-'+match.score[1]) : '';
+seo = {
+  title: _matchName + _scoreStr + ' Trực Tiếp '+match.league+' - '+brand.name,
+  description: 'Xem trực tiếp '+_matchName+' tại '+match.league+(match.venue?' trên sân '+match.venue:'')+' ngày '+match.date+'. Stream HD, bình luận tiếng Việt.',
+  keywords: 'trực tiếp '+_matchName+', '+match.home+' vs '+match.away+', '+match.league,
+  canonical: '/live/'+(match.slug||match.id),
+  ogType: 'video.other',
+  breadcrumb: [
+    { name:match.sport==='Soccer'?'Bóng đá':match.sport==='Basketball'?'Bóng rổ':match.sport==='Tennis'?'Tennis':match.sport, url:'/the-thao/'+(match.sport==='Soccer'?'bong-da':match.sport==='Basketball'?'bong-ro':'tennis') },
+    { name:_matchName, url:'/live/'+(match.slug||match.id) }
+  ]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<article class="grid lg:grid-cols-[1fr_340px] gap-4">
+  <div>
+    <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
+      <% if (typeof hasObs !== 'undefined' && hasObs) { %>
+        <!-- BLV da len song -->
+        <div class="text-center text-white p-5" id="playerPh" data-title="<%= _matchName %>">
+          <div class="w-20 h-20 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center mx-auto mb-3.5 text-3xl cursor-pointer shadow-live hover:scale-110 transition-transform" onclick="startStream()" role="button" aria-label="Phát stream">&#9654;</div>
+          <h2 class="font-extrabold text-lg"><%= match.home %> vs <%= match.away %></h2>
+          <div class="text-muted text-[13px] mt-1.5"><%= match.league %> &middot; <time datetime="<%= match.date %>"><%= match.date %></time> <%= match.time %></div>
+          <div class="mt-3.5 text-pri-light text-xs">Click &#9654; để vào phòng xem HD</div>
+        </div>
+      <% } else { %>
+        <!-- BLV chua len song -->
+        <div class="text-center text-white p-5 max-w-md">
+          <div class="text-7xl mb-3 opacity-60">📡</div>
+          <h2 class="font-extrabold text-xl mb-2"><%= match.home %> vs <%= match.away %></h2>
+          <div class="text-muted text-[13px] mb-4"><%= match.league %> &middot; <%= match.date %> <%= match.time %></div>
+          <div class="bg-live/15 border border-live/40 rounded-lg p-4 inline-block">
+            <div class="text-live font-extrabold text-base mb-1">🔴 BLV chưa lên sóng</div>
+            <div class="text-muted text-xs mb-2.5">Trận này đang chờ BLV kết nối OBS<br>Vui lòng quay lại sau hoặc xem trận khác</div>
+            <a href="/lich-phat-song" class="inline-block bg-pri hover:bg-pri-dark text-white text-xs font-bold px-4 py-2 rounded">→ Xem lịch phát sóng</a>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="bg-bg-card border border-line rounded-xl p-3.5 mt-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3.5 items-center">
+      <div class="flex items-center gap-2.5 font-bold">
+        <% if (match.homeBadge) { %><img src="<%= match.homeBadge %>" alt="<%= match.home %>" class="w-8 h-8 bg-white rounded-full p-0.5" onerror="this.style.display='none'"><% } %>
+        <span><%= match.home %></span>
+      </div>
+      <div class="text-2xl font-black text-gold px-3.5 border-l border-r border-line"><% if (match.score) { %><%= match.score[0] %> : <%= match.score[1] %><% } else { %>-- : --<% } %></div>
+      <div class="flex items-center gap-2.5 font-bold justify-end">
+        <span><%= match.away %></span>
+        <% if (match.awayBadge) { %><img src="<%= match.awayBadge %>" alt="<%= match.away %>" class="w-8 h-8 bg-white rounded-full p-0.5" onerror="this.style.display='none'"><% } %>
+      </div>
+      <div class="flex gap-2">
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-md bg-gradient-to-br from-live to-red-700 text-white text-xs font-bold">&#128176; Đặt cược</a>
+        <a href="#chatBody" class="px-3.5 py-2 rounded-md bg-pri text-white text-xs font-bold hidden md:inline">Chat</a>
+      </div>
+    </div>
+
+    <div class="flex gap-2 mt-3 flex-wrap" role="tablist" aria-label="BLV">
+      <% ['BLV X66','BLV Anh Quân','BLV Tùng Mõm','BLV Quang Huy','BLV Tạ Biên Cương'].forEach(function(b, i){ %>
+        <div class="flex items-center gap-2 bg-bg-card border border-line px-2.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors <%= i===0 ? 'border-pri text-pri-light' : 'hover:border-pri hover:text-pri-light' %>" role="tab" onclick="document.querySelectorAll('[role=tab]').forEach(function(x){x.className=x.className.replace('border-pri text-pri-light','').trim()});this.classList.add('border-pri','text-pri-light')">
+          <img src="https://i.pravatar.cc/40?img=<%= 10+i %>" alt="" class="w-5.5 h-5.5 rounded-full">
+          <span><%= b %></span>
+          <% if (i===0) { %><span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span><% } %>
+        </div>
+      <% }); %>
+    </div>
+
+    <aside class="bg-bg-card border border-line rounded-xl p-4 mt-3.5">
+      <h3 class="text-pri-light text-sm font-bold mb-2.5 flex items-center gap-1.5">&#128203; Thông tin trận đấu</h3>
+      <div class="space-y-1.5 text-[13px]">
+        <div class="flex gap-2.5 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[120px]">&#127942; Giải đấu:</b> <%= match.league %></div>
+        <div class="flex gap-2.5 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[120px]">&#9917; Môn:</b> <%= match.sport %></div>
+        <div class="flex gap-2.5 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[120px]">&#9200; Thời gian:</b> <%= match.date %> lúc <%= match.time %></div>
+        <% if (match.venue) { %><div class="flex gap-2.5 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[120px]">&#127967; Sân:</b> <%= match.venue %></div><% } %>
+        <% if (match.round) { %><div class="flex gap-2.5 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[120px]">&#128290; Vòng:</b> <%= match.round %></div><% } %>
+        <% if (match.season) { %><div class="flex gap-2.5 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[120px]">&#128197; Mùa giải:</b> <%= match.season %></div><% } %>
+        <div class="flex gap-2.5 text-muted py-1"><b class="text-white min-w-[120px]">&#128250; Chất lượng:</b> Full HD 1080p, bình luận tiếng Việt</div>
+      </div>
+    </aside>
+
+    <% if (others && others.length) { %>
+    <section class="mt-5">
+      <div class="flex items-center gap-2.5 mb-3.5"><span class="w-1 h-5 bg-pri rounded-sm"></span><h2 class="text-lg font-extrabold text-white">&#128308; Phòng khác đang LIVE</h2></div>
+      <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"><%- include('partials/tw-stream-card', { list: others }) %></div>
+    </section>
+    <% } %>
+  </div>
+
+  <aside class="bg-bg-card border border-line rounded-xl flex flex-col h-[640px] overflow-hidden" aria-label="Chat">
+    <div class="flex border-b border-line bg-bg-soft" role="tablist">
+      <button class="chat-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri" onclick="switchChatTab(this)">&#128172; Chat phòng</button>
+      <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128238; Telegram</button>
+      <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128276; Facebook</button>
+    </div>
+    <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between">
+      <span class="text-emerald-500 flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-live"></span>2.487 online</span>
+      <span>Bình luận: <b class="text-pri-light"><%= (Math.random()*5000|0)+1000 %></b></span>
+    </div>
+    <div class="flex-1 overflow-y-auto py-1 scrollbar-thin" id="chatBody"></div>
+    <div class="mx-2 mt-2 mb-1 p-2 bg-gradient-to-r from-purple to-pink rounded-lg text-white text-[11px] font-bold text-center cursor-pointer" onclick="window.open('<%= partner.register %>','_blank')">&#127873; ĐĂNG KÝ NHẬN 100% TIỀN THƯỞNG</div>
+    <div class="px-2.5 pt-1 text-[10px] text-dim italic flex items-center gap-1" id="chatHint">&#128274; Khách giới hạn 1 tin mỗi 5 phút</div>
+    <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft">
+      <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
+      <button id="chatBtn" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-md font-bold text-xs min-w-[64px] tabular-nums" onclick="sendChat('chatInput','chatBody')">Gửi</button>
+    </div>
+  </aside>
+</article>
+
+<script src="/static/js/chat-v2.js"></script>
+<script>startChat('chatBody', { isLive: <%= hasObs ? 'true' : 'false' %> });</script>
+
+<%- include('partials/tw-gift-panel') %>
+
+<%- include('partials/tw-footer') %>

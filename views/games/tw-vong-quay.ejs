@@ -1,0 +1,282 @@
+<%
+seo = {
+  title: 'Vòng Quay May Mắn - 1 Lần/Ngày Sau Khi Điểm Danh - '+brand.name,
+  description: 'Vòng quay may mắn miễn phí 1 lần/ngày sau khi điểm danh thành công. Trúng X COIN tự cộng vào ví.',
+  canonical: '/game/vong-quay'
+};
+%>
+<%- include('../partials/tw-layout-start') %>
+
+<script>
+(function(){ try { if (!localStorage.getItem('x66_user')) { if(confirm('Cần đăng nhập để chơi. Đăng nhập ngay?')) location.href='/dang-nhap'; else location.href='/mini-game'; } } catch(e){} })();
+</script>
+
+<section class="grid lg:grid-cols-[1fr_340px] gap-4 mb-6">
+  <div class="space-y-3.5">
+
+    <header class="bg-gradient-to-br from-yellow-500 via-orange-500 to-red-600 rounded-xl p-5 text-white">
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="text-5xl">🎡</div>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-2xl font-black drop-shadow">Vòng Quay May Mắn</h1>
+          <p class="opacity-95 text-sm">📅 <strong>1 lượt FREE/ngày</strong> sau khi điểm danh · Trúng từ 5 đến 1.000 X COIN</p>
+        </div>
+        <div class="bg-black/30 backdrop-blur px-4 py-2 rounded-lg text-center">
+          <div class="text-[10px] uppercase opacity-90">Số dư</div>
+          <div class="text-xl font-black tabular-nums" id="vqBalance">0 🪙</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Status badge -->
+    <div id="vqStatusBox" class="rounded-xl p-4 text-center font-bold text-sm transition-all">
+      Đang kiểm tra điều kiện...
+    </div>
+
+    <!-- Wheel area -->
+    <div class="bg-bg-card border border-line rounded-xl p-6 text-center">
+      <div class="relative inline-block">
+        <!-- Pointer -->
+        <div class="absolute left-1/2 -top-3 -translate-x-1/2 z-10">
+          <svg width="40" height="50" viewBox="0 0 40 50"><path d="M20 50 L0 0 L40 0 Z" fill="#ff7a18" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+        <!-- Wheel SVG -->
+        <svg id="vqWheel" width="380" height="380" viewBox="0 0 380 380" style="transform:rotate(0deg);transition:transform 5s cubic-bezier(.17,.67,.32,1)">
+          <%
+            // Index 0 (Tiếc quá) loại bỏ, replace bằng +5 để 70% trúng 5-10 hợp lý
+            var SEGMENTS = [
+              { reward:5,    label:'+5 🪙',     color:'#27ae60', emoji:'🪙' },  // idx 0
+              { reward:10,   label:'+10 🪙',    color:'#3498db', emoji:'🪙' },  // idx 1
+              { reward:1000, label:'+1.000 🪙', color:'#e91e63', emoji:'💎' },  // idx 2
+              { reward:5,    label:'+5 🪙',     color:'#16a085', emoji:'🪙' },  // idx 3
+              { reward:50,   label:'+50 🪙',    color:'#f1c40f', emoji:'🎁' },  // idx 4
+              { reward:10,   label:'+10 🪙',    color:'#9b59b6', emoji:'🪙' },  // idx 5
+              { reward:500,  label:'+500 🪙',   color:'#e67e22', emoji:'⭐' },  // idx 6
+              { reward:20,   label:'+20 🪙',    color:'#1abc9c', emoji:'🎁' }   // idx 7
+            ];
+            var seg = 360 / SEGMENTS.length;
+          %>
+          <g transform="translate(190,190)">
+            <% SEGMENTS.forEach(function(s, i){
+              var a1 = (i*seg-90) * Math.PI/180;
+              var a2 = ((i+1)*seg-90) * Math.PI/180;
+              var x1 = (170 * Math.cos(a1)).toFixed(2);
+              var y1 = (170 * Math.sin(a1)).toFixed(2);
+              var x2 = (170 * Math.cos(a2)).toFixed(2);
+              var y2 = (170 * Math.sin(a2)).toFixed(2);
+              var midA = (i*seg + seg/2 - 90) * Math.PI/180;
+              var tx = (110 * Math.cos(midA)).toFixed(2);
+              var ty = (110 * Math.sin(midA)).toFixed(2);
+              var rotDeg = i*seg + seg/2;
+            %>
+              <path d="M0,0 L<%= x1 %>,<%= y1 %> A170,170 0 0,1 <%= x2 %>,<%= y2 %> Z" fill="<%= s.color %>" stroke="#fff" stroke-width="2"/>
+              <text x="<%= tx %>" y="<%= ty %>" fill="#fff" font-size="14" font-weight="900" text-anchor="middle" dominant-baseline="middle" transform="rotate(<%= rotDeg %> <%= tx %> <%= ty %>)"><%= s.emoji %> <%= s.label %></text>
+            <% }); %>
+            <circle cx="0" cy="0" r="25" fill="#fff"/>
+            <circle cx="0" cy="0" r="20" fill="#ff7a18"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Result -->
+      <div class="my-4" id="vqResult">
+        <div class="text-sm text-muted">Điểm danh hôm nay để được quay vòng quay miễn phí!</div>
+      </div>
+
+      <!-- Spin button -->
+      <button id="vqSpinBtn" onclick="spinWheel()" class="px-10 py-4 bg-gradient-to-br from-pri to-live hover:brightness-110 text-white text-xl font-black rounded-full shadow-pri transition-all">
+        🎡 QUAY NGAY <span class="text-xs opacity-80">(FREE)</span>
+      </button>
+
+      <!-- Helper link -->
+      <div class="mt-3 text-xs">
+        <a href="/profile?tab=checkin" class="text-pri-light underline">→ Điểm danh ngay để mở khóa vòng quay</a>
+      </div>
+    </div>
+
+    <!-- Prize log -->
+    <div class="bg-bg-card border border-line rounded-xl p-5">
+      <h3 class="text-base font-extrabold text-white mb-3">🎁 Lịch sử quay của bạn</h3>
+      <div class="space-y-1.5 max-h-60 overflow-y-auto scrollbar-thin" id="vqLog">
+        <div class="text-muted text-sm">Chưa quay lần nào...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT sidebar -->
+  <aside class="space-y-3.5">
+    <div class="bg-gradient-to-br from-pri/15 to-pri-dark/5 border border-pri/40 rounded-xl p-4 text-sm">
+      <h3 class="text-pri-light font-extrabold mb-2">💡 Luật chơi</h3>
+      <ul class="space-y-1.5 text-gray-200 text-xs leading-relaxed">
+        <li>📅 <strong>1 lượt/ngày</strong> — bắt buộc điểm danh trước</li>
+        <li>🎯 Cao nhất <strong class="text-pink">1.000 🪙</strong> (rất hiếm)</li>
+        <li>🎁 Thường trúng <strong class="text-emerald-400">5-10 🪙</strong> (~70%)</li>
+        <li>🚫 Không cho quay thêm trong ngày, kể cả mất xu</li>
+      </ul>
+    </div>
+
+    <div class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-base font-extrabold text-white mb-3">🏆 Top trúng jackpot</h3>
+      <div class="space-y-2 text-xs">
+        <% ['lucky_88','vipFan99','jackpotMan','BoMy_X66'].forEach(function(n,i){ var amt=(4-i)*500+100; %>
+          <div class="flex items-center gap-2 bg-bg-soft border border-line rounded-lg p-2">
+            <span class="text-base"><%= ['🥇','🥈','🥉','4️⃣'][i] %></span>
+            <span class="flex-1 font-bold text-white truncate"><%= n %></span>
+            <span class="text-gold font-extrabold tabular-nums">+<%= amt %> 🪙</span>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<script>
+(function(){
+  // showToast fallback
+  if (typeof window.showToast !== 'function') {
+    window.showToast = function(msg, kind){
+      var t = document.createElement('div');
+      var col = kind==='error' ? '#ff3b3b' : kind==='success' ? '#27ae60' : '#ff7a18';
+      t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#161a22;color:#fff;padding:12px 18px;border-radius:8px;border-left:4px solid '+col+';z-index:9999;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:320px;';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; }, 2500);
+      setTimeout(function(){ t.remove(); }, 3000);
+    };
+  }
+
+  var SEGS = <%- JSON.stringify(SEGMENTS) %>;
+  var state = { spinning:false, rotation:0, log:[] };
+
+  // Trọng số trúng (theo thứ tự SEGS index):
+  // 0:+5, 1:+10, 2:+1000, 3:+5, 4:+50, 5:+10, 6:+500, 7:+20
+  // Tổng: 5(35%) + 10(35%) + 20(15%) + 50(8%) + 100(0% - không có ô) + 500(1.5%) + 1000(0.5%) = 95%
+  // Wait, missing 100. Let me redistribute:
+  // 5x2 ô (idx 0, 3) = 17.5% mỗi ô → tổng 35%
+  // 10x2 ô (idx 1, 5) = 17.5% mỗi ô → tổng 35%
+  // 20 (idx 7) = 15%
+  // 50 (idx 4) = 8%
+  // 500 (idx 6) = 6%
+  // 1000 (idx 2) = 0.5%
+  // Tổng = 99.5% (round)
+  var WEIGHTS = [17.5, 17.5, 0.5, 17.5, 8, 17.5, 6, 15.5];
+
+  function weightedPick(){
+    var total = WEIGHTS.reduce(function(a,b){return a+b}, 0);
+    var r = Math.random() * total;
+    var acc = 0;
+    for (var i=0; i<WEIGHTS.length; i++) {
+      acc += WEIGHTS[i];
+      if (r < acc) return i;
+    }
+    return 0;
+  }
+
+  function getUser(){ try { return JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){ return {}; } }
+  function setUser(u){ try { localStorage.setItem('x66_user', JSON.stringify(u)); } catch(e){} }
+  function getCoin(){ var u=getUser(); return typeof u.coin==='number'?u.coin:79; }
+  function setCoin(c){ var u=getUser(); u.coin=c; setUser(u); }
+  function refreshBal(){ document.getElementById('vqBalance').textContent = getCoin().toLocaleString('vi-VN') + ' 🪙'; }
+  function today(){ return new Date().toDateString(); }
+
+  // Kiểm tra đã điểm danh hôm nay chưa
+  function hasCheckedInToday(){
+    try {
+      var ck = JSON.parse(localStorage.getItem('x66_checkin')||'{}');
+      return ck.lastDate === today();
+    } catch(e){ return false; }
+  }
+  // Kiểm tra đã quay hôm nay chưa
+  function hasSpunToday(){
+    try { return localStorage.getItem('x66_vq_free_date') === today(); }
+    catch(e){ return false; }
+  }
+  function markSpunToday(){
+    try { localStorage.setItem('x66_vq_free_date', today()); } catch(e){}
+  }
+
+  function updateStatus(){
+    var box = document.getElementById('vqStatusBox');
+    var btn = document.getElementById('vqSpinBtn');
+    if (hasSpunToday()) {
+      box.className = 'rounded-xl p-4 text-center font-bold text-sm transition-all bg-gradient-to-r from-bg-soft to-bg-deep border border-line text-muted';
+      box.innerHTML = '⏰ Bạn đã quay hôm nay rồi! Ngày mai điểm danh để quay tiếp nhé.';
+      btn.disabled = true;
+      btn.style.opacity = '.4';
+      btn.innerHTML = '✓ Đã quay hôm nay';
+      btn.style.cursor = 'not-allowed';
+    } else if (!hasCheckedInToday()) {
+      box.className = 'rounded-xl p-4 text-center font-bold text-sm transition-all bg-live/10 border border-live/40 text-live';
+      box.innerHTML = '🔒 Chưa điểm danh hôm nay! <a href="/profile?tab=checkin" class="text-pri-light underline ml-1">Điểm danh ngay</a> để mở khóa vòng quay.';
+      btn.disabled = true;
+      btn.style.opacity = '.4';
+      btn.innerHTML = '🔒 Cần điểm danh trước';
+      btn.style.cursor = 'not-allowed';
+    } else {
+      box.className = 'rounded-xl p-4 text-center font-bold text-sm transition-all bg-emerald-500/10 border border-emerald-500/40 text-emerald-400';
+      box.innerHTML = '✅ Đã điểm danh hôm nay! Bạn còn <strong>1 lượt quay FREE</strong> sẵn sàng.';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.innerHTML = '🎡 QUAY NGAY <span class="text-xs opacity-80">(FREE)</span>';
+      btn.style.cursor = 'pointer';
+    }
+  }
+
+  // Log
+  try { state.log = JSON.parse(localStorage.getItem('x66_vq_log')||'[]').slice(0,50); } catch(e){}
+  function renderLog(){
+    var el = document.getElementById('vqLog');
+    if (!state.log.length) { el.innerHTML = '<div class="text-muted text-sm">Chưa quay lần nào...</div>'; return; }
+    el.innerHTML = state.log.slice(0,20).map(function(r){
+      var t = new Date(r.t);
+      var hhmm = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+      var dm   = t.getDate()+'/'+(t.getMonth()+1);
+      var clr = r.reward >= 500 ? 'text-pink' : r.reward >= 100 ? 'text-gold' : r.reward >= 20 ? 'text-emerald-400' : 'text-muted';
+      return '<div class="flex items-center gap-2 text-xs bg-bg-soft border border-line/40 rounded px-3 py-1.5"><span class="text-base">'+r.emoji+'</span><span class="flex-1 text-white">'+r.label+'</span><span class="text-dim text-[10px] tabular-nums">'+hhmm+' '+dm+'</span></div>';
+    }).join('');
+  }
+
+  window.spinWheel = function(){
+    if (state.spinning) return;
+    if (!hasCheckedInToday()) { showToast('Bạn cần điểm danh hôm nay trước!','error'); return; }
+    if (hasSpunToday()) { showToast('Hôm nay đã quay rồi, mai quay lại nhé!','error'); return; }
+
+    state.spinning = true;
+    markSpunToday();
+
+    var btn = document.getElementById('vqSpinBtn');
+    btn.disabled = true; btn.style.opacity='.5';
+    document.getElementById('vqResult').innerHTML = '<div class="text-pri-light font-bold animate-pulse">🎡 Đang quay...</div>';
+
+    // Pick weighted index
+    var idx = weightedPick();
+    var segAngle = 360 / SEGS.length;
+    var spins = 5 + Math.floor(Math.random()*3);
+    var finalAngle = spins * 360 - (idx * segAngle + segAngle/2);
+    state.rotation += finalAngle;
+    document.getElementById('vqWheel').style.transform = 'rotate(' + state.rotation + 'deg)';
+
+    setTimeout(function(){
+      var reward = SEGS[idx];
+      setCoin(getCoin() + reward.reward);
+      refreshBal();
+      var sizeClass = reward.reward >= 500 ? 'text-3xl text-pink' : reward.reward >= 100 ? 'text-2xl text-gold' : 'text-xl text-emerald-400';
+      document.getElementById('vqResult').innerHTML = '<div class="'+sizeClass+' font-black">🎉 Chúc mừng! Bạn trúng ' + reward.label + '</div>';
+      showToast('🎉 Trúng ' + reward.label + '!', 'success');
+
+      state.log.unshift({ reward: reward.reward, label: reward.label, emoji: reward.emoji, t: Date.now() });
+      try { localStorage.setItem('x66_vq_log', JSON.stringify(state.log.slice(0,50))); } catch(e){}
+      renderLog();
+
+      state.spinning = false;
+      updateStatus();
+    }, 5200);
+  };
+
+  refreshBal();
+  updateStatus();
+  renderLog();
+})();
+</script>
+
+<%- include('../partials/tw-footer') %>

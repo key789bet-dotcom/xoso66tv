@@ -1,0 +1,47 @@
+<% var pageTitle='Giới Thiệu', pageH1='Giới Thiệu Về '+brand.name, breadcrumbName='Giới Thiệu', updated='2026-06-05', canonicalPath='/gioi-thieu';
+var pageDesc = brand.name + ' là nền tảng livestream thể thao & giải trí HD miễn phí hàng đầu Việt Nam, phục vụ hàng triệu người dùng mỗi tháng.';
+var contentHtml = `
+<p><strong>${brand.name}</strong> là nền tảng phát sóng trực tiếp các trận đấu thể thao và giải trí hàng đầu tại Việt Nam, được thành lập với sứ mệnh mang đến trải nghiệm xem stream chất lượng cao - hoàn toàn miễn phí - cho cộng đồng người hâm mộ thể thao và game thủ Việt.</p>
+
+<h2>🎯 Tầm nhìn &amp; Sứ mệnh</h2>
+<p><strong>Tầm nhìn:</strong> Trở thành nền tảng livestream thể thao &amp; giải trí số 1 Việt Nam, nơi mọi người có thể xem mọi trận đấu, mọi giải đấu, mọi lúc, mọi nơi - hoàn toàn miễn phí.</p>
+<p><strong>Sứ mệnh:</strong> Phá vỡ rào cản về chi phí và chất lượng để mọi người Việt đều có cơ hội tận hưởng các trận đấu thể thao đỉnh cao trên thế giới.</p>
+
+<h2>📺 Chúng tôi cung cấp gì?</h2>
+<ul>
+  <li><strong>Trực tiếp bóng đá:</strong> 100% các trận đấu <a href="/lich-phat-song?mon=bong-da">Premier League, La Liga, Serie A, Bundesliga, Champions League, World Cup, V-League</a> và nhiều giải đấu khác.</li>
+  <li><strong>Đa môn thể thao:</strong> <a href="/the-thao/bong-ro">NBA</a>, <a href="/the-thao/tennis">Grand Slam tennis</a>, <a href="/the-thao/bong-chuyen">VNL bóng chuyền</a>, <a href="/the-thao/bong-ban">bóng bàn</a>.</li>
+  <li><strong>Esports:</strong> <a href="/esports">LCK, LPL, LCS</a>, Valorant Champions Tour, Dota 2 Major, CS:GO Majors.</li>
+  <li><strong>Giải trí 24/7:</strong> <a href="/casino">Casino live dealer</a>, <a href="/idol-live">Idol show</a>, <a href="/mini-game">Mini game</a>.</li>
+  <li><strong>Tin tức &amp; highlight:</strong> Cập nhật <a href="/tin-tuc">tin nóng</a> và <a href="/video-noi-bat">video highlight</a> ngay sau mỗi trận.</li>
+</ul>
+
+<h2>💪 Tại sao chọn ${brand.name}?</h2>
+<h3>Chất lượng đẳng cấp</h3>
+<p>Stream Full HD 1080p (lên đến 4K cho trận đấu lớn), độ trễ thấp dưới 5 giây nhờ hệ thống CDN đặt tại Việt Nam &amp; Singapore. Bình luận tiếng Việt 24/7 bởi đội ngũ BLV chuyên nghiệp.</p>
+
+<h3>Hoàn toàn miễn phí</h3>
+<p>Không phí đăng ký, không phí subscription, không phải trả tiền cho từng trận. Bạn có thể xem mọi trận đấu chỉ với một cú click.</p>
+
+<h3>Không quảng cáo gián đoạn</h3>
+<p>${brand.name} cam kết stream sạch - không pop-up, không banner che màn hình, không cắt quảng cáo giữa trận.</p>
+
+<h3>Đa nền tảng</h3>
+<p>Hỗ trợ xem trên PC, laptop, smartphone (Android &amp; iOS), tablet, Smart TV (qua Chromecast / AirPlay).</p>
+
+<h2>📊 Thống kê</h2>
+<ul>
+  <li>🎯 <strong>Hàng triệu lượt xem</strong> mỗi tháng</li>
+  <li>👥 <strong>500.000+ thành viên</strong> đăng ký</li>
+  <li>📺 <strong>3.000+ trận đấu</strong> phát sóng mỗi tháng</li>
+  <li>🌍 <strong>50+ giải đấu</strong> được phủ sóng</li>
+  <li>🎙️ <strong>100+ BLV</strong> đồng hành</li>
+</ul>
+
+<h2>🤝 Đối tác chiến lược</h2>
+<p>${brand.name} là một phần của liên minh thương hiệu cùng <a href="${partner.home}" target="_blank" rel="noopener">${brand.domain}</a> - nhà tài trợ chính cho các chương trình livestream và khuyến mãi hấp dẫn dành cho cộng đồng người xem.</p>
+
+<h2>📞 Liên hệ với chúng tôi</h2>
+<p>Mọi thắc mắc, góp ý hoặc yêu cầu hợp tác, vui lòng liên hệ qua trang <a href="/lien-he">Liên Hệ</a> hoặc gửi tin nhắn trực tiếp qua <a href="${partner.telegram}" target="_blank" rel="noopener">Telegram CSKH 24/7</a>.</p>
+`; %>
+<%- include('partials/tw-static-shell', { pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml, canonicalPath }) %>

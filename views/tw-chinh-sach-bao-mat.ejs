@@ -1,0 +1,85 @@
+<% var pageTitle='Chính Sách Bảo Mật', pageH1='Chính Sách Bảo Mật ('+brand.name+')', breadcrumbName='Chính Sách Bảo Mật', updated='2026-06-05', canonicalPath='/chinh-sach-bao-mat';
+var pageDesc = 'Chính sách bảo mật thông tin người dùng của '+brand.name+'. Tuân thủ GDPR, Nghị định 13/2023 Việt Nam.';
+var contentHtml = `
+<p><strong>${brand.name}</strong> ('chúng tôi') cam kết bảo vệ quyền riêng tư và thông tin cá nhân của người dùng ('bạn') khi truy cập và sử dụng dịch vụ của chúng tôi tại <a href="https://${brand.domain}">${brand.domain}</a>. Chính sách này tuân thủ <strong>Nghị định 13/2023/NĐ-CP</strong> của Việt Nam và các tiêu chuẩn quốc tế như GDPR.</p>
+
+<h2>1. Thông tin chúng tôi thu thập</h2>
+<h3>1.1. Thông tin bạn cung cấp</h3>
+<ul>
+  <li>Tên đăng nhập, mật khẩu (đã mã hóa bcrypt)</li>
+  <li>Email, số điện thoại</li>
+  <li>Thông tin cá nhân: họ tên, ngày sinh, giới tính, địa chỉ (tùy chọn)</li>
+  <li>Avatar / ảnh hồ sơ (nếu upload)</li>
+</ul>
+<h3>1.2. Thông tin thu thập tự động</h3>
+<ul>
+  <li>Địa chỉ IP, vị trí địa lý (tỉnh/thành)</li>
+  <li>Loại thiết bị, hệ điều hành, trình duyệt</li>
+  <li>Lịch sử xem stream, thời gian truy cập</li>
+  <li>Cookies và session token</li>
+</ul>
+
+<h2>2. Mục đích sử dụng thông tin</h2>
+<p>Chúng tôi sử dụng thông tin của bạn để:</p>
+<ul>
+  <li>Cung cấp, duy trì và cải thiện dịch vụ livestream</li>
+  <li>Xác thực tài khoản, đăng nhập an toàn</li>
+  <li>Gửi thông báo về trận đấu, khuyến mãi (chỉ khi bạn đồng ý)</li>
+  <li>Phân tích hành vi người dùng để cải thiện trải nghiệm</li>
+  <li>Phát hiện và ngăn chặn gian lận, lạm dụng</li>
+  <li>Tuân thủ nghĩa vụ pháp lý</li>
+</ul>
+
+<h2>3. Chia sẻ thông tin với bên thứ ba</h2>
+<p>Chúng tôi <strong>KHÔNG bán</strong> thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào. Thông tin chỉ được chia sẻ trong các trường hợp:</p>
+<ul>
+  <li><strong>Đối tác cung cấp dịch vụ:</strong> CDN (CloudFlare), email (Gmail SMTP), notification (Telegram Bot) - chỉ chia sẻ tối thiểu cần thiết.</li>
+  <li><strong>Theo yêu cầu pháp lý:</strong> Khi có lệnh từ cơ quan có thẩm quyền của Việt Nam.</li>
+  <li><strong>Khi bạn đồng ý:</strong> Khi bạn chủ động kết nối tài khoản với mạng xã hội (Facebook, Google).</li>
+</ul>
+
+<h2>4. Cookies &amp; tracking</h2>
+<p>Chúng tôi sử dụng cookies để:</p>
+<ul>
+  <li><strong>Cookies bắt buộc:</strong> Đăng nhập, giỏ hàng, bảo mật.</li>
+  <li><strong>Cookies hiệu suất:</strong> Đo lường traffic qua Google Analytics (ẩn danh).</li>
+  <li><strong>Cookies tiện ích:</strong> Lưu cài đặt (dark mode, ngôn ngữ).</li>
+</ul>
+<p>Bạn có thể tắt cookies trong cài đặt trình duyệt, nhưng có thể ảnh hưởng đến trải nghiệm.</p>
+
+<h2>5. Bảo mật thông tin</h2>
+<ul>
+  <li>Mã hóa SSL/TLS 256-bit cho toàn bộ giao tiếp</li>
+  <li>Mật khẩu lưu dạng hash bcrypt (không thể đảo ngược)</li>
+  <li>Server đặt tại data center đạt chuẩn ISO 27001</li>
+  <li>Backup hàng ngày, lưu trữ 30 ngày</li>
+  <li>2FA (OTP qua email/Telegram) cho các thao tác nhạy cảm</li>
+</ul>
+
+<h2>6. Quyền của người dùng</h2>
+<p>Theo Nghị định 13/2023/NĐ-CP, bạn có các quyền sau:</p>
+<ol>
+  <li><strong>Quyền truy cập:</strong> Yêu cầu xem thông tin chúng tôi đang lưu về bạn</li>
+  <li><strong>Quyền chỉnh sửa:</strong> Cập nhật thông tin không chính xác</li>
+  <li><strong>Quyền xóa ('right to be forgotten'):</strong> Yêu cầu xóa toàn bộ dữ liệu</li>
+  <li><strong>Quyền hạn chế xử lý:</strong> Tạm dừng việc sử dụng dữ liệu</li>
+  <li><strong>Quyền phản đối:</strong> Phản đối việc xử lý vì mục đích marketing</li>
+  <li><strong>Quyền khiếu nại:</strong> Khiếu nại lên Cục An toàn Thông tin</li>
+</ol>
+<p>Để thực hiện các quyền trên, vui lòng <a href="/lien-he">liên hệ với chúng tôi</a>.</p>
+
+<h2>7. Bảo vệ trẻ em</h2>
+<p><strong>${brand.name}</strong> chỉ dành cho người dùng từ <strong>18 tuổi trở lên</strong>. Chúng tôi không cố ý thu thập thông tin từ trẻ em dưới 18. Nếu phát hiện, chúng tôi sẽ xóa ngay lập tức.</p>
+
+<h2>8. Thay đổi chính sách</h2>
+<p>Chúng tôi có thể cập nhật chính sách này theo thời gian. Mọi thay đổi quan trọng sẽ được thông báo qua email hoặc banner trên website ít nhất <strong>7 ngày trước</strong> khi có hiệu lực.</p>
+
+<h2>9. Liên hệ về bảo mật</h2>
+<p>Mọi câu hỏi về chính sách bảo mật, vui lòng liên hệ:</p>
+<ul>
+  <li>Email DPO: <a href="mailto:privacy@${brand.domain}"><strong>privacy@${brand.domain}</strong></a></li>
+  <li>Telegram: <a href="${partner.telegram}" target="_blank" rel="noopener">@xoso66tv</a></li>
+  <li>Hoặc qua form tại trang <a href="/lien-he">Liên Hệ</a></li>
+</ul>
+`; %>
+<%- include('partials/tw-static-shell', { pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml, canonicalPath }) %>

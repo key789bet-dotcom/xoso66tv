@@ -1,0 +1,50 @@
+<%
+const _today = new Date();
+const _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+const _catName = sport ? (cats[sport]?.name || '') : '';
+seo = {
+  title: (_catName ? 'Lịch '+_catName : 'Lịch phát sóng thể thao') + ' hôm nay '+_todayVi+' - '+brand.name,
+  description: 'Lịch phát sóng trực tiếp '+(_catName||'thể thao')+' hôm nay '+_todayVi+' và ngày mai tại '+brand.name+'. '+list.length+' trận được tường thuật HD bình luận tiếng Việt.',
+  keywords: 'lịch phát sóng, lịch thi đấu '+(_catName||'thể thao')+' hôm nay, livestream '+brand.short,
+  canonical: '/lich-phat-song' + (sport?'?mon='+sport:''),
+  breadcrumb: [{ name:'Lịch phát sóng', url:'/lich-phat-song' }].concat(sport?[{ name:_catName, url:'/lich-phat-song?mon='+sport }]:[]),
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="seo-hero">
+  <h1>📅 Lịch Phát Sóng <%= _catName||'Thể Thao' %> Hôm Nay <%= _todayVi %></h1>
+  <p class="lead">Tổng hợp <strong><%= list.length %> trận đấu</strong> sắp diễn ra trong 2 ngày tới được <strong><%= brand.name %></strong> tường thuật trực tiếp HD miễn phí. Lọc theo môn yêu thích, xem chi tiết từng trận và nhận thông báo trước giờ bóng lăn.</p>
+</header>
+
+<nav class="cat-tabs" aria-label="Lọc môn">
+  <a href="/lich-phat-song" class="cat-tab <%= !sport?'active':'' %>"><span class="all-ico">✓</span> Tất cả</a>
+  <% Object.entries(cats).forEach(([k, c]) => { if (c.partnerOnly) return; %>
+    <a href="/lich-phat-song?mon=<%= k %>" class="cat-tab <%= sport===k?'active':'' %>"><span class="ico"><%= c.icon %></span> <%= c.name %></a>
+  <% }); %>
+</nav>
+
+<section class="sec">
+  <% if (!list || list.length === 0) { %>
+    <div class="empty"><div class="ico">📭</div><div>Không có trận sắp diễn ra.</div></div>
+  <% } else { %>
+    <div class="stream-grid" itemscope itemtype="https://schema.org/ItemList"><%- include('partials/stream-card', { list }) %></div>
+  <% } %>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2: 'Lịch phát sóng '+(_catName||'thể thao')+' đầy đủ &amp; chính xác',
+  intro: '<strong>'+brand.name+'</strong> cập nhật lịch phát sóng theo thời gian thực từ các nguồn dữ liệu thể thao quốc tế (TheSportsDB, ESPN, BetsAPI). Giờ giấc đã chuyển sang múi giờ Việt Nam (GMT+7).',
+  sections: [
+    { h3:'Cách xem lịch &amp; đặt lịch nhắc trận', p:'Click trận đấu để vào phòng livestream HD. Bạn có thể đăng ký tài khoản <a href="/dang-ky">tại đây</a> để nhận thông báo trước 15 phút mỗi khi trận yêu thích sắp bắt đầu.' },
+    { h3:'Bạn không bỏ lỡ trận nào', p:'Lịch được tô màu rõ ràng: <strong>🔴 LIVE</strong> đang trực tiếp, <strong>⏰ Sắp đá</strong> sắp diễn ra, <strong>FT</strong> đã kết thúc. Có thể chuyển sang <a href="/livescore">livescore</a> xem tỉ số chi tiết theo phút.' },
+  ],
+  faqs: [
+    { q:'Lịch có cập nhật real-time không?', a:'Có. Dữ liệu được sync tự động mỗi 60 giây, đảm bảo bạn luôn xem được lịch mới nhất.' },
+    { q:'Múi giờ hiển thị là gì?', a:'Tất cả thời gian đều hiển thị theo giờ Việt Nam (UTC+7).' },
+    { q:'Tại sao có trận không có link xem?', a:'Một số giải nhỏ chưa có bản quyền tại Việt Nam. Bạn có thể xem highlight sau trận tại trang <a href="/video-noi-bat">Video nổi bật</a>.' },
+  ]
+}}) %>
+
+<%- include('partials/footer') %>

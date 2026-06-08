@@ -1,0 +1,59 @@
+<%
+seo = {
+  title: 'Quà Tặng &amp; Vòng Quay May Mắn Miễn Phí - '+brand.name,
+  description: 'Quay vòng quay may mắn miễn phí mỗi ngày tại '+brand.name+'. Voucher 50K, hoàn tiền 5%, quà sinh nhật, quà mời bạn. Đăng nhập nhận ngay!',
+  keywords: 'quà tặng, vòng quay may mắn, voucher miễn phí, '+brand.short,
+  canonical: '/qua-tang',
+  breadcrumb: [{ name:'Quà tặng', url:'/qua-tang' }],
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="seo-hero">
+  <h1>💰 Quà Tặng &amp; Vòng Quay May Mắn Miễn Phí</h1>
+  <p class="lead">Mỗi ngày bạn được <strong>quay vòng quay may mắn 1 lần miễn phí</strong> tại <a href="<%= partner.gift %>" target="_blank" rel="noopener"><%= brand.domain %></a>. Trúng voucher, tiền thưởng đến 10 triệu, ngay lập tức cộng vào tài khoản.</p>
+</header>
+
+<div style="background:linear-gradient(135deg,#f39c12,#e67e22);padding:36px;border-radius:14px;color:#fff;text-align:center;margin-bottom:24px">
+  <div style="font-size:48px;margin-bottom:10px">🎁</div>
+  <h2 style="font-size:26px;font-weight:900;margin-bottom:8px">QUAY VÒNG QUAY MAY MẮN MIỄN PHÍ</h2>
+  <p style="font-size:15px;opacity:.95;margin-bottom:16px">Quay 1 lần mỗi ngày, trúng voucher nạp tiền hoặc tiền thưởng đến 10 triệu</p>
+  <a href="<%= partner.gift %>" target="_blank" rel="noopener" style="background:#fff;color:#c0392b;padding:13px 32px;border-radius:32px;font-weight:900;display:inline-block;font-size:15px">🎰 Quay ngay</a>
+</div>
+
+<section class="sec" aria-label="Danh sách quà">
+  <div class="sec-head"><h2 class="ttl">🎁 Các phần quà hiện có</h2></div>
+  <div class="game-grid">
+    <% [
+      { ico:'🎫', n:'Voucher 50K', d:'Đăng ký mới' },
+      { ico:'💵', n:'Hoàn tiền 5%', d:'Nạp ≥ 200K' },
+      { ico:'🎁', n:'Quà sinh nhật', d:'500K cho VIP' },
+      { ico:'⭐', n:'Quà điểm danh', d:'7 ngày liên tiếp' },
+      { ico:'🏆', n:'Quà mời bạn', d:'200K/bạn bè' },
+      { ico:'💎', n:'Quà VIP', d:'Đặc quyền thành viên' },
+    ].forEach(g => { %>
+      <article class="game-card">
+        <div class="ico"><%= g.ico %></div>
+        <h3 class="name" style="margin:6px 0 4px;font-size:14px"><%= g.n %></h3>
+        <div class="desc"><%= g.d %></div>
+        <a class="btn" href="<%= partner.gift %>" target="_blank" rel="noopener">Nhận quà</a>
+      </article>
+    <% }); %>
+  </div>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2:'Quà tặng &amp; quyền lợi thành viên '+brand.name,
+  intro:'Càng tích cực hoạt động trên '+brand.name+', bạn càng nhận được nhiều quà. Hệ thống tự động ghi nhận, không cần làm thủ tục gì.',
+  sections: [
+    { h3:'Quà cho người mới', p:'Tài khoản đăng ký trong 7 ngày đầu được nhận voucher 50K, quay vòng quay 3 lần liên tiếp, free 50 spin tại Casino X66.' },
+    { h3:'Quà cho thành viên VIP', p:'Đạt VIP1 trở lên (nạp tích luỹ ≥ 10 triệu) sẽ nhận thêm quà sinh nhật 500K, hỗ trợ CSKH riêng, đặc quyền rút tiền không phí.' },
+  ],
+  faqs: [
+    { q:'Quay vòng quay có mất phí không?', a:'1 lượt quay miễn phí mỗi ngày. Có thể mua thêm lượt bằng điểm thưởng tích luỹ.' },
+    { q:'Quà có hết hạn không?', a:'Voucher có hạn 30 ngày từ ngày nhận. Tiền thưởng vĩnh viễn không hết hạn.' },
+  ]
+} }) %>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,28 @@
+[
+  {
+    "t": 1780719121181,
+    "type": "deposit",
+    "username": "testuser",
+    "vnd": 1000000,
+    "coinBase": 1000,
+    "coinBonus": 1000,
+    "coinTotal": 2000,
+    "txId": "XS66-LINK-001",
+    "newCoinBalance": 2800,
+    "newVip": 1,
+    "ok": true
+  },
+  {
+    "t": 1780718688101,
+    "type": "deposit",
+    "username": "admin",
+    "vnd": 500000,
+    "coinBase": 500,
+    "coinBonus": 300,
+    "coinTotal": 800,
+    "txId": "XS66-TEST-001",
+    "newCoinBalance": 800,
+    "newVip": 1,
+    "ok": true
+  }
+]

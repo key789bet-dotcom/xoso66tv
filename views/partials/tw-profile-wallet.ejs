@@ -1,0 +1,73 @@
+<header class="mb-5">
+  <h1 class="text-xl font-extrabold text-white mb-1">Ví của tôi</h1>
+  <p class="text-muted text-sm">Quản lý X COIN, lịch sử nạp/rút.</p>
+</header>
+
+<!-- Balance cards -->
+<div class="grid sm:grid-cols-3 gap-3 mb-5">
+  <div class="bg-gradient-to-br from-gold/20 to-pri/10 border border-gold/40 rounded-xl p-4">
+    <div class="flex items-center gap-2 mb-2"><span class="text-xl">&#129689;</span><span class="text-xs uppercase tracking-wide text-muted font-bold">X COIN</span></div>
+    <div class="text-3xl font-black text-gold tabular-nums" id="wlCoin">79</div>
+    <div class="text-[11px] text-muted mt-1">Tích lũy từ điểm danh & thưởng</div>
+  </div>
+  <div class="bg-bg-soft border border-line rounded-xl p-4">
+    <div class="flex items-center gap-2 mb-2"><span class="text-xl">&#128181;</span><span class="text-xs uppercase tracking-wide text-muted font-bold">Số dư VND</span></div>
+    <div class="text-3xl font-black text-white tabular-nums" id="wlVnd">0</div>
+    <div class="text-[11px] text-muted mt-1">Đồng bộ từ <%= brand.domain %></div>
+  </div>
+  <div class="bg-bg-soft border border-line rounded-xl p-4">
+    <div class="flex items-center gap-2 mb-2"><span class="text-xl">&#127942;</span><span class="text-xs uppercase tracking-wide text-muted font-bold">Cấp VIP</span></div>
+    <div class="text-3xl font-black text-pri-light">VIP <span id="wlVip">1</span></div>
+    <div class="text-[11px] text-muted mt-1">Nạp 10tr để lên VIP 2</div>
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="flex gap-2 flex-wrap mb-5">
+  <a href="<%= partner.register %>" target="_blank" rel="noopener" class="px-5 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-lg font-bold text-sm">&plus; Nạp tiền</a>
+  <a href="<%= partner.home %>" target="_blank" rel="noopener" class="px-5 py-2.5 bg-bg-soft hover:bg-bg-deep text-white rounded-lg font-bold text-sm border border-line">&minus; Rút tiền</a>
+  <a href="/qua-tang" class="px-5 py-2.5 bg-bg-soft hover:bg-bg-deep text-white rounded-lg font-bold text-sm border border-line">&#127873; Đổi X COIN lấy quà</a>
+</div>
+
+<!-- History table -->
+<h2 class="text-base font-extrabold text-white mb-3 flex items-center gap-2"><span class="w-1 h-4 bg-pri rounded-sm"></span> Lịch sử giao dịch</h2>
+<div class="overflow-x-auto border border-line rounded-lg">
+  <table class="w-full text-sm">
+    <thead class="bg-bg-soft text-muted text-xs uppercase">
+      <tr>
+        <th class="text-left px-3 py-2.5 font-bold">Thời gian</th>
+        <th class="text-left px-3 py-2.5 font-bold">Loại</th>
+        <th class="text-right px-3 py-2.5 font-bold">Số tiền</th>
+        <th class="text-center px-3 py-2.5 font-bold">Trạng thái</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-line/40 text-gray-200">
+      <% var TXN = [
+        { date:'05/06/2026 08:30', type:'Điểm danh ngày 1', amount:'+1 X COIN', status:'OK', clr:'emerald' },
+        { date:'04/06/2026 21:15', type:'Đăng ký nhận thưởng', amount:'+50 X COIN', status:'OK', clr:'emerald' },
+        { date:'04/06/2026 14:02', type:'Đổi voucher 50K', amount:'-100 X COIN', status:'OK', clr:'emerald' },
+        { date:'03/06/2026 09:45', type:'Quay vòng quay', amount:'+28 X COIN', status:'OK', clr:'emerald' },
+        { date:'02/06/2026 20:11', type:'Nạp tiền', amount:'+500.000 VND', status:'OK', clr:'emerald' }
+      ]; %>
+      <% TXN.forEach(function(t){ %>
+        <tr class="hover:bg-bg-soft">
+          <td class="px-3 py-2.5 text-muted text-xs"><%= t.date %></td>
+          <td class="px-3 py-2.5"><%= t.type %></td>
+          <td class="px-3 py-2.5 text-right font-bold <%= t.amount.charAt(0)==='+'?'text-emerald-400':'text-live' %> tabular-nums"><%= t.amount %></td>
+          <td class="px-3 py-2.5 text-center">
+            <span class="inline-block bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full">✓ <%= t.status %></span>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+try {
+  var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+  if (typeof u.coin === 'number') document.getElementById('wlCoin').textContent = u.coin.toLocaleString('vi-VN');
+  if (typeof u.vnd  === 'number') document.getElementById('wlVnd').textContent  = u.vnd.toLocaleString('vi-VN');
+  if (u.vip) document.getElementById('wlVip').textContent = u.vip;
+} catch(e){}
+</script>

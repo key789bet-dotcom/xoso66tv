@@ -1,0 +1,173 @@
+<%
+const _today = new Date();
+const _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+seo = {
+  title: brand.name + ' - Xem trực tiếp bóng đá, casino, idol live HD ngày ' + _todayVi,
+  description: 'Kênh xem trực tiếp '+brand.name+' HD miễn phí: bóng đá, bóng rổ, tennis, esports, casino, idol live 24/7. Hôm nay '+_todayVi+' có '+live.length+' trận live, '+upcoming.length+' trận sắp diễn ra. Đối tác '+brand.domain+'.',
+  keywords: 'xem bóng đá trực tiếp, livescore, casino trực tuyến, idol live, xoso66tv, '+brand.short+', trực tiếp ngoại hạng anh, la liga, champions league',
+  canonical: '/',
+  ogType: 'website',
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+
+<!-- H1 hero banner SEO -->
+<header class="seo-hero">
+  <h1>📺 <%= brand.name %> - Xem Trực Tiếp Thể Thao &amp; Giải Trí Số 1 Việt Nam</h1>
+  <p class="lead">Nền tảng livestream chất lượng HD miễn phí 24/7. Cập nhật <strong><%= live.length %> trận đang trực tiếp</strong>, <strong><%= upcoming.length %> trận sắp diễn ra</strong> hôm nay <%= _todayVi %>. Phủ sóng đầy đủ
+    <a href="/the-thao/bong-da">bóng đá</a>, <a href="/the-thao/bong-ro">bóng rổ</a>, <a href="/the-thao/tennis">tennis</a>, <a href="/esports">esports</a>, <a href="/casino">casino</a> và <a href="/idol-live">idol live</a>. Đối tác chính thức <a href="<%= partner.home %>" target="_blank" rel="noopener"><%= brand.domain %></a>.</p>
+</header>
+
+<!-- Hero banner carousel -->
+<div class="hero-banner" id="heroBanner" aria-label="Khuyến mãi">
+  <% banners.forEach((b, i) => { %>
+    <div class="hero-slide" style="background:<%= b.bg %>; <%= i>0?'display:none':'' %>">
+      <div class="info">
+        <div class="ttl"><%= b.title %></div>
+        <div class="desc"><%= b.desc %></div>
+        <a href="<%= b.url %>" target="_blank" rel="noopener" class="cta"><%= b.cta %> →</a>
+      </div>
+    </div>
+  <% }); %>
+  <div class="hero-dots">
+    <% banners.forEach((b, i) => { %><span class="<%= i===0?'active':'' %>" role="button" aria-label="Slide <%= i+1 %>"></span><% }); %>
+  </div>
+</div>
+
+<% const featured = (live && live[0]) || null;
+   const featuredSide = (live || []).slice(1, 3); %>
+
+<% if (featured) { %>
+<section class="featured" aria-label="Trận nổi bật">
+  <article class="featured-main" itemscope itemtype="https://schema.org/SportsEvent">
+    <div class="placeholder">
+      <% if (featured.poster) { %><img class="bg" src="<%= featured.poster %>" loading="lazy" alt="" onerror="this.style.display='none'"><% } %>
+      <span class="live-pill">LIVE</span>
+      <span class="quality-pill">HD 1080p</span>
+      <div class="inner">
+        <div style="font-size:14px;color:#aaa;margin-bottom:6px;font-weight:700;letter-spacing:1px"><%= featured.league %></div>
+        <h2 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:8px" itemprop="name"><span itemprop="homeTeam"><%= featured.home %></span> vs <span itemprop="awayTeam"><%= featured.away %></span></h2>
+        <% if (featured.score) { %>
+          <div style="font-size:48px;font-weight:900;color:var(--acc);margin:6px 0;text-shadow:0 4px 12px rgba(0,0,0,.6)"><%= featured.score[0] %> : <%= featured.score[1] %></div>
+        <% } %>
+        <a href="/live/<%= featured.slug || featured.id %>" class="enter-btn" itemprop="url">▶ VÀO PHÒNG</a>
+      </div>
+    </div>
+    <meta itemprop="eventStatus" content="https://schema.org/EventScheduled">
+    <meta itemprop="eventAttendanceMode" content="https://schema.org/OnlineEventAttendanceMode">
+  </article>
+
+  <div class="featured-side">
+    <% featuredSide.forEach(m => { %>
+      <a href="/live/<%= m.slug || m.id %>" class="stream-card">
+        <div class="stream-thumb">
+          <% if (m.poster) { %><img class="bg" src="<%= m.poster %>" loading="lazy" alt=""><% } %>
+          <span class="live-pill">LIVE</span>
+          <div class="teams">
+            <% if (m.homeBadge) { %><div class="team-logo"><img src="<%= m.homeBadge %>" alt="<%= m.home %>"></div><% } %>
+            <% if (m.score) { %><div class="score" style="font-size:22px"><%= m.score[0] %>:<%= m.score[1] %></div><% } else { %><div class="vs-time">VS</div><% } %>
+            <% if (m.awayBadge) { %><div class="team-logo"><img src="<%= m.awayBadge %>" alt="<%= m.away %>"></div><% } %>
+          </div>
+        </div>
+        <div class="stream-info">
+          <div class="league">🏆 <%= m.league %></div>
+          <div class="matchname"><%= m.home %> vs <%= m.away %></div>
+        </div>
+      </a>
+    <% }); %>
+    <% if (featuredSide.length === 0) { %>
+      <a href="<%= partner.idol %>" target="_blank" rel="noopener" class="stream-card">
+        <div class="stream-thumb" style="background:linear-gradient(135deg,#8e44ad,#e91e63)">
+          <span class="live-pill">LIVE</span>
+          <div style="text-align:center;color:#fff;position:relative;z-index:1">
+            <div style="font-size:48px">👑</div>
+            <div style="font-weight:800;font-size:16px;margin-top:6px">Idol Live</div>
+            <div style="font-size:12px;opacity:.9">Hotgirl độc quyền</div>
+          </div>
+        </div>
+        <div class="stream-info"><div class="league" style="color:#e91e63">👑 Idol Show</div><div class="matchname">100+ phòng đang live</div></div>
+      </a>
+    <% } %>
+  </div>
+</section>
+<% } %>
+
+<!-- Tabs danh mục -->
+<nav class="cat-tabs" aria-label="Danh mục thể thao">
+  <a href="/" class="cat-tab active"><span class="all-ico">✓</span> Tất cả</a>
+  <% Object.entries(cats).forEach(([key, cat]) => {
+       const href = key==='casino'?'/casino':key==='idol'?'/idol-live':key==='esports'?'/esports':key==='hot'?'/':'/the-thao/'+key;
+  %>
+    <a href="<%= href %>" class="cat-tab"><span class="ico"><%= cat.icon %></span> <%= cat.name %></a>
+  <% }); %>
+  <a href="/lich-phat-song" style="margin-left:auto" class="cat-tab">Xem tất cả <span style="margin-left:4px">↗</span></a>
+</nav>
+
+<section class="sec" aria-label="Trận đang trực tiếp">
+  <div class="sec-head">
+    <h2 class="ttl">Đang trực tiếp <span class="live-badge">LIVE • <%= live.length %></span></h2>
+    <a href="/lich-phat-song" class="more">Xem tất cả →</a>
+  </div>
+  <% if (!live || live.length === 0) { %>
+    <div class="empty"><div class="ico">📭</div><div>Hiện không có trận trực tiếp. Xem <a href="/lich-phat-song" style="color:var(--pri-2)">lịch phát sóng</a> hoặc <a href="<%= partner.idol %>" target="_blank" style="color:var(--pink)">vào idol live</a>.</div></div>
+  <% } else { %>
+    <div class="stream-grid"><%- include('partials/stream-card', { list: live.slice(0,12) }) %></div>
+  <% } %>
+</section>
+
+<section class="sec" aria-label="Sắp diễn ra">
+  <div class="sec-head"><h2 class="ttl">⏰ Sắp diễn ra</h2><a href="/lich-phat-song" class="more">Lịch đầy đủ →</a></div>
+  <% if (upcoming.length === 0) { %>
+    <div class="empty"><div class="ico">📅</div><div>Chưa có trận sắp diễn ra.</div></div>
+  <% } else { %>
+    <div class="stream-grid"><%- include('partials/stream-card', { list: upcoming }) %></div>
+  <% } %>
+</section>
+
+<% if (finished && finished.length) { %>
+<section class="sec" aria-label="Highlight">
+  <div class="sec-head"><h2 class="ttl">🎬 Highlight mới nhất</h2><a href="/video-noi-bat" class="more">Xem tất cả →</a></div>
+  <div class="stream-grid"><%- include('partials/stream-card', { list: finished }) %></div>
+</section>
+<% } %>
+
+<!-- Related links -->
+<section class="seo-related" aria-label="Liên kết liên quan">
+  <h3>🔗 Khám phá thêm</h3>
+  <ul>
+    <li><a href="/the-thao/bong-da">⚽ Bóng đá hôm nay</a></li>
+    <li><a href="/the-thao/bong-ro">🏀 Bóng rổ NBA</a></li>
+    <li><a href="/the-thao/tennis">🎾 Tennis ATP/WTA</a></li>
+    <li><a href="/esports">🎮 Esports LCK/LPL</a></li>
+    <li><a href="/casino">🎰 Casino trực tuyến</a></li>
+    <li><a href="/idol-live">👑 Idol Live 24/7</a></li>
+    <li><a href="/lich-phat-song?mon=bong-da">📅 Lịch bóng đá</a></li>
+    <li><a href="/video-noi-bat">🎬 Highlight</a></li>
+    <li><a href="/tin-tuc">📰 Tin tức</a></li>
+    <li><a href="/su-kien">🎁 Khuyến mãi</a></li>
+  </ul>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2: 'Về '+brand.name+' - Kênh xem trực tiếp thể thao &amp; giải trí số 1',
+  intro: '<strong>'+brand.name+'</strong> là nền tảng livestream miễn phí hàng đầu Việt Nam, phục vụ hàng triệu người dùng mỗi tháng. Chúng tôi cung cấp full HD 1080p, bình luận tiếng Việt chuyên nghiệp, không quảng cáo gián đoạn cho các giải đấu lớn nhỏ trên thế giới và Việt Nam.',
+  sections: [
+    { h3: '⚽ Trực tiếp bóng đá đầy đủ các giải',
+      p: 'Phát sóng <a href="/lich-phat-song?mon=bong-da">100% trận đấu</a> Ngoại Hạng Anh, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, Europa League, World Cup, Euro, AFF Cup, V-League. Cập nhật <a href="/lich-phat-song">lịch thi đấu</a>, <strong>tỉ số trực tuyến</strong>, <a href="/video-noi-bat">video highlight</a> chỉ vài phút sau trận đấu.' },
+    { h3: '🏀 Đa môn thể thao - bóng rổ, tennis, esports',
+      p: 'Không chỉ bóng đá, '+brand.name+' còn livestream <a href="/the-thao/bong-ro">NBA, EuroLeague</a>, <a href="/the-thao/tennis">Grand Slam ATP/WTA</a>, <a href="/the-thao/bong-chuyen">VNL bóng chuyền</a>, <a href="/the-thao/bong-ban">WTT bóng bàn</a> và <a href="/esports">esports LCK/LPL/Valorant/Dota2</a>.' },
+    { h3: '🎰 Casino &amp; Idol Live giải trí 24/7',
+      p: 'Khu giải trí trực tuyến với <a href="/casino">casino live dealer</a> (Baccarat, Blackjack, Roulette, Sicbo, Slot, Poker), <a href="/idol-live">idol live show</a> với 100+ hotgirl Việt Nam, và <a href="/mini-game">mini game</a> đa dạng (Tài Xỉu, Bắn Cá, Sâm Lốc).' },
+    { h3: '🎁 Thưởng &amp; khuyến mãi siêu hấp dẫn',
+      p: 'Đăng ký tài khoản tại <a href="<%= partner.register %>" target="_blank" rel="noopener">'+brand.domain+'</a> nhận ngay <strong>100% thưởng nạp lần đầu</strong>, voucher 50K cho thành viên mới, hoàn trả 5% mỗi tuần. Quay <a href="/qua-tang">vòng quay may mắn</a> miễn phí mỗi ngày.' },
+  ],
+  faqs: [
+    { q: brand.name+' có miễn phí xem không?', a: 'Có. Toàn bộ stream thể thao đều <strong>hoàn toàn miễn phí</strong>, không cần đăng ký. Bạn chỉ cần đăng ký tài khoản nếu muốn chat, đặt cược, hoặc nhận khuyến mãi.' },
+    { q: 'Chất lượng video stream như thế nào?', a: 'Mặc định HD 1080p, có thể chọn 720p/480p nếu mạng yếu. Server CDN đặt tại Việt Nam đảm bảo độ trễ thấp dưới 5 giây.' },
+    { q: 'Có app cho điện thoại không?', a: 'Có. <a href="'+partner.download+'" target="_blank" rel="noopener">Tải APP '+brand.short+'</a> miễn phí cho Android &amp; iOS để xem mượt hơn, nhận thông báo trận sắp đá.' },
+    { q: 'Làm sao đăng ký tài khoản?', a: 'Click <a href="/dang-ky">Đăng ký</a> ở góc trên, điền SĐT + mật khẩu là xong trong 30 giây. Hoặc đăng ký nhanh qua Facebook/Google/Telegram.' },
+    { q: 'Quên mật khẩu thì sao?', a: 'Vào trang <a href="/quen-mat-khau">Quên mật khẩu</a>, nhập SĐT hoặc email, hệ thống sẽ gửi OTP qua SMS/Email/Telegram để đặt lại mật khẩu mới.' },
+  ]
+}}) %>
+
+<%- include('partials/footer') %>

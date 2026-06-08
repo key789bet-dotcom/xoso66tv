@@ -1,0 +1,152 @@
+<%
+seo = {
+  title: 'Đăng ký '+brand.name+' - Nhận thưởng 100% miễn phí',
+  description: 'Đăng ký '+brand.name+' miễn phí 30s. Nhận ngay thưởng 100% nạp lần đầu.',
+  canonical: '/dang-ky'
+};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<div class="min-h-[calc(100vh-220px)] grid place-items-center px-4 py-8 relative">
+  <a href="/" class="absolute top-2 right-2 w-9 h-9 rounded-full bg-pri text-white grid place-items-center font-black text-lg hover:bg-pri-dark transition-colors shadow-lg" aria-label="Đóng">&times;</a>
+
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-5">
+      <a href="/" class="inline-block">
+        <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="h-16 mx-auto drop-shadow-lg" onerror="this.outerHTML='<div class=&quot;text-3xl font-black text-white&quot;><%= brand.name %></div>'">
+      </a>
+    </div>
+
+    <section class="bg-[#1a1f29] border border-line/60 rounded-2xl shadow-2xl overflow-hidden">
+      <nav class="grid grid-cols-2 gap-1 p-3 bg-[#11151c]">
+        <a href="/dang-nhap" class="text-center py-3 rounded-lg font-extrabold text-base text-pri hover:bg-pri/10 transition-colors border-2 border-pri">Đăng Nhập</a>
+        <a href="/dang-ky"   class="text-center py-3 rounded-lg font-extrabold text-base text-white" style="background:linear-gradient(135deg,#ff7a18,#ff9933)">Đăng ký</a>
+      </nav>
+
+      <form id="regForm" class="p-5 space-y-3.5" novalidate>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">&#128100;</span>
+          <input id="username" name="username" type="text" required minlength="4" maxlength="20" pattern="[a-zA-Z0-9_]+" autocomplete="username"
+                 class="w-full bg-[#0e1218] border border-line text-gray-100 pl-11 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 transition-all"
+                 placeholder="Nhập tên tài khoản của bạn">
+        </div>
+
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">&#128222;</span>
+          <input id="phone" name="phone" type="tel" required pattern="0[3-9][0-9]{8}" autocomplete="tel"
+                 class="w-full bg-[#0e1218] border border-line text-gray-100 pl-11 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 transition-all"
+                 placeholder="Nhập số điện thoại đăng ký">
+        </div>
+
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">&#128274;</span>
+          <input id="password" name="password" type="password" required minlength="8" maxlength="50" autocomplete="new-password"
+                 class="w-full bg-[#0e1218] border border-line text-gray-100 pl-11 pr-12 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20"
+                 placeholder="Nhập mật khẩu của bạn">
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-pri-light bg-transparent border-0 text-lg p-1" onclick="togglePw('password',this)">&#128065;</button>
+        </div>
+
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">&#128274;</span>
+          <input id="password2" type="password" required minlength="8" autocomplete="new-password"
+                 class="w-full bg-[#0e1218] border border-line text-gray-100 pl-11 pr-12 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20"
+                 placeholder="Nhập lại mật khẩu">
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-pri-light bg-transparent border-0 text-lg p-1" onclick="togglePw('password2',this)">&#128065;</button>
+        </div>
+
+        <div class="flex items-stretch gap-2">
+          <div class="flex-1 relative">
+            <input id="captchaInput" type="text" required maxlength="5" inputmode="numeric" pattern="[0-9]{5}" autocomplete="off"
+                   class="w-full bg-[#0e1218] border border-line text-gray-100 pl-4 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 tracking-widest"
+                   placeholder="Mã CAPTCHA">
+          </div>
+          <div id="captchaBox" class="w-[130px] h-[48px] bg-white rounded-lg cursor-pointer overflow-hidden" onclick="renderCaptcha('captchaBox')" title="Click để đổi mã"></div>
+          <button type="button" onclick="renderCaptcha('captchaBox')" class="w-12 h-12 bg-pri hover:bg-pri-dark text-white rounded-lg grid place-items-center text-lg font-bold transition-colors" aria-label="Đổi mã">&#8635;</button>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-b from-pri to-pri-dark text-white rounded-lg font-extrabold text-base shadow-pri hover:brightness-110 transition-all">Đăng ký</button>
+
+        <label class="flex items-start gap-2 text-[13px] text-muted cursor-pointer pt-1">
+          <input type="checkbox" id="agree" required class="accent-pri w-4 h-4 mt-0.5 shrink-0">
+          <span>Tôi đã đọc và đồng ý với tất cả <a href="#" class="text-pri-light font-semibold underline">Điều Khoản Và Điều Kiện</a></span>
+        </label>
+
+        <div class="flex items-center gap-3 py-1">
+          <div class="flex-1 h-px bg-line"></div>
+          <span class="text-pri-light text-sm italic">Hoặc</span>
+          <div class="flex-1 h-px bg-line"></div>
+        </div>
+
+        <a href="<%= partner.register %>&via=google" target="_blank" rel="noopener"
+           class="flex items-center justify-center gap-2.5 w-full py-3 bg-transparent border-2 border-pri/60 hover:border-pri rounded-lg text-pri-light hover:bg-pri/10 font-bold text-[14px] transition-all">
+          Đăng ký nhanh bằng Google
+          <svg width="22" height="22" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.5 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.7 35.5 44 30.2 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        </a>
+      </form>
+    </section>
+
+    <p class="text-center text-muted text-xs mt-4">Đã có tài khoản? <a href="/dang-nhap" class="text-pri-light font-semibold">Đăng nhập &rarr;</a></p>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-20 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
+
+<script src="/static/js/captcha.js"></script>
+<script>
+function togglePw(id, btn){ var i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; }
+function showToast(msg, kind){
+  var t=document.getElementById('toast');
+  var c=kind==='success'?'!border-l-emerald-500':kind==='error'?'!border-l-live':'!border-l-pri';
+  t.className='fixed top-20 right-5 bg-bg-card border border-line border-l-4 px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-0 transition-transform '+c;
+  t.textContent=msg;
+  setTimeout(function(){ t.className=t.className.replace('translate-x-0','translate-x-[120%]') }, 3500);
+}
+
+renderCaptcha('captchaBox');
+
+document.getElementById('regForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var f = e.target;
+  var u  = f.username.value.trim();
+  var ph = f.phone.value.trim();
+  var p  = f.password.value;
+  var p2 = document.getElementById('password2').value;
+  var cap = document.getElementById('captchaInput').value.trim();
+
+  if (!/^[a-zA-Z0-9_]{4,20}$/.test(u)) { showToast('Tên đăng nhập 4-20 ký tự, chữ/số/_','error'); return; }
+  if (!/^0[3-9][0-9]{8}$/.test(ph))    { showToast('Số điện thoại không hợp lệ','error'); return; }
+  if (p.length < 8)                    { showToast('Mật khẩu tối thiểu 8 ký tự','error'); return; }
+  if (p !== p2)                        { showToast('Mật khẩu nhập lại không khớp','error'); return; }
+  if (!f.agree.checked)                { showToast('Vui lòng đồng ý điều khoản','error'); return; }
+  if (!verifyCaptcha(cap)) {
+    showToast('Mã CAPTCHA không đúng','error');
+    document.getElementById('captchaInput').value = '';
+    renderCaptcha('captchaBox');
+    return;
+  }
+
+  var btn = f.querySelector('button[type=submit]');
+  btn.disabled = true;
+  var oldText = btn.textContent; btn.textContent = 'Đang tạo tài khoản...';
+
+  try {
+    var data = { username: u, fullname: u, phone: ph, password: p };
+    var r = await fetch('/api/dang-ky', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    var j = await r.json();
+    if (j.ok) {
+      try { localStorage.setItem('x66_user', JSON.stringify({ username:u, fullname:u, phone:ph, vip:1, loggedAt:Date.now() })); } catch(e){}
+      showToast('Đăng ký thành công! Chuyển sang nạp tiền...','success');
+      setTimeout(function(){ location.href = j.redirect || '<%= partner.register %>' }, 1500);
+    } else {
+      showToast(j.message || 'Đăng ký thất bại','error');
+      renderCaptcha('captchaBox');
+      document.getElementById('captchaInput').value = '';
+      btn.disabled = false; btn.textContent = oldText;
+    }
+  } catch(err){
+    setTimeout(function(){ location.href = '<%= partner.register %>' }, 1500);
+  }
+});
+</script>
+
+<%- include('partials/tw-footer') %>

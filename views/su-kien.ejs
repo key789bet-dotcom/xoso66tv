@@ -1,0 +1,57 @@
+<%
+seo = {
+  title: 'Sự Kiện &amp; Khuyến Mãi Hot Nhất - '+brand.name,
+  description: 'Tổng hợp khuyến mãi nạp tiền 100%, voucher miễn phí, vé cược thua hoàn trả tại '+brand.name+' x '+brand.domain+'. Cập nhật hàng ngày.',
+  keywords: 'khuyến mãi, sự kiện, thưởng nạp, voucher, '+brand.short+', xoso66tv promo',
+  canonical: '/su-kien',
+  breadcrumb: [{ name:'Sự kiện &amp; Khuyến mãi', url:'/su-kien' }],
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="seo-hero">
+  <h1>🎁 Sự Kiện &amp; Khuyến Mãi Hot Nhất Tháng</h1>
+  <p class="lead">Cập nhật các chương trình thưởng siêu hấp dẫn từ <a href="<%= partner.home %>" target="_blank" rel="noopener"><strong><%= brand.domain %></strong></a>: thưởng đăng ký, hoàn tiền cá cược thua, vòng quay miễn phí, quà sinh nhật...</p>
+</header>
+
+<section class="sec" aria-label="Danh sách khuyến mãi">
+  <div style="display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(360px,1fr))">
+    <% banners.concat(banners).slice(0,6).forEach((b, i) => { %>
+      <article style="background:<%= b.bg %>;padding:24px;border-radius:12px;color:#fff;position:relative;overflow:hidden">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.9;font-weight:700">KHUYẾN MÃI <%= i+1 %></div>
+        <h2 style="font-size:22px;font-weight:900;margin:8px 0;line-height:1.2"><%= b.title %></h2>
+        <p style="font-size:14px;opacity:.95;margin-bottom:16px"><%= b.desc %></p>
+        <a href="<%= b.url %>" target="_blank" rel="noopener" style="background:#fff;color:#c0392b;padding:9px 20px;border-radius:6px;font-weight:800;display:inline-block"><%= b.cta %> →</a>
+        <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,.1);border-radius:50%"></div>
+      </article>
+    <% }); %>
+  </div>
+
+  <aside style="margin-top:28px;background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:20px">
+    <h2 style="color:var(--pri-2);margin-bottom:12px;font-size:18px">🎯 Cách tham gia khuyến mãi</h2>
+    <ol style="color:var(--muted);font-size:14px;line-height:2;padding-left:24px">
+      <li><a href="/dang-ky" style="color:var(--pri-2)">Đăng ký tài khoản</a> miễn phí (chưa có tài khoản? <a href="/dang-ky" style="color:var(--pri-2)">đăng ký tại đây</a>)</li>
+      <li>Hoàn tất xác thực thông tin cá nhân</li>
+      <li>Nạp tiền lần đầu để kích hoạt khuyến mãi</li>
+      <li>Click "Nhận ngay" trên mỗi chương trình để áp dụng</li>
+      <li>Liên hệ <a href="<%= partner.telegram %>" target="_blank" style="color:var(--pri-2)">CSKH Telegram 24/7</a> nếu cần hỗ trợ</li>
+    </ol>
+  </aside>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2:'Khuyến mãi cập nhật &amp; hấp dẫn nhất thị trường',
+  intro:brand.name+' tổng hợp toàn bộ khuyến mãi mới nhất từ <strong>'+brand.domain+'</strong>. Tất cả đều minh bạch, không trick, không điều khoản ẩn.',
+  sections: [
+    { h3:'Thưởng nạp lần đầu 100%', p:'Đăng ký mới + nạp tối thiểu 200K → Nhận ngay 100% giá trị nạp lên đến 5.000.000đ. Áp dụng cho mọi phương thức nạp (Momo, ZaloPay, Banking, USDT).' },
+    { h3:'Vé cược thua hoàn 100%', p:'Vé cược thể thao đầu tiên thua trong vòng 30 ngày sau khi đăng ký sẽ được hoàn 100% (tối đa 5.000.000đ). Không yêu cầu doanh số hoàn trả.' },
+    { h3:'Vòng quay may mắn miễn phí', p:'Mỗi ngày <a href="/qua-tang">quay 1 lần miễn phí</a>, trúng voucher nạp tiền hoặc tiền thưởng trực tiếp đến 10.000.000đ.' },
+  ],
+  faqs: [
+    { q:'Khuyến mãi có giới hạn không?', a:'Có, mỗi chương trình áp dụng theo điều kiện riêng. Đọc kỹ trên trang khuyến mãi của '+brand.domain+'.' },
+    { q:'Có thể nhận nhiều khuyến mãi cùng lúc?', a:'Có. Thưởng nạp + cashback + voucher có thể cộng dồn.' },
+  ]
+} }) %>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,46 @@
+<header class="mb-5">
+  <h1 class="text-xl font-extrabold text-white mb-1">BLV & Idol đang theo dõi</h1>
+  <p class="text-muted text-sm">Nhận thông báo ngay khi họ live.</p>
+</header>
+
+<%
+var FOLLOWED = [
+  { name:'BLV A DÂN', avatar:'https://i.pravatar.cc/200?img=12', live:true,  followers:'120K' },
+  { name:'Hoa Yêu',   avatar:'https://i.pravatar.cc/200?img=5',  live:true,  followers:'250K' },
+  { name:'BLV BÚN',   avatar:'https://i.pravatar.cc/200?img=33', live:false, followers:'56K' },
+  { name:'BLV YAMAL', avatar:'https://i.pravatar.cc/200?img=15', live:false, followers:'412K' },
+  { name:'BLV KAISER',avatar:'https://i.pravatar.cc/200?img=14', live:true,  followers:'150K' },
+  { name:'BLV RICH',  avatar:'https://i.pravatar.cc/200?img=51', live:false, followers:'92K' }
+];
+%>
+
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  <% FOLLOWED.forEach(function(f){ %>
+    <article class="bg-bg-soft border border-line rounded-xl p-4 flex items-center gap-3 hover:border-pri transition-colors">
+      <div class="relative shrink-0">
+        <div class="w-14 h-14 rounded-full p-[2px] bg-gradient-to-br from-pri to-pri-dark">
+          <div class="w-full h-full rounded-full overflow-hidden bg-bg-deep">
+            <img src="<%= f.avatar %>" alt="<%= f.name %>" loading="lazy" class="w-full h-full object-cover" onerror="this.outerHTML='<div class=&quot;w-full h-full grid place-items-center text-white font-black&quot;>'+'<%= f.name.charAt(0) %>'+'</div>'">
+          </div>
+        </div>
+        <% if (f.live) { %>
+          <span class="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-live text-white text-[9px] font-extrabold px-1.5 py-0 rounded-full border-2 border-bg-soft animate-pulse-live">LIVE</span>
+        <% } %>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="font-extrabold text-white text-sm truncate"><%= f.name %></div>
+        <div class="text-[11px] text-muted"><%= f.followers %> theo dõi</div>
+        <div class="flex gap-1.5 mt-1.5">
+          <% if (f.live) { %>
+            <a href="/idol-live" class="text-[10px] bg-live text-white font-bold px-2 py-0.5 rounded">Vào phòng</a>
+          <% } %>
+          <button onclick="this.closest('article').remove();showToast('Đã bỏ theo dõi','success')" class="text-[10px] bg-bg-deep text-muted hover:text-live font-bold px-2 py-0.5 rounded">Bỏ theo dõi</button>
+        </div>
+      </div>
+    </article>
+  <% }); %>
+</div>
+
+<div class="mt-6 text-center">
+  <a href="/idol-live" class="inline-block px-6 py-2.5 bg-bg-soft hover:bg-bg-deep text-white border border-line rounded-lg font-bold text-sm">&plus; Khám phá thêm BLV & Idol</a>
+</div>

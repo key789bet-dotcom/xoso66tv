@@ -1,0 +1,836 @@
+<%
+seo = {
+  title: 'Idol Studio - Lên Sóng Trực Tiếp - ' + brand.name,
+  description: 'Studio cho idol và BLV lên sóng trực tiếp từ điện thoại hoặc OBS. Stream WebRTC mobile + RTMP OBS.',
+  canonical: '/idol-studio',
+  noindex: true
+};
+var idolsActive = (typeof dbIdols !== 'undefined' && dbIdols) ? dbIdols : [];
+var myObs = (typeof myObs !== 'undefined') ? myObs : null;
+%>
+<%- include('partials/tw-layout-start') %>
+
+<section class="max-w-md md:max-w-4xl mx-auto mb-6">
+  <!-- Hero header -->
+  <header class="bg-gradient-to-br from-pri/20 via-bg-card to-bg-soft border border-pri/30 rounded-2xl p-4 md:p-5 mb-4 hero-animated-bg">
+    <div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <h1 class="text-xl md:text-2xl font-black text-white mb-1.5 flex items-center gap-2">
+      <span class="text-2xl md:text-3xl">📡</span>
+      <span class="text-shimmer">IDOL STUDIO</span>
+    </h1>
+    <p class="text-muted text-sm">Lên sóng trực tiếp bằng <b class="text-pri-light">điện thoại</b> (WebRTC) hoặc <b class="text-pri-light">OBS Studio</b> (RTMP). Bắt đầu kiếm X COIN từ viewers ngay!</p>
+  </header>
+
+  <!-- Identity selector + status -->
+  <div id="stuIdentityBox" class="bg-bg-card border border-line rounded-xl p-4 mb-4">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center text-2xl shrink-0" id="stuAvatar">👑</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-[11px] text-muted uppercase tracking-wider">Bạn đang stream với tư cách</div>
+        <div class="font-extrabold text-white text-base truncate" id="stuIdentityName">Chưa chọn</div>
+        <div class="text-[11px] text-emerald-400 flex items-center gap-1 hidden" id="stuLiveStatus">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          ĐANG LIVE · <span id="stuLiveTime">00:00</span>
+        </div>
+      </div>
+      <button onclick="stuChangeIdentity()" class="px-3 py-1.5 bg-bg-soft border border-line hover:border-pri text-pri-light text-xs font-bold rounded-lg" id="stuChangeBtn">Đổi</button>
+    </div>
+    <!-- Identity dropdown -->
+    <div id="stuIdentityDropdown" class="hidden border-t border-line/40 pt-3">
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Chọn idol đang quản lý</label>
+      <select id="stuIdolSelect" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm">
+        <option value="">-- Chọn idol --</option>
+        <% idolsActive.forEach(function(i){ %>
+          <option value="<%= i.id %>" data-name="<%= i.name %>" data-emoji="<%= i.emoji %>"><%= i.emoji %> <%= i.name %> (<%= i.room %>)</option>
+        <% }); %>
+      </select>
+      <button onclick="stuSelectIdentity()" class="mt-2 w-full bg-gradient-to-r from-pri to-live text-white py-2 rounded-lg font-bold text-sm">Xác nhận</button>
+    </div>
+  </div>
+
+  <!-- ===== HTTPS WARNING + TEST GUIDE (chỉ hiện khi không secure context) ===== -->
+  <div id="stuHttpsWarn" class="hidden bg-gradient-to-br from-yellow-900/50 via-orange-900/30 to-bg-card border-2 border-yellow-500/60 rounded-xl p-4 mb-4">
+    <div class="flex items-start gap-2.5">
+      <span class="text-2xl shrink-0">⚠️</span>
+      <div class="flex-1">
+        <h3 class="text-yellow-300 font-extrabold text-sm mb-1">Camera điện thoại cần HTTPS</h3>
+        <p class="text-gray-200 text-[12px] leading-relaxed mb-2">
+          Trang đang chạy <code class="bg-bg-deep px-1 py-0.5 rounded text-yellow-300 text-[11px]" id="stuCurrentUrl">http://localhost:4000</code> — browser <b>chặn camera</b> trên HTTP (non-secure). Cần 1 trong 3 cách dưới:
+        </p>
+        <details class="mt-2 bg-bg-deep border border-line rounded-lg p-2.5">
+          <summary class="cursor-pointer font-bold text-pri-light text-[12px]">📱 Cách 1: ngrok (dễ nhất, 2 phút)</summary>
+          <ol class="mt-2 text-[11.5px] text-gray-200 space-y-1 list-decimal list-inside leading-relaxed">
+            <li>Tải <a href="https://ngrok.com/download" target="_blank" class="text-pri-light underline">ngrok</a> (file .exe)</li>
+            <li>Đăng ký miễn phí → copy authtoken</li>
+            <li>Mở CMD trong thư mục ngrok, chạy:
+              <div class="bg-black/60 rounded px-2 py-1 mt-1 font-mono text-[11px] text-emerald-300">ngrok config add-authtoken &lt;TOKEN&gt;<br>ngrok http 4000</div>
+            </li>
+            <li>Copy URL https://xxx.ngrok-free.app → mở trên điện thoại → vào <code>/idol-studio</code></li>
+          </ol>
+        </details>
+        <details class="mt-2 bg-bg-deep border border-line rounded-lg p-2.5">
+          <summary class="cursor-pointer font-bold text-pri-light text-[12px]">🔧 Cách 2: Chrome Flag điện thoại (cùng WiFi)</summary>
+          <ol class="mt-2 text-[11.5px] text-gray-200 space-y-1 list-decimal list-inside leading-relaxed">
+            <li>Tìm IP PC: mở CMD chạy <code class="bg-black/60 px-1 rounded text-emerald-300">ipconfig</code> → tìm <b>IPv4 Address</b></li>
+            <li>Mở firewall Windows cho port 4000 inbound</li>
+            <li>Restart server bind 0.0.0.0:
+              <div class="bg-black/60 rounded px-2 py-1 mt-1 font-mono text-[11px] text-emerald-300">HOST=0.0.0.0 npm start</div>
+            </li>
+            <li>Trên Chrome điện thoại → mở <code class="bg-black/60 px-1 rounded text-emerald-300">chrome://flags</code></li>
+            <li>Tìm "Insecure origins treated as secure" → thêm <code class="bg-black/60 px-1 rounded text-emerald-300">http://192.168.x.x:4000</code> (IP của PC bạn)</li>
+            <li>Relaunch Chrome → vào IP đó/idol-studio</li>
+          </ol>
+        </details>
+        <details class="mt-2 bg-bg-deep border border-line rounded-lg p-2.5">
+          <summary class="cursor-pointer font-bold text-pri-light text-[12px]">🛠 Cách 3: mkcert (HTTPS local vĩnh viễn)</summary>
+          <ol class="mt-2 text-[11.5px] text-gray-200 space-y-1 list-decimal list-inside leading-relaxed">
+            <li>Cài <a href="https://github.com/FiloSottile/mkcert" target="_blank" class="text-pri-light underline">mkcert</a> (chocolatey: <code class="bg-black/60 px-1 rounded text-emerald-300">choco install mkcert</code>)</li>
+            <li>Chạy: <code class="bg-black/60 px-1 rounded text-emerald-300">mkcert -install</code></li>
+            <li>Tạo cert: <code class="bg-black/60 px-1 rounded text-emerald-300">mkcert localhost 192.168.1.10</code></li>
+            <li>Sửa server.js dùng https module với cert đó</li>
+            <li>Truy cập https://192.168.1.10:4000 từ điện thoại</li>
+          </ol>
+        </details>
+        <div class="mt-3 text-[11px] text-gray-300 bg-bg-deep border border-line rounded p-2">
+          💡 <b>Lưu ý</b>: Trên iPhone Safari, ngay cả HTTPS đôi khi vẫn cần user gesture. Bấm "Bật camera" sau khi tap màn hình thì OK.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUCCESS BADGE (HTTPS OK) ===== -->
+  <div id="stuHttpsOk" class="hidden bg-gradient-to-r from-emerald-900/40 to-bg-card border border-emerald-500/50 rounded-lg px-3 py-2 mb-4 flex items-center gap-2 text-emerald-200 text-[12px]">
+    <span class="text-base">✓</span>
+    <span><b>HTTPS sẵn sàng</b> — camera điện thoại sẽ hoạt động</span>
+  </div>
+
+  <!-- Tab nav -->
+  <nav class="flex bg-bg-card rounded-xl p-1 mb-4 border border-line">
+    <button onclick="stuSwitchTab('mobile')" id="stuTabMobile" class="flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2">
+      📱 <span>Stream Mobile</span>
+    </button>
+    <button onclick="stuSwitchTab('obs')" id="stuTabObs" class="flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2">
+      🎮 <span>Stream OBS</span>
+    </button>
+  </nav>
+
+  <!-- ============ TAB 1: MOBILE STREAM (WebRTC) ============ -->
+  <div id="stuPanelMobile" class="space-y-4">
+    <!-- Camera preview -->
+    <div class="bg-black rounded-2xl overflow-hidden relative aspect-video border-2 border-pri/40 shadow-xl">
+      <video id="stuVideo" autoplay muted playsinline class="w-full h-full object-cover bg-black"></video>
+      <!-- Overlay status -->
+      <div class="absolute top-3 left-3 z-10 flex items-center gap-2">
+        <span id="stuLiveBadge" class="hidden bg-live text-white px-3 py-1 rounded-md font-extrabold text-xs flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>LIVE
+        </span>
+        <span id="stuPreviewBadge" class="bg-yellow-500 text-black px-2 py-0.5 rounded text-[11px] font-extrabold">PREVIEW</span>
+      </div>
+      <div class="absolute top-3 right-3 z-10 bg-black/60 text-gold px-2 py-0.5 rounded text-[11px] font-bold tabular-nums flex items-center gap-1">
+        👁 <span id="stuLiveViewers">0</span>
+      </div>
+      <!-- Empty state -->
+      <div id="stuNoCam" class="absolute inset-0 grid place-items-center text-center p-4 text-white">
+        <div>
+          <div class="text-6xl mb-2 opacity-40">📷</div>
+          <div class="font-bold mb-1">Chưa bật camera</div>
+          <div class="text-xs text-muted mb-3">Bấm "Bật camera" để xem trước</div>
+          <button onclick="stuStartCamera()" class="bg-gradient-to-r from-pri to-live text-white px-5 py-2 rounded-full font-bold text-sm shadow-lg">📷 Bật camera</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CHAT MONITOR ngay dưới video (visible khi LIVE) ===== -->
+    <div id="stuChatMonitor" class="hidden bg-bg-card border-2 border-pri/40 rounded-2xl overflow-hidden shadow-xl mt-3 -mb-1">
+      <header class="px-3 py-2 bg-gradient-to-r from-pri to-pri-dark flex items-center gap-2 text-white">
+        <span class="text-base">💬</span>
+        <h3 class="font-extrabold text-sm">Chat từ viewer</h3>
+        <span class="ml-auto bg-white/20 text-[10px] font-bold px-2 py-0.5 rounded-full" id="stuChatOnlineCount">0 online</span>
+      </header>
+      <!-- Chat list -->
+      <div id="stuChatList" class="h-48 md:h-56 overflow-y-auto p-2 space-y-1 bg-gradient-to-b from-bg-deep to-bg-card scrollbar-thin"></div>
+      <!-- Reply input -->
+      <div class="flex gap-1.5 p-2 border-t border-line bg-bg-soft">
+        <input id="stuChatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-white px-3 py-2 rounded-lg outline-none text-sm focus:border-pri" placeholder="Trả lời viewer..." onkeydown="if(event.key==='Enter')stuSendChatReply()">
+        <button onclick="stuSendChatReply()" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-lg font-bold text-xs active:scale-95 whitespace-nowrap">Gửi</button>
+      </div>
+    </div>
+
+    <!-- Camera controls -->
+    <div class="grid grid-cols-4 gap-2">
+      <button onclick="stuSwitchCamera()" id="stuSwitchCamBtn" class="bg-bg-card border border-line hover:border-pri text-white py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 active:scale-95">
+        <span class="text-lg">🔄</span><span>Đảo cam</span>
+      </button>
+      <button onclick="stuToggleMic()" id="stuMicBtn" class="bg-bg-card border border-line hover:border-pri text-white py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 active:scale-95">
+        <span class="text-lg">🎤</span><span>Mic ON</span>
+      </button>
+      <button onclick="stuToggleBeauty()" id="stuBeautyBtn" class="bg-bg-card border border-line hover:border-pri text-white py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 active:scale-95">
+        <span class="text-lg">✨</span><span>Filter OFF</span>
+      </button>
+      <button onclick="stuStopCamera()" class="bg-bg-card border border-line hover:border-live text-white py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 active:scale-95">
+        <span class="text-lg">⏹</span><span>Dừng</span>
+      </button>
+    </div>
+
+    <!-- Stream meta inputs -->
+    <div class="bg-bg-card border border-line rounded-xl p-4 space-y-3">
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Tiêu đề buổi live</label>
+        <input id="stuTitle" type="text" maxlength="80" placeholder="VD: Cover bài hát hot tuần này" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none">
+      </div>
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Mục tiêu quà tặng (X COIN)</label>
+        <input id="stuGoal" type="number" placeholder="10000" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none tabular-nums">
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="stuSetCategory('chat')" class="stu-cat px-2 py-1.5 bg-bg-soft border border-line text-gray-200 text-xs font-bold rounded-lg" data-cat="chat">💬 Tâm sự</button>
+        <button onclick="stuSetCategory('show')" class="stu-cat px-2 py-1.5 bg-pri text-white text-xs font-bold rounded-lg" data-cat="show">🎵 Show</button>
+        <button onclick="stuSetCategory('game')" class="stu-cat px-2 py-1.5 bg-bg-soft border border-line text-gray-200 text-xs font-bold rounded-lg" data-cat="game">🎮 Game</button>
+      </div>
+    </div>
+
+    <!-- BIG GO LIVE BUTTON -->
+    <button onclick="stuGoLive()" id="stuGoLiveBtn" class="w-full bg-gradient-to-r from-red-600 via-pink-600 to-red-600 hover:brightness-110 text-white py-4 rounded-2xl font-black text-base shadow-2xl shadow-red-500/40 active:scale-[0.98] transition-transform flex items-center justify-center gap-3 border-2 border-red-300">
+      <span class="text-2xl">📡</span>
+      <span class="tracking-wide">BẮT ĐẦU LIVE NGAY</span>
+    </button>
+    <button onclick="stuEndLive()" id="stuEndLiveBtn" class="hidden w-full bg-gradient-to-r from-gray-700 to-gray-900 hover:brightness-110 text-white py-3 rounded-2xl font-black text-sm shadow-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2 border-2 border-gray-500">
+      <span class="text-xl">⏹</span>
+      <span>KẾT THÚC LIVE</span>
+    </button>
+
+    <!-- Live stats (visible during live) -->
+    <div id="stuLiveStats" class="hidden bg-gradient-to-r from-pri/20 via-bg-card to-bg-soft border border-pri/40 rounded-xl p-4">
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div>
+          <div class="text-[10px] text-muted uppercase">Người xem</div>
+          <div class="text-emerald-400 font-extrabold text-xl tabular-nums" id="stuStatViewers">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-muted uppercase">Quà nhận</div>
+          <div class="text-gold font-extrabold text-xl tabular-nums" id="stuStatGifts">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-muted uppercase">Thời lượng</div>
+          <div class="text-pri-light font-extrabold text-xl tabular-nums" id="stuStatDuration">00:00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== OPEN ROOM BUTTON (visible khi đang LIVE) ===== -->
+    <a id="stuOpenRoomBtn" href="#" target="_blank" class="hidden block bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:brightness-110 text-white py-3 rounded-xl font-extrabold text-sm shadow-xl shadow-purple-500/40 active:scale-[0.98] transition-transform text-center flex items-center justify-center gap-2">
+      <span class="text-lg">👁</span>
+      <span>MỞ PHÒNG XEM AS VIEWER</span>
+      <span class="text-sm">↗</span>
+    </a>
+  </div>
+
+  <!-- ============ TAB 2: OBS STREAM ============ -->
+  <div id="stuPanelObs" class="hidden space-y-4">
+    <!-- OBS info card -->
+    <div class="bg-gradient-to-br from-purple-900/40 via-bg-card to-bg-soft border-2 border-purple-500/40 rounded-xl p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-2xl">🎮</span>
+        <h3 class="text-white font-extrabold text-base">Cấu hình OBS Studio</h3>
+      </div>
+      <div class="space-y-3">
+        <!-- RTMP Server -->
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">📡 RTMP Server URL</label>
+          <div class="flex gap-2">
+            <input id="stuRtmpUrl" readonly value="rtmp://stream.xoso66tv.com/live" class="flex-1 bg-bg-deep border border-line text-emerald-400 font-mono text-xs px-3 py-2 rounded-lg select-all">
+            <button onclick="stuCopyText('stuRtmpUrl')" class="bg-pri hover:brightness-110 text-white px-3 rounded-lg text-xs font-bold active:scale-95">Copy</button>
+          </div>
+        </div>
+        <!-- Stream Key -->
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">🔑 Stream Key (BẢO MẬT - không chia sẻ)</label>
+          <div class="flex gap-2">
+            <input id="stuStreamKey" type="password" readonly value="sk_loading_xxxxxxxx" class="flex-1 bg-bg-deep border border-line text-yellow-300 font-mono text-xs px-3 py-2 rounded-lg select-all">
+            <button onclick="stuToggleKeyVisibility()" id="stuKeyEyeBtn" class="bg-bg-soft border border-line hover:border-pri text-pri-light px-3 rounded-lg text-xs font-bold active:scale-95" title="Hiện/ẩn">👁</button>
+            <button onclick="stuCopyText('stuStreamKey')" class="bg-pri hover:brightness-110 text-white px-3 rounded-lg text-xs font-bold active:scale-95">Copy</button>
+          </div>
+          <div class="text-[10px] text-muted mt-1">⚠ Stream key như mật khẩu - giữ bí mật, đừng chia sẻ với ai</div>
+        </div>
+        <!-- Regenerate key -->
+        <button onclick="stuRegenerateKey()" class="text-[11px] text-pri-light hover:text-pri font-semibold underline">🔄 Tạo stream key mới</button>
+      </div>
+    </div>
+
+    <!-- Step-by-step instructions -->
+    <div class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-white font-extrabold text-sm mb-3 flex items-center gap-2">
+        <span>📋</span><span>Hướng dẫn 4 bước cấu hình OBS</span>
+      </h3>
+      <ol class="space-y-3 text-[13px] text-gray-200">
+        <li class="flex gap-3">
+          <div class="w-6 h-6 rounded-full bg-pri text-white grid place-items-center font-bold text-xs shrink-0">1</div>
+          <div>
+            <b class="text-white">Mở OBS Studio</b> → Vào menu <code class="bg-bg-deep px-1.5 py-0.5 rounded text-pri-light text-[12px]">File → Settings → Stream</code>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <div class="w-6 h-6 rounded-full bg-pri text-white grid place-items-center font-bold text-xs shrink-0">2</div>
+          <div>
+            <b class="text-white">Service</b>: chọn <code class="bg-bg-deep px-1.5 py-0.5 rounded text-pri-light text-[12px]">Custom...</code><br>
+            <b class="text-white">Server</b>: dán RTMP URL ở trên<br>
+            <b class="text-white">Stream Key</b>: dán Stream Key ở trên
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <div class="w-6 h-6 rounded-full bg-pri text-white grid place-items-center font-bold text-xs shrink-0">3</div>
+          <div>
+            <b class="text-white">Output Settings</b> → <code class="bg-bg-deep px-1.5 py-0.5 rounded text-pri-light text-[12px]">Bitrate: 2500-4000 Kbps</code> · <code class="bg-bg-deep px-1.5 py-0.5 rounded text-pri-light text-[12px]">Resolution: 1920×1080 / 30fps</code>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <div class="w-6 h-6 rounded-full bg-pri text-white grid place-items-center font-bold text-xs shrink-0">4</div>
+          <div>
+            <b class="text-white">Click "Start Streaming"</b> trong OBS → Quay lại đây bấm nút <b class="text-pri-light">"Báo đã sẵn sàng"</b> để mở phòng cho viewer
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- Stream control -->
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="stuObsTestConnection()" class="bg-bg-card border-2 border-yellow-500 text-yellow-300 py-3 rounded-xl font-bold text-sm active:scale-95">
+        🧪 Test kết nối
+      </button>
+      <button onclick="stuObsGoLive()" id="stuObsGoLiveBtn" class="bg-gradient-to-r from-red-600 via-pink-600 to-red-600 hover:brightness-110 text-white py-3 rounded-xl font-black text-sm shadow-lg shadow-red-500/40 active:scale-95">
+        📡 Báo đã sẵn sàng
+      </button>
+    </div>
+
+    <!-- Status display -->
+    <div id="stuObsStatus" class="hidden bg-emerald-900/30 border border-emerald-500/50 rounded-xl p-3 text-[13px] text-emerald-200">
+      <div class="font-bold mb-1">✓ Phòng đã mở</div>
+      <div>Viewer có thể vào xem tại <a href="/idol-live" class="underline">/idol-live</a></div>
+    </div>
+  </div>
+
+  <!-- ===== PIN LOCK MANAGEMENT ===== -->
+  <div class="mt-4 bg-gradient-to-br from-red-900/20 via-bg-card to-orange-900/20 border-2 border-yellow-500/40 rounded-xl p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-2xl">🔒</span>
+      <div class="flex-1">
+        <h3 class="text-white font-extrabold text-base">Khóa phòng bằng mật mã PIN</h3>
+        <p class="text-[11px] text-muted">Chỉ viewer biết mã 4 số mới vào xem được</p>
+      </div>
+      <div id="stuPinStatus" class="text-[11px] font-bold px-2 py-1 rounded-full bg-bg-soft text-gray-300">Đang kiểm tra...</div>
+    </div>
+
+    <!-- PIN input -->
+    <div class="bg-bg-deep rounded-xl p-3 mb-3">
+      <label class="text-[11px] text-muted uppercase font-bold block mb-2 text-center">Nhập mã PIN 4 chữ số</label>
+      <div class="flex justify-center gap-2 mb-3" id="stuPinInputBox">
+        <input type="tel" maxlength="1" class="stu-pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="0">
+        <input type="tel" maxlength="1" class="stu-pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="1">
+        <input type="tel" maxlength="1" class="stu-pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="2">
+        <input type="tel" maxlength="1" class="stu-pin-digit w-12 h-14 bg-bg-card border-2 border-line focus:border-pri text-white text-2xl font-black text-center rounded-lg outline-none tabular-nums" data-idx="3">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="stuRemovePin()" id="stuRemovePinBtn" class="bg-bg-soft hover:bg-bg-deep border border-line text-gray-200 py-2 rounded-lg font-bold text-xs active:scale-95">🔓 Mở khóa phòng</button>
+        <button onclick="stuSetPin()" id="stuSetPinBtn" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:brightness-110 text-white py-2 rounded-lg font-bold text-xs active:scale-95 shadow-lg shadow-yellow-500/30">💾 Lưu mã PIN</button>
+      </div>
+    </div>
+
+    <div class="text-[11px] text-gray-300 leading-relaxed bg-bg-deep border border-line rounded p-2.5">
+      💡 <b>Mẹo bảo mật</b>:
+      <ul class="mt-1 space-y-0.5 list-disc list-inside">
+        <li>Không dùng PIN dễ đoán: 0000, 1234, năm sinh</li>
+        <li>Chia sẻ PIN qua chat riêng/Telegram cho fan trung thành</li>
+        <li>Đổi PIN định kỳ để bảo mật</li>
+        <li>PIN kết hợp với X COIN lock = bảo vệ 2 lớp</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Footer tips -->
+  <div class="mt-4 bg-gradient-to-br from-pri/10 to-bg-card border border-pri/30 rounded-xl p-4 text-sm">
+    <h3 class="text-pri-light font-extrabold mb-2 flex items-center gap-1.5">💡 Mẹo lên sóng hiệu quả</h3>
+    <ul class="text-gray-200 space-y-1.5 text-[12px] leading-relaxed">
+      <li>• <b>Chuẩn bị nội dung</b> trước khi live (5-10 phút) - viewer ghét chờ idle</li>
+      <li>• <b>Ánh sáng tốt</b> + góc quay đẹp - đầu tư ring light nhỏ &lt;500K</li>
+      <li>• <b>Tương tác liên tục</b> - chào người mới vào, đọc tên top tippers</li>
+      <li>• <b>Mục tiêu rõ ràng</b> - VD "10K coin sẽ nhảy" → viewer hứng thú góp</li>
+      <li>• <b>Khung giờ vàng</b>: 19h-23h (peak traffic), tránh giờ ăn cơm 11h-13h</li>
+      <li>• <b>Mobile yêu cầu Chrome/Safari mới nhất + HTTPS</b> (localhost OK cho dev)</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+(function(){
+  // ===== STATE =====
+  var state = {
+    identity: null, // { id, name, emoji }
+    stream: null,
+    mediaStream: null,
+    facingMode: 'user',
+    micOn: true,
+    beautyOn: false,
+    category: 'show',
+    isLive: false,
+    liveStartTime: 0,
+    durationTimer: null
+  };
+
+  // ===== HTTPS / SECURE CONTEXT CHECK =====
+  document.getElementById('stuCurrentUrl').textContent = location.protocol + '//' + location.host;
+  var isSecure = window.isSecureContext || location.protocol === 'https:' 
+              || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!isSecure) {
+    document.getElementById('stuHttpsWarn').classList.remove('hidden');
+  } else {
+    // Only show OK badge if accessed from non-localhost (means user followed tunnel)
+    if (location.protocol === 'https:' && location.hostname !== 'localhost') {
+      document.getElementById('stuHttpsOk').classList.remove('hidden');
+    }
+  }
+
+  // ===== AUTH CHECK =====
+  try {
+    var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+    if (!u.username) {
+      if (confirm('Cần đăng nhập để lên sóng. Đăng nhập ngay?')) location.href='/dang-nhap';
+      else location.href='/idol-live';
+      return;
+    }
+  } catch(e){}
+
+  // ===== TAB SWITCH =====
+  window.stuSwitchTab = function(tab){
+    var mobile = document.getElementById('stuPanelMobile');
+    var obs    = document.getElementById('stuPanelObs');
+    var tabM   = document.getElementById('stuTabMobile');
+    var tabO   = document.getElementById('stuTabObs');
+    if (tab === 'mobile'){
+      mobile.classList.remove('hidden'); obs.classList.add('hidden');
+      tabM.className = 'flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2';
+      tabO.className = 'flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2';
+    } else {
+      mobile.classList.add('hidden'); obs.classList.remove('hidden');
+      tabO.className = 'flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2';
+      tabM.className = 'flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2';
+    }
+  };
+
+  // ===== IDENTITY =====
+  function loadIdentity(){
+    try {
+      var saved = JSON.parse(localStorage.getItem('x66_idol_identity')||'null');
+      if (saved && saved.id) {
+        state.identity = saved;
+        document.getElementById('stuIdentityName').textContent = saved.name;
+        document.getElementById('stuAvatar').textContent = saved.emoji;
+        loadStreamKey();
+      }
+    } catch(e){}
+  }
+  window.stuChangeIdentity = function(){
+    document.getElementById('stuIdentityDropdown').classList.toggle('hidden');
+  };
+  window.stuSelectIdentity = function(){
+    var sel = document.getElementById('stuIdolSelect');
+    if (!sel.value) { alert('Chọn idol trước'); return; }
+    var opt = sel.options[sel.selectedIndex];
+    state.identity = { id: sel.value, name: opt.dataset.name, emoji: opt.dataset.emoji };
+    localStorage.setItem('x66_idol_identity', JSON.stringify(state.identity));
+    document.getElementById('stuIdentityName').textContent = state.identity.name;
+    document.getElementById('stuAvatar').textContent = state.identity.emoji;
+    document.getElementById('stuIdentityDropdown').classList.add('hidden');
+    loadStreamKey();
+  };
+  loadIdentity();
+
+  // ===== MOBILE CAMERA (WebRTC getUserMedia) =====
+  window.stuStartCamera = async function(){
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: state.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: state.micOn
+      });
+      state.mediaStream = stream;
+      var video = document.getElementById('stuVideo');
+      video.srcObject = stream;
+      document.getElementById('stuNoCam').classList.add('hidden');
+    } catch(e) {
+      var msg = 'Không thể truy cập camera: ' + e.message;
+      if (!window.isSecureContext) msg += '\n\n⚠ Trang đang HTTP non-secure → camera bị chặn.\n→ Xem hướng dẫn HTTPS ở banner vàng phía trên.';
+      else msg += '\n\n• Kiểm tra quyền camera trong cài đặt trình duyệt\n• Đóng app khác đang dùng camera (Zoom, Skype...)';
+      alert(msg);
+    }
+  };
+  window.stuStopCamera = function(){
+    if (state.mediaStream) {
+      state.mediaStream.getTracks().forEach(function(t){ t.stop(); });
+      state.mediaStream = null;
+    }
+    document.getElementById('stuVideo').srcObject = null;
+    document.getElementById('stuNoCam').classList.remove('hidden');
+    if (state.isLive) stuEndLive();
+  };
+  window.stuSwitchCamera = async function(){
+    state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
+    if (state.mediaStream) {
+      state.mediaStream.getTracks().forEach(function(t){ t.stop(); });
+      await stuStartCamera();
+    }
+  };
+  window.stuToggleMic = function(){
+    state.micOn = !state.micOn;
+    if (state.mediaStream) {
+      state.mediaStream.getAudioTracks().forEach(function(t){ t.enabled = state.micOn; });
+    }
+    var btn = document.getElementById('stuMicBtn');
+    btn.querySelector('span:last-child').textContent = state.micOn ? 'Mic ON' : 'Mic OFF';
+    btn.classList.toggle('border-live', !state.micOn);
+    btn.classList.toggle('text-live', !state.micOn);
+  };
+  window.stuToggleBeauty = function(){
+    state.beautyOn = !state.beautyOn;
+    var video = document.getElementById('stuVideo');
+    video.style.filter = state.beautyOn ? 'brightness(1.15) contrast(1.05) saturate(1.2) blur(0.5px)' : '';
+    var btn = document.getElementById('stuBeautyBtn');
+    btn.querySelector('span:last-child').textContent = state.beautyOn ? 'Filter ON' : 'Filter OFF';
+    btn.classList.toggle('border-pink', state.beautyOn);
+    btn.classList.toggle('text-pink', state.beautyOn);
+  };
+
+  // ===== CATEGORY =====
+  window.stuSetCategory = function(cat){
+    state.category = cat;
+    document.querySelectorAll('.stu-cat').forEach(function(b){
+      if (b.dataset.cat === cat) {
+        b.className = 'stu-cat px-2 py-1.5 bg-pri text-white text-xs font-bold rounded-lg';
+      } else {
+        b.className = 'stu-cat px-2 py-1.5 bg-bg-soft border border-line text-gray-200 text-xs font-bold rounded-lg';
+      }
+    });
+  };
+
+  // ===== GO LIVE / END LIVE =====
+  window.stuGoLive = function(){
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    if (!state.mediaStream) { alert('Bật camera trước khi lên sóng'); return; }
+    var title = document.getElementById('stuTitle').value.trim();
+    if (!title) { alert('Nhập tiêu đề buổi live'); document.getElementById('stuTitle').focus(); return; }
+    if (!confirm('Bắt đầu lên sóng với tư cách ' + state.identity.name + '?')) return;
+    // Call API to mark stream active
+    fetch('/api/studio/go-live', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity.id, title: title, category: state.category, goal: parseInt(document.getElementById('stuGoal').value||0) })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        state.isLive = true;
+        state.liveStartTime = Date.now();
+        document.getElementById('stuGoLiveBtn').classList.add('hidden');
+        document.getElementById('stuEndLiveBtn').classList.remove('hidden');
+        document.getElementById('stuLiveBadge').classList.remove('hidden');
+        document.getElementById('stuPreviewBadge').classList.add('hidden');
+        document.getElementById('stuLiveStats').classList.remove('hidden');
+        document.getElementById('stuLiveStatus').classList.remove('hidden');
+        document.getElementById('stuChatMonitor').classList.remove('hidden');
+        var openBtn = document.getElementById('stuOpenRoomBtn');
+        openBtn.classList.remove('hidden');
+        openBtn.href = '/idol/' + state.identity.id;
+        startDurationTimer();
+        startFakeStats();
+        startChatMonitor();
+        alert('🎉 ĐANG LIVE! Viewer có thể vào xem tại /idol/' + state.identity.id);
+      } else {
+        alert('Lỗi: ' + (j.error || 'Không thể lên sóng'));
+      }
+    }).catch(function(e){
+      // Fallback: just toggle UI locally
+      state.isLive = true; state.liveStartTime = Date.now();
+      document.getElementById('stuGoLiveBtn').classList.add('hidden');
+      document.getElementById('stuEndLiveBtn').classList.remove('hidden');
+      document.getElementById('stuLiveBadge').classList.remove('hidden');
+      document.getElementById('stuPreviewBadge').classList.add('hidden');
+      document.getElementById('stuLiveStats').classList.remove('hidden');
+      document.getElementById('stuLiveStatus').classList.remove('hidden');
+      document.getElementById('stuChatMonitor').classList.remove('hidden');
+      var ob = document.getElementById('stuOpenRoomBtn');
+      ob.classList.remove('hidden');
+      ob.href = '/idol/' + state.identity.id;
+      startDurationTimer(); startFakeStats(); startChatMonitor();
+      alert('🎉 ĐANG LIVE (Demo mode)');
+    });
+  };
+  window.stuEndLive = function(){
+    if (!confirm('Kết thúc buổi live?')) return;
+    fetch('/api/studio/end-live', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity ? state.identity.id : '' })
+    }).catch(function(){});
+    state.isLive = false;
+    document.getElementById('stuGoLiveBtn').classList.remove('hidden');
+    document.getElementById('stuEndLiveBtn').classList.add('hidden');
+    document.getElementById('stuLiveBadge').classList.add('hidden');
+    document.getElementById('stuPreviewBadge').classList.remove('hidden');
+    document.getElementById('stuLiveStats').classList.add('hidden');
+    document.getElementById('stuLiveStatus').classList.add('hidden');
+    document.getElementById('stuChatMonitor').classList.add('hidden');
+    document.getElementById('stuOpenRoomBtn').classList.add('hidden');
+    if (state.durationTimer) clearInterval(state.durationTimer);
+    if (state.chatTimer) clearInterval(state.chatTimer);
+  };
+
+  function startDurationTimer(){
+    if (state.durationTimer) clearInterval(state.durationTimer);
+    state.durationTimer = setInterval(function(){
+      var sec = Math.floor((Date.now() - state.liveStartTime)/1000);
+      var h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+      var str = (h>0?(h<10?'0':'')+h+':':'') + (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+      document.getElementById('stuStatDuration').textContent = str;
+      document.getElementById('stuLiveTime').textContent = str;
+    }, 1000);
+  }
+  function startFakeStats(){
+    var viewers = 0, gifts = 0;
+    var t = setInterval(function(){
+      if (!state.isLive) { clearInterval(t); return; }
+      viewers += Math.floor(Math.random()*5)-1;
+      if (viewers < 0) viewers = 0;
+      gifts += Math.random() < .3 ? Math.floor(Math.random()*100) : 0;
+      document.getElementById('stuStatViewers').textContent = viewers;
+      document.getElementById('stuLiveViewers').textContent = viewers;
+      document.getElementById('stuStatGifts').textContent = gifts.toLocaleString('vi-VN');
+    }, 2000);
+  }
+
+  // ===== OBS STREAM KEY =====
+  function loadStreamKey(){
+    if (!state.identity) return;
+    var key = 'sk_' + state.identity.id + '_' + Math.random().toString(36).substring(2, 10);
+    // Try fetch from server
+    fetch('/api/studio/get-key?idolId=' + state.identity.id)
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j.ok && j.streamKey) {
+          document.getElementById('stuStreamKey').value = j.streamKey;
+        } else {
+          document.getElementById('stuStreamKey').value = key;
+        }
+      }).catch(function(){
+        document.getElementById('stuStreamKey').value = key;
+      });
+  }
+  window.stuCopyText = function(id){
+    var el = document.getElementById(id);
+    el.type = 'text'; // temporarily show
+    el.select();
+    el.setSelectionRange(0, 9999);
+    try { navigator.clipboard.writeText(el.value); alert('✓ Đã copy!'); } 
+    catch(e){ document.execCommand('copy'); alert('✓ Đã copy!'); }
+    setTimeout(function(){ if (id === 'stuStreamKey') el.type = 'password'; }, 100);
+  };
+  window.stuToggleKeyVisibility = function(){
+    var el = document.getElementById('stuStreamKey');
+    el.type = el.type === 'password' ? 'text' : 'password';
+  };
+  window.stuRegenerateKey = function(){
+    if (!confirm('Tạo stream key mới? Key cũ sẽ bị vô hiệu, OBS đang stream sẽ disconnect.')) return;
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    fetch('/api/studio/regenerate-key', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity.id })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        document.getElementById('stuStreamKey').value = j.streamKey;
+        alert('✓ Stream key mới: ' + j.streamKey.substring(0,12) + '...');
+      } else { alert('Lỗi: ' + (j.error || 'Không thể tạo key')); }
+    }).catch(function(){
+      var newKey = 'sk_' + (state.identity ? state.identity.id : 'x') + '_' + Math.random().toString(36).substring(2, 10);
+      document.getElementById('stuStreamKey').value = newKey;
+      alert('✓ Stream key mới (demo): ' + newKey.substring(0,12) + '...');
+    });
+  };
+  window.stuObsTestConnection = function(){
+    alert('🧪 Đang test kết nối RTMP...\n\n(Demo: Sản phẩm thực sẽ kiểm tra TCP socket đến port 1935 và ping RTMP handshake)');
+  };
+  // ===== PIN LOCK MANAGEMENT =====
+  function setupPinInputs(){
+    var inputs = document.querySelectorAll('.stu-pin-digit');
+    inputs.forEach(function(inp, idx){
+      inp.addEventListener('input', function(e){
+        // Only numbers
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value && idx < inputs.length - 1) inputs[idx+1].focus();
+      });
+      inp.addEventListener('keydown', function(e){
+        if (e.key === 'Backspace' && !this.value && idx > 0) inputs[idx-1].focus();
+      });
+      inp.addEventListener('paste', function(e){
+        e.preventDefault();
+        var paste = (e.clipboardData || window.clipboardData).getData('text');
+        var digits = (paste || '').replace(/[^0-9]/g, '').slice(0, 4).split('');
+        digits.forEach(function(d, i){ if (inputs[i]) inputs[i].value = d; });
+        if (digits.length >= 4 && inputs[3]) inputs[3].focus();
+      });
+    });
+  }
+  setupPinInputs();
+
+  function getPinValue(){
+    var inputs = document.querySelectorAll('.stu-pin-digit');
+    var pin = '';
+    inputs.forEach(function(i){ pin += i.value; });
+    return pin;
+  }
+  function clearPinInputs(){
+    document.querySelectorAll('.stu-pin-digit').forEach(function(i){ i.value = ''; });
+  }
+
+  function loadPinStatus(){
+    if (!state.identity) {
+      document.getElementById('stuPinStatus').textContent = 'Chưa chọn idol';
+      return;
+    }
+    fetch('/api/studio/get-pin-status?idolId=' + state.identity.id)
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var el = document.getElementById('stuPinStatus');
+        if (j.ok && j.hasPin) {
+          el.textContent = '🔒 ĐANG KHÓA';
+          el.className = 'text-[11px] font-bold px-2 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40';
+        } else {
+          el.textContent = '🔓 MỞ';
+          el.className = 'text-[11px] font-bold px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        }
+      }).catch(function(){
+        document.getElementById('stuPinStatus').textContent = '? Không lấy được';
+      });
+  }
+  // Override stuSelectIdentity to also load pin status
+  var origSelectIdentity = window.stuSelectIdentity;
+  window.stuSelectIdentity = function(){
+    origSelectIdentity.apply(this, arguments);
+    loadPinStatus();
+  };
+  // Initial check (in case identity loaded from storage)
+  setTimeout(loadPinStatus, 500);
+
+  window.stuSetPin = function(){
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    var pin = getPinValue();
+    if (!/^[0-9]{4}$/.test(pin)) { alert('PIN phải đúng 4 chữ số'); return; }
+    if (pin === '0000' || pin === '1111' || pin === '1234') {
+      if (!confirm('PIN "' + pin + '" quá dễ đoán! Vẫn dùng?')) return;
+    }
+    fetch('/api/studio/set-pin', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity.id, pin: pin })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        alert('🔒 Đã khóa phòng với PIN ' + pin + '!\nChia sẻ PIN cho fan để họ vào xem.');
+        clearPinInputs();
+        loadPinStatus();
+      } else {
+        alert('Lỗi: ' + (j.error || 'Không thể lưu PIN'));
+      }
+    });
+  };
+
+  window.stuRemovePin = function(){
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    if (!confirm('Mở khóa phòng - mọi viewer đều vào được không cần PIN?')) return;
+    fetch('/api/studio/remove-pin', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity.id })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        alert('🔓 Đã mở khóa phòng');
+        clearPinInputs();
+        loadPinStatus();
+      } else {
+        alert('Lỗi: ' + (j.error || 'Không thể mở khóa'));
+      }
+    });
+  };
+
+  // ===== CHAT MONITOR =====
+  var STU_BOT_MSGS = [
+    {user:'VTNT.Com', lvl:41, c:'emerald', text:'Hoan nghênh idol'},
+    {user:'Max12', lvl:2, c:'pink', text:'Hello idol xinh quá'},
+    {user:'nhtky', lvl:42, c:'emerald', text:'Idol cover bài gì đi'},
+    {user:'KingX66', lvl:55, c:'amber', text:'Idol xinh quá ❤️'},
+    {user:'LinhT', lvl:8, c:'sky', text:'Đợi mãi mới thấy idol live'},
+    {user:'BoMy_X66', lvl:30, c:'purple', text:'Vừa nạp 100K coin cho idol'},
+    {user:'CauBe88', lvl:12, c:'pink', text:'Idol đẹp gái thế'},
+    {user:'GirlVN', lvl:21, c:'sky', text:'Phòng hôm nay đông quá'},
+    {user:'Anh3T', lvl:67, c:'amber', text:'🔥🔥🔥'},
+    {user:'NgocBich', lvl:5, c:'pink', text:'Like'},
+    {user:'TaiPhu99', lvl:88, c:'amber', text:'Đại gia đến chào idol'},
+    {user:'MrX', lvl:33, c:'purple', text:'Đêm nay live mấy giờ vậy idol'}
+  ];
+  var STU_COLOR = { emerald:'bg-emerald-500', pink:'bg-pink-500', amber:'bg-amber-500', sky:'bg-sky-500', purple:'bg-purple-500' };
+
+  function pushStuChat(user, lvl, color, text, isMine, isGift){
+    var list = document.getElementById('stuChatList');
+    if (!list) return;
+    var el = document.createElement('div');
+    var cm = STU_COLOR[color] || STU_COLOR.sky;
+    if (isMine) {
+      el.className = 'flex items-start gap-1.5 text-[12px] bg-pri/15 border border-pri/30 rounded-lg px-2 py-1.5 ml-6';
+      el.innerHTML = '<span class="bg-pri text-white text-[9px] font-black px-1 py-0.5 rounded">IDOL</span>'
+        + '<span class="font-bold text-pri-light truncate">Bạn</span>'
+        + '<span class="text-white flex-1">' + stuEsc(text) + '</span>';
+    } else if (isGift) {
+      el.className = 'flex items-center gap-1.5 text-[12px] bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-l-4 border-orange-400 rounded px-2 py-1.5';
+      el.innerHTML = '<span class="font-bold text-yellow-300 truncate">' + stuEsc(user) + '</span>'
+        + '<span class="text-white">' + stuEsc(text) + '</span>';
+    } else {
+      el.className = 'flex items-start gap-1.5 text-[12px] px-2 py-1';
+      el.innerHTML = '<span class="' + cm + ' text-white text-[9px] font-black px-1 py-0.5 rounded shrink-0">' + lvl + '</span>'
+        + '<span class="font-bold text-pri-light truncate">' + stuEsc(user) + '</span>'
+        + '<span class="text-gray-200 flex-1 break-words">' + stuEsc(text) + '</span>';
+    }
+    list.appendChild(el);
+    list.scrollTop = list.scrollHeight;
+    while (list.children.length > 100) list.removeChild(list.firstChild);
+  }
+  function stuEsc(s){ return String(s||'').replace(/[<>&"]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+
+  function startChatMonitor(){
+    if (state.chatTimer) clearInterval(state.chatTimer);
+    pushStuChat('','','','🟢 Phòng đã mở - viewer sẽ thấy bạn đang LIVE', false, true);
+    // Bot chat random 3-8s
+    state.chatTimer = setInterval(function(){
+      if (!state.isLive) { clearInterval(state.chatTimer); return; }
+      var m = STU_BOT_MSGS[Math.floor(Math.random()*STU_BOT_MSGS.length)];
+      pushStuChat(m.user, m.lvl, m.c, m.text);
+      // Update online count
+      var oc = document.getElementById('stuChatOnlineCount');
+      if (oc) oc.textContent = (50 + Math.floor(Math.random()*200)) + ' online';
+      // 20% chance gift message
+      if (Math.random() < .2) {
+        setTimeout(function(){
+          var gifts = ['🌹 Hoa hồng (1)','❤️ Trái tim (2)','💋 Nụ hôn (5)','🎂 Bánh kem (50)','💎 Kim cương (1K)'];
+          var g = gifts[Math.floor(Math.random()*gifts.length)];
+          pushStuChat(m.user, m.lvl, m.c, '🎁 vừa tặng ' + g, false, true);
+        }, 800);
+      }
+    }, 3000 + Math.random()*5000);
+  }
+
+  window.stuSendChatReply = function(){
+    var inp = document.getElementById('stuChatInput');
+    if (!inp || !inp.value.trim()) return;
+    pushStuChat('Bạn', 99, 'amber', inp.value.trim(), true);
+    inp.value = '';
+  };
+
+  window.stuObsGoLive = function(){
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    fetch('/api/studio/go-live', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity.id, source: 'obs' })
+    }).catch(function(){});
+    document.getElementById('stuObsStatus').classList.remove('hidden');
+    alert('🎉 Phòng đã mở! Viewer có thể vào /idol/' + state.identity.id);
+  };
+})();
+</script>

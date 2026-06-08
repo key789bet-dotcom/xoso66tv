@@ -1,0 +1,29 @@
+<aside class="bg-gradient-to-br from-[#1c2030] via-[#2a1a3d] to-[#3d1a1a] border border-line rounded-2xl p-9 flex flex-col relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at 30% 20%, rgba(255,122,24,.15), transparent 50%), radial-gradient(circle at 80% 80%, rgba(233,30,99,.12), transparent 50%);"></div>
+  <h2 class="text-2xl font-extrabold text-white mb-2 relative"><%= sideTitle %></h2>
+  <p class="text-white/80 mb-6 relative"><%= sideLead %></p>
+
+  <div class="space-y-3.5 relative">
+    <%
+    var BENEFITS = [
+      { i:'&#128250;', t:'Xem truc tiep HD mien phi', d:'Hang nghin tran the thao, idol live, casino 24/7' },
+      { i:'&#127873;', t:'Thuong dang ky 100%',       d:'Nhan ngay 1.000.000d khi nap lan dau' },
+      { i:'&#128176;', t:'Nap/Rut sieu nhanh',        d:'Momo, ZaloPay, Banking, USDT - chi 1 phut' },
+      { i:'&#128737;',  t:'An toan tuyet doi',         d:'Bao mat SSL, ma hoa end-to-end, xac thuc 2 yeu to' }
+    ];
+    BENEFITS.forEach(function(b){
+    %>
+      <div class="flex items-start gap-3 text-white">
+        <div class="text-2xl w-11 h-11 bg-white/10 rounded-xl grid place-items-center shrink-0 backdrop-blur"><%- b.i %></div>
+        <div><strong class="block text-sm mb-0.5"><%= b.t %></strong><span class="text-white/70 text-[12.5px] leading-snug"><%= b.d %></span></div>
+      </div>
+    <% }); %>
+  </div>
+
+  <div class="mt-auto pt-6 relative">
+    <div class="p-3.5 bg-black/40 rounded-xl border border-white/10 backdrop-blur">
+      <div class="text-gold font-extrabold text-[13px] mb-1.5">&#128293; KHUYEN MAI HOM NAY</div>
+      <div class="text-white/85 text-xs leading-snug">Dang ky moi + nap 500K - Tang ngay 500K khuyen mai + 50 free spin tai Casino.</div>
+    </div>
+  </div>
+</aside>

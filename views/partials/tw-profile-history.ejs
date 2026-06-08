@@ -1,0 +1,60 @@
+<header class="mb-5">
+  <h1 class="text-xl font-extrabold text-white mb-1">Lịch sử đổi quà</h1>
+  <p class="text-muted text-sm">Tất cả phần quà bạn đã đổi bằng X COIN.</p>
+</header>
+
+<!-- Filter chips -->
+<nav class="flex gap-2 flex-wrap mb-4 text-xs font-bold">
+  <button class="hs-flt px-3 py-1.5 rounded-full bg-pri text-white" data-flt="all">Tất cả</button>
+  <button class="hs-flt px-3 py-1.5 rounded-full bg-bg-soft text-gray-200 hover:bg-bg-deep" data-flt="voucher">Voucher</button>
+  <button class="hs-flt px-3 py-1.5 rounded-full bg-bg-soft text-gray-200 hover:bg-bg-deep" data-flt="cash">Tiền mặt</button>
+  <button class="hs-flt px-3 py-1.5 rounded-full bg-bg-soft text-gray-200 hover:bg-bg-deep" data-flt="phys">Quà vật lý</button>
+</nav>
+
+<%
+var GIFTS = [
+  { date:'04/06/2026', name:'Voucher Shopee 50K',  cost:100, type:'voucher', status:'done', code:'X66-V-7821' },
+  { date:'01/06/2026', name:'Voucher Grab 30K',    cost:60,  type:'voucher', status:'done', code:'X66-V-6553' },
+  { date:'28/05/2026', name:'Hoàn 50K vào ví',     cost:120, type:'cash',    status:'done', code:'X66-C-4421' },
+  { date:'15/05/2026', name:'Áo thun XOSO66 size L', cost:500, type:'phys',  status:'shipping', code:'X66-P-3098' },
+  { date:'02/05/2026', name:'Tai nghe AirPods 3',  cost:8000,type:'phys',    status:'done', code:'X66-P-2155' }
+];
+%>
+<div class="space-y-2" id="hsList">
+  <% GIFTS.forEach(function(g){ %>
+    <article class="hs-item flex items-center gap-3 bg-bg-soft border border-line rounded-lg p-3" data-type="<%= g.type %>">
+      <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-pri/30 to-pri-dark/20 grid place-items-center text-2xl">
+        <%= g.type==='voucher'?'🎟️':g.type==='cash'?'💵':'🎁' %>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-white text-sm truncate"><%= g.name %></div>
+        <div class="text-[11px] text-muted">Mã: <span class="text-pri-light font-mono"><%= g.code %></span> &middot; <%= g.date %></div>
+      </div>
+      <div class="text-right shrink-0">
+        <div class="font-extrabold text-gold tabular-nums">-<%= g.cost %> X COIN</div>
+        <% if (g.status === 'done') { %>
+          <span class="inline-block bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">✓ Hoàn tất</span>
+        <% } else if (g.status === 'shipping') { %>
+          <span class="inline-block bg-sky-500/20 text-sky-400 text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">🚚 Đang giao</span>
+        <% } else { %>
+          <span class="inline-block bg-gray-500/20 text-muted text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5"><%= g.status %></span>
+        <% } %>
+      </div>
+    </article>
+  <% }); %>
+</div>
+
+<a href="/qua-tang" class="inline-block mt-5 px-5 py-2.5 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white rounded-lg font-bold text-sm">&#127873; Đổi quà tiếp</a>
+
+<script>
+document.querySelectorAll('.hs-flt').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.hs-flt').forEach(function(x){ x.className = x.className.replace('bg-pri text-white','bg-bg-soft text-gray-200 hover:bg-bg-deep'); });
+    this.className = this.className.replace('bg-bg-soft text-gray-200 hover:bg-bg-deep','bg-pri text-white');
+    var f = this.getAttribute('data-flt');
+    document.querySelectorAll('.hs-item').forEach(function(it){
+      it.style.display = (f === 'all' || it.getAttribute('data-type') === f) ? '' : 'none';
+    });
+  });
+});
+</script>

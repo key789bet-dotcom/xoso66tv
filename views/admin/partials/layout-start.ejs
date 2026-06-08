@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= typeof title!=='undefined'?title:'Admin' %> &middot; XOSO66 TV</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/webp" href="/static/img/favicon.webp">
+<%- include('../../partials/tailwind-config') %>
+</head>
+<body class="bg-bg text-gray-100 font-sans text-sm antialiased">
+<div class="min-h-screen grid md:grid-cols-[260px_1fr]">
+  <aside class="bg-gradient-to-b from-[#13171f] to-bg border-r border-line sticky top-0 h-screen overflow-y-auto scrollbar-thin">
+    <a href="/admin" class="flex items-center gap-2.5 px-5 py-4 border-b border-line hover:bg-bg-soft transition-colors">
+      <img src="/static/img/favicon.webp" alt="Admin" class="w-10 h-10 rounded-lg object-cover" onerror="this.outerHTML='<div class=&quot;w-10 h-10 rounded-lg bg-gradient-to-br from-pri to-gold grid place-items-center font-black text-bg-soft&quot;>A</div>'">
+      <div>
+        <div class="font-black text-base leading-none">ADMIN PANEL</div>
+        <div class="text-[11px] text-pri-light font-bold mt-0.5">XOSO66 TV</div>
+      </div>
+    </a>
+    <nav class="p-2.5">
+      <%
+        var menu = [
+          { href:'/admin',         ico:'&#128202;', text:'Dashboard',           a:'dash' },
+          { href:'/admin/users',   ico:'&#128100;', text:'Quan ly User',        a:'users' },
+          { href:'/admin/blv',     ico:'&#127908;', text:'Quan ly BLV',         a:'blv' },
+          { href:'/admin/idol',    ico:'&#128081;', text:'Quan ly Idol',        a:'idol' },
+          { href:'/admin/obs',     ico:'&#128250;', text:'OBS Approval',        a:'obs', badge: typeof obsPending!=='undefined'?obsPending:0 },
+          { href:'/admin/banners', ico:'&#127912;', text:'Banner Hero',         a:'banners' },
+          { href:'/admin/promos',  ico:'&#127873;', text:'Promo Cards',         a:'promos' },
+          { href:'/admin/partner', ico:'&#128279;', text:'Tich hop Xoso66',     a:'partner' },
+          { href:'/admin/links',   ico:'&#128279;', text:'Link he thong',       a:'links' },
+          { href:'/admin/audit',   ico:'&#128203;', text:'Audit Log',           a:'audit' },
+          { href:'/admin/2fa',     ico:'&#128737;', text:'Bao mat 2FA',         a:'2fa', badge:'NEW' }
+        ];
+      %>
+      <% menu.forEach(function(it){ var ac=active===it.a; %>
+        <a href="<%= it.href %>" class="relative flex items-center gap-2.5 px-3 py-2.5 my-0.5 rounded-lg text-sm font-semibold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/20 to-transparent text-pri-light' : 'text-gray-100 hover:bg-bg-soft hover:text-white' %>">
+          <% if (ac) { %><span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-pri rounded-r"></span><% } %>
+          <span class="text-lg w-6 text-center"><%- it.ico %></span>
+          <span class="flex-1"><%= it.text %></span>
+          <% if (it.badge && it.badge>0) { %><span class="bg-live text-white px-2 py-0.5 rounded-full text-[11px] font-extrabold min-w-[22px] text-center animate-pulse-live"><%= it.badge %></span><% } %>
+        </a>
+      <% }); %>
+      <div class="mt-6 pt-4 border-t border-line">
+        <a href="/" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted hover:text-white hover:bg-bg-soft"><span class="text-lg w-6 text-center">&#127968;</span> Ve trang chu</a>
+        <a href="/admin/logout" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted hover:text-live hover:bg-live/10"><span class="text-lg w-6 text-center">&#128682;</span> Dang xuat</a>
+      </div>
+    </nav>
+  </aside>
+  <main class="overflow-x-hidden">
+    <header class="bg-bg-card border-b border-line px-6 py-3.5 sticky top-0 z-40 flex items-center gap-3">
+      <h1 class="text-lg font-extrabold text-white flex-1"><%= typeof title!=='undefined'?title:'Admin' %></h1>
+      <span class="text-xs text-muted">Xin chao, <b class="text-pri-light"><%= typeof adminUser!=='undefined'?adminUser:'admin' %></b></span>
+      <a href="/admin/logout" class="px-3 py-1.5 rounded-md bg-live/10 text-live text-xs font-bold hover:bg-live hover:text-white transition-colors">Dang xuat</a>
+    </header>
+    <div class="p-6">

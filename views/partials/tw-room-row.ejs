@@ -1,0 +1,53 @@
+<% var _isLive = (m.status||'')==='live';
+   var _isIdol = (m.sport||'')==='Idol';
+   var _lock   = _isIdol ? (m.lock||0) : 0;
+   var _href   = _isIdol ? 'javascript:void(0)' : ('/live/' + (m.slug || m.id));
+   var _onclick= _isIdol ? ('tryEnterIdolRow(this,event)') : '';
+%>
+<a href="<%= _href %>"
+   <% if (_isIdol) { %>onclick="<%= _onclick %>"
+   data-id="<%= m.id %>" data-name="<%= m.home %>" data-room="<%= m.away %>" data-lock="<%= _lock %>" data-emoji="<%= m.emoji||'👑' %>"<% } %>
+   class="flex items-center gap-2.5 px-3 py-2.5 border-b border-line/40 hover:bg-bg-soft transition-colors group">
+  <!-- Thumb -->
+  <div class="relative w-[68px] h-[44px] rounded-md overflow-hidden bg-gradient-to-br <%= _isIdol ? 'from-purple to-pink' : 'from-[#1a2030] to-bg' %> shrink-0 border border-line/40">
+    <% if (m.poster) { %>
+      <img src="<%= m.poster %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+    <% } else if (_isIdol) { %>
+      <div class="absolute inset-0 grid place-items-center text-2xl text-white"><%= m.emoji || '👑' %></div>
+    <% } %>
+    <% if (_isLive) { %>
+      <span class="absolute top-0.5 left-0.5 bg-live text-white text-[8px] font-extrabold px-1 py-0 rounded flex items-center gap-0.5 leading-tight"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+    <% } else { %>
+      <span class="absolute top-0.5 left-0.5 bg-pri text-white text-[8px] font-extrabold px-1 py-0 rounded leading-tight">&#9200;</span>
+    <% } %>
+    <% if (_lock > 0) { %>
+      <span class="absolute bottom-0.5 right-0.5 bg-black/70 text-gold text-[8px] font-extrabold px-1 py-0 rounded leading-tight flex items-center gap-0.5">🔒<%= _lock >= 1000 ? Math.round(_lock/1000)+'K' : _lock %></span>
+    <% } %>
+  </div>
+
+  <!-- Info -->
+  <div class="flex-1 min-w-0">
+    <div class="text-[11px] text-pri-light font-semibold uppercase tracking-wide truncate"><%= m.league %></div>
+    <div class="text-[12.5px] text-white font-bold truncate group-hover:text-pri-light transition-colors">
+      <%= m.home %> <% if (!_isIdol) { %><span class="text-muted">vs</span> <%= m.away %><% } else { %><span class="text-muted text-[11px] font-normal">· <%= m.away %></span><% } %>
+    </div>
+    <div class="text-[10.5px] text-dim flex items-center gap-1.5 mt-0.5">
+      <% if (_isLive && m.score) { %>
+        <span class="text-gold font-bold tabular-nums"><%= m.score[0] %>-<%= m.score[1] %></span>
+      <% } else if (_isIdol) { %>
+        <% if (_lock === 0) { %><span class="text-emerald-400 font-bold">🔓 FREE</span>
+        <% } else { %><span class="text-gold font-bold tabular-nums">🔒 <%= _lock.toLocaleString('vi-VN') %> 🪙</span><% } %>
+      <% } else { %>
+        <span><%= m.time || '--:--' %></span>
+      <% } %>
+      <% if (!_isIdol) { %><span class="opacity-60">&middot;</span><span>&#127908; BLV X66</span><% } %>
+    </div>
+  </div>
+
+  <!-- Right arrow / lock icon -->
+  <% if (_lock > 0) { %>
+    <span class="text-gold group-hover:text-pri transition-colors shrink-0 text-lg">🔒</span>
+  <% } else { %>
+    <span class="text-muted group-hover:text-pri transition-colors shrink-0">&rsaquo;</span>
+  <% } %>
+</a>

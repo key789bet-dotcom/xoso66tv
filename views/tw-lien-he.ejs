@@ -1,0 +1,85 @@
+<% var pageTitle='Liên Hệ', pageH1='Liên Hệ '+brand.name, breadcrumbName='Liên Hệ', updated='2026-06-05', canonicalPath='/lien-he';
+var pageDesc = 'Liên hệ với '+brand.name+' qua Telegram, Facebook, Email hoặc gửi form trực tiếp. CSKH hỗ trợ 24/7.';
+var contentHtml = `
+<p>Đội ngũ <strong>${brand.name}</strong> luôn sẵn sàng hỗ trợ bạn 24/7 qua các kênh sau. Mọi thắc mắc, góp ý, hợp tác hoặc báo lỗi đều sẽ được phản hồi trong vòng <strong>15-30 phút</strong>.</p>
+
+<h2>📞 Kênh liên hệ chính thức</h2>
+<div class="grid sm:grid-cols-2 gap-3 not-prose">
+  <a href="${partner.telegram}" target="_blank" rel="noopener" class="!no-underline bg-bg-soft hover:bg-bg-deep border border-line rounded-lg p-4 flex items-center gap-3 transition-colors">
+    <div class="w-12 h-12 rounded-full bg-[#229ED9] grid place-items-center text-white text-2xl">✈</div>
+    <div>
+      <div class="text-white font-extrabold">Telegram</div>
+      <div class="text-pri-light text-sm">@xoso66tv</div>
+      <div class="text-muted text-[11px] mt-0.5">Nhanh nhất - phản hồi 1 phút</div>
+    </div>
+  </a>
+  <a href="https://www.facebook.com/${brand.short.toLowerCase().replace(/ /g,'')}" target="_blank" rel="noopener" class="!no-underline bg-bg-soft hover:bg-bg-deep border border-line rounded-lg p-4 flex items-center gap-3 transition-colors">
+    <div class="w-12 h-12 rounded-full bg-[#1877f2] grid place-items-center text-white text-2xl">f</div>
+    <div>
+      <div class="text-white font-extrabold">Facebook</div>
+      <div class="text-pri-light text-sm">@${brand.short.toLowerCase().replace(/ /g,'')}</div>
+      <div class="text-muted text-[11px] mt-0.5">Inbox &amp; comment</div>
+    </div>
+  </a>
+  <a href="mailto:cskh@${brand.domain}" class="!no-underline bg-bg-soft hover:bg-bg-deep border border-line rounded-lg p-4 flex items-center gap-3 transition-colors">
+    <div class="w-12 h-12 rounded-full bg-pri grid place-items-center text-white text-2xl">@</div>
+    <div>
+      <div class="text-white font-extrabold">Email</div>
+      <div class="text-pri-light text-sm">cskh@${brand.domain}</div>
+      <div class="text-muted text-[11px] mt-0.5">Phản hồi trong 1-2 giờ</div>
+    </div>
+  </a>
+  <a href="${partner.cskh}" target="_blank" rel="noopener" class="!no-underline bg-bg-soft hover:bg-bg-deep border border-line rounded-lg p-4 flex items-center gap-3 transition-colors">
+    <div class="w-12 h-12 rounded-full bg-emerald-600 grid place-items-center text-white text-2xl">💬</div>
+    <div>
+      <div class="text-white font-extrabold">Live Chat</div>
+      <div class="text-pri-light text-sm">CSKH 24/7</div>
+      <div class="text-muted text-[11px] mt-0.5">Chat trực tuyến tức thì</div>
+    </div>
+  </a>
+</div>
+
+<h2>📋 Hợp tác kinh doanh</h2>
+<p>Quan tâm về hợp tác quảng cáo, đặt banner, tài trợ trận đấu hoặc tuyển dụng BLV/Idol? Vui lòng gửi đề xuất chi tiết qua email <a href="mailto:partner@${brand.domain}"><strong>partner@${brand.domain}</strong></a>.</p>
+
+<h2>✉️ Gửi tin nhắn cho chúng tôi</h2>
+<form id="contactForm" class="not-prose space-y-3" novalidate>
+  <div class="grid sm:grid-cols-2 gap-3">
+    <input id="cfName"  type="text"  required minlength="2" class="bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="Họ và tên">
+    <input id="cfEmail" type="email" required class="bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="Email">
+  </div>
+  <select id="cfTopic" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+    <option value="">Chọn chủ đề liên hệ</option>
+    <option>Báo lỗi trang web</option>
+    <option>Báo lỗi xem stream</option>
+    <option>Tài khoản &amp; nạp/rút</option>
+    <option>Hợp tác kinh doanh</option>
+    <option>Ứng tuyển BLV / Idol</option>
+    <option>Góp ý / Khiếu nại</option>
+    <option>Khác</option>
+  </select>
+  <textarea id="cfMsg" rows="5" required minlength="20" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri resize-none" placeholder="Nhập nội dung tin nhắn (tối thiểu 20 ký tự)..."></textarea>
+  <button type="submit" class="px-6 py-2.5 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white rounded-lg font-extrabold shadow-pri">📤 Gửi tin nhắn</button>
+</form>
+<script>
+document.getElementById('contactForm')?.addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = document.getElementById('cfName').value.trim();
+  var email = document.getElementById('cfEmail').value.trim();
+  var msg = document.getElementById('cfMsg').value.trim();
+  if (name.length<2||!email||msg.length<20) { alert('Vui lòng điền đủ thông tin (tên, email, nội dung >=20 ký tự)'); return; }
+  // Demo: chuyển hướng sang Telegram với prefill
+  var tg = '${partner.telegram}?start=' + encodeURIComponent('Tu: '+name+' ('+email+') - '+msg.slice(0,200));
+  alert('Cảm ơn ' + name + '! Bạn sẽ được chuyển sang Telegram để gửi tin nhắn.');
+  window.open(tg, '_blank');
+});
+</script>
+
+<h2>⏰ Giờ làm việc CSKH</h2>
+<ul>
+  <li><strong>Live Chat &amp; Telegram:</strong> 24/7 (tất cả các ngày trong tuần)</li>
+  <li><strong>Email:</strong> Phản hồi trong giờ hành chính 8h00 - 22h00</li>
+  <li><strong>Hợp tác kinh doanh:</strong> 9h00 - 18h00 (Thứ 2 - Thứ 6)</li>
+</ul>
+`; %>
+<%- include('partials/tw-static-shell', { pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml, canonicalPath }) %>

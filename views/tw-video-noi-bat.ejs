@@ -1,0 +1,39 @@
+<%
+seo = {
+  title: 'Video Highlight Bóng Đá & Thể Thao Mới Nhất - '+brand.name,
+  description: list.length+' video highlight HD các trận thể thao mới nhất tại '+brand.name+'. Bình luận tiếng Việt.',
+  keywords: 'video highlight, highlight bóng đá, video thể thao, replay',
+  canonical: '/video-noi-bat',
+  breadcrumb: [{ name:'Video nổi bật', url:'/video-noi-bat' }]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5"><span class="text-2xl">&#127916;</span> <span class="text-shimmer">Video Nổi Bật - Highlight Thể Thao Mới Nhất</span></h1>
+  <p class="text-muted text-sm">Bộ sưu tập <strong class="text-white"><%= list.length %> video highlight</strong> chất lượng HD từ các trận thể thao vừa kết thúc.</p>
+</header>
+
+<section>
+  <% if (!list || list.length === 0) { %>
+    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted"><div class="text-5xl mb-2 opacity-60">&#127916;</div>Chưa có video nào.</div>
+  <% } else { %>
+    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]"><%- include('partials/tw-stream-card', { list: list }) %></div>
+  <% } %>
+</section>
+
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2:'Highlight thể thao cập nhật theo phút',
+  intro:'<strong>'+brand.name+'</strong> sync video highlight từ các nguồn chính thức ngay khi trận kết thúc. Chỉ 1-2 giờ sau trận là có ngay highlight bình luận tiếng Việt.',
+  sections: [
+    { h3:'Phủ sóng mọi giải đấu', p:'Từ Champions League, Ngoại Hạng Anh, La Liga đến NBA, EuroLeague, ATP/WTA, LCK esports. Sang <a href="/lich-phat-song">lịch phát sóng</a> để xem các trận sắp tới.' },
+    { h3:'Xem cùng cộng đồng', p:'Đăng ký <a href="/dang-ky">tài khoản miễn phí</a> để bình luận và lưu video yêu thích.' }
+  ],
+  faqs: [
+    { q:'Có tải video về máy được không?', a:'Tùy video - các video YouTube embed có nút tải tự động.' },
+    { q:'Video có quảng cáo không?', a:'Không. '+brand.name+' cam kết stream sạch không quảng cáo gián đoạn.' }
+  ]
+}}) %>
+
+<%- include('partials/tw-footer') %>

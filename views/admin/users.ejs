@@ -1,0 +1,146 @@
+<%- include('partials/layout-start', { title:'Quan ly User', active:'users', obsPending: obsPending, adminUser: adminUser }) %>
+
+<form method="GET" class="flex flex-wrap gap-3 mb-4 items-center">
+  <input name="q" value="<%= q||'' %>" placeholder="Tim kiem username, email, SDT..." class="flex-1 min-w-[200px] bg-bg-card border border-line text-gray-100 px-4 py-2.5 rounded-lg outline-none focus:border-pri">
+  <select name="vip" class="bg-bg-card border border-line text-gray-100 px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+    <option value="">Tat ca VIP</option>
+    <% VIP_TIERS.forEach(function(t){ %><option value="<%= t.id %>" <%= String(vipFilter)===String(t.id)?'selected':'' %>><%= t.name %></option><% }); %>
+  </select>
+  <select name="status" class="bg-bg-card border border-line text-gray-100 px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+    <option value="">Tat ca trang thai</option>
+    <option value="active" <%= statusFilter==='active'?'selected':'' %>>Active</option>
+    <option value="banned" <%= statusFilter==='banned'?'selected':'' %>>Banned</option>
+  </select>
+  <button class="px-5 py-2.5 bg-pri hover:bg-pri-dark text-white rounded-lg font-bold">Tim</button>
+  <a href="/admin/users" class="px-4 py-2.5 bg-bg-card border border-line text-muted hover:text-white rounded-lg text-sm">Reset</a>
+</form>
+
+<!-- Tao tai khoan moi -->
+<details class="bg-bg-card border-2 border-emerald-500/40 rounded-xl mb-4 group">
+  <summary class="px-5 py-3 cursor-pointer font-extrabold text-white flex items-center gap-2 select-none list-none hover:bg-bg-soft">
+    <span class="w-6 h-6 bg-emerald-500 rounded-full grid place-items-center font-black group-open:bg-live transition-colors">+</span>
+    Tao tai khoan user moi
+    <span class="ml-auto text-[11px] text-muted">Click de mo / dong form</span>
+  </summary>
+  <form action="/admin/users/create" method="POST" class="p-5 border-t border-line space-y-3">
+    <div class="grid md:grid-cols-2 gap-3">
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Username *</span>
+        <input name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="vd: nguyen_a">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Ho ten</span>
+        <input name="fullname" maxlength="80" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="Nguyen Van A">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">So dien thoai *</span>
+        <input name="phone" required pattern="0[0-9]{9}" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="0912345678">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Email</span>
+        <input name="email" type="email" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="email@example.com">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Mat khau *</span>
+        <input name="password" type="text" required minlength="6" maxlength="50" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="Toi thieu 6 ky tu">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Cap VIP</span>
+        <select name="vip" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+          <% VIP_TIERS.forEach(function(t){ %><option value="<%= t.id %>" <%= t.id===0?'selected':'' %>><%= t.name %></option><% }); %>
+        </select>
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">So du khoi tao (VND)</span>
+        <input name="balance" type="number" value="0" min="0" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">So X COIN khoi tao</span>
+        <input name="coin" type="number" value="50" min="0" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+      </label>
+      <label class="block md:col-span-2">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Trang thai</span>
+        <select name="status" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+          <option value="active" selected>Active</option>
+          <option value="banned">Banned</option>
+        </select>
+      </label>
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="px-6 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-700 hover:brightness-110 text-white rounded-lg font-extrabold shadow-lg">+ Tao tai khoan</button>
+      <button type="reset" class="px-6 py-2.5 bg-bg-deep hover:bg-bg-soft text-white border border-line rounded-lg font-bold">Reset</button>
+    </div>
+  </form>
+</details>
+
+<div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-bg-soft text-muted text-[11px] uppercase tracking-wider">
+        <tr>
+          <th class="px-4 py-3 text-left">User</th>
+          <th class="px-4 py-3 text-left">Lien he</th>
+          <th class="px-4 py-3 text-center">VIP</th>
+          <th class="px-4 py-3 text-right">So du</th>
+          <th class="px-4 py-3 text-center">Trang thai</th>
+          <th class="px-4 py-3 text-left">Tham gia</th>
+          <th class="px-4 py-3 text-center">Hanh dong</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!list.length) { %>
+          <tr><td colspan="7" class="text-center py-12 text-muted">Khong co user phu hop</td></tr>
+        <% } %>
+        <% list.forEach(function(u){ var tier = VIP_TIERS[u.vip] || VIP_TIERS[0]; %>
+          <tr class="border-t border-line hover:bg-bg-soft/50 transition-colors">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full grid place-items-center font-extrabold text-white shrink-0" style="background:hsl(<%= u.username.charCodeAt(0)*7 %>,55%,45%)"><%= u.username[0].toUpperCase() %></div>
+                <div>
+                  <div class="font-bold text-white"><%= u.username %></div>
+                  <div class="text-xs text-muted"><%= u.fullname %></div>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-xs text-muted">
+              <div>&#128241; <%= u.phone %></div>
+              <% if (u.email) { %><div>&#9993; <%= u.email %></div><% } %>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold" style="background:<%= tier.color %>20;color:<%= tier.color %>;border:1px solid <%= tier.color %>40"><%= tier.name %></span>
+            </td>
+            <td class="px-4 py-3 text-right font-bold text-gold"><%= u.balance.toLocaleString('vi-VN') %>d</td>
+            <td class="px-4 py-3 text-center">
+              <% if (u.status==='banned') { %>
+                <span class="px-2 py-0.5 bg-live/15 text-live rounded text-[11px] font-bold" title="<%= u.banReason||'' %>">Banned</span>
+              <% } else { %>
+                <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[11px] font-bold">Active</span>
+              <% } %>
+            </td>
+            <td class="px-4 py-3 text-xs text-muted"><%= new Date(u.joinedAt).toLocaleDateString('vi-VN') %></td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-1.5 justify-center flex-wrap">
+                <select onchange="confirmAction('Nang cap '+this.options[this.selectedIndex].text+' cho '+'<%= u.username %>'+'?', function(){ adminAction('/admin/api/users/<%= u.id %>/vip', { vip: parseInt(arguments[0]||0) }) }.bind(null, this.value))" class="bg-bg-deep border border-line text-gray-100 text-xs px-2 py-1 rounded">
+                  <option>Doi VIP...</option>
+                  <% VIP_TIERS.forEach(function(t){ if (t.id!==u.vip) { %><option value="<%= t.id %>"><%= t.name %></option><% } }); %>
+                </select>
+                <% if (u.status==='active') { %>
+                  <button onclick="var r=prompt('Ly do ban?','Vi pham dieu khoan'); if(r) adminAction('/admin/api/users/<%= u.id %>/ban', { reason: r })" class="px-2 py-1 bg-live/10 hover:bg-live text-live hover:text-white rounded text-xs font-bold transition-colors">Ban</button>
+                <% } else { %>
+                  <button onclick="confirmAction('Mo khoa user <%= u.username %>?', function(){ adminAction('/admin/api/users/<%= u.id %>/unban') })" class="px-2 py-1 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded text-xs font-bold transition-colors">Unban</button>
+                <% } %>
+                <button onclick="confirmAction('Xoa vinh vien user <%= u.username %>?', function(){ adminAction('/admin/api/users/<%= u.id %>/delete') })" class="px-2 py-1 bg-bg-deep hover:bg-live text-muted hover:text-white rounded text-xs font-bold transition-colors">Xoa</button>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <div class="px-4 py-3 border-t border-line text-xs text-muted flex items-center justify-between bg-bg-soft">
+    <span>Tong <b class="text-white"><%= list.length %></b> user</span>
+    <span>Hien thi: tat ca</span>
+  </div>
+</div>
+
+<%- include('partials/layout-end') %>

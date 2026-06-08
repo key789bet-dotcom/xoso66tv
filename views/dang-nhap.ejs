@@ -1,0 +1,115 @@
+<% seo = {
+  title: 'Đăng nhập tài khoản ' + brand.name + ' - Xem live thể thao HD miễn phí',
+  description: 'Đăng nhập '+brand.name+' để xem trực tiếp bóng đá, casino, idol live HD miễn phí 24/7. Đối tác chính thức '+brand.domain+'. Bảo mật SSL.',
+  keywords: 'đăng nhập, login, '+brand.short+', xoso66tv, xem bóng đá trực tiếp',
+  canonical: '/dang-nhap',
+  breadcrumb: [{ name:'Đăng nhập', url:'/dang-nhap' }],
+} %>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+
+<link rel="stylesheet" href="/static/css/auth.css">
+
+<div class="auth-wrap">
+  <section class="auth-form" aria-labelledby="loginH1">
+    <nav class="auth-tabs">
+      <a href="/dang-nhap" class="active">Đăng Nhập</a>
+      <a href="/dang-ky">Đăng Ký</a>
+    </nav>
+
+    <h1 class="auth-h1" id="loginH1">Chào mừng bạn quay lại! 👋</h1>
+    <p class="auth-sub">Đăng nhập để tiếp tục xem live thể thao &amp; nhận khuyến mãi.</p>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="username" class="form-label">Tài khoản / Email / Số điện thoại<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">👤</span>
+          <input id="username" name="username" type="text" class="form-input" placeholder="Nhập tên đăng nhập hoặc email" required minlength="3" maxlength="100" autocomplete="username">
+        </div>
+        <div class="form-error" data-for="username">Vui lòng nhập tài khoản hợp lệ</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Mật khẩu<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">🔒</span>
+          <input id="password" name="password" type="password" class="form-input" placeholder="Nhập mật khẩu" required minlength="6" maxlength="50" autocomplete="current-password">
+          <button type="button" class="form-toggle" onclick="togglePw('password',this)" aria-label="Hiện/Ẩn mật khẩu">👁</button>
+        </div>
+        <div class="form-error" data-for="password">Mật khẩu phải có ít nhất 6 ký tự</div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0">
+        <label class="form-check" style="margin:0">
+          <input type="checkbox" name="remember"> Ghi nhớ đăng nhập
+        </label>
+        <a href="/quen-mat-khau" style="font-size:13px;color:var(--pri-2);font-weight:600">Quên mật khẩu?</a>
+      </div>
+
+      <div class="captcha" id="captcha">
+        <span class="box" onclick="this.classList.toggle('checked');this.innerHTML=this.classList.contains('checked')?'✓':''"></span>
+        <span class="txt">Tôi không phải robot</span>
+        <span class="logo">🤖</span>
+      </div>
+
+      <button type="submit" class="btn-submit">🔓 ĐĂNG NHẬP</button>
+
+      <div class="divider">Hoặc đăng nhập với</div>
+      <div class="social-row">
+        <a href="<%= partner.login %>&via=fb" target="_blank" rel="noopener" class="social-btn fb">📘 Facebook</a>
+        <a href="<%= partner.login %>&via=google" target="_blank" rel="noopener" class="social-btn google">G Google</a>
+        <a href="<%= partner.login %>&via=tele" target="_blank" rel="noopener" class="social-btn tele">📨 Telegram</a>
+      </div>
+
+      <p class="auth-foot">Chưa có tài khoản? <a href="/dang-ky">Đăng ký ngay →</a></p>
+    </form>
+  </section>
+
+  <%- include('partials/auth-side', { sideTitle: 'Tham gia '+brand.name+' ngay', sideLead: 'Hơn 500.000 người dùng đang xem live mỗi ngày. Đăng ký miễn phí, nhận thưởng ngay.' }) %>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function togglePw(id, btn){
+  const i = document.getElementById(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.textContent = i.type === 'password' ? '👁' : '🙈';
+}
+function showToast(msg, kind){
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + (kind||'');
+  t.textContent = msg;
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const u = this.username.value.trim(), p = this.password.value;
+  let ok = true;
+  document.querySelectorAll('.form-error').forEach(x=>x.classList.remove('show'));
+  if (u.length < 3) { document.querySelector('[data-for=username]').classList.add('show'); ok = false; }
+  if (p.length < 6) { document.querySelector('[data-for=password]').classList.add('show'); ok = false; }
+  if (!document.querySelector('#captcha .box').classList.contains('checked')) {
+    showToast('Vui lòng xác nhận captcha', 'error'); return;
+  }
+  if (!ok) return;
+  const btn = this.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
+  try {
+    const r = await fetch('/api/dang-nhap', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username:u, password:p }) });
+    const j = await r.json();
+    if (j.ok) {
+      showToast('Đăng nhập thành công, đang chuyển hướng...', 'success');
+      setTimeout(()=>{ location.href = j.redirect || '/' }, 1200);
+    } else {
+      showToast(j.message || 'Đăng nhập thất bại', 'error');
+      btn.disabled = false; btn.textContent = '🔓 ĐĂNG NHẬP';
+    }
+  } catch(err){
+    showToast('Lỗi kết nối server', 'error');
+    btn.disabled = false; btn.textContent = '🔓 ĐĂNG NHẬP';
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

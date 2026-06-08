@@ -1,0 +1,608 @@
+<%
+// Mobile fullscreen idol live UI - chuan UI/UX cao cap
+var fakeViewers = ['🦊','🐯','🐱','🐰','🐼','🐻','🐧','🦁','🐸','🦄'];
+var marqueeMsgs = [
+  '🎁 Lì xì rơi hàng ngày lên đến 88.888.000đ',
+  '🔥 Top 1 tuần được tặng iPhone 15 Pro Max',
+  '⭐ Tặng quà huyền thoại nhận VIP 30 ngày'
+];
+var quickGifts = [
+  { icon:'🌹', name:'Hoa hồng', price:1, tier:'common' },
+  { icon:'❤️', name:'Trái tim', price:2, tier:'common' },
+  { icon:'💋', name:'Nụ hôn', price:5, tier:'common' },
+  { icon:'🌹', name:'Bó hồng', price:100, tier:'rare' },
+  { icon:'💎', name:'Kim cương', price:1000, tier:'epic' }
+];
+%>
+
+<!-- ============================================== -->
+<!-- ===== MOBILE IDOL LIVE ROOM (premium UX) ===== -->
+<!-- ============================================== -->
+<div class="md:hidden fixed inset-0 z-[60] overflow-hidden bg-black select-none" id="mobileLiveRoom" style="touch-action: manipulation;">
+
+  <!-- ===== LAYER 1: Player background (full screen) ===== -->
+  <div class="absolute inset-0" id="mlrPlayerBg" style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))">
+    <!-- Radial spotlight -->
+    <div class="absolute inset-0 opacity-50" style="background:radial-gradient(circle at 30% 40%,rgba(255,255,255,.35),transparent 60%),radial-gradient(circle at 70% 60%,rgba(255,255,255,.25),transparent 55%)"></div>
+    <!-- Idol emoji center (placeholder cho video) -->
+    <div class="absolute inset-0 grid place-items-center pointer-events-none">
+      <div class="text-[200px] drop-shadow-2xl mlr-idol-anim"><%= idol.emoji || '👑' %></div>
+    </div>
+    <!-- Subtle vignette -->
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.4) 100%)"></div>
+  </div>
+
+  <!-- ===== LAYER 2: Gesture catcher (transparent overlay for taps) ===== -->
+  <div class="absolute inset-0 z-[5]" id="mlrGestureLayer"></div>
+
+  <!-- ===== LAYER 3: Floating hearts/reactions overlay ===== -->
+  <div class="absolute inset-0 z-[6] pointer-events-none overflow-hidden" id="mlrReactionLayer"></div>
+
+  <!-- ===== TOP HEADER BAR (safe area aware) ===== -->
+  <header class="absolute top-0 inset-x-0 z-[20] pt-2 pb-2 px-2.5" id="mlrTopBar" style="padding-top: max(8px, env(safe-area-inset-top));">
+    <div class="flex items-center gap-1.5">
+      <!-- Idol mini card -->
+      <div class="flex items-center gap-1.5 bg-black/55 backdrop-blur-md pl-1 pr-2.5 py-1 rounded-full shrink-0 max-w-[170px]">
+        <div class="relative shrink-0">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-base border-2 border-pri/70"><%= idol.emoji || '👑' %></div>
+          <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-black animate-pulse"></span>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1">
+            <span class="text-white font-extrabold text-[12px] leading-none truncate"><%= idol.name %></span>
+            <% if (idol.lock === 0) { %>
+              <span class="text-[7px] bg-emerald-500 text-white px-1 rounded font-bold shrink-0">FREE</span>
+            <% } else { %>
+              <span class="text-[7px] bg-pri text-white px-1 rounded font-bold shrink-0">VIP</span>
+            <% } %>
+          </div>
+          <div class="text-[9px] text-gray-300 leading-none mt-0.5"><%= follow.toLocaleString('vi-VN') %> follow</div>
+        </div>
+        <button onclick="mlrToggleFollow(this)" class="w-6 h-6 rounded-full bg-pri text-white text-[10px] font-black grid place-items-center shrink-0 hover:scale-110 transition-transform" title="Theo dõi">+</button>
+      </div>
+
+      <!-- Top tippers carousel (last 3 contributors) -->
+      <div class="flex -space-x-2 overflow-hidden flex-1 px-1" id="mlrTippers">
+        <% ['🥇','🥈','🥉'].forEach(function(em, i){ %>
+          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white/60 grid place-items-center text-xs shrink-0 shadow-lg"><%= em %></div>
+        <% }); %>
+        <% fakeViewers.slice(0,3).forEach(function(em){ %>
+          <div class="w-7 h-7 rounded-full bg-bg-deep border-2 border-white/30 grid place-items-center text-sm shrink-0"><%= em %></div>
+        <% }); %>
+      </div>
+
+      <!-- Close X -->
+      <a href="/idol-live" class="w-9 h-9 rounded-full bg-black/55 backdrop-blur-md grid place-items-center text-white text-base shrink-0 hover:bg-live/90 transition-colors active:scale-90" aria-label="Thoát">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </a>
+    </div>
+
+    <!-- Stats row: LIVE badge + Coin + Viewers -->
+    <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+      <span class="flex items-center gap-1 bg-live text-white pl-1.5 pr-2 py-0.5 rounded text-[10px] font-extrabold shadow-lg shadow-live/50">
+        <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+        LIVE
+      </span>
+      <button onclick="openGiftPanel('<%= idol.name %>')" class="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-yellow-500 pl-1 pr-2 py-0.5 rounded-full text-white text-[10px] font-extrabold shadow-lg shadow-orange-500/40 active:scale-95 transition-transform">
+        <span class="w-4 h-4 rounded-full bg-white/30 grid place-items-center text-[9px]">🪙</span>
+        <span class="tabular-nums" id="mlrCoinCount"><%= tipsToday.toLocaleString('vi-VN') %></span>
+      </button>
+      <div class="flex items-center gap-1 bg-black/55 backdrop-blur-md pl-1 pr-2 py-0.5 rounded-full text-white text-[10px] font-bold">
+        <span class="w-4 h-4 grid place-items-center text-[10px]">👁</span>
+        <span class="tabular-nums" id="mlrViewerCount"><%= viewers.toLocaleString('vi-VN') %></span>
+      </div>
+      <div class="text-[10px] text-gray-300 ml-auto bg-black/40 backdrop-blur px-2 py-0.5 rounded-full">HD 1080p</div>
+    </div>
+  </header>
+
+  <!-- ===== MARQUEE: super-gift notification (top) ===== -->
+  <div class="absolute top-[88px] left-2 right-2 z-[15] overflow-hidden rounded-full">
+    <div class="bg-gradient-to-r from-yellow-500/90 via-orange-500/90 to-yellow-500/90 backdrop-blur py-1 px-3 flex items-center gap-1.5 shadow-lg shadow-orange-500/30">
+      <span class="text-base shrink-0 animate-bounce">🎊</span>
+      <div class="flex-1 overflow-hidden">
+        <div class="text-white font-bold text-[10.5px] whitespace-nowrap" style="animation: mlrMarquee 22s linear infinite;">
+          <% marqueeMsgs.forEach(function(m){ %><span class="mr-16"><%= m %></span><% }); %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT FLOATING WIDGETS (auto-hide on tap) ===== -->
+  <div class="absolute right-2 top-1/3 z-[15] flex flex-col gap-2 items-center" id="mlrRightWidgets">
+    <!-- Treasure chest -->
+    <button class="relative bg-gradient-to-b from-pink-500/85 to-purple-700/85 backdrop-blur p-1 rounded-2xl border border-yellow-400/60 shadow-lg shadow-pink-500/40 hover:scale-105 active:scale-95 transition-transform">
+      <div class="w-12 h-12 grid place-items-center text-3xl">🎁</div>
+      <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur px-1.5 py-0.5 rounded text-[8px] font-bold text-yellow-300 whitespace-nowrap tabular-nums" id="mlrTimer">05:46:27</div>
+      <div class="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-md text-[8px] font-black text-white px-1 py-0.5 shadow-md">LV42</div>
+    </button>
+    <!-- Sticker/reaction shortcut -->
+    <button onclick="mlrShowReactionMenu(event)" class="bg-gradient-to-b from-bg-card/85 to-bg-deep/85 backdrop-blur p-1 rounded-2xl border border-white/15 shadow-md hover:scale-105 active:scale-95 transition-transform" title="Phản ứng">
+      <div class="w-11 h-11 grid place-items-center text-2xl">😍</div>
+      <div class="text-[8px] text-white text-center font-bold whitespace-nowrap">React</div>
+    </button>
+    <!-- Mini games toggle -->
+    <button onclick="mlrToggleGameCards(this)" id="mlrGameToggle" class="bg-gradient-to-b from-orange-400/85 to-red-500/85 backdrop-blur p-1 rounded-2xl border border-yellow-400/40 shadow-md hover:scale-105 active:scale-95 transition-transform relative">
+      <div class="w-11 h-11 grid place-items-center text-2xl">🎲</div>
+      <div class="text-[8px] text-white text-center font-bold whitespace-nowrap" id="mlrGameToggleLabel">Mở game</div>
+      <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black hidden" id="mlrGameToggleDot"></span>
+    </button>
+    <!-- Share button -->
+    <button onclick="mlrShare()" class="bg-black/55 backdrop-blur p-1 rounded-2xl border border-white/15 shadow-md hover:scale-105 active:scale-95 transition-transform">
+      <div class="w-11 h-11 grid place-items-center text-xl">📤</div>
+      <div class="text-[8px] text-white text-center font-bold whitespace-nowrap">Chia sẻ</div>
+    </button>
+  </div>
+
+  <!-- ===== FLOATING GAME CARDS (hidden default) ===== -->
+  <div class="hidden absolute top-[140px] left-1/2 -translate-x-1/2 z-[14] w-[80%] max-w-[280px] space-y-1.5" id="mlrGameCards">
+    <div class="bg-black/70 backdrop-blur-md rounded-lg p-2 border border-white/15 relative shadow-xl">
+      <div class="text-white text-[10px] font-bold mb-1 flex items-center justify-between">
+        <span class="flex items-center gap-1"><span class="text-yellow-400">🎰</span>XÓC ĐĨA <span class="text-[9px] text-gray-300">kỳ <span class="tabular-nums" id="mlrXocDiaKy">20260607</span></span></span>
+        <a href="/game/xoc-dia" class="text-pri-light text-[9px] font-extrabold hover:underline">Chơi →</a>
+      </div>
+      <div class="flex gap-1.5" id="mlrXocDiaBalls">
+        <div class="w-7 h-7 rounded-full bg-white shadow-inner"></div>
+        <div class="w-7 h-7 rounded-full bg-red-600 shadow-inner"></div>
+        <div class="w-7 h-7 rounded-full bg-white shadow-inner"></div>
+        <div class="w-7 h-7 rounded-full bg-red-600 shadow-inner"></div>
+      </div>
+    </div>
+    <div class="bg-black/70 backdrop-blur-md rounded-lg p-2 border border-white/15 relative shadow-xl">
+      <div class="text-white text-[10px] font-bold mb-1 flex items-center justify-between">
+        <span class="flex items-center gap-1"><span class="text-yellow-400">🎲</span>TÀI XỈU <span class="text-[9px] text-gray-300">kỳ <span class="tabular-nums" id="mlrTaiXiuKy">2026060709</span></span></span>
+        <a href="/game/tai-xiu" class="text-pri-light text-[9px] font-extrabold hover:underline">Chơi →</a>
+      </div>
+      <div class="flex gap-1.5" id="mlrTaiXiuDice">
+        <span class="w-7 h-7 rounded bg-white text-black grid place-items-center font-black">5</span>
+        <span class="w-7 h-7 rounded bg-white text-black grid place-items-center font-black">3</span>
+        <span class="w-7 h-7 rounded bg-white text-black grid place-items-center font-black">4</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT OVERLAY (bottom-left, auto-fade) ===== -->
+  <div class="absolute left-2 right-20 z-[12] pointer-events-none" style="bottom: 88px; max-height: 38vh;" id="mlrChatContainer">
+    <div class="flex flex-col gap-1 overflow-hidden justify-end" id="mlrChatBody" style="max-height: 38vh;"></div>
+  </div>
+
+  <!-- ===== QUICK GIFT BAR (slides up from bottom on demand) ===== -->
+  <div class="hidden absolute bottom-16 inset-x-2 z-[18] bg-black/85 backdrop-blur-md rounded-2xl p-2 border border-white/15 shadow-2xl" id="mlrQuickGiftBar">
+    <div class="flex items-center justify-between mb-1 px-1">
+      <span class="text-white font-bold text-[11px]">⚡ Tặng nhanh</span>
+      <button onclick="mlrCloseQuickGifts()" class="text-gray-300 text-xs px-1">×</button>
+    </div>
+    <div class="grid grid-cols-5 gap-1.5">
+      <% quickGifts.forEach(function(g){ %>
+        <button onclick="mlrQuickSendGift('<%= g.icon %>','<%= g.name %>',<%= g.price %>,'<%= g.tier %>')" class="bg-bg-card/80 hover:bg-pri/30 active:scale-95 transition-all rounded-xl p-1.5 text-center border border-white/10">
+          <div class="text-2xl"><%= g.icon %></div>
+          <div class="text-[9px] text-yellow-300 font-bold tabular-nums mt-0.5">🪙 <%= g.price %></div>
+        </button>
+      <% }); %>
+    </div>
+    <button onclick="openGiftPanel('<%= idol.name %>')" class="mt-1.5 w-full bg-gradient-to-r from-pri to-live text-white py-1.5 rounded-lg text-[11px] font-extrabold active:scale-95">Xem tất cả →</button>
+  </div>
+
+  <!-- ===== BOTTOM ACTION BAR ===== -->
+  <div class="absolute bottom-0 inset-x-0 z-[20] px-2 pb-2 pt-1" style="padding-bottom: max(8px, env(safe-area-inset-bottom));">
+    <div class="flex items-center gap-1.5">
+      <!-- Chat input trigger (large, primary) -->
+      <button onclick="mlrOpenChatInput()" class="flex-1 bg-black/55 backdrop-blur-md rounded-full pl-3 pr-4 py-2.5 text-left text-white text-[12px] flex items-center gap-2 hover:bg-black/70 active:scale-95 transition-all border border-white/10">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="text-gray-300 text-[11px]">Nói chuyện...</span>
+      </button>
+      <!-- Heart (free reaction) -->
+      <button onclick="mlrSendHeart()" class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-600 grid place-items-center text-white shadow-lg shadow-red-500/40 hover:scale-110 active:scale-95 transition-all">
+        <span class="text-lg">❤</span>
+      </button>
+      <!-- Quick gift bar trigger -->
+      <button onclick="mlrToggleQuickGifts()" class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-yellow-500 grid place-items-center text-white shadow-lg shadow-orange-500/40 hover:scale-110 active:scale-95 transition-all">
+        <span class="text-lg">⚡</span>
+      </button>
+      <!-- Full gift panel -->
+      <button onclick="openGiftPanel('<%= idol.name %>')" class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-700 grid place-items-center text-white shadow-lg shadow-pink-500/40 hover:scale-110 active:scale-95 transition-all relative">
+        <span class="text-lg">🎁</span>
+        <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span>
+      </button>
+      <!-- More menu -->
+      <button onclick="mlrShowMoreMenu()" class="w-10 h-10 rounded-full bg-black/55 backdrop-blur-md grid place-items-center text-white border border-white/10 hover:bg-black/70 active:scale-95 transition-all">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CHAT INPUT MODAL (slide from bottom) ===== -->
+  <div id="mlrChatInputModal" class="hidden absolute bottom-0 inset-x-0 z-[30] bg-bg-card border-t-2 border-pri rounded-t-2xl p-3 shadow-2xl" style="padding-bottom: max(12px, env(safe-area-inset-bottom));">
+    <div class="flex gap-2 items-center">
+      <input id="mlrChatInputField" maxlength="200" class="flex-1 bg-bg-deep border border-line text-white px-3 py-2.5 rounded-full outline-none text-sm focus:border-pri" placeholder="Nhập tin nhắn..." onkeydown="if(event.key==='Enter')mlrSendChat()">
+      <button onclick="mlrSendChat()" class="bg-gradient-to-br from-pri to-live text-white px-4 py-2.5 rounded-full font-bold text-xs active:scale-95">Gửi</button>
+      <button onclick="mlrCloseChatInput()" class="text-muted text-2xl px-1" aria-label="Đóng">×</button>
+    </div>
+    <!-- Quick emoji bar -->
+    <div class="flex gap-1.5 mt-2 overflow-x-auto scrollbar-hide">
+      <% ['😍','😘','❤️','🔥','👏','😂','🥰','💯','🎉','🤩','😎','🥺'].forEach(function(em){ %>
+        <button onclick="document.getElementById('mlrChatInputField').value+='<%= em %>'" class="shrink-0 text-2xl bg-bg-soft hover:bg-bg-deep w-9 h-9 rounded-lg active:scale-90 transition-transform"><%= em %></button>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- ===== REACTION MENU POPUP ===== -->
+  <div id="mlrReactionMenu" class="hidden absolute z-[30] bg-black/85 backdrop-blur-md rounded-full p-2 border border-white/20 shadow-2xl">
+    <div class="flex gap-1">
+      <% ['❤️','😍','🔥','👍','👏','🎉'].forEach(function(em){ %>
+        <button onclick="mlrSpawnReaction('<%= em %>')" class="w-9 h-9 rounded-full bg-bg-deep hover:bg-pri/30 active:scale-90 transition-all text-2xl grid place-items-center"><%= em %></button>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- ===== MORE MENU MODAL ===== -->
+  <div id="mlrMoreMenu" class="hidden absolute bottom-16 right-2 z-[30] bg-bg-card border border-line rounded-2xl shadow-2xl overflow-hidden min-w-[180px]">
+    <button onclick="mlrShare()" class="w-full px-4 py-3 text-left text-white text-sm hover:bg-bg-soft flex items-center gap-2.5 border-b border-line/40">
+      <span class="text-lg">📤</span> Chia sẻ phòng
+    </button>
+    <button onclick="mlrCopyLink()" class="w-full px-4 py-3 text-left text-white text-sm hover:bg-bg-soft flex items-center gap-2.5 border-b border-line/40">
+      <span class="text-lg">🔗</span> Sao chép link
+    </button>
+    <a href="/profile?tab=follow" class="w-full px-4 py-3 text-left text-white text-sm hover:bg-bg-soft flex items-center gap-2.5 border-b border-line/40 block">
+      <span class="text-lg">❤️</span> Phòng đang theo dõi
+    </a>
+    <button onclick="mlrReport()" class="w-full px-4 py-3 text-left text-live text-sm hover:bg-bg-soft flex items-center gap-2.5">
+      <span class="text-lg">🚨</span> Báo cáo phòng
+    </button>
+  </div>
+
+  <!-- ===== COMBO COUNTER OVERLAY (xuat hien khi tang qua lien tuc) ===== -->
+  <div id="mlrComboBox" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[18] pointer-events-none">
+    <div class="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600 px-6 py-4 rounded-2xl shadow-2xl border-2 border-yellow-300 text-center" style="animation: mlrComboBounce .4s ease-out;">
+      <div class="text-5xl font-black text-white drop-shadow-lg" id="mlrComboNum">x2</div>
+      <div class="text-xs font-extrabold text-white/90 mt-0.5">COMBO</div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+/* Idol idle animation */
+.mlr-idol-anim { animation: mlrIdolBounce 1.4s ease-in-out infinite alternate; }
+@keyframes mlrIdolBounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+
+/* Marquee */
+@keyframes mlrMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+/* Chat message slide-in */
+@keyframes mlrChatIn { from { opacity:0; transform: translateX(-8px); } to { opacity:1; transform: translateX(0); } }
+@keyframes mlrChatOut { to { opacity: 0; transform: translateY(-4px); } }
+.mlr-chat-msg { animation: mlrChatIn .25s ease-out; pointer-events: auto; }
+
+/* Heart float up (free reaction) */
+@keyframes mlrHeartFloat {
+  0%   { transform: translate(0, 0) scale(0); opacity: 0; }
+  10%  { transform: translate(var(--sw,0), -20px) scale(1); opacity: 1; }
+  70%  { transform: translate(calc(var(--sw,0) * -1), -240px) scale(1.1); opacity: 1; }
+  100% { transform: translate(var(--sw,0), -360px) scale(0.6); opacity: 0; }
+}
+.mlr-heart { position: absolute; bottom: 90px; right: 50px; font-size: 28px; animation: mlrHeartFloat 3.5s ease-out forwards; filter: drop-shadow(0 0 8px rgba(255,80,120,.8)); }
+
+/* Reaction emoji float */
+@keyframes mlrReactionFloat {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  15%  { transform: scale(1.4) rotate(0); opacity: 1; }
+  100% { transform: translateY(-280px) scale(.8) rotate(20deg); opacity: 0; }
+}
+.mlr-reaction { position: absolute; font-size: 36px; animation: mlrReactionFloat 2.5s ease-out forwards; pointer-events: none; }
+
+/* Combo bounce */
+@keyframes mlrComboBounce {
+  0%   { transform: translate(-50%,-50%) scale(0) rotate(-15deg); opacity: 0; }
+  60%  { transform: translate(-50%,-50%) scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1) rotate(0); opacity: 1; }
+}
+
+/* UI hide (cinema mode) */
+.mlr-ui-hidden #mlrTopBar,
+.mlr-ui-hidden #mlrRightWidgets { opacity: 0; pointer-events: none; transition: opacity .3s; }
+</style>
+
+<script>
+(function(){
+  // ===== DATA =====
+  var BOT_MSGS = [
+    {user:'VTNT.Com', lvl:41, c:'emerald', text:'Hoan nghênh đại gia'},
+    {user:'Max12',    lvl:2,  c:'pink',    text:'Đến rồi'},
+    {user:'nhtky',    lvl:42, c:'emerald', text:'Hoan nghênh đại gia'},
+    {user:'KingX66',  lvl:55, c:'amber',   text:'Idol xinh quá ❤️'},
+    {user:'LinhT',    lvl:8,  c:'sky',     text:'Mọi người tặng quà ủng hộ nha'},
+    {user:'BoMy_X66', lvl:30, c:'purple',  text:'Vừa nạp 100K coin'},
+    {user:'CauBe88',  lvl:12, c:'pink',    text:'Hello idol'},
+    {user:'GirlVN',   lvl:21, c:'sky',     text:'Phòng vui ghê'},
+    {user:'Anh3T',    lvl:67, c:'amber',   text:'🔥🔥🔥'},
+    {user:'NgocBich', lvl:5,  c:'pink',    text:'Like'}
+  ];
+  var COLOR_MAP = {
+    emerald:{bg:'bg-emerald-500',  txt:'text-emerald-300'},
+    pink:   {bg:'bg-pink-500',     txt:'text-pink-300'},
+    amber:  {bg:'bg-amber-500',    txt:'text-amber-300'},
+    sky:    {bg:'bg-sky-500',      txt:'text-sky-300'},
+    purple: {bg:'bg-purple-500',   txt:'text-purple-300'}
+  };
+
+  function escMlr(s){ return String(s||'').replace(/[<>&"]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+
+  // ===== CHAT OVERLAY (auto-fade) =====
+  function pushMlrChat(user, lvl, color, text, isSystem, isGift){
+    var body = document.getElementById('mlrChatBody');
+    if (!body) return;
+    var el = document.createElement('div');
+    var cm = COLOR_MAP[color] || COLOR_MAP.sky;
+    el.className = 'mlr-chat-msg backdrop-blur-sm rounded-full text-[11px] flex items-center gap-1.5 max-w-[90%] self-start pointer-events-auto';
+    if (isSystem) {
+      el.className += ' bg-blue-900/50 px-3 py-1.5 text-blue-200 mx-auto';
+      el.innerHTML = '<span>' + escMlr(text) + '</span>';
+    } else if (isGift) {
+      el.className += ' bg-gradient-to-r from-yellow-500/70 to-orange-500/70 px-2 py-1.5';
+      el.innerHTML = '<span class="text-yellow-200 font-bold truncate">' + escMlr(user) + '</span>'
+        + '<span class="text-white">' + escMlr(text) + '</span>';
+    } else {
+      el.className += ' bg-black/60 px-2 py-1';
+      el.innerHTML = '<span class="' + cm.bg + ' text-white text-[8.5px] font-black px-1 py-0.5 rounded shrink-0">' + lvl + '</span>'
+        + '<span class="font-bold ' + cm.txt + ' truncate">' + escMlr(user) + '</span>'
+        + '<span class="text-white/95 truncate">' + escMlr(text) + '</span>';
+    }
+    body.appendChild(el);
+    while (body.children.length > 6) body.removeChild(body.firstChild);
+    // Auto-fade old messages after 8s
+    setTimeout(function(){
+      el.style.animation = 'mlrChatOut .4s ease-out forwards';
+      setTimeout(function(){ if (el.parentNode) el.remove(); }, 400);
+    }, 8000);
+  }
+
+  // Seed welcome messages
+  setTimeout(function(){ pushMlrChat('','','','Chào mừng đến phòng <%= idol.name %> 🎉', true); }, 400);
+  setTimeout(function(){ pushMlrChat('VTNT.Com', 41, 'emerald', 'Hoan nghênh đại gia'); }, 1400);
+  setTimeout(function(){ pushMlrChat('Max12', 2, 'pink', 'Đến rồi'); }, 2400);
+  setTimeout(function(){ pushMlrChat('nhtky', 42, 'emerald', 'Hoan nghênh đại gia'); }, 3400);
+
+  // Random bot chat every 4-10s
+  function scheduleChat(){
+    var delay = 4000 + Math.random()*6000;
+    setTimeout(function(){
+      var m = BOT_MSGS[Math.floor(Math.random()*BOT_MSGS.length)];
+      pushMlrChat(m.user, m.lvl, m.c, m.text);
+      scheduleChat();
+    }, delay);
+  }
+  scheduleChat();
+
+  // ===== TIMER COUNTDOWN =====
+  var timerStart = Date.now();
+  var timerInitial = 5*3600 + 46*60 + 27;
+  setInterval(function(){
+    var elapsed = Math.floor((Date.now()-timerStart)/1000);
+    var total = timerInitial - elapsed;
+    if (total < 0) total = 0;
+    var h = Math.floor(total/3600), m = Math.floor((total%3600)/60), s = total%60;
+    var t = document.getElementById('mlrTimer');
+    if (t) t.textContent = (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  }, 1000);
+
+  // ===== VIEWER COUNT FLUCTUATION =====
+  setInterval(function(){
+    var el = document.getElementById('mlrViewerCount');
+    if (!el) return;
+    var base = <%= viewers %>;
+    var v = base + Math.floor((Math.random()-.5)*40);
+    el.textContent = Math.max(100, v).toLocaleString('vi-VN');
+  }, 8000);
+
+  // ===== GESTURES: Double-tap = heart, tap = toggle UI =====
+  var gestureLayer = document.getElementById('mlrGestureLayer');
+  var lastTap = 0;
+  if (gestureLayer) {
+    gestureLayer.addEventListener('click', function(e){
+      var now = Date.now();
+      if (now - lastTap < 300) {
+        // Double tap
+        mlrSpawnReaction('❤️', e.clientX, e.clientY);
+        lastTap = 0;
+      } else {
+        lastTap = now;
+      }
+    });
+  }
+
+  // ===== HEART / REACTION SPAWNING =====
+  var reactionLayer = document.getElementById('mlrReactionLayer');
+  window.mlrSendHeart = function(){
+    var el = document.createElement('div');
+    el.className = 'mlr-heart';
+    el.textContent = ['❤️','💖','💗','💕','💝'][Math.floor(Math.random()*5)];
+    el.style.setProperty('--sw', (Math.random()*60 - 30) + 'px');
+    el.style.right = (40 + Math.random()*30) + 'px';
+    reactionLayer.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 3500);
+  };
+  window.mlrSpawnReaction = function(emoji, x, y){
+    var el = document.createElement('div');
+    el.className = 'mlr-reaction';
+    el.textContent = emoji;
+    var rect = reactionLayer.getBoundingClientRect();
+    el.style.left = ((x !== undefined ? x - rect.left : rect.width/2) - 18) + 'px';
+    el.style.top  = ((y !== undefined ? y - rect.top  : rect.height/2) - 18) + 'px';
+    reactionLayer.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 2500);
+    document.getElementById('mlrReactionMenu').classList.add('hidden');
+  };
+
+  // ===== REACTION MENU =====
+  window.mlrShowReactionMenu = function(e){
+    var menu = document.getElementById('mlrReactionMenu');
+    var rect = e.currentTarget.getBoundingClientRect();
+    menu.style.right = (window.innerWidth - rect.left + 6) + 'px';
+    menu.style.top = (rect.top + window.scrollY) + 'px';
+    menu.classList.toggle('hidden');
+  };
+
+  // ===== QUICK GIFT BAR =====
+  window.mlrToggleQuickGifts = function(){
+    document.getElementById('mlrQuickGiftBar').classList.toggle('hidden');
+    document.getElementById('mlrMoreMenu').classList.add('hidden');
+  };
+  window.mlrCloseQuickGifts = function(){ document.getElementById('mlrQuickGiftBar').classList.add('hidden'); };
+  window.mlrQuickSendGift = function(icon, name, price, tier){
+    var u = {};
+    try { u = JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){}
+    if (!u.username) { if (confirm('Bạn cần đăng nhập để tặng quà. Đăng nhập?')) location.href='/dang-nhap'; return; }
+    var coin = typeof u.coin === 'number' ? u.coin : 79;
+    if (coin < price) { alert('X COIN không đủ! Cần ' + price + ', còn ' + coin); return; }
+    u.coin = coin - price;
+    localStorage.setItem('x66_user', JSON.stringify(u));
+    // Combo logic
+    mlrCombo(icon);
+    // Trigger gift animation overlay on main player + chat + log
+    if (typeof window.playGiftOnPlayer === 'function') window.playGiftOnPlayer(icon, name, tier, u.username, u.fullname || u.username);
+    if (typeof window.pushChatGift === 'function') window.pushChatGift(u.username, icon, name, price);
+    if (typeof window.x66RecordGift === 'function') window.x66RecordGift(u.username, icon, name, price, tier);
+    // Push to mobile chat overlay
+    pushMlrChat(u.username, 99, 'amber', 'tặng ' + icon + ' ' + name, false, true);
+  };
+
+  // ===== COMBO COUNTER =====
+  var comboCount = 0, comboTimer = null, lastComboIcon = '';
+  function mlrCombo(icon){
+    if (icon !== lastComboIcon) comboCount = 0;
+    lastComboIcon = icon;
+    comboCount++;
+    var box = document.getElementById('mlrComboBox');
+    var num = document.getElementById('mlrComboNum');
+    if (comboCount >= 2) {
+      box.classList.remove('hidden');
+      num.textContent = 'x' + comboCount;
+      box.querySelector('div').style.animation = 'none';
+      void box.offsetWidth; // restart animation
+      box.querySelector('div').style.animation = 'mlrComboBounce .4s ease-out';
+    }
+    clearTimeout(comboTimer);
+    comboTimer = setTimeout(function(){
+      box.classList.add('hidden');
+      comboCount = 0;
+      lastComboIcon = '';
+    }, 3000);
+  }
+
+  // ===== MORE MENU =====
+  window.mlrShowMoreMenu = function(){
+    document.getElementById('mlrMoreMenu').classList.toggle('hidden');
+    document.getElementById('mlrQuickGiftBar').classList.add('hidden');
+  };
+  window.mlrShare = function(){
+    var url = location.href;
+    var text = 'Vào xem <%= idol.name %> live ngay!';
+    if (navigator.share) navigator.share({ title:text, url:url }).catch(function(){});
+    else mlrCopyLink();
+    document.getElementById('mlrMoreMenu').classList.add('hidden');
+  };
+  window.mlrCopyLink = function(){
+    var url = location.href;
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ alert('Đã sao chép link!'); });
+    else { prompt('Sao chép link:', url); }
+    document.getElementById('mlrMoreMenu').classList.add('hidden');
+  };
+  window.mlrReport = function(){
+    if (confirm('Báo cáo phòng này vi phạm?')) alert('Cảm ơn báo cáo, admin sẽ xem xét.');
+    document.getElementById('mlrMoreMenu').classList.add('hidden');
+  };
+
+  // ===== CHAT INPUT MODAL =====
+  window.mlrOpenChatInput = function(){
+    document.getElementById('mlrChatInputModal').classList.remove('hidden');
+    setTimeout(function(){ document.getElementById('mlrChatInputField').focus(); }, 100);
+  };
+  window.mlrCloseChatInput = function(){ document.getElementById('mlrChatInputModal').classList.add('hidden'); };
+  window.mlrSendChat = function(){
+    var inp = document.getElementById('mlrChatInputField');
+    if (!inp || !inp.value.trim()) return;
+    var u = {};
+    try { u = JSON.parse(localStorage.getItem('x66_user')||'{}'); } catch(e){}
+    if (!u.username) { if (confirm('Cần đăng nhập để chat. Đăng nhập?')) location.href='/dang-nhap'; return; }
+    pushMlrChat(u.username, u.level||1, 'amber', inp.value.trim());
+    inp.value = '';
+    mlrCloseChatInput();
+  };
+
+  // ===== FOLLOW TOGGLE =====
+  var following = false;
+  window.mlrToggleFollow = function(b){
+    following = !following;
+    b.textContent = following ? '✓' : '+';
+    b.classList.toggle('bg-pri', !following);
+    b.classList.toggle('bg-emerald-500', following);
+    if (following) pushMlrChat('','','','Bạn đã theo dõi <%= idol.name %> ❤️', true);
+  };
+
+  // ===== MINI GAME TOGGLE =====
+  var gameOpen = false, gameTimers = [];
+  window.mlrToggleGameCards = function(btn){
+    var cards = document.getElementById('mlrGameCards');
+    var dot   = document.getElementById('mlrGameToggleDot');
+    var label = document.getElementById('mlrGameToggleLabel');
+    gameOpen = !gameOpen;
+    if (gameOpen) {
+      cards.classList.remove('hidden');
+      dot.classList.remove('hidden');
+      label.textContent = 'Đóng';
+      btn.classList.add('ring-2','ring-yellow-300');
+      refreshTaiXiu(); refreshXocDia();
+      gameTimers.push(setInterval(refreshTaiXiu, 30000));
+      gameTimers.push(setInterval(refreshXocDia, 25000));
+      pushMlrChat('','','','Idol mở mini-game XÓC ĐĨA & TÀI XỈU 🎲', true);
+    } else {
+      cards.classList.add('hidden');
+      dot.classList.add('hidden');
+      label.textContent = 'Mở game';
+      btn.classList.remove('ring-2','ring-yellow-300');
+      gameTimers.forEach(clearInterval);
+      gameTimers = [];
+    }
+  };
+  function refreshTaiXiu(){
+    var dice = document.getElementById('mlrTaiXiuDice');
+    if (!dice) return;
+    dice.innerHTML = '';
+    for (var i=0;i<3;i++){
+      var s = document.createElement('span');
+      s.className = 'w-7 h-7 rounded bg-white text-black grid place-items-center font-black';
+      s.textContent = Math.floor(Math.random()*6)+1;
+      dice.appendChild(s);
+    }
+    var ky = document.getElementById('mlrTaiXiuKy');
+    if (ky) ky.textContent = Date.now().toString().slice(0,10);
+  }
+  function refreshXocDia(){
+    var card = document.getElementById('mlrXocDiaBalls');
+    if (!card) return;
+    card.innerHTML = '';
+    for (var i=0;i<4;i++){
+      var bg = Math.random() < .5 ? 'bg-white' : 'bg-red-600';
+      var d = document.createElement('div');
+      d.className = 'w-7 h-7 rounded-full ' + bg + ' shadow-inner';
+      card.appendChild(d);
+    }
+  }
+
+  // ===== HOOK gift events tu gift panel chinh =====
+  var originalRecord = window.x66RecordGift;
+  window.x66RecordGift = function(user, icon, name, price, tier){
+    if (originalRecord) originalRecord.apply(null, arguments);
+    pushMlrChat(user, 99, 'amber', 'tặng ' + icon + ' ' + name, false, true);
+    mlrCombo(icon);
+  };
+
+  // ===== CLOSE MENUS ON OUTSIDE CLICK =====
+  document.addEventListener('click', function(e){
+    var rm = document.getElementById('mlrReactionMenu');
+    var mm = document.getElementById('mlrMoreMenu');
+    if (rm && !rm.contains(e.target) && !e.target.closest('[onclick*="mlrShowReactionMenu"]')) rm.classList.add('hidden');
+    if (mm && !mm.contains(e.target) && !e.target.closest('[onclick*="mlrShowMoreMenu"]')) mm.classList.add('hidden');
+  });
+})();
+</script>

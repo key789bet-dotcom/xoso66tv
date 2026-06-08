@@ -1,0 +1,200 @@
+<% seo = {
+  title: 'Quên mật khẩu - Khôi phục tài khoản ' + brand.name,
+  description: 'Khôi phục mật khẩu tài khoản '+brand.name+' qua SMS/Email/Telegram trong 3 bước đơn giản. Hỗ trợ CSKH 24/7.',
+  keywords: 'quên mật khẩu, khôi phục, reset password, '+brand.short,
+  canonical: '/quen-mat-khau',
+  breadcrumb: [{ name:'Đăng nhập', url:'/dang-nhap' }, { name:'Quên mật khẩu', url:'/quen-mat-khau' }],
+  noindex: true,
+} %>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+
+<link rel="stylesheet" href="/static/css/auth.css">
+
+<div class="auth-wrap">
+  <section class="auth-form" aria-labelledby="forgotH1">
+    <nav class="auth-tabs">
+      <a href="/dang-nhap">Đăng Nhập</a>
+      <a href="/dang-ky">Đăng Ký</a>
+    </nav>
+
+    <h1 class="auth-h1" id="forgotH1">Khôi phục mật khẩu 🔑</h1>
+    <p class="auth-sub">Nhập SĐT hoặc email đã đăng ký, hệ thống sẽ gửi mã OTP để bạn đặt lại mật khẩu.</p>
+
+    <!-- Stepper -->
+    <div class="steps">
+      <div class="step active" data-step="1"><div class="num">1</div><div class="lbl">Xác thực</div></div>
+      <div class="step" data-step="2"><div class="num">2</div><div class="lbl">Nhập OTP</div></div>
+      <div class="step" data-step="3"><div class="num">3</div><div class="lbl">Mật khẩu mới</div></div>
+    </div>
+
+    <!-- Step 1: Xác thực -->
+    <form id="step1" class="step-form">
+      <div class="form-group">
+        <label class="form-label">Phương thức xác thực</label>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <label class="form-check" style="justify-content:center;background:var(--bg-3);padding:10px;border-radius:8px;border:1px solid var(--border);margin:0;cursor:pointer">
+            <input type="radio" name="method" value="sms" checked> 📱 SMS
+          </label>
+          <label class="form-check" style="justify-content:center;background:var(--bg-3);padding:10px;border-radius:8px;border:1px solid var(--border);margin:0;cursor:pointer">
+            <input type="radio" name="method" value="email"> ✉️ Email
+          </label>
+          <label class="form-check" style="justify-content:center;background:var(--bg-3);padding:10px;border-radius:8px;border:1px solid var(--border);margin:0;cursor:pointer">
+            <input type="radio" name="method" value="telegram"> 📨 Telegram
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="contact" class="form-label">Số điện thoại / Email đã đăng ký<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">🔍</span>
+          <input id="contact" name="contact" type="text" class="form-input" placeholder="0912xxxxxx hoặc email@example.com" required minlength="6">
+        </div>
+        <div class="form-error" data-for="contact">Vui lòng nhập SĐT/email hợp lệ</div>
+      </div>
+
+      <div class="captcha">
+        <span class="box" onclick="this.classList.toggle('checked');this.innerHTML=this.classList.contains('checked')?'✓':''"></span>
+        <span class="txt">Tôi không phải robot</span>
+        <span class="logo">🤖</span>
+      </div>
+
+      <button type="submit" class="btn-submit">📤 GỬI MÃ OTP</button>
+      <p class="auth-foot">Nhớ mật khẩu? <a href="/dang-nhap">Đăng nhập →</a></p>
+    </form>
+
+    <!-- Step 2: Nhập OTP -->
+    <form id="step2" class="step-form" style="display:none">
+      <div style="background:rgba(39,174,96,.1);border:1px solid var(--green);border-radius:8px;padding:12px;margin-bottom:16px;color:var(--green);font-size:13px;font-weight:600">
+        ✓ Mã OTP đã được gửi tới <span id="contactInfo">SĐT của bạn</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nhập 6 số OTP<span class="req">*</span></label>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+          <input class="form-input otp-cell" maxlength="1" pattern="[0-9]" style="text-align:center;font-size:22px;font-weight:800;padding:14px 0">
+          <input class="form-input otp-cell" maxlength="1" pattern="[0-9]" style="text-align:center;font-size:22px;font-weight:800;padding:14px 0">
+          <input class="form-input otp-cell" maxlength="1" pattern="[0-9]" style="text-align:center;font-size:22px;font-weight:800;padding:14px 0">
+          <input class="form-input otp-cell" maxlength="1" pattern="[0-9]" style="text-align:center;font-size:22px;font-weight:800;padding:14px 0">
+          <input class="form-input otp-cell" maxlength="1" pattern="[0-9]" style="text-align:center;font-size:22px;font-weight:800;padding:14px 0">
+          <input class="form-input otp-cell" maxlength="1" pattern="[0-9]" style="text-align:center;font-size:22px;font-weight:800;padding:14px 0">
+        </div>
+        <div class="form-help" style="text-align:center;margin-top:10px">
+          Còn lại <span id="countdown" style="color:var(--pri-2);font-weight:700">60s</span> -
+          <a href="#" id="resend" style="color:var(--muted);font-weight:600" onclick="event.preventDefault()">Gửi lại OTP</a>
+        </div>
+      </div>
+      <button type="submit" class="btn-submit">✅ XÁC NHẬN OTP</button>
+      <p class="auth-foot"><a href="#" onclick="event.preventDefault();showStep(1)">← Quay lại</a></p>
+    </form>
+
+    <!-- Step 3: Mật khẩu mới -->
+    <form id="step3" class="step-form" style="display:none">
+      <div class="form-group">
+        <label for="newpw" class="form-label">Mật khẩu mới<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">🔒</span>
+          <input id="newpw" type="password" class="form-input" placeholder="Tối thiểu 8 ký tự" required minlength="8" autocomplete="new-password">
+          <button type="button" class="form-toggle" onclick="togglePw('newpw',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="newpw2" class="form-label">Xác nhận mật khẩu mới<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">🔐</span>
+          <input id="newpw2" type="password" class="form-input" placeholder="Nhập lại" required autocomplete="new-password">
+          <button type="button" class="form-toggle" onclick="togglePw('newpw2',this)">👁</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-submit">💾 ĐẶT LẠI MẬT KHẨU</button>
+    </form>
+  </section>
+
+  <%- include('partials/auth-side', { sideTitle: 'Bảo mật tuyệt đối', sideLead: 'Hệ thống xác thực 2 lớp + mã hoá OTP gửi qua SMS/Email/Telegram. Mật khẩu được hash bcrypt.' }) %>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function togglePw(id, btn){
+  const i = document.getElementById(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.textContent = i.type === 'password' ? '👁' : '🙈';
+}
+function showToast(msg, kind){
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + (kind||'');
+  t.textContent = msg;
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+function showStep(n){
+  [1,2,3].forEach(i => {
+    document.getElementById('step'+i).style.display = i===n ? '' : 'none';
+    const s = document.querySelector('[data-step="'+i+'"]');
+    s.classList.toggle('active', i===n);
+    s.classList.toggle('done', i<n);
+  });
+}
+
+// OTP cells auto-jump
+document.querySelectorAll('.otp-cell').forEach((cell, i, all) => {
+  cell.addEventListener('input', e => {
+    if (e.target.value && i < all.length-1) all[i+1].focus();
+  });
+  cell.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !e.target.value && i > 0) all[i-1].focus();
+  });
+});
+
+// Step 1 submit
+document.getElementById('step1').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const contact = this.contact.value.trim();
+  if (contact.length < 6) {
+    document.querySelector('[data-for=contact]').classList.add('show'); return;
+  }
+  document.getElementById('contactInfo').textContent = contact;
+  showToast('Mã OTP đã gửi (demo: 123456)', 'success');
+  showStep(2);
+  startCountdown();
+});
+
+// Step 2 submit
+document.getElementById('step2').addEventListener('submit', function(e){
+  e.preventDefault();
+  const otp = Array.from(document.querySelectorAll('.otp-cell')).map(x=>x.value).join('');
+  if (otp.length !== 6) { showToast('Vui lòng nhập đủ 6 số OTP', 'error'); return; }
+  // Demo: 123456 = đúng
+  if (otp !== '123456') { showToast('Mã OTP không đúng. Demo: 123456', 'error'); return; }
+  showToast('Xác thực OTP thành công', 'success');
+  showStep(3);
+});
+
+// Step 3 submit
+document.getElementById('step3').addEventListener('submit', function(e){
+  e.preventDefault();
+  const p = document.getElementById('newpw').value, p2 = document.getElementById('newpw2').value;
+  if (p.length < 8) { showToast('Mật khẩu phải có ít nhất 8 ký tự', 'error'); return; }
+  if (p !== p2) { showToast('Mật khẩu nhập lại không khớp', 'error'); return; }
+  showToast('Đặt lại mật khẩu thành công! Đang chuyển sang đăng nhập...', 'success');
+  setTimeout(()=>{ location.href = '/dang-nhap' }, 1800);
+});
+
+// Countdown
+let cdTimer;
+function startCountdown(){
+  let s = 60;
+  clearInterval(cdTimer);
+  const el = document.getElementById('countdown'), btn = document.getElementById('resend');
+  btn.style.pointerEvents = 'none';
+  cdTimer = setInterval(()=>{
+    s--; el.textContent = s+'s';
+    if (s <= 0){
+      clearInterval(cdTimer); el.textContent = '0s';
+      btn.style.pointerEvents = ''; btn.style.color = 'var(--pri-2)';
+      btn.onclick = (ev)=>{ ev.preventDefault(); btn.style.color='var(--muted)'; startCountdown(); showToast('Đã gửi lại OTP', 'success'); };
+    }
+  }, 1000);
+}
+</script>
+
+<%- include('partials/footer') %>

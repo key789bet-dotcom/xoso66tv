@@ -1,0 +1,162 @@
+<%
+var _S2 = (typeof seo !== 'undefined' && seo) ? seo : {};
+var _T2 = _S2.title || (brand.name + ' - ' + brand.tagline);
+var _D2 = _S2.description || ('Xem trực tiếp thể thao HD miễn phí 24/7 tại ' + brand.name + '. Bóng đá, casino, idol live - chất lượng Full HD 1080p, không quảng cáo.');
+var _K2 = _S2.keywords || ('xem bóng đá trực tiếp, livescore, casino trực tuyến, idol live, ' + brand.short + ', ' + brand.domain);
+var _U2 = (typeof siteUrl !== 'undefined' && siteUrl) ? siteUrl : ('https://www.' + brand.domain);
+var _P2 = (typeof path !== 'undefined' ? path : '/');
+var _C2 = _S2.canonical ? (_U2 + _S2.canonical) : (_U2 + _P2);
+var _I2 = _S2.ogImage || (_U2 + '/static/img/logoxoso66tv.webp');
+var _OT2 = _S2.ogType || 'website';
+var _NX2 = _S2.noindex ? true : false;
+var _CB2 = _S2.breadcrumb || [];
+var _AT2 = _S2.author || brand.name;
+var _PD2 = _S2.publishedAt || '2026-01-01';
+var _MD2 = _S2.modifiedAt || new Date().toISOString().slice(0,10);
+%>
+<title><%= _T2 %></title>
+<meta name="description" content="<%= _D2 %>">
+<meta name="keywords" content="<%= _K2 %>">
+<meta name="robots" content="<%= _NX2 ? 'noindex,nofollow' : 'index,follow,max-image-preview:large,max-video-preview:-1,max-snippet:-1' %>">
+<meta name="theme-color" content="#ff7a18">
+<meta name="author" content="<%= _AT2 %>">
+<meta name="application-name" content="<%= brand.name %>">
+<meta name="apple-mobile-web-app-title" content="<%= brand.name %>">
+<meta name="format-detection" content="telephone=no">
+<meta name="rating" content="general">
+<meta name="distribution" content="global">
+<meta name="revisit-after" content="1 days">
+
+<!-- Canonical & Alternate -->
+<link rel="canonical" href="<%= _C2 %>">
+<link rel="alternate" hreflang="vi-VN" href="<%= _C2 %>">
+<link rel="alternate" hreflang="x-default" href="<%= _C2 %>">
+
+<!-- Open Graph -->
+<meta property="og:type" content="<%= _OT2 %>">
+<meta property="og:site_name" content="<%= brand.name %>">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:url" content="<%= _C2 %>">
+<meta property="og:title" content="<%= _T2 %>">
+<meta property="og:description" content="<%= _D2 %>">
+<meta property="og:image" content="<%= _I2 %>">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="<%= brand.name %>">
+<% if (_OT2 === 'article' || _OT2 === 'video.other') { %>
+<meta property="article:published_time" content="<%= _PD2 %>">
+<meta property="article:modified_time" content="<%= _MD2 %>">
+<meta property="article:author" content="<%= _AT2 %>">
+<meta property="article:section" content="Thể thao">
+<% } %>
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@<%= brand.short.toLowerCase().replace(/ /g,'') %>">
+<meta name="twitter:creator" content="@<%= brand.short.toLowerCase().replace(/ /g,'') %>">
+<meta name="twitter:title" content="<%= _T2 %>">
+<meta name="twitter:description" content="<%= _D2 %>">
+<meta name="twitter:image" content="<%= _I2 %>">
+<meta name="twitter:image:alt" content="<%= brand.name %>">
+
+<!-- Performance hints -->
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+<link rel="dns-prefetch" href="//www.thesportsdb.com">
+
+<link rel="stylesheet" href="/static/css/seo.css">
+
+<!-- ====== JSON-LD schema graph (SEO 2026) ====== -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+  {
+    "@type":"Organization",
+    "@id":"<%= _U2 %>#org",
+    "name":"<%= brand.name %>",
+    "alternateName":"<%= brand.short %>",
+    "url":"<%= _U2 %>",
+    "logo":{
+      "@type":"ImageObject",
+      "url":"<%= _U2 %>/static/img/logoxoso66tv.webp",
+      "width":600,
+      "height":600
+    },
+    "image":"<%= _U2 %>/static/img/logoxoso66tv.webp",
+    "description":<%- JSON.stringify(_D2) %>,
+    "sameAs":[
+      "<%= partner.home %>",
+      "<%= partner.telegram %>",
+      "https://facebook.com/<%= brand.short.toLowerCase().replace(/ /g,'') %>",
+      "https://youtube.com/@<%= brand.short.toLowerCase().replace(/ /g,'') %>",
+      "https://tiktok.com/@<%= brand.short.toLowerCase().replace(/ /g,'') %>"
+    ],
+    "contactPoint":{
+      "@type":"ContactPoint",
+      "contactType":"customer service",
+      "availableLanguage":["Vietnamese","English"],
+      "url":"<%= _U2 %>/lien-he"
+    }
+  },
+  {
+    "@type":"WebSite",
+    "@id":"<%= _U2 %>#site",
+    "url":"<%= _U2 %>",
+    "name":"<%= brand.name %>",
+    "alternateName":"<%= brand.short %>",
+    "inLanguage":"vi-VN",
+    "publisher":{"@id":"<%= _U2 %>#org"},
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":{"@type":"EntryPoint","urlTemplate":"<%= _U2 %>/tin-tuc?q={search_term_string}"},
+      "query-input":"required name=search_term_string"
+    }
+  },
+  {
+    "@type":"WebPage",
+    "@id":"<%= _C2 %>#webpage",
+    "url":"<%= _C2 %>",
+    "name":"<%= _T2 %>",
+    "description":<%- JSON.stringify(_D2) %>,
+    "inLanguage":"vi-VN",
+    "isPartOf":{"@id":"<%= _U2 %>#site"},
+    "publisher":{"@id":"<%= _U2 %>#org"},
+    "datePublished":"<%= _PD2 %>",
+    "dateModified":"<%= _MD2 %>",
+    "potentialAction":{"@type":"ReadAction","target":["<%= _C2 %>"]},
+    "speakable":{
+      "@type":"SpeakableSpecification",
+      "cssSelector":["h1","h2",".seo-hero-lead"]
+    }
+  },
+  {
+    "@type":"SiteNavigationElement",
+    "@id":"<%= _U2 %>#nav",
+    "name":["Trang chủ","Lịch phát sóng","Sự kiện","Quà tặng","Video nổi bật","Tin tức","Mini Game"],
+    "url":[
+      "<%= _U2 %>/",
+      "<%= _U2 %>/lich-phat-song",
+      "<%= _U2 %>/su-kien",
+      "<%= _U2 %>/qua-tang",
+      "<%= _U2 %>/video-noi-bat",
+      "<%= _U2 %>/tin-tuc",
+      "<%= _U2 %>/mini-game"
+    ]
+  }
+  <% if (_CB2.length) { %>,{
+    "@type":"BreadcrumbList",
+    "@id":"<%= _C2 %>#breadcrumb",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Trang chủ","item":"<%= _U2 %>/"}
+      <% _CB2.forEach(function(c,i){ %>,{"@type":"ListItem","position":<%= i+2 %>,"name":<%- JSON.stringify(c.name) %>,"item":"<%= _U2 + c.url %>"}<% }); %>
+    ]
+  }<% } %>
+  <% if (typeof aggregateRating !== 'undefined' && aggregateRating) { %>,{
+    "@type":"AggregateRating",
+    "itemReviewed":{"@id":"<%= _U2 %>#org"},
+    "ratingValue":"4.8",
+    "ratingCount":"15847",
+    "bestRating":"5",
+    "worstRating":"1"
+  }<% } %>
+]}
+</script>

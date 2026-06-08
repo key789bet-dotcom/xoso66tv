@@ -1,0 +1,37 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "<%= _site %>#org",
+      "name": "<%= brand.name %>",
+      "url": "<%= _site %>",
+      "logo": "<%= _site %>/static/img/logo.png",
+      "sameAs": ["<%= partner.home %>", "<%= partner.telegram %>"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "<%= _site %>#site",
+      "url": "<%= _site %>",
+      "name": "<%= brand.name %>",
+      "inLanguage": "vi-VN",
+      "publisher": { "@id": "<%= _site %>#org" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "<%= _site %>/lich-phat-song?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }<% if (_crumbs.length) { %>,
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type":"ListItem","position":1,"name":"Trang chu","item":"<%= _site %>/"}
+        <% _crumbs.forEach(function (c, i) { %>,
+        { "@type":"ListItem","position":<%= i+2 %>,"name":<%- JSON.stringify(c.name) %>,"item":"<%= _site + c.url %>"}
+        <% }); %>
+      ]
+    }<% } %>
+  ]
+}
+</script>

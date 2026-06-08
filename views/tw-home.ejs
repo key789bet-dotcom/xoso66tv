@@ -1,0 +1,345 @@
+<%
+var _today = new Date();
+var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+var _liveCount = (live && live.length) ? live.length : '50+';
+var _upCount   = (upcoming && upcoming.length) ? upcoming.length : '100+';
+seo = {
+  title: brand.name + ' - Xem Trực Tiếp Bóng Đá HD Miễn Phí, Casino, Idol Live 24/7 - ' + _todayVi,
+  description: 'Xem trực tiếp bóng đá Ngoại Hạng Anh, La Liga, Champions League HD miễn phí tại '+brand.name+'. Phủ sóng Casino live dealer, Idol live show, tin tức thể thao 24/7. ' + _liveCount + ' trận live + ' + _upCount + ' sắp diễn ra hôm nay ' + _todayVi + '.',
+  keywords: 'xem bóng đá trực tiếp, live bóng đá HD, livescore, xem bóng đá miễn phí, casino trực tuyến, idol live show, '+brand.short+', '+brand.domain+', Ngoại Hạng Anh, La Liga, Champions League, V-League, NBA, tennis Grand Slam, esports LCK',
+  canonical: '/',
+  ogType: 'website',
+  ogImage: (typeof siteUrl !== 'undefined' ? siteUrl : '') + '/static/img/logoxoso66tv.webp',
+  publishedAt: '2026-01-01',
+  modifiedAt: new Date().toISOString().slice(0,10)
+};
+// Cho phep render AggregateRating schema
+var aggregateRating = true;
+// Featured stream = live[0] hoặc upcoming[0] hoặc placeholder
+var featured = (live && live[0]) || (upcoming && upcoming[0]) || null;
+// Phân loại danh sách theo nhóm để hiển thị bên cạnh
+function _bySport(arr, sport) {
+  if (!arr) return [];
+  return arr.filter(function(x){ return (x.sport||'')===sport; });
+}
+var roomsHot       = (live||[]).slice(0, 8);
+var roomsTheThao   = (live||[]).concat(upcoming||[]).filter(function(x){ return ['Soccer','Basketball','Tennis','Volleyball'].indexOf(x.sport)>=0; }).slice(0, 8);
+// Idol thật từ DB (truyền qua dbIdols), empty array nếu chưa có
+var roomsIdol = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? dbIdols.map(function(i){
+  return {
+    id: i.id,
+    home: i.name,
+    away: i.room || 'Phòng',
+    league: 'Idol Live Show',
+    sport: 'Idol',
+    status: i.liveNow ? 'live' : 'offline',
+    time: '21:00',
+    poster: i.avatar || '',
+    lock: i.lock || 0,
+    emoji: i.emoji || '👑'
+  };
+}) : [];
+%>
+<%- include('partials/tw-layout-start') %>
+
+<!-- H1 SEO hien thi (visible + keyword dense) -->
+<header class="hidden md:block hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-5 md:px-6 py-4 md:py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <h1 class="text-xl md:text-2xl font-black text-white mb-2 leading-tight flex items-center gap-2.5">
+    <span class="text-2xl">📺</span>
+    <span class="text-shimmer"><%= brand.name %> - Xem Trực Tiếp Bóng Đá HD Miễn Phí Hôm Nay <%= _todayVi %></span>
+  </h1>
+  <p class="text-muted text-sm leading-relaxed">
+    Kênh livestream <strong class="text-white"><%= brand.name %></strong> phủ sóng
+    <a href="/lich-phat-song?mon=bong-da" class="text-pri-light font-semibold hover:underline">bóng đá trực tiếp</a>
+    Ngoại Hạng Anh, La Liga, Champions League, V-League, World Cup chất lượng <strong class="text-white">Full HD 1080p</strong>,
+    bình luận tiếng Việt 24/7, không quảng cáo gián đoạn. Ngoài ra còn có
+    <a href="/the-thao/bong-ro" class="text-pri-light font-semibold hover:underline">NBA bóng rổ</a>,
+    <a href="/the-thao/tennis" class="text-pri-light font-semibold hover:underline">Grand Slam tennis</a>,
+    <a href="/esports" class="text-pri-light font-semibold hover:underline">esports LCK/Valorant</a>,
+    <a href="/casino" class="text-pri-light font-semibold hover:underline">casino trực tuyến</a> và
+    <a href="/idol-live" class="text-pri-light font-semibold hover:underline">idol live show</a> 24/7.
+  </p>
+</header>
+
+<!-- Banner promo strip (slider) - dung opacity + GPU compositing -->
+<div class="relative rounded-xl overflow-hidden mb-3.5 h-[70px] md:h-[140px] bg-bg-card" id="heroBanner" style="contain:layout paint;will-change:contents">
+  <% banners.forEach(function(b, i){ %>
+    <% var _bgStyle = 'background:'+b.bg+';' + (b.image ? 'background-image:url('+b.image+');background-size:contain;background-position:center;background-repeat:no-repeat;' : ''); %>
+    <div class="hero-slide absolute inset-0 flex items-center px-5 md:px-8 py-5 md:py-7 text-white" style="<%= _bgStyle %>opacity:<%= i===0?1:0 %>;transition:opacity 1s ease-in-out;pointer-events:<%= i===0?'auto':'none' %>;will-change:opacity;transform:translateZ(0)">
+      <% if (!b.image) { %>
+        <!-- Khong co anh: hien text + radial spotlight + CTA -->
+        <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 75% 50%,rgba(255,255,255,.18),transparent 60%);"></div>
+        <div class="relative z-[1] flex-1 min-w-0">
+          <div class="text-base md:text-2xl font-extrabold drop-shadow-lg mb-1 md:mb-1.5 leading-tight truncate"><%= b.title %></div>
+          <div class="text-xs md:text-sm opacity-95 mb-2 md:mb-3 line-clamp-2"><%= b.desc %></div>
+          <a href="<%= b.url %>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-white text-red-700 px-5 md:px-7 py-1.5 md:py-2.5 rounded-lg font-extrabold shadow-lg hover:scale-105 transition-transform text-xs md:text-sm"><%= b.cta %> &rarr;</a>
+        </div>
+      <% } else { %>
+        <!-- Co anh: KHONG do lop phu, anh hien thi 100% ro net + chi co link an len toan banner -->
+        <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0 z-[1]" aria-label="<%= b.title %>"></a>
+      <% } %>
+    </div>
+  <% }); %>
+  <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-[2]" id="heroDots">
+    <% banners.forEach(function(b, i){ %><span class="w-1.5 h-1.5 rounded-full bg-white/40 cursor-pointer transition-all duration-500 <%= i===0?'!w-5 !bg-white':'' %>"></span><% }); %>
+  </div>
+</div>
+
+<!-- MAIN PLAYER + ROOM LIST -->
+<section class="grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-3.5 mb-4" aria-label="Player">
+
+  <!-- Video player frame (always present) -->
+  <article class="bg-black rounded-xl relative overflow-hidden flex flex-col">
+    <div class="aspect-video bg-gradient-to-br from-[#1a2030] via-[#11151c] to-bg relative grid place-items-center overflow-hidden">
+      <% if (featured && featured.poster) { %>
+        <img src="<%= featured.poster %>" alt="" class="absolute inset-0 w-full h-full object-cover opacity-40" onerror="this.style.display='none'">
+      <% } %>
+      <!-- decorative football pattern -->
+      <div class="absolute inset-0 opacity-20 pointer-events-none" style="background:radial-gradient(ellipse at center,#ff7a18 0%,transparent 60%)"></div>
+
+      <% if (featured) { %>
+        <!-- LIVE / status badges -->
+        <% if (featured.status === 'live') { %>
+          <span class="absolute top-3 left-3 z-[2] bg-live text-white px-2.5 py-1 rounded-md font-extrabold text-[11px] flex items-center gap-1.5 shadow-live"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+        <% } else { %>
+          <span class="absolute top-3 left-3 z-[2] bg-gradient-to-r from-pri to-pri-dark text-white px-2.5 py-1 rounded-md font-extrabold text-[11px]">&#9200; SẮP DIỄN RA</span>
+        <% } %>
+        <span class="absolute top-3 right-3 z-[2] bg-black/70 text-gold px-2 py-0.5 rounded text-[10px] font-bold">HD 1080p</span>
+
+        <!-- match info center -->
+        <div class="relative z-[1] text-center px-6 py-4 text-white max-w-[90%]">
+          <div class="text-[11px] md:text-xs text-gray-300 mb-1.5 font-bold tracking-widest uppercase line-clamp-1"><%= featured.league %></div>
+          <h2 class="text-base md:text-xl font-extrabold mb-2 leading-tight line-clamp-2"><%= featured.home %> vs <%= featured.away %></h2>
+          <% if (featured.score) { %>
+            <div class="text-4xl md:text-5xl font-black text-gold my-2 drop-shadow-lg tabular-nums"><%= featured.score[0] %> : <%= featured.score[1] %></div>
+          <% } else { %>
+            <div class="text-2xl md:text-3xl font-black text-gold/80 my-2"><%= featured.time || 'VS' %></div>
+          <% } %>
+          <a href="/live/<%= featured.slug || featured.id %>" class="inline-flex items-center gap-2 px-6 md:px-9 py-2.5 md:py-3.5 bg-pri hover:bg-pri-dark text-white rounded-lg md:rounded-full font-extrabold text-xs md:text-sm shadow-pri hover:scale-105 transition-all">
+            &#9654; VÀO PHÒNG
+          </a>
+        </div>
+      <% } else { %>
+        <!-- Empty player placeholder -->
+        <div class="relative z-[1] text-center text-white px-6">
+          <div class="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center text-3xl shadow-live">&#9654;</div>
+          <div class="font-bold text-base md:text-lg mb-1"><%= brand.name %></div>
+          <div class="text-muted text-xs md:text-sm">Hôm nay chưa có trận live. Xem <a href="/lich-phat-song" class="text-pri-light underline">lịch phát sóng</a>.</div>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Player controls bar -->
+    <div class="bg-[#0a0d12] border-t border-line/50 flex items-center gap-3 px-3 py-2 text-white">
+      <button class="w-8 h-8 grid place-items-center hover:text-pri transition-colors" aria-label="Phát/Tạm dừng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      </button>
+      <button class="w-8 h-8 grid place-items-center hover:text-pri transition-colors" aria-label="Bật/Tắt tiếng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+      <% if (featured && featured.status === 'live') { %>
+        <span class="text-xs flex items-center gap-1.5 text-live font-bold ml-1"><span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span>LIVE</span>
+      <% } else { %>
+        <span class="text-xs text-muted ml-1">Preview</span>
+      <% } %>
+      <div class="flex-1"></div>
+      <button class="w-8 h-8 grid place-items-center hover:text-pri transition-colors hidden md:grid" aria-label="HD">
+        <span class="text-[10px] font-bold bg-pri text-white px-1.5 py-0.5 rounded">HD</span>
+      </button>
+      <button class="w-8 h-8 grid place-items-center hover:text-pri transition-colors" aria-label="Toàn màn hình">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+    </div>
+  </article>
+
+  <!-- Right sidebar: Tab list of rooms -->
+  <aside class="bg-bg-card border border-line rounded-xl overflow-hidden flex flex-col lg:max-h-[calc(100vh-220px)]">
+    <!-- Tabs -->
+    <nav class="flex gap-1 p-2 border-b border-line overflow-x-auto scrollbar-hide" role="tablist" id="roomTabs">
+      <button data-tab="hot"     class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap bg-pri text-white shadow-pri transition-all" role="tab">&#128293; Hot</button>
+      <button data-tab="thethao" class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#9917; Thể thao</button>
+      <button data-tab="idol" class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#128081; Idol Live</button>
+      <a    href="/casino"      class="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all">&#127920; Casino</a>
+      <a    href="/esports"     class="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all">&#127918; Esports</a>
+    </nav>
+
+    <!-- Room panels -->
+    <div class="flex-1 overflow-y-auto scrollbar-thin">
+
+      <!-- Tab: HOT -->
+      <div class="room-panel" data-panel="hot">
+        <% if (roomsHot.length === 0) { %>
+          <div class="p-10 text-center text-muted text-sm">
+            <div class="text-4xl mb-2 opacity-50">&#128229;</div>
+            Chưa có phòng live.
+            <div class="mt-3"><a href="/lich-phat-song" class="text-pri-light text-xs font-semibold">&rarr; Xem lịch phát sóng</a></div>
+          </div>
+        <% } else { %>
+          <% roomsHot.forEach(function(m){ %>
+            <%- include('partials/tw-room-row', { m: m }) %>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <!-- Tab: THỂ THAO -->
+      <div class="room-panel hidden" data-panel="thethao">
+        <% if (roomsTheThao.length === 0) { %>
+          <div class="p-10 text-center text-muted text-sm"><div class="text-4xl mb-2 opacity-50">&#9917;</div>Chưa có phòng thể thao live.</div>
+        <% } else { %>
+          <% roomsTheThao.forEach(function(m){ %>
+            <%- include('partials/tw-room-row', { m: m }) %>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <!-- Tab: ESPORTS -->
+      <div class="room-panel hidden" data-panel="idol">
+        <% if (roomsIdol.length === 0) { %>
+          <div class="p-10 text-center text-muted text-sm"><div class="text-4xl mb-2 opacity-50">&#128081;</div>Chưa có phòng idol live.</div>
+        <% } else { %>
+          <% roomsIdol.forEach(function(m){ %>
+            <%- include('partials/tw-room-row', { m: m }) %>
+          <% }); %>
+        <% } %>
+      </div>
+
+    </div>
+  </aside>
+</section>
+
+<!-- Top Streamer carousel -->
+<%- include('partials/tw-top-streamer') %>
+
+<!-- Quick category filter chips -->
+<nav class="flex gap-2 flex-wrap bg-bg-card border border-line rounded-xl p-2 mb-5 overflow-x-auto scrollbar-hide items-center" aria-label="Danh mục">
+  <a href="/" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap bg-gradient-to-br from-pri to-pri-dark text-white shadow-pri"><span class="bg-white/25 w-5 h-5 rounded grid place-items-center text-[10px]">&check;</span> Tất cả</a>
+  <% Object.entries(cats).forEach(function(pair){ var key=pair[0],c=pair[1]; var href=key==='casino'?'/casino':key==='idol'?'/idol-live':key==='esports'?'/esports':key==='hot'?'/':'/the-thao/'+key; %>
+    <a href="<%= href %>" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap text-gray-200 hover:bg-bg-soft hover:text-white transition-colors"><span><%= c.icon %></span> <%= c.name %></a>
+  <% }); %>
+  <a href="/lich-phat-song" class="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">Xem Tất Cả &nearr;</a>
+</nav>
+
+<!-- Live rooms grid -->
+<section class="mb-6" aria-label="Đang trực tiếp">
+  <div class="flex items-center gap-2.5 mb-3.5">
+    <span class="w-1 h-5 bg-pri rounded-sm"></span>
+    <h2 class="text-lg font-extrabold text-white flex items-center gap-2">Đang trực tiếp <span class="bg-live text-white text-[11px] px-2 py-0.5 rounded font-extrabold flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE &middot; <%= live.length %></span></h2>
+    <a href="/lich-phat-song" class="ml-auto text-sm text-pri-light font-semibold">Xem tất cả &rarr;</a>
+  </div>
+  <% if (!live || live.length === 0) { %>
+    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted"><div class="text-5xl mb-2 opacity-60">&#128229;</div>Hiện không có trận trực tiếp. Xem <a href="/lich-phat-song" class="text-pri-light">lịch phát sóng</a>.</div>
+  <% } else { %>
+    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]"><%- include('partials/tw-stream-card', { list: live.slice(0,12) }) %></div>
+  <% } %>
+</section>
+
+<section class="mb-6" aria-label="Sắp diễn ra">
+  <div class="flex items-center gap-2.5 mb-3.5"><span class="w-1 h-5 bg-pri rounded-sm"></span><h2 class="text-lg font-extrabold text-white">&#9200; Sắp diễn ra</h2><a href="/lich-phat-song" class="ml-auto text-sm text-pri-light font-semibold">Lịch đầy đủ &rarr;</a></div>
+  <% if (upcoming.length === 0) { %>
+    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted"><div class="text-5xl mb-2 opacity-60">&#128197;</div>Chưa có trận sắp diễn ra.</div>
+  <% } else { %>
+    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]"><%- include('partials/tw-stream-card', { list: upcoming }) %></div>
+  <% } %>
+</section>
+
+<% if (finished && finished.length) { %>
+<section class="mb-6" aria-label="Highlight">
+  <div class="flex items-center gap-2.5 mb-3.5"><span class="w-1 h-5 bg-pri rounded-sm"></span><h2 class="text-lg font-extrabold text-white">&#127916; Highlight mới nhất</h2><a href="/video-noi-bat" class="ml-auto text-sm text-pri-light font-semibold">Xem tất cả &rarr;</a></div>
+  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]"><%- include('partials/tw-stream-card', { list: finished }) %></div>
+</section>
+<% } %>
+
+<!-- SEO Article giới thiệu (TOC + bài chuẩn SEO 2026) -->
+<%- include('partials/tw-seo-article') %>
+
+<!-- FAQ block (giữ JSON-LD FAQPage) -->
+<%- include('partials/tw-seo-bottom', { seoContent: {
+  h2: 'Về '+brand.name+' - Kênh xem trực tiếp thể thao & giải trí',
+  intro: '<strong>'+brand.name+'</strong> là nền tảng livestream miễn phí hàng đầu Việt Nam, phục vụ hàng triệu người dùng mỗi tháng. Cung cấp full HD 1080p, bình luận tiếng Việt chuyên nghiệp, không quảng cáo gián đoạn.',
+  sections: [
+    { h3:'Trực tiếp bóng đá đầy đủ các giải', p:'Phát sóng <a href="/lich-phat-song?mon=bong-da">100% trận đấu</a> Ngoại Hạng Anh, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, World Cup, AFF Cup, V-League.' },
+    { h3:'Đa môn thể thao', p:'Không chỉ bóng đá, còn có <a href="/the-thao/bong-ro">NBA</a>, <a href="/the-thao/tennis">Grand Slam tennis</a>, <a href="/the-thao/bong-chuyen">VNL bóng chuyền</a> và <a href="/esports">esports LCK/LPL/Valorant/Dota2</a>.' },
+    { h3:'Casino & Idol Live 24/7', p:'Khu giải trí với <a href="/casino">casino live dealer</a>, <a href="/idol-live">idol live show</a>, <a href="/mini-game">mini game</a> đa dạng.' },
+    { h3:'Thưởng siêu hấp dẫn', p:'Đăng ký tài khoản tại <a href="'+partner.register+'" target="_blank" rel="noopener">'+brand.domain+'</a> nhận ngay <strong>100% thưởng nạp lần đầu</strong>.' }
+  ],
+  faqs: [
+    { q: brand.name+' có miễn phí xem không?', a: 'Có. Toàn bộ stream thể thao <strong>hoàn toàn miễn phí</strong>, không cần đăng ký.' },
+    { q: 'Chất lượng video stream thế nào?', a: 'Mặc định HD 1080p, độ trễ thấp dưới 5 giây nhờ server CDN tại Việt Nam.' },
+    { q: 'Có app cho điện thoại không?', a: 'Có. <a href="'+partner.download+'" target="_blank">Tải APP '+brand.short+'</a> miễn phí cho Android & iOS.' },
+    { q: 'Làm sao đăng ký?', a: 'Click <a href="/dang-ky">Đăng ký</a>, điền SĐT + mật khẩu xong trong 30 giây.' },
+    { q: 'Quên mật khẩu thì sao?', a: 'Vào <a href="/quen-mat-khau">Quên mật khẩu</a>, nhập SĐT hoặc email để nhận OTP.' }
+  ]
+}}) %>
+
+<script>
+// Tab switcher for room list sidebar
+(function(){
+  var tabs = document.querySelectorAll('.room-tab');
+  var panels = document.querySelectorAll('.room-panel');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.className = x.className.replace('bg-pri text-white shadow-pri','').trim() + ' text-gray-200 hover:bg-bg-soft'; });
+      this.className = this.className.replace('text-gray-200 hover:bg-bg-soft','').trim() + ' bg-pri text-white shadow-pri';
+      var name = this.getAttribute('data-tab');
+      panels.forEach(function(p){ p.classList.toggle('hidden', p.getAttribute('data-panel') !== name); });
+    });
+  });
+  // Hero slider - fade chuyen dong muot khong gay reflow (khong anh huong video)
+  var slides = document.querySelectorAll('#heroBanner .hero-slide');
+  var dots   = document.querySelectorAll('#heroDots span');
+  if (slides.length > 1) {
+    var idx = 0;
+    var paused = false;
+    var heroEl = document.getElementById('heroBanner');
+    // Pause khi tab khong active (tiet kiem CPU)
+    document.addEventListener('visibilitychange', function(){ paused = document.hidden; });
+    // Pause khi hover vao banner
+    heroEl.addEventListener('mouseenter', function(){ paused = true; });
+    heroEl.addEventListener('mouseleave', function(){ paused = false; });
+    function nextSlide(){
+      if (paused) return;
+      // Chi thay doi style inline -> GPU composite, KHONG trigger reflow toan trang
+      slides[idx].style.opacity = '0';
+      slides[idx].style.pointerEvents = 'none';
+      dots[idx].classList.remove('!w-5','!bg-white');
+      idx = (idx + 1) % slides.length;
+      slides[idx].style.opacity = '1';
+      slides[idx].style.pointerEvents = 'auto';
+      dots[idx].classList.add('!w-5','!bg-white');
+    }
+    setInterval(nextSlide, 5000);
+    // Click dot de chuyen slide
+    dots.forEach(function(d, i){
+      d.addEventListener('click', function(){
+        if (i === idx) return;
+        slides[idx].style.opacity = '0'; slides[idx].style.pointerEvents = 'none';
+        dots[idx].classList.remove('!w-5','!bg-white');
+        idx = i;
+        slides[idx].style.opacity = '1'; slides[idx].style.pointerEvents = 'auto';
+        dots[idx].classList.add('!w-5','!bg-white');
+      });
+    });
+  }
+})();
+</script>
+
+
+<script>
+// Idol row click handler (cho sidebar tab Idol Live tren home)
+function tryEnterIdolRow(el, ev){
+  if (ev) ev.preventDefault();
+  var id = el.getAttribute('data-id');
+  openUnlockDialog({
+    id:     id,
+    name:   el.getAttribute('data-name'),
+    room:   el.getAttribute('data-room'),
+    price:  parseInt(el.getAttribute('data-lock'),10) || 0,
+    avatar: el.getAttribute('data-emoji') || '👑',
+    duration: 30,
+    redirectUrl: '/idol/' + id
+  });
+}
+</script>
+
+<%- include('partials/tw-unlock-dialog') %>
+<%- include('partials/tw-footer') %>

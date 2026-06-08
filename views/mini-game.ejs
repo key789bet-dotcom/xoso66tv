@@ -1,0 +1,59 @@
+<%
+seo = {
+  title: 'Mini Game Miễn Phí - Tài Xỉu, Bắn Cá, Slot - '+brand.name,
+  description: 'Chơi mini game miễn phí 24/7 tại '+brand.name+': Tài Xỉu, Bắn Cá, Sâm Lốc, Slot, Bingo. Đổi thưởng trực tiếp tại '+brand.domain+'.',
+  keywords: 'mini game, tài xỉu, bắn cá, slot game, '+brand.short+', game online',
+  canonical: '/mini-game',
+  breadcrumb: [{ name:'Mini Game', url:'/mini-game' }],
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="seo-hero">
+  <h1>🎮 Mini Game Miễn Phí - Vừa Chơi Vừa Đổi Thưởng</h1>
+  <p class="lead">Bộ sưu tập <strong>200+ mini game</strong> giải trí 24/7 tại <a href="<%= partner.minigame %>" target="_blank" rel="noopener"><%= brand.domain %></a>: Tài Xỉu, Bắn Cá, Sâm Lốc, Slot, Bingo, Đá Penalty và nhiều hơn nữa.</p>
+</header>
+
+<section class="sec" aria-label="Danh sách mini game">
+  <div class="game-grid">
+    <% [
+      { ico:'🎯', n:'Tài Xỉu', d:'1 phút 1 phiên' },
+      { ico:'🎲', n:'Xúc Xắc', d:'Đoán điểm' },
+      { ico:'🃏', n:'Sâm Lốc', d:'Đánh bài cùng AI' },
+      { ico:'🐟', n:'Bắn Cá', d:'Thưởng x100' },
+      { ico:'🎰', n:'Slot Game', d:'Hàng nghìn slot' },
+      { ico:'🎡', n:'Vòng Quay', d:'Quay là trúng' },
+      { ico:'⚽', n:'Đá Penalty', d:'Skill bóng đá' },
+      { ico:'🏀', n:'Ném Rổ', d:'Mini basketball' },
+    ].forEach(g => { %>
+      <article class="game-card">
+        <div class="ico"><%= g.ico %></div>
+        <h2 class="name" style="margin:6px 0 4px;font-size:14px"><%= g.n %></h2>
+        <div class="desc"><%= g.d %></div>
+        <a class="btn" href="<%= partner.minigame %>" target="_blank" rel="noopener">Chơi ngay</a>
+      </article>
+    <% }); %>
+  </div>
+
+  <aside style="margin-top:28px;background:linear-gradient(135deg,#1abc9c,#16a085);padding:24px;border-radius:12px;color:#fff;text-align:center">
+    <h2 style="font-size:20px;font-weight:900;margin-bottom:8px">🎮 Tải app để có trải nghiệm tốt nhất</h2>
+    <p style="opacity:.95;margin-bottom:14px">Hơn 200+ mini game miễn phí, chơi và đổi quà thật trên app <%= brand.short %></p>
+    <a href="<%= partner.download %>" target="_blank" rel="noopener" style="background:#fff;color:#16a085;padding:12px 28px;border-radius:8px;font-weight:800;display:inline-block">⬇ Tải APP ngay</a>
+  </aside>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2:'Mini game giải trí lành mạnh tại '+brand.name,
+  intro:'Các mini game được thiết kế cho phép bạn chơi miễn phí giải trí, hoặc dùng điểm thưởng đã tích luỹ để chơi cao cấp với phần thưởng giá trị.',
+  sections: [
+    { h3:'Mini game phổ biến nhất', p:'<strong>Tài Xỉu</strong> (1 phiên/phút), <strong>Bắn Cá</strong> (cộng đồng), <strong>Slot Game</strong> (theme đa dạng), <strong>Sâm Lốc</strong> (đấu AI hoặc PvP).' },
+    { h3:'Đổi điểm thưởng', p:'Điểm thưởng kiếm được từ mini game có thể đổi voucher, tiền thật về tài khoản, hoặc tham gia <a href="/qua-tang">vòng quay may mắn</a>.' },
+  ],
+  faqs: [
+    { q:'Có cần đăng ký để chơi không?', a:'Chơi thử miễn phí thì không cần. Chơi ăn thưởng thật thì phải <a href="/dang-ky">đăng ký tài khoản</a>.' },
+    { q:'Mini game có công bằng không?', a:'Có. Tất cả game sử dụng thuật toán RNG được cấp phép quốc tế (PAGCOR, GLI), đảm bảo công bằng tuyệt đối.' },
+  ]
+} }) %>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,13 @@
+<%
+  var _seo   = (typeof seo !== 'undefined' && seo) ? seo : {};
+  var _title = _seo.title || (typeof title!=='undefined' && title) || (brand.name + ' - ' + brand.tagline);
+  var _desc  = _seo.description || ('Xem truc tiep the thao - casino - idol live 24/7 tai '+brand.name+'. Doi tac chinh thuc '+brand.domain+'.');
+  var _keys  = _seo.keywords || ('xem bong da truc tiep, livescore, casino, idol live, '+brand.short+', xoso66tv');
+  var _site  = (typeof siteUrl !== 'undefined' && siteUrl) ? siteUrl : ('https://www.' + brand.domain);
+  var _url   = _site + (typeof path !== 'undefined' ? path : '/');
+  var _canon = _seo.canonical ? _site + _seo.canonical : _url;
+  var _ogImg = _seo.ogImage || (_site + '/static/img/og-default.jpg');
+  var _ogType= _seo.ogType || 'website';
+  var _noindex = _seo.noindex ? true : false;
+  var _crumbs  = _seo.breadcrumb || [];
+%>

@@ -1,0 +1,145 @@
+<%- include('partials/layout-start', { title:'Quản lý Promo Cards', active:'promos', obsPending:obsPending, adminUser:adminUser }) %>
+
+<!-- Guideline card -->
+<section class="bg-gradient-to-br from-purple/15 to-pink/5 border-2 border-purple/40 rounded-xl p-5 mb-5">
+  <h2 class="text-pink font-extrabold text-base mb-3 flex items-center gap-2">🎁 Quản lý Promo Cards (Trang Sự Kiện)</h2>
+  <p class="text-muted text-sm mb-3">Các card khuyến mãi hiển thị tại trang <a href="/su-kien" target="_blank" class="text-pri-light underline">/su-kien</a>. Khác với hero banner trên trang chủ.</p>
+  <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[11px] text-muted uppercase tracking-wide font-bold mb-1">Khuyến nghị</div>
+      <div class="text-white font-extrabold text-lg">800 × 450 px</div>
+      <div class="text-[11px] text-pri-light mt-1">Tỉ lệ 16:9</div>
+    </div>
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[11px] text-muted uppercase tracking-wide font-bold mb-1">Tối thiểu</div>
+      <div class="text-white font-extrabold text-lg">600 × 340 px</div>
+      <div class="text-[11px] text-muted mt-1">Sắc nét trên mobile</div>
+    </div>
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[11px] text-muted uppercase tracking-wide font-bold mb-1">Định dạng</div>
+      <div class="text-white font-extrabold text-base">JPG · PNG · WEBP</div>
+      <div class="text-[11px] text-emerald-400 mt-1">WEBP tối ưu</div>
+    </div>
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[11px] text-muted uppercase tracking-wide font-bold mb-1">Dung lượng</div>
+      <div class="text-white font-extrabold text-lg">≤ 300 KB</div>
+      <div class="text-[11px] text-muted mt-1">Tối đa 2 MB</div>
+    </div>
+  </div>
+  <ul class="mt-4 space-y-1 text-[12.5px] text-gray-200">
+    <li>✅ <strong>Nên</strong>: ảnh chủ đề rõ ràng - tiền 💵, quà 🎁, idol 👑, vòng quay 🎡 - dễ nhận biết loại khuyến mãi</li>
+    <li>✅ <strong>Nên</strong>: vùng dưới phải để TRỐNG vì sẽ có nút CTA che lên</li>
+    <li>✅ <strong>Nên</strong>: tổng số card hiển thị nên là <strong>6, 9 hoặc 12</strong> để grid đẹp (3 cột)</li>
+    <li>❌ <strong>Tránh</strong>: ảnh quá tối khó nhìn text trắng bên trên</li>
+  </ul>
+</section>
+
+<!-- Add new -->
+<details class="bg-bg-card border border-line rounded-xl mb-5 group">
+  <summary class="px-5 py-3 cursor-pointer font-extrabold text-white flex items-center gap-2 select-none list-none hover:bg-bg-soft">
+    <span class="w-6 h-6 bg-pri rounded-full grid place-items-center font-black group-open:bg-live transition-colors">+</span>
+    Thêm promo mới
+  </summary>
+  <form action="/admin/promos" method="POST" enctype="multipart/form-data" class="p-5 border-t border-line space-y-3">
+    <div class="grid md:grid-cols-2 gap-3">
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Tiêu đề *</span>
+        <input name="title" required maxlength="80" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="VD: HOÀN 10% NẠP THẺ HÀNG NGÀY">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">CTA *</span>
+        <input name="cta" required maxlength="20" value="Nhận ngay" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+      </label>
+      <label class="block md:col-span-2">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Mô tả</span>
+        <input name="desc" maxlength="200" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+      </label>
+      <label class="block md:col-span-2">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Link URL *</span>
+        <input name="url" required type="url" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="https://xoso66tv.com/promo/...">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">📷 Ảnh (800×450)</span>
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-pri file:text-white file:font-bold file:cursor-pointer">
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Gradient fallback</span>
+        <input name="bg" maxlength="200" value="linear-gradient(135deg,#c0392b,#e67e22,#f1c40f)" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri text-xs font-mono">
+      </label>
+      <label class="flex items-center gap-2 md:col-span-2">
+        <input name="active" type="checkbox" checked class="accent-pri w-4 h-4">
+        <span class="text-sm">Kích hoạt ngay</span>
+      </label>
+    </div>
+    <button type="submit" class="px-6 py-2.5 bg-gradient-to-br from-pri to-pri-dark text-white rounded-lg font-extrabold shadow-pri">💾 Lưu promo</button>
+  </form>
+</details>
+
+<!-- List -->
+<section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+  <header class="px-5 py-3 border-b border-line flex items-center gap-2">
+    <h2 class="text-white font-extrabold text-base">📋 Danh sách Promo (<%= promos.length %>)</h2>
+    <span class="ml-auto text-xs text-muted">Hiển thị trên <a href="/su-kien" target="_blank" class="text-pri-light">/su-kien</a></span>
+  </header>
+
+  <div class="divide-y divide-line/40">
+    <% promos.forEach(function(p, i){ %>
+      <div class="p-4 flex flex-col md:flex-row gap-4">
+        <!-- Preview -->
+        <div class="md:w-[260px] shrink-0">
+          <div class="aspect-video rounded-lg overflow-hidden relative p-4 text-white" style="background:<%= p.bg || 'linear-gradient(135deg,#c0392b,#e67e22,#f1c40f)' %>;<% if (p.image) { %>background-image:url(<%= p.image %>);background-size:cover;background-position:center;<% } %>">
+            <% if (p.image) { %><div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div><% } %>
+            <div class="relative z-10">
+              <div class="text-[9px] uppercase tracking-widest opacity-90 font-bold">KHUYẾN MÃI <%= i+1 %></div>
+              <div class="text-[13px] font-extrabold leading-tight mt-1 line-clamp-2"><%= p.title %></div>
+              <div class="text-[10px] opacity-95 mt-1 line-clamp-2"><%= p.desc %></div>
+              <div class="inline-block mt-2 bg-white text-red-700 px-2 py-0.5 rounded text-[10px] font-extrabold"><%= p.cta %> →</div>
+            </div>
+            <% if (!p.active) { %><div class="absolute inset-0 bg-black/70 grid place-items-center text-white font-bold text-xs">ĐÃ TẮT</div><% } %>
+          </div>
+          <div class="text-[10px] text-muted text-center mt-1">Promo #<%= i+1 %> · <%= p.active?'<span class="text-emerald-400">▶ Đang hiển thị</span>':'<span class="text-muted">⏸ Đã tắt</span>' %></div>
+        </div>
+
+        <!-- Edit form -->
+        <form action="/admin/promos/<%= p.id %>" method="POST" enctype="multipart/form-data" class="flex-1 grid md:grid-cols-2 gap-2 text-sm">
+          <label class="md:col-span-2">
+            <span class="block text-[10px] font-bold text-muted uppercase mb-1">Tiêu đề</span>
+            <input name="title" value="<%= p.title %>" maxlength="80" class="w-full bg-bg-deep border border-line text-white px-2.5 py-2 rounded outline-none focus:border-pri text-xs">
+          </label>
+          <label>
+            <span class="block text-[10px] font-bold text-muted uppercase mb-1">Mô tả</span>
+            <input name="desc" value="<%= p.desc || '' %>" maxlength="200" class="w-full bg-bg-deep border border-line text-white px-2.5 py-2 rounded outline-none focus:border-pri text-xs">
+          </label>
+          <label>
+            <span class="block text-[10px] font-bold text-muted uppercase mb-1">CTA</span>
+            <input name="cta" value="<%= p.cta %>" maxlength="20" class="w-full bg-bg-deep border border-line text-white px-2.5 py-2 rounded outline-none focus:border-pri text-xs">
+          </label>
+          <label class="md:col-span-2">
+            <span class="block text-[10px] font-bold text-muted uppercase mb-1">URL</span>
+            <input name="url" value="<%= p.url %>" type="url" class="w-full bg-bg-deep border border-line text-white px-2.5 py-2 rounded outline-none focus:border-pri text-xs font-mono">
+          </label>
+          <label>
+            <span class="block text-[10px] font-bold text-muted uppercase mb-1">📷 Thay ảnh (800×450)</span>
+            <input name="image" type="file" accept="image/*" class="w-full bg-bg-deep border border-line text-white px-2 py-1.5 rounded outline-none text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-pri file:text-white file:font-bold file:text-[10px] file:cursor-pointer">
+          </label>
+          <label>
+            <span class="block text-[10px] font-bold text-muted uppercase mb-1">Gradient fallback</span>
+            <input name="bg" value="<%= p.bg %>" class="w-full bg-bg-deep border border-line text-white px-2.5 py-2 rounded outline-none focus:border-pri text-[11px] font-mono">
+          </label>
+          <div class="md:col-span-2 flex items-center justify-between gap-2 pt-1 flex-wrap">
+            <label class="flex items-center gap-2 text-xs">
+              <input name="active" type="checkbox" <%= p.active?'checked':'' %> class="accent-pri w-4 h-4">
+              <span>Đang hiển thị</span>
+            </label>
+            <div class="flex gap-1.5">
+              <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-xs">💾 Cập nhật</button>
+              <button type="button" onclick="if(confirm('Xóa promo này?')) location.href='/admin/promos/<%= p.id %>/delete'" class="px-3 py-1.5 bg-live/20 hover:bg-live text-live hover:text-white rounded font-bold text-xs">🗑 Xóa</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    <% }); %>
+  </div>
+</section>
+
+<%- include('partials/layout-end') %>

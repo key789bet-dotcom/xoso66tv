@@ -1,0 +1,26 @@
+{
+  "webhookSecret": "CHANGE_ME_xoso66_to_x66tv_secret",
+  "vndPerCoin": 1000,
+  "coinPerVndK": 1,
+  "bonusTiers": [
+    {
+      "fromVnd": 100000,
+      "bonusCoin": 50
+    },
+    {
+      "fromVnd": 500000,
+      "bonusCoin": 300
+    },
+    {
+      "fromVnd": 1000000,
+      "bonusCoin": 1000
+    },
+    {
+      "fromVnd": 5000000,
+      "bonusCoin": 8000
+    }
+  ],
+  "myWebhookUrl": "/api/partner/xoso66/deposit",
+  "autoCreateUser": true,
+  "enabled": true
+}

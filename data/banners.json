@@ -1,0 +1,35 @@
+[
+  {
+    "id": "bmq0xmutk5huf",
+    "active": true,
+    "image": "/static/uploads/banners/banner-1780746912429-u1vsh.webp",
+    "createdAt": 1780664444552,
+    "title": "VÉ CƯỢC THUA THỂ THAO ĐẦU TIÊN",
+    "desc": "Hoàn 100% tối đa 5.000.000đ cho vé cược thua đầu tiên",
+    "cta": "Nhận ngay",
+    "url": "https://pg66666.site",
+    "bg": "linear-gradient(90deg,#c0392b,#e67e22,#f1c40f)"
+  },
+  {
+    "id": "bmq0xmutkyjo5",
+    "active": true,
+    "image": "/static/uploads/banners/banner-1780747202609-cpltd.webp",
+    "createdAt": 1780664444552,
+    "title": "NẠP LẦN ĐẦU - THƯỞNG 100%",
+    "desc": "Nhận thêm 1.000.000đ khi nạp tiền lần đầu tiên tại Xoso66",
+    "cta": "Nạp ngay",
+    "url": "https://pg66666.site",
+    "bg": "linear-gradient(90deg,#1e8449,#27ae60,#f1c40f)"
+  },
+  {
+    "id": "bmq0xmutkfzyo",
+    "active": true,
+    "image": "/static/uploads/banners/banner-1780746726594-upohv.webp",
+    "createdAt": 1780664444552,
+    "title": "IDOL LIVE 24/7 - HOTGIRL ĐỘC QUYỀN",
+    "desc": "Hàng trăm idol xinh đẹp đang chờ bạn trong phòng riêng",
+    "cta": "Vào phòng",
+    "url": "https://pg66666.site",
+    "bg": "linear-gradient(90deg,#8e44ad,#e91e63,#f1c40f)"
+  }
+]

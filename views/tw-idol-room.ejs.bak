@@ -1,0 +1,326 @@
+<%
+// Idol full profile (sau lay tu DB)
+var idol = (typeof dbIdol !== 'undefined' && dbIdol) ? dbIdol : { name:'Idol', room:'Phòng', lock:0, color:0, emoji:'👑', age:'-', height:'-', weight:'-', city:'-', job:'-', hobby:'-', bio:'-' };
+var idolId = (typeof idolKey !== 'undefined' && idolKey) ? idolKey : 'i01';
+var viewers = ((idol.name.charCodeAt(0)+idolId.length) * 137) % 9000 + 500;
+var follow  = ((idol.name.charCodeAt(0)+idolId.length) * 53)  % 250000 + 5000;
+var tipsToday = ((idol.name.charCodeAt(0)*7+idolId.length) * 31) % 80000 + 10000;
+
+// Sinh 9 ảnh placeholder (gradient + emoji)
+var ALBUM_EMOJIS = ['📷','🌸','🌹','💃','🌺','✨','💖','🦋','🌷'];
+var ALBUM = [];
+for (var k=0; k<9; k++){
+  var h = (idol.color + k*40) % 360;
+  ALBUM.push({
+    caption: ['Ảnh studio','Du lịch','Ngày thường','Sự kiện','Cosplay','Selfie','Hậu trường','Concert','Photoshoot'][k] + ' #' + (k+1),
+    color: 'linear-gradient(135deg, hsl('+h+',75%,50%), hsl('+((h+60)%360)+',75%,40%))',
+    emoji: ALBUM_EMOJIS[k]
+  });
+}
+// 4 video clip
+var VIDEOS = [
+  { title:'Cover bài Hoa Nở Không Màu', duration:'3:42', views:'12.5K', emoji:'🎤' },
+  { title:'Dance K-pop highlight',       duration:'1:20', views:'8.7K',  emoji:'💃' },
+  { title:'Vlog hậu trường live',        duration:'5:18', views:'21K',   emoji:'📹' },
+  { title:'Tâm sự cuối tuần',            duration:'2:45', views:'15K',   emoji:'💬' }
+];
+
+seo = {
+  title: idol.name + ' - ' + idol.room + ' - ' + brand.name,
+  description: 'Xem trực tiếp '+idol.name+', '+idol.age+' tuổi, '+idol.city+'. '+viewers.toLocaleString('vi-VN')+' người đang xem. '+idol.bio.slice(0,80),
+  canonical: '/idol/'+idolId,
+  noindex: true
+};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<!-- Auth + lock check -->
+<script>
+(function(){
+  var lock = <%= idol.lock %>;
+  var id = '<%= idolId %>';
+  if (lock > 0) {
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
+      if (!u.username) { location.href = '/dang-nhap'; return; }
+      var unlocked = JSON.parse(localStorage.getItem('x66_unlocked_idols')||'[]');
+      if (unlocked.indexOf(id) < 0) {
+        alert('Bạn cần mở khóa phòng trước. Đang chuyển về danh sách idol.');
+        location.href = '/idol-live'; return;
+      }
+    } catch(e){}
+  }
+})();
+</script>
+
+<article class="mb-6">
+
+  <!-- TOP ROW: Player + Chat cùng grid stretch -->
+  <section class="grid lg:grid-cols-[1fr_340px] gap-4 mb-4 items-stretch">
+    <!-- Player aspect-video -->
+
+    <!-- Player -->
+    <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center" style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))">
+      <div class="absolute inset-0 opacity-40" style="background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.4),transparent 50%),radial-gradient(circle at 70% 50%,rgba(255,255,255,.3),transparent 50%)"></div>
+      <span class="absolute top-3.5 left-3.5 z-[2] bg-live text-white px-3 py-1 rounded-md font-extrabold text-xs flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+      <span class="absolute top-3.5 right-3.5 z-[2] bg-black/70 text-gold px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1.5">👁 <span class="tabular-nums"><%= viewers.toLocaleString('vi-VN') %></span></span>
+      <div class="relative z-[1] text-[200px] filter drop-shadow-2xl" style="animation:bounceIdol 1.4s ease-in-out infinite alternate;"><%= idol.emoji || '👑' %></div>
+      <div class="absolute inset-x-0 bottom-0 z-[2] px-4 py-3 bg-gradient-to-t from-black/85 to-transparent text-white flex items-center gap-3">
+        <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Phát/Dừng">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        </button>
+        <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Tắt tiếng">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <div class="flex-1"></div>
+        <span class="text-[10px] font-bold bg-pri text-white px-1.5 py-0.5 rounded">HD 1080p</span>
+        <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Toàn màn hình">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- CHAT: cùng row grid với player, auto stretch theo aspect-video -->
+    <aside class="bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden h-full" aria-label="Chat" id="chatPanelTop">
+      <div class="flex border-b border-line bg-bg-soft">
+        <button class="flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri">💬 Chat phòng</button>
+        <button class="flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent">🎁 Quà</button>
+      </div>
+      <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between">
+        <span class="text-emerald-500 flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-live"></span><%= Math.floor(viewers/10).toLocaleString('vi-VN') %> online</span>
+        <span>Bình luận: <b class="text-pri-light"><%= (Math.random()*5000|0)+1000 %></b></span>
+      </div>
+      <div class="flex-1 overflow-y-auto py-1 scrollbar-thin" id="chatBody"></div>
+      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="x66-cta-reg group relative mx-2 mt-2 mb-1 px-2 py-2.5 rounded-lg overflow-hidden flex items-center justify-center gap-1.5 text-white text-[11px] font-extrabold text-center cursor-pointer">
+        <span class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400"></span>
+        <span class="absolute inset-0 x66-cta-shine"></span>
+        <span class="relative flex items-center gap-1.5 drop-shadow-md">
+          <span class="text-base">🎰</span>
+          <span class="tracking-wide">ĐĂNG KÝ TÀI KHOẢN XOSO66</span>
+          <span class="text-sm group-hover:translate-x-0.5 transition-transform">→</span>
+        </span>
+      </a>
+      <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft">
+        <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
+        <button onclick="sendChat('chatInput','chatBody')" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-md font-bold text-xs">Gửi</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- BOTTOM: thông tin idol + tippers + profile + album (full width left col) -->
+  <div class="space-y-3.5">
+    <!-- Idol info bar -->
+    <div class="bg-bg-card border border-line rounded-xl p-4 flex items-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-4xl shrink-0 border-2 border-pri"><%= idol.emoji || '👑' %></div>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-xl font-extrabold text-white flex items-center gap-2"><%= idol.name %>
+          <% if (idol.lock === 0) { %>
+            <span class="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-extrabold">FREE</span>
+          <% } else { %>
+            <span class="text-[10px] bg-pri text-white px-1.5 py-0.5 rounded font-extrabold">VIP <%= idol.lock %> 🪙</span>
+          <% } %>
+        </h1>
+        <p class="text-muted text-sm"><%= idol.room %> · 👁 <%= viewers.toLocaleString('vi-VN') %> · ❤ <%= follow.toLocaleString('vi-VN') %> follow</p>
+      </div>
+      <button onclick="toggleFollow(this)" class="px-4 py-2 bg-bg-soft border-2 border-pri text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors">❤ Theo dõi</button>
+      <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-pri">🎁 Tặng quà</button>
+    </div>
+
+    <!-- Top tippers -->
+    <aside class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-pri-light text-sm font-bold mb-3 flex items-center gap-1.5">🏆 Top khách tặng quà hôm nay <span class="ml-auto text-[11px] text-muted">Tổng: <span class="text-gold font-bold tabular-nums"><%= tipsToday.toLocaleString('vi-VN') %> 🪙</span></span></h3>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <% ['vipFan88','iLove'+idol.name.charAt(0),'BoMy_X66'].forEach(function(name, i){
+          var amount = (3-i) * 1500 + 200;
+        %>
+          <div class="bg-bg-soft border border-line rounded-lg p-3">
+            <div class="text-2xl mb-1"><%= ['🥇','🥈','🥉'][i] %></div>
+            <div class="text-xs font-bold text-white truncate"><%= name %></div>
+            <div class="text-[11px] text-gold font-extrabold tabular-nums mt-0.5">🪙 <%= amount.toLocaleString('vi-VN') %></div>
+          </div>
+        <% }); %>
+      </div>
+    </aside>
+
+    <!-- ===== PROFILE CARD ===== -->
+    <section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <header class="px-5 py-3 bg-gradient-to-r from-pri to-pri-dark text-white flex items-center gap-2.5">
+        <span class="text-xl">👤</span>
+        <h2 class="text-base font-extrabold">Hồ sơ <%= idol.name %></h2>
+      </header>
+
+      <div class="p-5 grid md:grid-cols-[200px_1fr] gap-5">
+        <!-- Bio info table -->
+        <div class="space-y-2.5 text-sm">
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Tuổi:</span><span class="text-white font-bold"><%= idol.age || '-' %></span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Chiều cao:</span><span class="text-white font-bold"><%= idol.height || '-' %> cm</span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Cân nặng:</span><span class="text-white font-bold"><%= idol.weight || '-' %> kg</span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Quê:</span><span class="text-white font-bold"><%= idol.city || '-' %></span></div>
+          <div class="flex justify-between border-b border-line/40 pb-2"><span class="text-muted">Nghề:</span><span class="text-white font-bold text-[12px] text-right"><%= idol.job || '-' %></span></div>
+          <div class="text-muted text-xs">Sở thích:</div>
+          <div class="text-white text-[13px]"><%= idol.hobby || '-' %></div>
+        </div>
+        <!-- Bio paragraph -->
+        <div>
+          <h3 class="text-pri-light font-bold text-sm mb-2 flex items-center gap-1.5">💭 Giới thiệu bản thân</h3>
+          <p class="text-gray-200 leading-relaxed text-[13.5px]"><%= idol.bio || 'Chưa cập nhật thông tin.' %></p>
+
+          <div class="grid grid-cols-3 gap-2 mt-4">
+            <div class="bg-bg-soft border border-line rounded-lg py-2 text-center">
+              <div class="text-[10px] text-muted uppercase">Followers</div>
+              <div class="text-base font-extrabold text-pri-light tabular-nums"><%= (follow/1000).toFixed(0) %>K</div>
+            </div>
+            <div class="bg-bg-soft border border-line rounded-lg py-2 text-center">
+              <div class="text-[10px] text-muted uppercase">Online today</div>
+              <div class="text-base font-extrabold text-emerald-400 tabular-nums"><%= (Math.random()*5+1).toFixed(1) %>h</div>
+            </div>
+            <div class="bg-bg-soft border border-line rounded-lg py-2 text-center">
+              <div class="text-[10px] text-muted uppercase">Quà nhận</div>
+              <div class="text-base font-extrabold text-gold tabular-nums"><%= (tipsToday/1000).toFixed(0) %>K 🪙</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ALBUM + VIDEO ===== -->
+    <section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <header class="flex items-center gap-2 px-3 border-b border-line">
+        <button class="ab-tab px-4 py-3 text-sm font-extrabold text-pri-light border-b-2 border-pri" data-tab="photo">📷 Album ảnh (<%= ALBUM.length %>)</button>
+        <button class="ab-tab px-4 py-3 text-sm font-extrabold text-muted hover:text-white border-b-2 border-transparent" data-tab="video">🎬 Video (<%= VIDEOS.length %>)</button>
+        <span class="ml-auto text-[10px] text-muted">Click để xem fullscreen</span>
+      </header>
+
+      <!-- Photo grid -->
+      <div class="ab-panel p-3" data-panel="photo">
+        <div class="grid grid-cols-3 gap-2">
+          <% ALBUM.forEach(function(p, i){ %>
+            <button class="aspect-square rounded-lg overflow-hidden relative group hover:scale-105 transition-transform" style="background:<%= p.color %>" onclick="openLightbox('photo', <%= i %>)">
+              <div class="absolute inset-0 grid place-items-center text-5xl text-white/90"><%- p.emoji %></div>
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors"></div>
+              <div class="absolute bottom-1 left-1 right-1 text-[10px] font-bold text-white text-left bg-black/50 backdrop-blur px-1.5 py-0.5 rounded truncate opacity-0 group-hover:opacity-100 transition-opacity"><%= p.caption %></div>
+              <% if (i === 0) { %><span class="absolute top-1 left-1 bg-pri text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">HOT</span><% } %>
+            </button>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- Video grid -->
+      <div class="ab-panel hidden p-3" data-panel="video">
+        <div class="grid grid-cols-2 gap-3">
+          <% VIDEOS.forEach(function(v, i){
+            var h = (idol.color + i*60) % 360;
+          %>
+            <button class="text-left rounded-lg overflow-hidden group hover:scale-[1.02] transition-transform" onclick="openLightbox('video', <%= i %>)">
+              <div class="aspect-video relative grid place-items-center" style="background:linear-gradient(135deg, hsl(<%= h %>,75%,40%), hsl(<%= (h+50)%360 %>,75%,30%))">
+                <div class="absolute inset-0 opacity-40" style="background:radial-gradient(circle at center,rgba(255,255,255,.3),transparent 60%)"></div>
+                <div class="relative z-10 text-7xl drop-shadow-2xl"><%- v.emoji %></div>
+                <!-- Play button overlay -->
+                <div class="absolute inset-0 grid place-items-center bg-black/0 group-hover:bg-black/40 transition-colors">
+                  <div class="w-14 h-14 bg-white/90 group-hover:bg-pri group-hover:text-white text-pri rounded-full grid place-items-center text-2xl shadow-lg transition-all">▶</div>
+                </div>
+                <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tabular-nums"><%= v.duration %></span>
+              </div>
+              <div class="bg-bg-soft px-3 py-2">
+                <div class="text-[13px] font-bold text-white truncate"><%= v.title %></div>
+                <div class="text-[10px] text-muted mt-0.5">👁 <%= v.views %> lượt xem</div>
+              </div>
+            </button>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- RIGHT: Chat sidebar -->
+  </div>
+</article>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="hidden fixed inset-0 z-[90] bg-black/95 grid place-items-center p-4" onclick="if(event.target===this)closeLightbox()">
+  <button onclick="closeLightbox()" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full grid place-items-center text-2xl">&times;</button>
+  <button onclick="lightboxPrev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full grid place-items-center text-2xl">‹</button>
+  <button onclick="lightboxNext()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full grid place-items-center text-2xl">›</button>
+  <div class="max-w-3xl w-full max-h-[85vh] flex flex-col">
+    <div id="lbContent" class="flex-1 rounded-xl overflow-hidden relative grid place-items-center min-h-[400px]">
+      <!-- populated by JS -->
+    </div>
+    <div class="mt-3 text-center">
+      <div id="lbTitle" class="text-white font-extrabold text-lg">Title</div>
+      <div id="lbMeta" class="text-muted text-sm mt-1">1 / 9</div>
+      <div class="flex justify-center gap-2 mt-3">
+        <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-bold text-xs rounded-lg">🎁 Tặng quà cho idol</button>
+        <button class="px-4 py-2 bg-bg-soft border border-line text-white font-bold text-xs rounded-lg">❤ Thả tim</button>
+        <button class="px-4 py-2 bg-bg-soft border border-line text-white font-bold text-xs rounded-lg">↗ Chia sẻ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes bounceIdol { from{transform:translateY(0) scale(1)} to{transform:translateY(-20px) scale(1.05) rotate(-4deg)} }
+</style>
+
+<script src="/static/js/chat-v2.js"></script>
+<script>
+// Idol live khi co OBS approved + streamActive cho idol nay
+startChat('chatBody', { isLive: <%= (typeof hasObs!=="undefined" && hasObs) ? "true" : "false" %> });
+
+function toggleFollow(btn){
+  if (btn.textContent.indexOf('Đang') < 0) {
+    btn.innerHTML = '✓ Đang theo dõi';
+    btn.className = 'px-4 py-2 bg-pri text-white font-bold text-xs rounded-lg';
+  } else {
+    btn.innerHTML = '❤ Theo dõi';
+    btn.className = 'px-4 py-2 bg-bg-soft border-2 border-pri text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors';
+  }
+}
+
+// Tab Album/Video
+document.querySelectorAll('.ab-tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('.ab-tab').forEach(function(x){ x.className = x.className.replace('text-pri-light border-pri','text-muted hover:text-white border-transparent'); });
+    this.className = this.className.replace('text-muted hover:text-white border-transparent','text-pri-light border-pri');
+    var name = this.getAttribute('data-tab');
+    document.querySelectorAll('.ab-panel').forEach(function(p){
+      p.classList.toggle('hidden', p.getAttribute('data-panel') !== name);
+    });
+  });
+});
+
+// LIGHTBOX
+var LB = {
+  photos: <%- JSON.stringify(ALBUM) %>,
+  videos: <%- JSON.stringify(VIDEOS) %>,
+  type: 'photo',
+  idx: 0
+};
+function openLightbox(type, idx){
+  LB.type = type; LB.idx = idx;
+  document.getElementById('lightbox').classList.remove('hidden');
+  renderLightbox();
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.add('hidden'); }
+function lightboxPrev(){
+  var arr = LB.type==='photo' ? LB.photos : LB.videos;
+  LB.idx = (LB.idx - 1 + arr.length) % arr.length;
+  renderLightbox();
+}
+function lightboxNext(){
+  var arr = LB.type==='photo' ? LB.photos : LB.videos;
+  LB.idx = (LB.idx + 1) % arr.length;
+  renderLightbox();
+}
+function renderLightbox(){
+  var arr = LB.type==='photo' ? LB.photos : LB.videos;
+  var item = arr[LB.idx];
+  var content = document.getElementById('lbContent');
+  if (LB.type === 'photo') {
+    content.style.background = item.color;
+    content.innerHTML = '<div style="font-size:160px;text-shadow:0 8px 32px rgba(0,0,0,.5);filter:drop-shadow(0 0 24px rgba(255,255,255,.3))">'+item.emoji+'</div>';
+    document.getElementById('lbTitle').textContent = item.caption;
+  } else {
+    content.style.background = 'linear-gradient(135deg,#1a1f29,#0e1116)';
+    content.innerHTML = '<div style="text-align:center"><div style="font-size:120px;margin-bottom:16px">'+item.emoji+'</div><div style="display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;cursor:pointer"><span style="font-size:24px">▶</span> Phát video '+item.duration+'</div><div style="color:#888;margin-top:12px;font-size:13px">📺 Demo - Video thực sẽ embed VideoJS/Plyr</div></div>';
+    document.getElementById('lbTitle').textContent 

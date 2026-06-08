@@ -1,0 +1,24 @@
+    </div>
+  </main>
+</div>
+<div id="toast" class="fixed bottom-5 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
+<script>
+function showToast(msg, kind){
+  var t=document.getElementById('toast');
+  var c=kind==='success'?'!border-l-emerald-500':kind==='error'?'!border-l-live':'!border-l-pri';
+  t.className='fixed bottom-5 right-5 bg-bg-card border border-line border-l-4 px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-0 transition-transform '+c;
+  t.textContent=msg;
+  setTimeout(function(){ t.className=t.className.replace('translate-x-0','translate-x-[120%]') }, 3500);
+}
+async function adminAction(url, body){
+  try {
+    var r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{}) });
+    var j = await r.json();
+    if (j.ok) { showToast(j.message||'Thanh cong','success'); setTimeout(function(){ location.reload() }, 800); }
+    else { showToast(j.message||'That bai','error'); }
+  } catch(e){ showToast('Loi ket noi','error'); }
+}
+function confirmAction(msg, fn){ if (confirm(msg)) fn(); }
+</script>
+</body>
+</html>

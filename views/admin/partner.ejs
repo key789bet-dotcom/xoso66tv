@@ -1,0 +1,140 @@
+<%- include('partials/layout-start', { title:'Tích hợp Xoso66', active:'partner', obsPending:obsPending, adminUser:adminUser }) %>
+
+<!-- Info card -->
+<section class="bg-gradient-to-br from-purple/15 to-pink/5 border-2 border-purple/40 rounded-xl p-5 mb-5">
+  <h2 class="text-pink font-extrabold text-base mb-3 flex items-center gap-2">🔗 Tích hợp webhook với hệ thống Xoso66</h2>
+  <p class="text-muted text-sm mb-3">Khi khách nạp tiền tại <strong class="text-pri-light">xoso66.com</strong>, hệ thống tự gọi webhook về <strong class="text-pri-light">xoso66tv.com</strong> để cộng X COIN cho tài khoản tương ứng.</p>
+  <div class="grid sm:grid-cols-2 gap-3 text-sm">
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[11px] text-muted uppercase font-bold mb-1">Webhook URL (cấu hình bên xoso66)</div>
+      <code class="text-emerald-400 text-xs break-all"><%= siteUrl %>/api/partner/xoso66/deposit</code>
+    </div>
+    <div class="bg-bg-soft border border-line rounded-lg p-3">
+      <div class="text-[11px] text-muted uppercase font-bold mb-1">Method · Header</div>
+      <code class="text-pri-light text-xs">POST · X-Webhook-Signature: HMAC_SHA256</code>
+    </div>
+  </div>
+  <a href="/api/partner/xoso66/info" target="_blank" class="inline-block mt-3 text-xs bg-pri text-white px-3 py-1.5 rounded font-bold">📄 Xem JSON spec đầy đủ</a>
+</section>
+
+<!-- CONFIG FORM -->
+<section class="bg-bg-card border border-line rounded-xl p-5 mb-5">
+  <h2 class="text-white font-extrabold text-base mb-4 flex items-center gap-2">⚙ Cấu hình</h2>
+  <form action="/admin/partner" method="POST" class="space-y-4">
+    <div class="grid md:grid-cols-2 gap-3">
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Webhook Secret (HMAC key)</span>
+        <input name="webhookSecret" value="<%= cfg.webhookSecret %>" required class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri font-mono text-xs">
+        <div class="text-[11px] text-muted mt-1">Cấu hình giống bên xoso66 để verify request</div>
+      </label>
+      <label class="block">
+        <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Tỉ lệ chuyển đổi</span>
+        <div class="flex items-center gap-2">
+          <input name="vndPerCoin" type="number" value="<%= cfg.vndPerCoin %>" required class="w-32 bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri text-sm">
+          <span class="text-muted text-sm">VND =</span>
+          <input name="coinPerVndK" type="number" value="<%= cfg.coinPerVndK %>" required class="w-24 bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri text-sm">
+          <span class="text-muted text-sm">X COIN</span>
+        </div>
+        <div class="text-[11px] text-muted mt-1">VD: 1000 VND = 1 X COIN (1 triệu nạp → 1000 xu)</div>
+      </label>
+
+      <label class="flex items-center gap-2 md:col-span-2">
+        <input name="enabled" type="checkbox" <%= cfg.enabled?'checked':'' %> class="accent-pri w-4 h-4">
+        <span class="text-sm font-bold text-white">Kích hoạt tích hợp xoso66</span>
+      </label>
+      <label class="flex items-center gap-2 md:col-span-2">
+        <input name="autoCreateUser" type="checkbox" <%= cfg.autoCreateUser?'checked':'' %> class="accent-pri w-4 h-4">
+        <span class="text-sm text-gray-200">Tự tạo tài khoản xoso66tv nếu username chưa tồn tại</span>
+      </label>
+    </div>
+
+    <!-- Bonus tiers -->
+    <div class="border-t border-line pt-4">
+      <h3 class="text-white font-bold mb-2 text-sm">🎁 Bậc thưởng nạp (bonus X COIN khi nạp lần đầu)</h3>
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-2">
+        <% (cfg.bonusTiers||[]).forEach(function(t, i){ %>
+          <div class="bg-bg-soft border border-line rounded-lg p-3">
+            <div class="text-[10px] text-muted uppercase font-bold mb-1">Tier <%= i+1 %></div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-muted">Từ</span>
+              <input name="tier_from_<%= i %>" type="number" value="<%= t.fromVnd %>" class="w-full bg-bg-deep border border-line text-white px-2 py-1 rounded text-xs">
+            </div>
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <span class="text-xs text-muted">Bonus</span>
+              <input name="tier_bonus_<%= i %>" type="number" value="<%= t.bonusCoin %>" class="w-full bg-bg-deep border border-line text-white px-2 py-1 rounded text-xs">
+              <span class="text-gold text-xs">🪙</span>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <button type="submit" class="px-6 py-2.5 bg-gradient-to-br from-pri to-pri-dark hover:brightness-110 text-white rounded-lg font-extrabold shadow-pri">💾 Lưu cấu hình</button>
+  </form>
+</section>
+
+<!-- TEST -->
+<section class="bg-bg-card border border-line rounded-xl p-5 mb-5">
+  <h2 class="text-white font-extrabold text-base mb-3 flex items-center gap-2">🧪 Test webhook (simulate xoso66 nạp tiền)</h2>
+  <form id="testForm" class="grid md:grid-cols-4 gap-2">
+    <input name="username" value="admin" placeholder="Username" required class="bg-bg-deep border border-line text-white px-3 py-2 rounded text-sm">
+    <input name="amount" type="number" value="500000" placeholder="Số VND" required class="bg-bg-deep border border-line text-white px-3 py-2 rounded text-sm">
+    <input name="txId" value="XS66-TEST-001" placeholder="TX ID" class="bg-bg-deep border border-line text-white px-3 py-2 rounded text-sm">
+    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-sm">🚀 Gọi thử</button>
+  </form>
+  <pre id="testResult" class="mt-3 bg-bg-deep border border-line rounded-lg p-3 text-xs text-emerald-400 overflow-auto max-h-40"></pre>
+</section>
+
+<!-- LOG -->
+<section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+  <header class="px-5 py-3 border-b border-line">
+    <h2 class="text-white font-extrabold text-base">📋 Lịch sử nhận webhook (<%= log.length %>)</h2>
+  </header>
+  <% if (!log.length) { %>
+    <div class="p-12 text-center text-muted"><div class="text-4xl mb-2 opacity-50">📭</div>Chưa có webhook nào. Test ở trên hoặc đợi xoso66 callback.</div>
+  <% } %>
+  <% if (log.length) { %>
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead class="bg-bg-soft text-muted uppercase">
+        <tr><th class="text-left px-3 py-2.5">Thời gian</th><th class="text-left px-3 py-2.5">Username</th><th class="text-right px-3 py-2.5">VND nạp</th><th class="text-right px-3 py-2.5">X COIN +</th><th class="text-right px-3 py-2.5">Số dư mới</th><th class="text-center px-3 py-2.5">VIP</th><th class="text-left px-3 py-2.5">TX ID</th></tr>
+      </thead>
+      <tbody class="divide-y divide-line/40 text-gray-200">
+        <% log.slice(0,50).forEach(function(l){ var d=new Date(l.t); %>
+          <tr class="hover:bg-bg-soft">
+            <td class="px-3 py-2 text-muted tabular-nums"><%= d.toLocaleString('vi-VN') %></td>
+            <td class="px-3 py-2 font-bold text-white"><%= l.username %></td>
+            <td class="px-3 py-2 text-right tabular-nums"><%= (l.vnd||0).toLocaleString('vi-VN') %></td>
+            <td class="px-3 py-2 text-right text-emerald-400 font-bold tabular-nums">+<%= (l.coinTotal||0).toLocaleString('vi-VN') %> <% if (l.coinBonus) { %><span class="text-pink">(+<%= l.coinBonus %> bonus)</span><% } %></td>
+            <td class="px-3 py-2 text-right text-gold font-bold tabular-nums"><%= (l.newCoinBalance||0).toLocaleString('vi-VN') %></td>
+            <td class="px-3 py-2 text-center"><span class="bg-pri text-white text-[10px] font-bold px-2 py-0.5 rounded">VIP <%= l.newVip||1 %></span></td>
+            <td class="px-3 py-2 text-dim font-mono text-[10px]"><%= l.txId || '-' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>
+
+<script>
+document.getElementById('testForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var f = e.target;
+  var data = { username: f.username.value, amount: parseInt(f.amount.value,10), txId: f.txId.value };
+  try {
+    var r = await fetch('/api/partner/xoso66/deposit', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    var j = await r.json();
+    document.getElementById('testResult').textContent = JSON.stringify(j, null, 2);
+    if (j.ok) setTimeout(function(){ location.reload(); }, 1500);
+  } catch(err){
+    document.getElementById('testResult').textContent = 'ERROR: ' + err.message;
+  }
+});
+</script>
+
+<%- include('partials/layout-end') %>

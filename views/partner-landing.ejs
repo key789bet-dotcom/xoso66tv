@@ -1,0 +1,57 @@
+<%
+seo = {
+  title: title + ' - '+brand.name,
+  description: desc,
+  keywords: cat.name.toLowerCase()+' trực tuyến, '+brand.short+', '+brand.domain+', '+games.map(g=>g.name.toLowerCase()).join(', '),
+  canonical: '/'+activeCat,
+  breadcrumb: [{ name:cat.name, url:'/'+activeCat }],
+};
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="partner-hero">
+  <div style="font-size:64px;margin-bottom:14px"><%= cat.icon %></div>
+  <h1><%= title %></h1>
+  <p><%= desc %></p>
+  <a href="<%= target %>" target="_blank" rel="noopener" class="btn">🚀 Vào sảnh ngay</a>
+</header>
+
+<section class="sec" aria-label="Danh mục game">
+  <div class="sec-head"><h2 class="ttl">Các loại game phổ biến</h2></div>
+  <div class="game-grid">
+    <% games.forEach(g => { %>
+      <article class="game-card">
+        <div class="ico"><%= g.icon %></div>
+        <h3 class="name" style="margin:6px 0 4px;font-size:14px"><%= g.name %></h3>
+        <div class="desc"><%= g.desc %></div>
+        <a class="btn" href="<%= target %>" target="_blank" rel="noopener">Chơi ngay</a>
+      </article>
+    <% }); %>
+  </div>
+</section>
+
+<aside style="margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px" aria-label="Khuyến mãi">
+  <% banners.forEach(b => { %>
+    <div style="background:<%= b.bg %>;padding:20px;border-radius:12px;color:#fff">
+      <h3 style="font-weight:900;margin-bottom:8px;font-size:16px"><%= b.title %></h3>
+      <p style="opacity:.95;font-size:13px;margin-bottom:12px"><%= b.desc %></p>
+      <a href="<%= b.url %>" target="_blank" rel="noopener" style="background:#fff;color:#c0392b;padding:7px 16px;border-radius:6px;font-weight:700;display:inline-block;font-size:13px"><%= b.cta %> →</a>
+    </div>
+  <% }); %>
+</aside>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2:'Về sảnh '+cat.name+' tại '+brand.name,
+  intro:'<strong>'+brand.name+'</strong> hợp tác với <a href="'+partner.home+'" target="_blank" rel="noopener">'+brand.domain+'</a> mang đến trải nghiệm '+cat.name.toLowerCase()+' đẳng cấp với hàng nghìn game từ các nhà cung cấp lớn (Evolution, Pragmatic Play, NetEnt, PG Soft, Microgaming).',
+  sections: [
+    { h3:'An toàn &amp; bảo mật', p:'Hệ thống được cấp phép quốc tế PAGCOR &amp; GLI, mã hoá SSL 256-bit, RNG được kiểm định công bằng. Mọi giao dịch đều minh bạch.' },
+    { h3:'Nạp/rút siêu nhanh', p:'Hỗ trợ Momo, ZaloPay, ViettelPay, Banking, USDT. Nạp tức thì, rút trong vòng 5 phút.' },
+  ],
+  faqs: [
+    { q:'Có cần KYC khi rút tiền không?', a:'Có, để bảo vệ tài khoản của bạn. Chỉ cần CCCD + ảnh selfie 1 lần đầu.' },
+    { q:'Tối thiểu để nạp/rút là bao nhiêu?', a:'Nạp tối thiểu 50K, rút tối thiểu 200K. Không giới hạn tối đa.' },
+  ]
+} }) %>
+
+<%- include('partials/footer') %>

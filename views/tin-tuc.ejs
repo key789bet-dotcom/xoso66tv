@@ -1,0 +1,66 @@
+<%
+const _today = new Date();
+const _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+seo = {
+  title: 'Tin Tức Thể Thao Hôm Nay '+_todayVi+' - '+brand.name,
+  description: 'Cập nhật tin tức thể thao nóng hổi 24/7: kết quả, chuyển nhượng, phân tích. '+list.length+' bài viết mới nhất tại '+brand.name+'.',
+  keywords: 'tin tức thể thao, tin bóng đá hôm nay, chuyển nhượng, tin nhanh thể thao, '+brand.short,
+  canonical: '/tin-tuc',
+  breadcrumb: [{ name:'Tin tức', url:'/tin-tuc' }],
+};
+function _iso(d){ try{ return new Date(d).toISOString(); }catch(e){ return new Date().toISOString(); } }
+%>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+<%- include('partials/breadcrumb') %>
+
+<header class="seo-hero">
+  <h1>📰 Tin Tức Thể Thao Hôm Nay <%= _todayVi %> - Cập Nhật 24/7</h1>
+  <p class="lead">Tin nóng hổi từ làng thể thao thế giới và Việt Nam: <a href="/lich-phat-song?mon=bong-da">bóng đá</a>, <a href="/the-thao/bong-ro">bóng rổ</a>, <a href="/the-thao/tennis">tennis</a>, <a href="/esports">esports</a>. Đội ngũ biên tập viên cùng cộng đồng BLV cập nhật liên tục.</p>
+</header>
+
+<section class="sec" aria-label="Danh sách tin">
+  <% if (!list || list.length === 0) { %>
+    <div class="empty"><div class="ico">📰</div><div>Chưa có bài viết.</div></div>
+  <% } else { %>
+    <div class="news-grid">
+      <% list.forEach(m => { %>
+        <article class="news-card" itemscope itemtype="https://schema.org/NewsArticle">
+          <a href="/live/<%= m.slug || m.id %>" itemprop="url">
+            <div class="img">
+              <% if (m.poster) { %>
+                <img src="<%= m.poster %>" loading="lazy" alt="<%= m.home %> vs <%= m.away %> - <%= m.league %>" itemprop="image" onerror="this.style.display='none'">
+              <% } else { %>
+                <div style="height:100%;display:grid;place-items:center;background:linear-gradient(135deg,#1a2030,#0e1116);color:var(--muted);font-size:48px">📰</div>
+              <% } %>
+            </div>
+            <div class="info">
+              <h2 itemprop="headline" style="font-size:15px;font-weight:700;color:#fff;line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"><%= m.headline %></h2>
+              <p itemprop="description"><%= m.excerpt %></p>
+              <div class="meta">
+                <span>🏆 <span itemprop="about"><%= m.league %></span></span>
+                <time datetime="<%= _iso(m.date) %>" itemprop="datePublished">📅 <%= m.date %></time>
+              </div>
+              <meta itemprop="author" content="<%= brand.name %>">
+              <meta itemprop="publisher" content="<%= brand.name %>">
+            </div>
+          </a>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/seo-bottom', { seoContent: {
+  h2:'Về trang Tin tức thể thao của '+brand.name,
+  intro:'<strong>'+brand.name+'</strong> là nguồn tin tức thể thao nhanh, chính xác và toàn diện nhất Việt Nam. Mọi tin tức đều được sync trực tiếp từ các nguồn chính thức quốc tế (Reuters Sports, ESPN, TheSportsDB) và biên tập sang tiếng Việt.',
+  sections: [
+    { h3:'Bao phủ mọi giải đấu', p:'Premier League, La Liga, Serie A, Bundesliga, Champions League, World Cup, Euro, AFF Cup, V-League, NBA, EuroLeague, Grand Slam tennis, esports... Tất cả đều có chuyên mục riêng.' },
+    { h3:'Cộng đồng BLV và chuyên gia', p:'Sau mỗi tin tức, bạn có thể thảo luận, soi kèo, dự đoán tỉ số cùng hàng nghìn fan trên <a href="/dang-ky">forum</a>. Đăng ký miễn phí để tham gia.' },
+  ],
+  faqs: [
+    { q:'Tin tức có chính xác không?', a:'Có. Dữ liệu sync trực tiếp từ TheSportsDB - nguồn chuẩn quốc tế, cập nhật theo phút.' },
+    { q:'Tin được cập nhật bao lâu một lần?', a:'Tin kết quả: ngay khi trận kết thúc. Tin chuyển nhượng: mỗi giờ. Tin highlight: 1-2 giờ sau trận.' },
+  ]
+} }) %>
+
+<%- include('partials/footer') %>

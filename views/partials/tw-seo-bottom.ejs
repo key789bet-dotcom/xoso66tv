@@ -1,0 +1,30 @@
+<% var _content = (typeof seoContent !== 'undefined') ? seoContent : null; %>
+<% if (_content) { %>
+<section class="bg-bg-card border border-line rounded-xl p-6 mt-8 text-muted leading-relaxed text-sm">
+  <% if (_content.h2) { %>
+    <h2 class="text-white text-xl font-extrabold mb-3 pb-2.5 border-b border-line flex items-center gap-2"><span class="w-1 h-5 bg-pri rounded-sm"></span><%= _content.h2 %></h2>
+  <% } %>
+  <% if (_content.intro) { %><p class="mb-3 [&_strong]:text-white [&_a]:text-pri-light [&_a]:underline hover:[&_a]:text-pri"><%- _content.intro %></p><% } %>
+  <% (_content.sections || []).forEach(function(s){ %>
+    <h3 class="text-pri-light text-base font-bold mt-4 mb-2"><%= s.h3 %></h3>
+    <p class="mb-3 [&_strong]:text-white [&_a]:text-pri-light [&_a]:underline hover:[&_a]:text-pri"><%- s.p %></p>
+  <% }); %>
+  <% if (_content.faqs && _content.faqs.length) { %>
+    <h3 class="text-pri-light text-base font-bold mt-4 mb-2">FAQ - Cau hoi thuong gap</h3>
+    <div class="space-y-2" itemscope itemtype="https://schema.org/FAQPage">
+      <% _content.faqs.forEach(function(f){ %>
+        <details class="bg-bg-soft border border-line rounded-lg overflow-hidden transition-colors open:border-pri group" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="px-4 py-3 cursor-pointer font-bold text-white flex items-center gap-2 select-none list-none" itemprop="name">
+            <span class="w-6 h-6 bg-bg-deep rounded-full grid place-items-center font-extrabold shrink-0 group-open:bg-pri transition-all">+</span>
+            <%= f.q %>
+          </summary>
+          <div class="px-4 pb-4 text-muted text-[13.5px] leading-relaxed [&_a]:text-pri-light [&_a]:underline" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text"><%- f.a %></p>
+          </div>
+        </details>
+      <% }); %>
+    </div>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[<% _content.faqs.forEach(function(f, i){ %>{"@type":"Question","name":<%- JSON.stringify(f.q) %>,"acceptedAnswer":{"@type":"Answer","text":<%- JSON.stringify(f.a) %>}}<%= i<_content.faqs.length-1?',':'' %><% }); %>]}</script>
+  <% } %>
+</section>
+<% } %>

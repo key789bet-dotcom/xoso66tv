@@ -1,0 +1,172 @@
+<% seo = {
+  title: 'Đăng ký tài khoản ' + brand.name + ' - Nhận thưởng 100% miễn phí',
+  description: 'Đăng ký tài khoản '+brand.name+' miễn phí trong 30 giây. Nhận ngay thưởng 100% nạp lần đầu, xem live thể thao HD, casino, idol 24/7 cùng '+brand.domain+'.',
+  keywords: 'đăng ký, register, '+brand.short+', xoso66tv, tài khoản miễn phí, thưởng đăng ký',
+  canonical: '/dang-ky',
+  breadcrumb: [{ name:'Đăng ký', url:'/dang-ky' }],
+} %>
+<%- include('partials/layout-start', { title: seo.title, seo }) %>
+
+<link rel="stylesheet" href="/static/css/auth.css">
+
+<div class="auth-wrap">
+  <section class="auth-form" aria-labelledby="regH1">
+    <nav class="auth-tabs">
+      <a href="/dang-nhap">Đăng Nhập</a>
+      <a href="/dang-ky" class="active">Đăng Ký</a>
+    </nav>
+
+    <h1 class="auth-h1" id="regH1">Tạo tài khoản mới 🎉</h1>
+    <p class="auth-sub">Miễn phí, 30 giây. Nhận ngay 100% tiền thưởng nạp lần đầu.</p>
+
+    <form id="regForm" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="username" class="form-label">Tên đăng nhập<span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="form-icon">👤</span>
+            <input id="username" name="username" type="text" class="form-input" placeholder="ten_dang_nhap" required minlength="4" maxlength="20" pattern="[a-zA-Z0-9_]+" autocomplete="username">
+          </div>
+          <div class="form-help">4-20 ký tự, chỉ chữ/số/gạch dưới</div>
+          <div class="form-error" data-for="username">Tên đăng nhập không hợp lệ</div>
+        </div>
+        <div class="form-group">
+          <label for="fullname" class="form-label">Họ và tên<span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="form-icon">📝</span>
+            <input id="fullname" name="fullname" type="text" class="form-input" placeholder="Nguyễn Văn A" required minlength="2" maxlength="60" autocomplete="name">
+          </div>
+          <div class="form-error" data-for="fullname">Vui lòng nhập họ tên</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phone" class="form-label">Số điện thoại<span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="form-icon">📱</span>
+            <input id="phone" name="phone" type="tel" class="form-input" placeholder="0912xxxxxx" required pattern="0[3-9][0-9]{8}" autocomplete="tel">
+          </div>
+          <div class="form-error" data-for="phone">SĐT Việt Nam không hợp lệ</div>
+        </div>
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <div class="input-wrap">
+            <span class="form-icon">✉️</span>
+            <input id="email" name="email" type="email" class="form-input" placeholder="example@gmail.com" maxlength="100" autocomplete="email">
+          </div>
+          <div class="form-help">Không bắt buộc (dùng để khôi phục mật khẩu)</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Mật khẩu<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">🔒</span>
+          <input id="password" name="password" type="password" class="form-input" placeholder="Tối thiểu 8 ký tự" required minlength="8" maxlength="50" autocomplete="new-password" oninput="updatePwStrength(this.value)">
+          <button type="button" class="form-toggle" onclick="togglePw('password',this)" aria-label="Hiện/Ẩn mật khẩu">👁</button>
+        </div>
+        <div class="pw-strength" id="pwBar"><span></span><span></span><span></span><span></span></div>
+        <div class="pw-strength-text" id="pwText">Độ mạnh mật khẩu</div>
+        <div class="form-error" data-for="password">Mật khẩu phải có ít nhất 8 ký tự</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password2" class="form-label">Xác nhận mật khẩu<span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="form-icon">🔐</span>
+          <input id="password2" name="password2" type="password" class="form-input" placeholder="Nhập lại mật khẩu" required autocomplete="new-password">
+          <button type="button" class="form-toggle" onclick="togglePw('password2',this)" aria-label="Hiện/Ẩn mật khẩu">👁</button>
+        </div>
+        <div class="form-error" data-for="password2">Mật khẩu không khớp</div>
+      </div>
+
+      <div class="form-group">
+        <label for="referral" class="form-label">Mã giới thiệu</label>
+        <div class="input-wrap">
+          <span class="form-icon">🎁</span>
+          <input id="referral" name="referral" type="text" class="form-input" placeholder="Nhập mã (không bắt buộc)" maxlength="20">
+        </div>
+        <div class="form-help">Nhập mã giới thiệu nhận thêm 50K voucher</div>
+      </div>
+
+      <label class="form-check">
+        <input type="checkbox" id="agree" required>
+        <span>Tôi đã đủ <b>18 tuổi</b> và đồng ý với <a href="#">Điều khoản sử dụng</a> &amp; <a href="#">Chính sách bảo mật</a> của <%= brand.name %></span>
+      </label>
+
+      <button type="submit" class="btn-submit">🚀 ĐĂNG KÝ NGAY - NHẬN 100% THƯỞNG</button>
+
+      <div class="divider">Hoặc đăng ký nhanh với</div>
+      <div class="social-row">
+        <a href="<%= partner.register %>&via=fb" target="_blank" rel="noopener" class="social-btn fb">📘 Facebook</a>
+        <a href="<%= partner.register %>&via=google" target="_blank" rel="noopener" class="social-btn google">G Google</a>
+        <a href="<%= partner.register %>&via=tele" target="_blank" rel="noopener" class="social-btn tele">📨 Telegram</a>
+      </div>
+
+      <p class="auth-foot">Đã có tài khoản? <a href="/dang-nhap">Đăng nhập ngay →</a></p>
+    </form>
+  </section>
+
+  <%- include('partials/auth-side', { sideTitle: 'Quyền lợi thành viên VIP', sideLead: 'Đăng ký 1 lần - hưởng đặc quyền trọn đời. Càng nạp càng nhiều thưởng.' }) %>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function togglePw(id, btn){
+  const i = document.getElementById(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.textContent = i.type === 'password' ? '👁' : '🙈';
+}
+function showToast(msg, kind){
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + (kind||'');
+  t.textContent = msg;
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+function updatePwStrength(v){
+  let s = 0;
+  if (v.length >= 8) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  const bar = document.getElementById('pwBar');
+  const txt = document.getElementById('pwText');
+  bar.className = 'pw-strength' + (v.length ? ' s'+s : '');
+  txt.textContent = ['Độ mạnh mật khẩu','Yếu','Trung bình','Khá','Mạnh'][v.length ? s : 0];
+  txt.style.color = ['var(--muted)','var(--red)','#e67e22','#f1c40f','var(--green)'][v.length ? s : 0];
+}
+document.getElementById('regForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const f = e.target;
+  let ok = true;
+  document.querySelectorAll('.form-error').forEach(x=>x.classList.remove('show'));
+  if (!/^[a-zA-Z0-9_]{4,20}$/.test(f.username.value)) { document.querySelector('[data-for=username]').classList.add('show'); ok = false; }
+  if (f.fullname.value.trim().length < 2) { document.querySelector('[data-for=fullname]').classList.add('show'); ok = false; }
+  if (!/^0[3-9][0-9]{8}$/.test(f.phone.value)) { document.querySelector('[data-for=phone]').classList.add('show'); ok = false; }
+  if (f.password.value.length < 8) { document.querySelector('[data-for=password]').classList.add('show'); ok = false; }
+  if (f.password.value !== f.password2.value) { document.querySelector('[data-for=password2]').classList.add('show'); ok = false; }
+  if (!f.agree.checked) { showToast('Vui lòng đồng ý điều khoản', 'error'); return; }
+  if (!ok) { showToast('Vui lòng kiểm tra lại form', 'error'); return; }
+  const btn = f.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = '⏳ Đang tạo tài khoản...';
+  try {
+    const data = Object.fromEntries(new FormData(f).entries());
+    const r = await fetch('/api/dang-ky', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    const j = await r.json();
+    if (j.ok) {
+      showToast('Đăng ký thành công! Đang chuyển sang nạp tiền nhận thưởng...', 'success');
+      setTimeout(()=>{ location.href = j.redirect || '<%= partner.register %>' }, 1500);
+    } else {
+      showToast(j.message || 'Đăng ký thất bại', 'error');
+      btn.disabled = false; btn.textContent = '🚀 ĐĂNG KÝ NGAY - NHẬN 100% THƯỞNG';
+    }
+  } catch(err){
+    showToast('Lỗi kết nối, đang chuyển sang trang đối tác...', 'error');
+    setTimeout(()=>{ location.href = '<%= partner.register %>' }, 1500);
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

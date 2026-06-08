@@ -1,0 +1,40 @@
+<%
+// Variables expected: pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml
+seo = {
+  title: pageTitle + ' - ' + brand.name,
+  description: pageDesc,
+  keywords: pageTitle + ', ' + brand.short + ', ' + brand.domain,
+  canonical: typeof canonicalPath !== 'undefined' ? canonicalPath : '',
+  breadcrumb: [{ name: breadcrumbName, url: canonicalPath }]
+};
+%>
+<%- include('tw-layout-start') %>
+<%- include('tw-breadcrumb') %>
+
+<article class="bg-bg-card border border-line rounded-xl overflow-hidden mb-6" itemscope itemtype="https://schema.org/Article">
+  <meta itemprop="author" content="<%= brand.name %>">
+  <meta itemprop="publisher" content="<%= brand.name %>">
+  <meta itemprop="datePublished" content="2026-01-01">
+  <meta itemprop="dateModified" content="<%= updated %>">
+
+  <header class="px-5 md:px-7 py-5 bg-gradient-to-br from-bg-soft to-bg-card border-b border-line">
+    <h1 class="text-2xl md:text-3xl font-black text-white mb-2 leading-tight" itemprop="headline"><%= pageH1 %></h1>
+    <p class="text-muted text-sm"><%= pageDesc %></p>
+    <div class="flex items-center gap-3 mt-3 text-[11px] text-dim">
+      <span>&#128197; Cập nhật: <time itemprop="dateModified" datetime="<%= updated %>"><%= updated %></time></span>
+      <span>&middot;</span>
+      <span>&#9201; Đọc trong ~5 phút</span>
+    </div>
+  </header>
+
+  <div class="p-5 md:p-7 text-gray-200 leading-relaxed text-[15px] space-y-5 [&_a]:text-pri-light [&_a:hover]:text-pri [&_a]:underline [&_strong]:text-white [&_h2]:text-white [&_h2]:text-xl [&_h2]:font-extrabold [&_h2]:mt-7 [&_h2]:mb-3 [&_h2]:pt-2 [&_h2]:flex [&_h2]:items-center [&_h2]:gap-2 [&_h3]:text-pri-light [&_h3]:text-base [&_h3]:font-bold [&_h3]:mt-5 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1.5 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-1.5 [&_p]:leading-loose" itemprop="articleBody">
+    <%- contentHtml %>
+  </div>
+
+  <footer class="px-5 md:px-7 py-4 bg-bg-soft border-t border-line text-sm text-muted flex flex-wrap items-center justify-between gap-3">
+    <div>Cần hỗ trợ? Liên hệ <a href="/lien-he" class="text-pri-light font-semibold">CSKH 24/7</a> hoặc <a href="<%= partner.telegram %>" target="_blank" rel="noopener" class="text-pri-light font-semibold">Telegram</a></div>
+    <a href="/" class="bg-bg-deep hover:bg-bg-soft border border-line text-white text-xs font-bold px-4 py-2 rounded-md transition-colors">&larr; Về trang chủ</a>
+  </footer>
+</article>
+
+<%- include('tw-footer') %>
