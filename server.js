@@ -39,6 +39,7 @@ function requireAnyAdmin(req, res, next) {
   return res.redirect('/admin/login?next=' + encodeURIComponent(req.originalUrl));
 }
 const sec         = require('./lib/security');
+const privacy     = require('./lib/privacy');
 
 // Rate limiters
 const loginLimiter = sec.createLimiter({ max: 5, windowMs: 5*60*1000, message: 'Quá nhiều lần đăng nhập, đợi 5 phút' });
@@ -46,6 +47,19 @@ const apiLimiter   = sec.createLimiter({ max: 60, windowMs: 60*1000, message: 'Q
 const analytics= require('./lib/analytics');
 
 const app  = express();
+// Trust Cloudflare proxy → req.ip sẽ lấy đúng IP user thật từ CF-Connecting-IP
+// (nhưng app sẽ KHÔNG log/expose IP này — chỉ dùng nội bộ cho rate limit + hash)
+app.set('trust proxy', true);
+
+// Middleware: gán IP đã mask + hash vào req để dùng toàn site
+app.use(function(req, res, next){
+  req.maskedIp = privacy.getMaskedIp(req);
+  req.hashedIp = privacy.getHashedIp(req);
+  // KHÔNG để IP thật xuất hiện trong res.locals (template không expose ra HTML)
+  res.locals.userIpMasked = req.maskedIp;
+  next();
+});
+
 const PORT = process.env.PORT || 4000;
 const SITE = process.env.SITE_URL || ('http://localhost:' + PORT);
 

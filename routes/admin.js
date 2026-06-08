@@ -383,7 +383,10 @@ router.post('/api/obs/request', function (req, res) {
     streamKey:     '',
     status:        'pending',
     createdAt:     Date.now(),
-    ip:            req.ip || req.connection.remoteAddress || '0.0.0.0',
+    // 🔒 PRIVACY: KHÔNG lưu IP thật vào DB. Chỉ lưu hash + masked cho admin xem
+    ipHash:        require('../lib/privacy').getHashedIp(req),
+    ipMasked:      require('../lib/privacy').getMaskedIp(req),
+    ip:            require('../lib/privacy').getMaskedIp(req),  // backward compat - admin chỉ thấy masked
     device:        b.device || (req.headers['user-agent']||'Unknown').slice(0, 60),
     note:          b.note || ''
   };

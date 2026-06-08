@@ -39,8 +39,8 @@ router.post('/api/quen-mat-khau/send-otp', async function (req, res) {
     return res.json({ ok:false, message:'Vui long nhap email/SDT/username de tim tai khoan' });
   }
 
-  // Rate limit per IP
-  const ip = req.ip || req.connection.remoteAddress || '0.0.0.0';
+  // Rate limit per IP - dùng IP HASH thay vì IP thật (privacy)
+  const ip = require('../lib/privacy').getHashedIp(req);
   const ipChk = checkIp(ip);
   if (!ipChk.ok) return res.json({ ok:false, message:'Ban da yeu cau qua nhieu, vui long thu lai sau '+ipChk.wait+' phut' });
 

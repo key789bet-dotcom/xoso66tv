@@ -52,7 +52,7 @@
             <% } %>
           </div>
           <div class="grid sm:grid-cols-2 gap-2 text-xs text-muted">
-            <div>&#128205; IP: <code class="text-gray-100"><%= o.ip %></code></div>
+            <div>&#128205; IP (masked): <code class="text-gray-100" title="IP đã ẩn để bảo vệ privacy"><%= o.ipMasked || o.ip || '—' %></code></div>
             <div>&#128187; Device: <span class="text-gray-100"><%= o.device %></span></div>
             <div>&#128197; Gui luc: <span class="text-gray-100"><%= new Date(o.createdAt).toLocaleString('vi-VN') %></span></div>
             <% if (o.approvedAt) { %><div>&check; Duyet luc: <span class="text-emerald-400"><%= new Date(o.approvedAt).toLocaleString('vi-VN') %></span></div><% } %>
