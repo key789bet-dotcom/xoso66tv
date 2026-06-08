@@ -26,7 +26,9 @@ router.post('/api/dang-ky', function (req, res) {
   if (b.password.length < 8) {
     return res.json({ ok: false, message: 'Mat khau yeu' });
   }
-  res.json({ ok: true, redirect: partners.partner.register + '&u=' + encodeURIComponent(b.username) + '&p=' + encodeURIComponent(b.phone) });
+  // 🔒 SECURITY: KHÔNG bao giờ truyền SĐT hay mật khẩu vào URL redirect (PII leak + log file capture)
+  // Chỉ truyền tracking ref + username (username là public). SĐT sẽ được lưu phía xoso66 qua API riêng nếu cần.
+  res.json({ ok: true, redirect: partners.partner.register + '&u=' + encodeURIComponent(b.username) });
 });
 
 module.exports = router;
