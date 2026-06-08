@@ -130,21 +130,31 @@ document.getElementById('regForm').addEventListener('submit', async function(e){
   var oldText = btn.textContent; btn.textContent = 'Đang tạo tài khoản...';
 
   try {
+    // Step 1: LƯU user vào DB local (bcrypt hash, lưu data/db.json để admin thấy)
     var data = { username: u, fullname: u, phone: ph, password: p };
-    var r = await fetch('/api/dang-ky', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    var r = await fetch('/api/auth/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify(data)
+    });
     var j = await r.json();
     if (j.ok) {
       try { localStorage.setItem('x66_user', JSON.stringify({ username:u, fullname:u, phone:ph, vip:1, loggedAt:Date.now() })); } catch(e){}
-      showToast('Đăng ký thành công! Chuyển sang nạp tiền...','success');
-      setTimeout(function(){ location.href = j.redirect || '<%= partner.register %>' }, 1500);
+      showToast('Đăng ký thành công! Chuyển sang xoso66 để nạp tiền...','success');
+      // Step 2: Redirect sang partner xoso66 để liên kết tài khoản nạp tiền
+      setTimeout(function(){
+        location.href = '<%= partner.register %>' + '&u=' + encodeURIComponent(u);
+      }, 1500);
     } else {
-      showToast(j.message || 'Đăng ký thất bại','error');
+      showToast(j.error || j.message || 'Đăng ký thất bại','error');
       renderCaptcha('captchaBox');
       document.getElementById('captchaInput').value = '';
       btn.disabled = false; btn.textContent = oldText;
     }
   } catch(err){
-    setTimeout(function(){ location.href = '<%= partner.register %>' }, 1500);
+    showToast('Lỗi kết nối, vui lòng thử lại','error');
+    btn.disabled = false; btn.textContent = oldText;
   }
 });
 </script>

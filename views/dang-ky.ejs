@@ -153,18 +153,26 @@ document.getElementById('regForm').addEventListener('submit', async function(e){
   btn.disabled = true; btn.textContent = '⏳ Đang tạo tài khoản...';
   try {
     const data = Object.fromEntries(new FormData(f).entries());
-    const r = await fetch('/api/dang-ky', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    // Lưu user vào DB local + bcrypt
+    const r = await fetch('/api/auth/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify(data)
+    });
     const j = await r.json();
     if (j.ok) {
-      showToast('Đăng ký thành công! Đang chuyển sang nạp tiền nhận thưởng...', 'success');
-      setTimeout(()=>{ location.href = j.redirect || '<%= partner.register %>' }, 1500);
+      showToast('Đăng ký thành công! Đang chuyển sang xoso66 nạp tiền nhận thưởng...', 'success');
+      setTimeout(()=>{
+        location.href = '<%= partner.register %>' + '&u=' + encodeURIComponent(data.username || '');
+      }, 1500);
     } else {
-      showToast(j.message || 'Đăng ký thất bại', 'error');
+      showToast(j.error || j.message || 'Đăng ký thất bại', 'error');
       btn.disabled = false; btn.textContent = '🚀 ĐĂNG KÝ NGAY - NHẬN 100% THƯỞNG';
     }
   } catch(err){
-    showToast('Lỗi kết nối, đang chuyển sang trang đối tác...', 'error');
-    setTimeout(()=>{ location.href = '<%= partner.register %>' }, 1500);
+    showToast('Lỗi kết nối', 'error');
+    btn.disabled = false; btn.textContent = '🚀 ĐĂNG KÝ NGAY - NHẬN 100% THƯỞNG';
   }
 });
 </script>
