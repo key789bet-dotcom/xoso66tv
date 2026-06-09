@@ -24,21 +24,37 @@ function _bySport(arr, sport) {
 }
 var roomsHot       = (live||[]).slice(0, 8);
 var roomsTheThao   = (live||[]).concat(upcoming||[]).filter(function(x){ return ['Soccer','Basketball','Tennis','Volleyball'].indexOf(x.sport)>=0; }).slice(0, 8);
-// Idol thật từ DB (truyền qua dbIdols), empty array nếu chưa có
-var roomsIdol = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? dbIdols.map(function(i){
-  return {
-    id: i.id,
-    home: i.name,
-    away: i.room || 'Phòng',
-    league: 'Idol Live Show',
-    sport: 'Idol',
-    status: i.liveNow ? 'live' : 'offline',
-    time: '21:00',
-    poster: i.avatar || '',
-    lock: i.lock || 0,
-    emoji: i.emoji || '👑'
-  };
-}) : [];
+
+// Idol thật từ DB, có CATEGORY để lọc tab
+var _allIdolRooms = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? dbIdols
+  .filter(function(i){ return i.status === 'active'; })
+  .map(function(i){
+    return {
+      id: i.id,
+      home: i.name,
+      away: i.room || 'Phòng',
+      league: 'Idol Live Show',
+      sport: 'Idol',
+      category: i.category || 'idol',  // chuyên mục stream
+      status: i.liveNow ? 'live' : 'offline',
+      time: '21:00',
+      poster: i.cardImage || i.avatar || '',
+      lock: i.lock || 0,
+      emoji: i.emoji || '👑',
+      isIdolRoom: true
+    };
+  }) : [];
+
+// Tab Idol Live: chỉ idol có category='idol' (idol show thuần)
+var roomsIdol = _allIdolRooms.filter(function(r){ return r.category === 'idol'; });
+// Tab Casino: idol có category='casino' (live sòng bài)
+var roomsCasino = _allIdolRooms.filter(function(r){ return r.category === 'casino'; });
+// Tab Esports: idol có category='esport' + match esport thật
+var roomsEsport = _allIdolRooms.filter(function(r){ return r.category === 'esport'; })
+  .concat((live||[]).filter(function(x){ return x.sport === 'Esports'; }))
+  .slice(0, 8);
+// Tab Bóng đá: idol category='bongda' + roomsTheThao (đã có)
+var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'bongda'; });
 %>
 <%- include('partials/tw-layout-start') %>
 
@@ -160,13 +176,13 @@ var roomsIdol = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? 
 
   <!-- Right sidebar: Tab list of rooms -->
   <aside class="bg-bg-card border border-line rounded-xl overflow-hidden flex flex-col lg:max-h-[calc(100vh-220px)]">
-    <!-- Tabs -->
+    <!-- Tabs - LOC IDOL THEO CATEGORY -->
     <nav class="flex gap-1 p-2 border-b border-line overflow-x-auto scrollbar-hide" role="tablist" id="roomTabs">
       <button data-tab="hot"     class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap bg-pri text-white shadow-pri transition-all" role="tab">&#128293; Hot</button>
       <button data-tab="thethao" class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#9917; Thể thao</button>
-      <button data-tab="idol" class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#128081; Idol Live</button>
-      <a    href="/casino"      class="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all">&#127920; Casino</a>
-      <a    href="/esports"     class="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all">&#127918; Esports</a>
+      <button data-tab="idol"    class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#128081; Idol Live</button>
+      <button data-tab="casino"  class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#127920; Casino</button>
+      <button data-tab="esport"  class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#127918; Esports</button>
     </nav>
 
     <!-- Room panels -->
@@ -198,12 +214,41 @@ var roomsIdol = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? 
         <% } %>
       </div>
 
-      <!-- Tab: ESPORTS -->
+      <!-- Tab: IDOL LIVE (chỉ idol category='idol') -->
       <div class="room-panel hidden" data-panel="idol">
         <% if (roomsIdol.length === 0) { %>
           <div class="p-10 text-center text-muted text-sm"><div class="text-4xl mb-2 opacity-50">&#128081;</div>Chưa có phòng idol live.</div>
         <% } else { %>
           <% roomsIdol.forEach(function(m){ %>
+            <%- include('partials/tw-room-row', { m: m }) %>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <!-- Tab: CASINO (idol category='casino' - live sòng bài) -->
+      <div class="room-panel hidden" data-panel="casino">
+        <% if (roomsCasino.length === 0) { %>
+          <div class="p-10 text-center text-muted text-sm">
+            <div class="text-4xl mb-2 opacity-50">&#127920;</div>
+            Chưa có idol live sòng bài
+            <div class="mt-2 text-[11px] text-dim">Admin có thể chuyển chuyên mục idol sang Sòng Bài trong /admin/idol</div>
+          </div>
+        <% } else { %>
+          <% roomsCasino.forEach(function(m){ %>
+            <%- include('partials/tw-room-row', { m: m }) %>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <!-- Tab: ESPORT (idol category='esport' + match esport) -->
+      <div class="room-panel hidden" data-panel="esport">
+        <% if (roomsEsport.length === 0) { %>
+          <div class="p-10 text-center text-muted text-sm">
+            <div class="text-4xl mb-2 opacity-50">&#127918;</div>
+            Chưa có phòng esports live
+          </div>
+        <% } else { %>
+          <% roomsEsport.forEach(function(m){ %>
             <%- include('partials/tw-room-row', { m: m }) %>
           <% }); %>
         <% } %>
