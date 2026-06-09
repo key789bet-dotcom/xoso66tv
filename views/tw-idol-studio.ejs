@@ -520,6 +520,25 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }]
     });
     state.mediaStream.getTracks().forEach(function(t){ pc.addTrack(t, state.mediaStream); });
+
+    // 🎬 FORCE codec H264 (SRS chỉ bridge H264 sang FLV, VP8/VP9 không work)
+    try {
+      var transceivers = pc.getTransceivers();
+      transceivers.forEach(function(tr){
+        if (tr.sender && tr.sender.track && tr.sender.track.kind === 'video') {
+          var caps = RTCRtpSender.getCapabilities('video');
+          if (caps && caps.codecs) {
+            var h264 = caps.codecs.filter(function(c){ return c.mimeType.toLowerCase().indexOf('h264') > -1; });
+            var others = caps.codecs.filter(function(c){ return c.mimeType.toLowerCase().indexOf('h264') === -1; });
+            if (h264.length > 0) {
+              tr.setCodecPreferences(h264.concat(others));
+              console.log('[WHIP] Forced H264 video codec for SRS compatibility');
+            }
+          }
+        }
+      });
+    } catch(e) { console.log('[WHIP] Codec preference not supported:', e.message); }
+
     var offer = await pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
 
