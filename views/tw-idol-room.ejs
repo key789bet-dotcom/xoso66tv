@@ -127,6 +127,7 @@ seo = {
 <script>
 (function(){
   var lock = <%= idol.lock %>;
+  var pinRequired = <%= pinRequired ? 'true' : 'false' %>;
   var idolId = '<%= idolId %>';
   var idolName = '<%= idol.name.replace(/'/g, "\'") %>';
   var overlay = document.getElementById('lockOverlay');
@@ -134,6 +135,11 @@ seo = {
   // ===== ADMIN BYPASS: skip lock modal completely =====
   if (typeof window.isUserAdmin === 'function' && window.isUserAdmin()) {
     if (window.x66ShowAdminBadge) window.x66ShowAdminBadge();
+    return;
+  }
+
+  // ===== PHÒNG FREE (không khóa, không PIN) → KHÔNG cần đăng nhập, vào xem trực tiếp =====
+  if ((!lock || lock <= 0) && !pinRequired) {
     return;
   }
 
@@ -150,13 +156,12 @@ seo = {
     } catch(e){}
   }
 
-  // Check auth + unlock status
+  // Chỉ phòng KHÓA (lock > 0 hoặc có PIN) mới check auth + unlock
   try {
     var u = JSON.parse(localStorage.getItem('x66_user')||'{}');
     if (!u.username) {
-      // Show modal asking to login first
       overlay.querySelector('h2').textContent = 'CẦN ĐĂNG NHẬP';
-      overlay.querySelector('p').innerHTML = 'Đăng nhập để mở khóa phòng <b class="text-pri-light">' + idolName + '</b>';
+      overlay.querySelector('p').innerHTML = 'Phòng này khóa. Đăng nhập để mở khóa phòng <b class="text-pri-light">' + idolName + '</b>';
       document.getElementById('lockUnlockBtn').innerHTML = '<span class="text-lg">👤</span><span>ĐĂNG NHẬP NGAY</span>';
       document.getElementById('lockUnlockBtn').setAttribute('onclick', "location.href='/dang-nhap'");
       showLockModal();
