@@ -1,0 +1,214 @@
+<%
+seo = {
+  title: 'Đăng ký làm Idol Live - ' + brand.name,
+  description: 'Trở thành idol live trên ' + brand.domain + '. Kiếm thu nhập từ X COIN, follower, quà tặng.',
+  canonical: '/dang-ky-idol',
+  noindex: true
+};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<section class="max-w-2xl mx-auto mb-8 px-3">
+  <!-- Hero header -->
+  <div class="relative bg-gradient-to-br from-pink-600 via-purple-600 to-fuchsia-700 rounded-2xl p-6 mb-5 overflow-hidden">
+    <div class="absolute -top-10 -right-10 text-9xl opacity-10">💃</div>
+    <div class="absolute -bottom-10 -left-10 text-9xl opacity-10">🎀</div>
+    <h1 class="text-3xl font-black text-white mb-2">🌟 Đăng ký làm Idol</h1>
+    <p class="text-pink-100 text-sm">Trở thành idol live, kiếm thu nhập từ <b>X COIN</b>, quà tặng và follower. <b>Miễn phí</b>, không phí đăng ký.</p>
+    <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+      <div class="bg-white/15 backdrop-blur rounded-lg p-2">
+        <div class="text-2xl">💰</div>
+        <div class="text-[10px] text-white font-bold mt-1">Thu nhập từ quà</div>
+      </div>
+      <div class="bg-white/15 backdrop-blur rounded-lg p-2">
+        <div class="text-2xl">👥</div>
+        <div class="text-[10px] text-white font-bold mt-1">Cộng đồng fan</div>
+      </div>
+      <div class="bg-white/15 backdrop-blur rounded-lg p-2">
+        <div class="text-2xl">📱</div>
+        <div class="text-[10px] text-white font-bold mt-1">Live mobile/web</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status đơn nếu đã apply -->
+  <div id="myStatusBox" class="hidden mb-4"></div>
+
+  <!-- Form -->
+  <form id="applyIdolForm" class="bg-bg-card border border-line rounded-2xl p-5 shadow-2xl space-y-4">
+    <h2 class="text-white font-extrabold text-lg mb-1">📝 Thông tin đăng ký</h2>
+    <p class="text-muted text-xs mb-3">User đăng nhập: <code class="text-pri-light"><%= user.username %></code></p>
+
+    <!-- Tên nghệ danh -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Tên nghệ danh <span class="text-live">*</span></label>
+      <input name="stageName" type="text" required minlength="2" maxlength="30"
+             class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri"
+             placeholder="VD: Linh Trang, Mai Anh..."/>
+    </div>
+
+    <!-- Tuổi + chiều cao + cân nặng -->
+    <div class="grid grid-cols-3 gap-2">
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Tuổi <span class="text-live">*</span></label>
+        <input name="age" type="number" required min="18" max="50" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="22"/>
+      </div>
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Cao (cm)</label>
+        <input name="height" type="number" min="140" max="200" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="165"/>
+      </div>
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Nặng (kg)</label>
+        <input name="weight" type="number" min="35" max="100" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="48"/>
+      </div>
+    </div>
+
+    <!-- Thành phố -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Thành phố <span class="text-live">*</span></label>
+      <select name="city" required class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+        <option value="">-- Chọn thành phố --</option>
+        <option>Hà Nội</option>
+        <option>TP. Hồ Chí Minh</option>
+        <option>Đà Nẵng</option>
+        <option>Hải Phòng</option>
+        <option>Cần Thơ</option>
+        <option>Nha Trang</option>
+        <option>Huế</option>
+        <option>Đà Lạt</option>
+        <option>Quy Nhơn</option>
+        <option>Vũng Tàu</option>
+        <option>Khác</option>
+      </select>
+    </div>
+
+    <!-- Nghề nghiệp -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Nghề nghiệp</label>
+      <input name="job" type="text" maxlength="60" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="VD: Sinh viên, Model, Tự do..."/>
+    </div>
+
+    <!-- Sở thích -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Sở thích</label>
+      <input name="hobby" type="text" maxlength="100" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="VD: Hát, nhảy, du lịch, đọc sách..."/>
+    </div>
+
+    <!-- Bio -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Giới thiệu bản thân <span class="text-live">*</span> (≥20 ký tự)</label>
+      <textarea name="bio" required minlength="20" maxlength="500" rows="3" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri resize-none" placeholder="Vd: Cô gái Hà Nội yêu nghệ thuật, mong muốn kết nối với mọi người qua live show..."></textarea>
+    </div>
+
+    <!-- Avatar URL (optional) -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Link ảnh đại diện (tùy chọn)</label>
+      <input name="avatar" type="url" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="https://... (để trống = auto generate)"/>
+    </div>
+
+    <!-- Emoji icon -->
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Icon đại diện</label>
+      <div class="flex gap-2 flex-wrap">
+        <% ['👑','💃','🌸','🎀','💖','🌹','🦋','✨','🌟','💎'].forEach(function(e){ %>
+          <label class="cursor-pointer">
+            <input type="radio" name="emoji" value="<%= e %>" class="hidden peer">
+            <span class="w-12 h-12 grid place-items-center bg-bg-deep border-2 border-line peer-checked:border-pri peer-checked:bg-pri/20 rounded-lg text-2xl transition-all"><%= e %></span>
+          </label>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- Điều khoản -->
+    <div class="bg-bg-deep border border-pri/30 rounded-lg p-3 text-[12px] text-muted leading-relaxed">
+      <h3 class="text-white font-bold mb-1.5 text-sm">📋 Điều khoản idol</h3>
+      <ul class="space-y-1 list-disc list-inside">
+        <li>Không cởi đồ, không nội dung 18+, không tục tĩu</li>
+        <li>Không quảng cáo sản phẩm bất hợp pháp</li>
+        <li>Tuân thủ pháp luật Việt Nam khi live stream</li>
+        <li>XOSO66 TV giữ % phí 30% trên doanh thu quà tặng (đã trừ ở X COIN)</li>
+        <li>Bị ban vĩnh viễn nếu vi phạm 3 lần</li>
+      </ul>
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-muted cursor-pointer">
+      <input type="checkbox" name="agree" required class="w-4 h-4 accent-pri">
+      Tôi đồng ý với điều khoản và xác nhận thông tin chính xác
+    </label>
+
+    <button type="submit" id="submitBtn" class="w-full py-3.5 bg-gradient-to-r from-pink-500 via-purple-500 to-fuchsia-600 hover:brightness-110 text-white font-extrabold text-base rounded-xl shadow-lg shadow-pink-500/30 active:scale-95 transition-all">
+      🌟 GỬI ĐƠN ĐĂNG KÝ IDOL
+    </button>
+
+    <p class="text-center text-[11px] text-muted">
+      Admin sẽ duyệt trong 24h · <a href="/dang-ky-blv" class="text-pri-light hover:underline">Muốn làm BLV thể thao? →</a>
+    </p>
+  </form>
+</section>
+
+<div id="toast" class="fixed top-20 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-sm font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
+
+<script>
+function showToast(msg, kind){
+  var t = document.getElementById('toast');
+  var col = kind==='success' ? '!border-l-emerald-500' : kind==='error' ? '!border-l-live' : '!border-l-pri';
+  t.className = 'fixed top-20 right-5 bg-bg-card border border-line border-l-4 px-4 py-3 rounded-lg text-white text-sm font-semibold z-[100] shadow-2xl translate-x-0 transition-transform ' + col;
+  t.textContent = msg;
+  setTimeout(function(){ t.className = t.className.replace('translate-x-0','translate-x-[120%]'); }, 4000);
+}
+
+// Check existing application
+fetch('/api/apply/my-status', { credentials:'same-origin' })
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    if (j.ok && j.idol) {
+      var box = document.getElementById('myStatusBox');
+      var st = j.idol.status;
+      var color = st==='active' ? 'emerald' : st==='pending' ? 'yellow' : 'live';
+      var icon  = st==='active' ? '✅' : st==='pending' ? '⏳' : '❌';
+      var label = st==='active' ? 'ĐÃ DUYỆT - Bạn là idol' : st==='pending' ? 'ĐANG CHỜ DUYỆT' : 'ĐƠN BỊ TỪ CHỐI';
+      box.innerHTML = '<div class="bg-'+color+'-500/15 border-2 border-'+color+'-500/50 rounded-xl p-4 text-center">'
+        + '<div class="text-4xl mb-2">'+icon+'</div>'
+        + '<div class="text-white font-extrabold text-lg">'+label+'</div>'
+        + '<div class="text-muted text-xs mt-1">Tên idol: <b class="text-pri-light">'+j.idol.name+'</b></div>'
+        + (j.idol.rejectReason ? '<div class="text-live text-sm mt-2">Lý do: '+j.idol.rejectReason+'</div>' : '')
+        + (st==='active' ? '<a href="/idol-studio" class="inline-block mt-3 px-5 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-lg">📡 Vào Studio Live</a>' : '')
+        + '</div>';
+      box.classList.remove('hidden');
+      // Disable form nếu đang chờ hoặc đã active
+      if (st === 'pending' || st === 'active') {
+        document.getElementById('applyIdolForm').style.display = 'none';
+      }
+    }
+  });
+
+document.getElementById('applyIdolForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var f = this;
+  var data = Object.fromEntries(new FormData(f).entries());
+  data.agree = !!f.agree.checked;
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Đang gửi...';
+  try {
+    var r = await fetch('/api/apply/idol', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify(data)
+    });
+    var j = await r.json();
+    if (j.ok) {
+      showToast('🎉 ' + j.message,'success');
+      setTimeout(function(){ location.reload(); }, 2000);
+    } else {
+      showToast(j.error || 'Lỗi không xác định','error');
+      btn.disabled = false; btn.textContent = '🌟 GỬI ĐƠN ĐĂNG KÝ IDOL';
+    }
+  } catch(err){
+    showToast('Lỗi kết nối','error');
+    btn.disabled = false; btn.textContent = '🌟 GỬI ĐƠN ĐĂNG KÝ IDOL';
+  }
+});
+</script>
+
+<%- include('partials/tw-footer') %>

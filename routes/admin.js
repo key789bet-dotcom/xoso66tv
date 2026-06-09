@@ -227,9 +227,19 @@ function actionOn(kind) {
       const item = arr.find(function(x){ return x.id === req.params.id });
       if (!item) return res.json({ ok:false, message:'Khong ton tai' });
       item.status = 'active';
-      db.audit(data, 'Approve ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
+      item.approvedAt = Date.now();
+      // 🆙 Auto update user.role để họ có quyền streamer khi login
+      const targetRole = kind === 'idols' ? 'idol' : 'blv';
+      if (item.userId && data.users) {
+        const u = data.users.find(function(x){ return x.username === item.userId; });
+        if (u) {
+          u.role = targetRole;
+          u.upgradedAt = Date.now();
+        }
+      }
+      db.audit(data, 'Approve ' + targetRole.toUpperCase() + ' (role → ' + targetRole + ')', item.name + ' [user:' + (item.userId||'?') + ']', res.locals.adminUser);
       db.save(data);
-      res.json({ ok:true, message:'Da duyet ' + item.name });
+      res.json({ ok:true, message:'Da duyet ' + item.name + ' (role user: ' + targetRole + ')' });
     },
     reject: function (req, res) {
       const data = db.load();

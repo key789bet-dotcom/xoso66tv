@@ -17,6 +17,7 @@ const pwdReset = require('./routes/password-reset');
 const teleHook = require('./routes/telegram-webhook');
 const partnerHook = require('./routes/partner-webhook');
 const linkRoute   = require('./routes/account-link');
+const applyStreamer = require('./routes/apply-streamer');
 const pubAuth     = require('./lib/public-auth');
 const adminAuth   = require('./lib/admin-auth');
 
@@ -477,6 +478,7 @@ app.get('/dieu-khoan-su-dung',     function (req, res) { res.render('tw-dieu-kho
 app.get('/bo-suu-tap-qua',         function (req, res) { res.render('tw-bo-suu-tap-qua',         { active:'static' }); });
 
 app.use('/admin', admin);
+app.use('/', applyStreamer);  // /dang-ky-idol, /dang-ky-blv, /api/apply/*
 app.use(pwdReset);
 app.use(teleHook);
 app.use(partnerHook);
