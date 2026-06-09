@@ -25,6 +25,24 @@ const _bnUpload = multer({
     cb(ok ? null : new Error('Chi cho phep JPG/PNG/WEBP'), ok);
   }
 });
+
+// Multer cau hinh upload card cover image (idol/blv)
+const _cardStorage = multer.diskStorage({
+  destination: function(req,file,cb){
+    var dir = path.join(__dirname,'..','public','uploads','cards');
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req,file,cb){ cb(null, 'card-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+});
+const _cardUpload = multer({
+  storage: _cardStorage,
+  limits:  { fileSize: 3*1024*1024 }, // 3MB max
+  fileFilter: function(req,file,cb){
+    var ok = /^image\/(jpeg|png|webp|gif)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Chi cho phep JPG/PNG/WEBP/GIF'), ok);
+  }
+});
 const analytics = require('../lib/analytics');
 
 const router = express.Router();
@@ -283,6 +301,21 @@ function actionOn(kind) {
       db.save(data);
       const labels = { idol:'👑 Idol Show', bongda:'⚽ BLV Bóng đá', casino:'🎰 Live Sòng Bài', esport:'🎮 BLV Esports' };
       res.json({ ok:true, category: cat, message: item.name + ' → ' + (labels[cat] || cat) });
+    },
+    setCardImage: function (req, res) {
+      const data = db.load();
+      const arr = data[kind];
+      const item = arr.find(function(x){ return x.id === req.params.id });
+      if (!item) return res.json({ ok:false, message:'Khong ton tai' });
+      const url = String((req.body && req.body.imageUrl) || '').trim();
+      // Cho phép xóa bằng cách gửi empty string
+      if (url && !/^(https?:\/\/|\/static\/|\/uploads\/)/i.test(url)) {
+        return res.json({ ok:false, message:'URL phải bắt đầu https:// hoặc /static/ hoặc /uploads/' });
+      }
+      item.cardImage = url || null;
+      db.audit(data, 'SET cardImage for ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
+      db.save(data);
+      res.json({ ok:true, cardImage: item.cardImage, message: item.name + (url ? ' ✅ đã đặt ảnh nền card' : ' đã xóa ảnh nền card') });
     }
   };
 }
@@ -293,6 +326,7 @@ router.post('/api/blv/:id/reject',  blvActions.reject);
 router.post('/api/blv/:id/delete',  blvActions.del);
 router.post('/api/blv/:id/toggle-live', blvActions.toggleLive);
 router.post('/api/blv/:id/set-category', blvActions.setCategory);
+router.post('/api/blv/:id/set-card-image', blvActions.setCardImage);
 
 // ===== IDOL =====
 router.get('/idol', function (req, res) {
@@ -314,6 +348,30 @@ router.post('/api/idol/:id/reject',  idolActions.reject);
 router.post('/api/idol/:id/delete',  idolActions.del);
 router.post('/api/idol/:id/toggle-live', idolActions.toggleLive);
 router.post('/api/idol/:id/set-category', idolActions.setCategory);
+router.post('/api/idol/:id/set-card-image', idolActions.setCardImage);
+// Upload file ảnh card (multipart)
+router.post('/api/idol/:id/upload-card-image', _cardUpload.single('image'), function(req, res){
+  if (!req.file) return res.json({ ok:false, message:'Không có file upload' });
+  const url = '/uploads/cards/' + req.file.filename;
+  const data = db.load();
+  const item = data.idols.find(function(x){ return x.id === req.params.id });
+  if (!item) return res.json({ ok:false, message:'Idol không tồn tại' });
+  item.cardImage = url;
+  db.audit(data, 'UPLOAD cardImage for IDOL', item.name, res.locals.adminUser);
+  db.save(data);
+  res.json({ ok:true, url:url, cardImage:url, message:'✅ Upload ảnh nền thành công cho ' + item.name });
+});
+router.post('/api/blv/:id/upload-card-image', _cardUpload.single('image'), function(req, res){
+  if (!req.file) return res.json({ ok:false, message:'Không có file upload' });
+  const url = '/uploads/cards/' + req.file.filename;
+  const data = db.load();
+  const item = data.blvs.find(function(x){ return x.id === req.params.id });
+  if (!item) return res.json({ ok:false, message:'BLV không tồn tại' });
+  item.cardImage = url;
+  db.audit(data, 'UPLOAD cardImage for BLV', item.name, res.locals.adminUser);
+  db.save(data);
+  res.json({ ok:true, url:url, cardImage:url, message:'✅ Upload ảnh nền thành công cho ' + item.name });
+});
 
 // ===== OBS =====
 const RTMP_SERVER = process.env.RTMP_SERVER || 'rtmp://stream.xoso66tv.com/live';

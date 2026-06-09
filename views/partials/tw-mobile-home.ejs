@@ -47,7 +47,8 @@ _idolList.forEach(function(i){
     type:'idol',
     href:'/idol/' + i.id,
     name: i.name,
-    img: i.avatar,
+    // ƯU TIÊN cardImage (admin set riêng), fallback avatar
+    img: i.cardImage || i.avatar,
     emoji: i.emoji || '👑',
     color: i.color || 320,
     time: '21:00',

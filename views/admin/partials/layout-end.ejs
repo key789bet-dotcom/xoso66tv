@@ -10,15 +10,38 @@ function showToast(msg, kind){
   t.textContent=msg;
   setTimeout(function(){ t.className=t.className.replace('translate-x-0','translate-x-[120%]') }, 3500);
 }
-async function adminAction(url, body){
+async function adminAction(url, body, callback){
   try {
     var r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{}) });
     var j = await r.json();
+    if (typeof callback === 'function') return callback(j);
     if (j.ok) { showToast(j.message||'Thanh cong','success'); setTimeout(function(){ location.reload() }, 800); }
     else { showToast(j.message||'That bai','error'); }
   } catch(e){ showToast('Loi ket noi','error'); }
 }
 function confirmAction(msg, fn){ if (confirm(msg)) fn(); }
+
+// Upload card image via FormData (multipart)
+async function uploadCardImage(form, url){
+  var fd = new FormData(form);
+  var btn = form.querySelector('button[type=submit]');
+  var oldTxt = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+  try {
+    var r = await fetch(url, { method:'POST', body: fd });
+    var j = await r.json();
+    if (j.ok) {
+      showToast(j.message||'Upload thanh cong','success');
+      setTimeout(function(){ location.reload(); }, 800);
+    } else {
+      showToast(j.message||'Upload that bai','error');
+      if (btn) { btn.textContent = oldTxt; btn.disabled = false; }
+    }
+  } catch(e){
+    showToast('Loi upload: ' + e.message,'error');
+    if (btn) { btn.textContent = oldTxt; btn.disabled = false; }
+  }
+}
 </script>
 </body>
 </html>
