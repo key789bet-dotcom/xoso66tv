@@ -276,14 +276,7 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
 <!-- Top Streamer carousel -->
 <%- include('partials/tw-top-streamer') %>
 
-<!-- Quick category filter chips -->
-<nav class="flex gap-2 flex-wrap bg-bg-card border border-line rounded-xl p-2 mb-5 overflow-x-auto scrollbar-hide items-center" aria-label="Danh mục">
-  <a href="/" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap bg-gradient-to-br from-pri to-pri-dark text-white shadow-pri"><span class="bg-white/25 w-5 h-5 rounded grid place-items-center text-[10px]">&check;</span> Tất cả</a>
-  <% Object.entries(cats).forEach(function(pair){ var key=pair[0],c=pair[1]; var href=key==='casino'?'/casino':key==='idol'?'/idol-live':key==='esports'?'/esports':key==='hot'?'/':'/the-thao/'+key; %>
-    <a href="<%= href %>" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap text-gray-200 hover:bg-bg-soft hover:text-white transition-colors"><span><%= c.icon %></span> <%= c.name %></a>
-  <% }); %>
-  <a href="/lich-phat-song" class="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">Xem Tất Cả &nearr;</a>
-</nav>
+<!-- Quick category filter chips: ĐÃ XÓA (trùng với tabs Hot/Thể thao/Idol/Casino/Esports ở sidebar phải) -->
 
 <!-- Live rooms grid -->
 <section class="mb-6" aria-label="Đang trực tiếp">
