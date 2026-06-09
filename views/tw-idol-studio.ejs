@@ -510,28 +510,33 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     });
   };
 
-  // ===== WHIP PUSH: WebRTC → SRS server (browser native live) =====
+  // ===== SRS RTC PUBLISH (browser native live, support SRS 5 & 6) =====
   state.pc = null;
   async function whipPublish(streamKey){
-    var WHIP_URL = 'https://xoso66tv.com/rtc/v1/whip/?app=live&stream=' + encodeURIComponent(streamKey);
+    // SRS native publish API (work với cả SRS 5/6) - JSON body
+    var PUBLISH_URL = 'https://xoso66tv.com/rtc/v1/publish/';
+    var STREAM_URL  = 'webrtc://xoso66tv.com/live/' + streamKey;
     var pc = new RTCPeerConnection({
       iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }]
     });
-    // Add tracks từ camera đã có
     state.mediaStream.getTracks().forEach(function(t){ pc.addTrack(t, state.mediaStream); });
-    // Tạo SDP offer
-    var offer = await pc.createOffer();
+    var offer = await pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
-    // POST offer tới WHIP endpoint
-    var resp = await fetch(WHIP_URL, {
+
+    var resp = await fetch(PUBLISH_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/sdp' },
-      body: pc.localDescription.sdp
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api: PUBLISH_URL,
+        streamurl: STREAM_URL,
+        sdp: pc.localDescription.sdp
+      })
     });
-    if (!resp.ok) throw new Error('WHIP HTTP ' + resp.status);
-    var answerSdp = await resp.text();
-    await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
-    console.log('[WHIP] Stream published to SRS:', streamKey);
+    if (!resp.ok) throw new Error('SRS Publish HTTP ' + resp.status);
+    var j = await resp.json();
+    if (j.code !== 0) throw new Error('SRS error code ' + j.code);
+    await pc.setRemoteDescription({ type: 'answer', sdp: j.sdp });
+    console.log('[SRS] Stream published:', streamKey, '→', STREAM_URL);
     return pc;
   }
   async function whipUnpublish(){
