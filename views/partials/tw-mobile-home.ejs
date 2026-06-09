@@ -51,26 +51,26 @@ _live.slice(0, 4).forEach(function(m){
 <!-- ===== MOBILE HOME (md:hidden = chỉ hiện mobile) ===== -->
 <div class="md:hidden" id="mobileHome">
 
-  <!-- HEADER mobile (logo + login/register) -->
-  <header class="sticky top-0 z-30 bg-[#13171f] border-b border-line flex items-center gap-2 px-3 py-2.5">
+  <!-- HEADER mobile FIXED - không di chuyển khi cuộn -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-[#13171f] border-b border-line flex items-center gap-2 px-3 h-[52px]" style="backdrop-filter:blur(8px);background:rgba(19,23,31,.95);">
     <button onclick="toggleSidebar()" class="text-white text-2xl px-1 leading-none" aria-label="Menu">☰</button>
     <a href="/" class="flex items-center gap-1.5 ml-1">
-      <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="h-9 w-auto" onerror="this.style.display='none'"
+      <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="h-8 w-auto" onerror="this.style.display='none'"
         ><span class="hidden text-white font-black text-base"><%= brand.short || 'XOSO66' %><span class="text-pri">TV</span></span>
     </a>
     <div class="flex-1"></div>
-    <a href="/dang-nhap" class="px-3 py-1.5 rounded-md text-[12px] font-bold border-2 border-pri text-pri-light hover:bg-pri/10">Đăng Nhập</a>
-    <a href="/dang-ky" class="px-3 py-1.5 rounded-md text-[12px] font-bold bg-gradient-to-br from-pri to-live text-white shadow">Đăng Ký</a>
+    <a href="/dang-nhap" class="px-2.5 py-1 rounded text-[11px] font-bold border-2 border-pri text-pri-light">Đăng Nhập</a>
+    <a href="/dang-ky" class="px-2.5 py-1 rounded text-[11px] font-bold bg-gradient-to-br from-pri to-live text-white shadow">Đăng Ký</a>
   </header>
 
-  <!-- Body container có padding bottom cho bottom nav -->
-  <div class="px-3 pt-3 pb-24">
+  <!-- Body container - padding-top 52px cho header fixed, padding-bottom 80px cho bottom nav -->
+  <div class="px-3 pb-24" style="padding-top:60px;">
 
-    <!-- BANNER carousel -->
+    <!-- BANNER carousel - aspect rộng để full ảnh, contain -->
     <% if (banners && banners.length) { %>
-    <div class="relative rounded-xl overflow-hidden mb-3 aspect-[5/2] bg-bg-card" id="mhBanner">
+    <div class="relative rounded-xl overflow-hidden mb-3 bg-bg-card" id="mhBanner" style="aspect-ratio:1400/240;">
       <% banners.forEach(function(b, i){ %>
-        <% var _bgStyle = 'background:'+b.bg+';' + (b.image ? 'background-image:url('+b.image+');background-size:cover;background-position:center;background-repeat:no-repeat;' : ''); %>
+        <% var _bgStyle = b.image ? ('background-image:url('+b.image+');background-size:cover;background-position:center;background-repeat:no-repeat;background-color:'+b.bg+';') : ('background:'+b.bg+';'); %>
         <div class="mh-slide absolute inset-0 flex items-center px-4 text-white" style="<%= _bgStyle %>opacity:<%= i===0?1:0 %>;transition:opacity .8s;pointer-events:<%= i===0?'auto':'none' %>">
           <% if (b.image) { %>
             <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0" aria-label="<%= b.title %>"></a>
@@ -91,58 +91,58 @@ _live.slice(0, 4).forEach(function(m){
     </div>
     <% } %>
 
-    <!-- LIVE PREVIEW BLOCK (giant button) -->
-    <a href="<%= _featuredLink %>" class="block rounded-xl bg-black border border-line overflow-hidden mb-3 relative" style="aspect-ratio:16/10;">
+    <!-- LIVE PREVIEW BLOCK - nhỏ hơn -->
+    <a href="<%= _featuredLink %>" class="block rounded-xl bg-black border border-line overflow-hidden mb-3 relative" style="aspect-ratio:16/7;">
       <% if (_featured && _featured.poster) { %>
         <img src="<%= _featured.poster %>" class="absolute inset-0 w-full h-full object-cover opacity-40" alt="" onerror="this.style.display='none'">
       <% } %>
       <div class="absolute inset-0 grid place-items-center">
-        <div class="bg-black/60 border-2 border-pri/60 rounded-lg px-5 py-2.5 flex items-center gap-2 text-white backdrop-blur shadow-lg hover:scale-105 transition-transform">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-pri"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span class="font-bold text-[13px]">Vào Phòng Trực Tiếp</span>
+        <div class="bg-black/60 border-2 border-pri/60 rounded-lg px-4 py-2 flex items-center gap-2 text-white backdrop-blur shadow-lg">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-pri"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span class="font-bold text-[12px]">Vào Phòng Trực Tiếp</span>
         </div>
       </div>
       <% if (_featured && _featured.status === 'live') { %>
-        <span class="absolute top-2 left-2 z-[2] bg-live text-white px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+        <span class="absolute top-1.5 left-1.5 z-[2] bg-live text-white px-1.5 py-0.5 rounded font-bold text-[9px] flex items-center gap-1"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
       <% } %>
     </a>
 
-    <!-- CATEGORIES GRID 4 cột -->
-    <div class="grid grid-cols-4 gap-2 mb-3">
+    <!-- CATEGORIES GRID 5 cột nhỏ gọn -->
+    <div class="grid grid-cols-5 gap-1.5 mb-3">
       <a href="/" class="mh-cat active" data-cat="all">
         <span class="mh-cat-ico bg-pri text-white">📊</span>
         <span class="mh-cat-name">Tất cả</span>
-        <span class="mh-cat-cnt"><%= _cnt.all %></span>
+        <% if (_cnt.all > 0) { %><span class="mh-cat-cnt"><%= _cnt.all %></span><% } %>
       </a>
       <a href="/lich-phat-song" class="mh-cat">
         <span class="mh-cat-ico bg-orange-500/20 text-orange-400">🔥</span>
         <span class="mh-cat-name">Hot</span>
-        <span class="mh-cat-cnt"><%= _cnt.hot %></span>
+        <% if (_cnt.hot > 0) { %><span class="mh-cat-cnt"><%= _cnt.hot %></span><% } %>
       </a>
       <a href="/the-thao/bong-da" class="mh-cat">
         <span class="mh-cat-ico bg-emerald-500/20 text-emerald-400">⚽</span>
         <span class="mh-cat-name">Bóng đá</span>
-        <span class="mh-cat-cnt"><%= _cnt.bongda %></span>
+        <% if (_cnt.bongda > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongda %></span><% } %>
       </a>
       <a href="/the-thao/bong-ro" class="mh-cat">
         <span class="mh-cat-ico bg-orange-500/20 text-orange-400">🏀</span>
         <span class="mh-cat-name">Bóng rổ</span>
-        <span class="mh-cat-cnt"><%= _cnt.bongro %></span>
+        <% if (_cnt.bongro > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongro %></span><% } %>
       </a>
       <a href="/the-thao/tennis" class="mh-cat">
         <span class="mh-cat-ico bg-yellow-500/20 text-yellow-400">🎾</span>
         <span class="mh-cat-name">Tennis</span>
-        <span class="mh-cat-cnt"><%= _cnt.tennis %></span>
+        <% if (_cnt.tennis > 0) { %><span class="mh-cat-cnt"><%= _cnt.tennis %></span><% } %>
       </a>
       <a href="/the-thao/bong-chuyen" class="mh-cat">
         <span class="mh-cat-ico bg-blue-500/20 text-blue-400">🏐</span>
-        <span class="mh-cat-name">Bóng ch...</span>
-        <span class="mh-cat-cnt"><%= _cnt.bongchuyen %></span>
+        <span class="mh-cat-name">Chuyền</span>
+        <% if (_cnt.bongchuyen > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongchuyen %></span><% } %>
       </a>
       <a href="/the-thao/bong-ban" class="mh-cat">
         <span class="mh-cat-ico bg-red-500/20 text-red-400">🏓</span>
         <span class="mh-cat-name">Bóng bàn</span>
-        <span class="mh-cat-cnt"><%= _cnt.bongban %></span>
+        <% if (_cnt.bongban > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongban %></span><% } %>
       </a>
       <a href="/esports" class="mh-cat">
         <span class="mh-cat-ico bg-violet-500/20 text-violet-400">🎮</span>
@@ -258,33 +258,38 @@ _live.slice(0, 4).forEach(function(m){
 </div>
 
 <style>
-/* Mobile home styles */
+/* Mobile home - chip nhỏ gọn */
 .mh-cat {
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  background:#1a1f29; border:1px solid #2a3344; border-radius:10px;
-  padding:8px 4px; position:relative; transition:all .2s;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  background:#1a1f29; border:1px solid #2a3344; border-radius:8px;
+  padding:5px 2px; position:relative; transition:all .2s;
+  min-height:54px;
 }
-.mh-cat:active { transform:scale(.96); }
+.mh-cat:active { transform:scale(.94); }
 .mh-cat.active { background:linear-gradient(135deg,#ff7a18,#ea580c); border-color:#ff7a18; }
 .mh-cat.active .mh-cat-name,
 .mh-cat.active .mh-cat-cnt { color:#fff; }
 .mh-cat.active .mh-cat-ico { background:rgba(255,255,255,.15) !important; color:#fff !important; }
 
 .mh-cat-ico {
-  width:28px; height:28px; border-radius:50%;
-  display:grid; place-items:center; font-size:13px;
+  width:22px; height:22px; border-radius:50%;
+  display:grid; place-items:center; font-size:11px;
 }
 .mh-cat-name {
-  font-size:11px; font-weight:700; color:#cbd5e1;
+  font-size:9.5px; font-weight:600; color:#cbd5e1; line-height:1.1; margin-top:1px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
 }
 .mh-cat-cnt {
-  position:absolute; top:4px; right:6px;
+  position:absolute; top:2px; right:3px;
   background:#0f1218; color:#cbd5e1;
-  font-size:9px; font-weight:800; padding:1px 5px;
-  border-radius:8px; min-width:14px; text-align:center;
+  font-size:8px; font-weight:800; padding:0 4px;
+  border-radius:6px; min-width:12px; text-align:center;
+  line-height:1.4;
 }
 .mh-cat.active .mh-cat-cnt { background:#fff; color:#ea580c; }
+/* Ẩn badge khi 0 cho gọn */
+.mh-cat-cnt:empty,
+.mh-cat-cnt[data-zero="1"] { display:none; }
 
 .mh-card { transition:transform .15s; }
 .mh-card:active { transform:scale(.97); }
