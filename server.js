@@ -131,6 +131,9 @@ app.get('/', async function (req, res, next) {
 });
 
 app.get('/live/:id', async function (req, res, next) {
+  // KHÔNG cho Cloudflare cache route này (data thay đổi liên tục)
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.set('CDN-Cache-Control', 'no-store');
   try {
     const m  = req.params.id.match(/(\d+)$/);
     const id = m ? m[1] : req.params.id;
