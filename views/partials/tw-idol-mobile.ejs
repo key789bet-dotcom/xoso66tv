@@ -36,44 +36,86 @@ var quickGifts = [
     <div class="absolute inset-0 pointer-events-none z-[3]" style="background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.4) 100%)"></div>
   </div>
 
+  <!-- Nút bật tiếng mobile (chỉ hiện khi đã có video play muted) -->
+  <button id="mlrUnmuteBtn" class="hidden absolute top-[60px] right-2 z-[10] bg-pri text-white w-10 h-10 rounded-full grid place-items-center shadow-2xl animate-pulse" type="button" aria-label="Bật tiếng">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+  </button>
+
   <!-- FLV.js + stream loader for mobile -->
   <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
   <script>
   (function initMobileStream(){
     var STREAM_KEY = '<%= idolId %>';
     var STREAM_URL = 'https://xoso66tv.com/live/' + STREAM_KEY + '.flv';
-    var player, isLive = false;
+    var player, isLive = false, video, emojiBox, unmuteBtn;
+
+    function showVideo(){
+      if (isLive) return;
+      console.log('[MLR] ✅ Mobile video ready');
+      isLive = true;
+      if (video) video.classList.remove('hidden');
+      if (emojiBox) emojiBox.style.display = 'none';
+      if (unmuteBtn && video && video.muted) unmuteBtn.classList.remove('hidden');
+    }
+    function hideVideo(){
+      isLive = false;
+      if (video) video.classList.add('hidden');
+      if (emojiBox) emojiBox.style.display = '';
+      if (unmuteBtn) unmuteBtn.classList.add('hidden');
+    }
+
     function attach(){
       if (!window.flvjs || !flvjs.isSupported()) return;
-      var v = document.getElementById('mlrLiveVideo');
-      if (!v) return;
+      video = document.getElementById('mlrLiveVideo');
+      emojiBox = document.getElementById('mlrEmojiBox');
+      if (!video) return;
       if (player) try{ player.destroy(); }catch(e){}
+
       player = flvjs.createPlayer({ type:'flv', url:STREAM_URL, isLive:true, hasAudio:true, hasVideo:true },
         { enableWorker:false, enableStashBuffer:false, stashInitialSize:128 });
-      player.attachMediaElement(v);
+      player.attachMediaElement(video);
       player.load();
-      var p = player.play(); if(p&&p.catch) p.catch(function(){});
-      player.on(flvjs.Events.MEDIA_INFO, function(){
-        var box = document.getElementById('mlrEmojiBox');
-        if (box) box.style.display='none';
-        v.classList.remove('hidden');
-        isLive = true;
+
+      // Listen native video events (đáng tin cậy hơn MEDIA_INFO)
+      video.addEventListener('loadedmetadata', showVideo, { once:true });
+      video.addEventListener('playing', showVideo, { once:true });
+      video.addEventListener('canplay', function(){
+        var p = video.play(); if(p&&p.catch) p.catch(function(){});
       });
-      player.on(flvjs.Events.ERROR, function(){
-        if (player) try{ player.destroy(); player=null; }catch(e){}
-        v.classList.add('hidden');
-        var box = document.getElementById('mlrEmojiBox');
-        if (box) box.style.display='';
-        isLive = false;
+
+      var p = player.play();
+      if (p && p.catch) p.catch(function(){
+        // Autoplay blocked - vẫn show video để user tap
+        showVideo();
+      });
+
+      player.on(flvjs.Events.MEDIA_INFO, showVideo);
+      player.on(flvjs.Events.ERROR, function(type){
+        if (type === 'NetworkError') {
+          if (player) try{ player.destroy(); player=null; }catch(e){}
+          hideVideo();
+        }
       });
     }
+
     function check(){
       fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
-        .then(function(r){ if (r.ok && !isLive) setTimeout(attach, 300); })
+        .then(function(r){ if (r.ok && !isLive) setTimeout(attach, 300); else if (!r.ok && isLive) { hideVideo(); if (player) try{ player.destroy(); player=null; }catch(e){} } })
         .catch(function(){});
     }
+
+    function bindUnmute(){
+      unmuteBtn = document.getElementById('mlrUnmuteBtn');
+      if (unmuteBtn) unmuteBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if (video) { video.muted = false; video.volume = 1; }
+        unmuteBtn.classList.add('hidden');
+      });
+    }
+
     function start(){
       if (!window.flvjs) { setTimeout(start, 300); return; }
+      bindUnmute();
       check();
       setInterval(check, 10000);
     }
