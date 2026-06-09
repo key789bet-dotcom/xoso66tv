@@ -1,0 +1,338 @@
+<%
+// Mobile home layout - OkwinTV style
+// Props: brand, banners, live, upcoming, dbIdols
+var _live = live || [];
+var _up = upcoming || [];
+var _featured = _live[0] || _up[0] || null;
+var _featuredLink = _featured ? ('/live/' + (_featured.slug || _featured.id)) : '#';
+var _idolList = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? dbIdols.filter(function(i){ return i.status==='active'; }) : [];
+
+// Count by category
+var _cnt = { all: _live.length + _idolList.length, hot: 0, bongda: 0, bongro: 0, tennis: 0, bongchuyen: 0, bongban: 0, esport: 0, casino: 5, idol: _idolList.length };
+_live.forEach(function(x){
+  if (x.sport === 'Soccer')     _cnt.bongda++;
+  if (x.sport === 'Basketball') _cnt.bongro++;
+  if (x.sport === 'Tennis')     _cnt.tennis++;
+  if (x.sport === 'Volleyball') _cnt.bongchuyen++;
+  if (x.sport === 'TableTennis')_cnt.bongban++;
+  if (x.sport === 'Esports')    _cnt.esport++;
+  _cnt.hot++;
+});
+
+// Live cards data - mix live + idol (max 8)
+var _cards = [];
+_idolList.slice(0, 4).forEach(function(i){
+  _cards.push({
+    type:'idol',
+    href:'/idol/' + i.id,
+    name: i.name,
+    img: i.avatar,
+    emoji: i.emoji || '👑',
+    color: i.color || 320,
+    time: '21:00',
+    badge: i.lock > 0 ? ('VIP ' + i.lock) : 'FREE',
+    isLive: !!i.liveNow,
+    viewers: 10 + Math.floor(Math.random()*200)
+  });
+});
+_live.slice(0, 4).forEach(function(m){
+  _cards.push({
+    type:'sports',
+    href:'/live/' + (m.slug || m.id),
+    home: m.home, away: m.away,
+    league: m.league || '',
+    time: m.time || 'LIVE',
+    isLive: true,
+    viewers: m.viewers || Math.floor(Math.random()*500)
+  });
+});
+%>
+
+<!-- ===== MOBILE HOME (md:hidden = chỉ hiện mobile) ===== -->
+<div class="md:hidden" id="mobileHome">
+
+  <!-- HEADER mobile (logo + login/register) -->
+  <header class="sticky top-0 z-30 bg-[#13171f] border-b border-line flex items-center gap-2 px-3 py-2.5">
+    <button onclick="toggleSidebar()" class="text-white text-2xl px-1 leading-none" aria-label="Menu">☰</button>
+    <a href="/" class="flex items-center gap-1.5 ml-1">
+      <img src="/static/img/logoxoso66tv.webp" alt="<%= brand.name %>" class="h-9 w-auto" onerror="this.style.display='none'"
+        ><span class="hidden text-white font-black text-base"><%= brand.short || 'XOSO66' %><span class="text-pri">TV</span></span>
+    </a>
+    <div class="flex-1"></div>
+    <a href="/dang-nhap" class="px-3 py-1.5 rounded-md text-[12px] font-bold border-2 border-pri text-pri-light hover:bg-pri/10">Đăng Nhập</a>
+    <a href="/dang-ky" class="px-3 py-1.5 rounded-md text-[12px] font-bold bg-gradient-to-br from-pri to-live text-white shadow">Đăng Ký</a>
+  </header>
+
+  <!-- Body container có padding bottom cho bottom nav -->
+  <div class="px-3 pt-3 pb-24">
+
+    <!-- BANNER carousel -->
+    <% if (banners && banners.length) { %>
+    <div class="relative rounded-xl overflow-hidden mb-3 aspect-[5/2] bg-bg-card" id="mhBanner">
+      <% banners.forEach(function(b, i){ %>
+        <% var _bgStyle = 'background:'+b.bg+';' + (b.image ? 'background-image:url('+b.image+');background-size:cover;background-position:center;background-repeat:no-repeat;' : ''); %>
+        <div class="mh-slide absolute inset-0 flex items-center px-4 text-white" style="<%= _bgStyle %>opacity:<%= i===0?1:0 %>;transition:opacity .8s;pointer-events:<%= i===0?'auto':'none' %>">
+          <% if (b.image) { %>
+            <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0" aria-label="<%= b.title %>"></a>
+          <% } else { %>
+            <div class="relative z-[1] flex-1 min-w-0">
+              <div class="text-base font-extrabold mb-1 truncate"><%= b.title %></div>
+              <div class="text-[10px] opacity-90 mb-1.5 line-clamp-2"><%= b.desc %></div>
+              <a href="<%= b.url %>" target="_blank" rel="noopener" class="inline-flex bg-white text-red-700 px-3 py-1 rounded font-bold text-[11px]"><%= b.cta %> →</a>
+            </div>
+          <% } %>
+        </div>
+      <% }); %>
+      <% if (banners.length > 1) { %>
+      <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1 z-[2]" id="mhDots">
+        <% banners.forEach(function(b, i){ %><span class="w-1.5 h-1.5 rounded-full bg-white/40 transition-all <%= i===0?'!w-4 !bg-white':'' %>"></span><% }); %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- LIVE PREVIEW BLOCK (giant button) -->
+    <a href="<%= _featuredLink %>" class="block rounded-xl bg-black border border-line overflow-hidden mb-3 relative" style="aspect-ratio:16/10;">
+      <% if (_featured && _featured.poster) { %>
+        <img src="<%= _featured.poster %>" class="absolute inset-0 w-full h-full object-cover opacity-40" alt="" onerror="this.style.display='none'">
+      <% } %>
+      <div class="absolute inset-0 grid place-items-center">
+        <div class="bg-black/60 border-2 border-pri/60 rounded-lg px-5 py-2.5 flex items-center gap-2 text-white backdrop-blur shadow-lg hover:scale-105 transition-transform">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-pri"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span class="font-bold text-[13px]">Vào Phòng Trực Tiếp</span>
+        </div>
+      </div>
+      <% if (_featured && _featured.status === 'live') { %>
+        <span class="absolute top-2 left-2 z-[2] bg-live text-white px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+      <% } %>
+    </a>
+
+    <!-- CATEGORIES GRID 4 cột -->
+    <div class="grid grid-cols-4 gap-2 mb-3">
+      <a href="/" class="mh-cat active" data-cat="all">
+        <span class="mh-cat-ico bg-pri text-white">📊</span>
+        <span class="mh-cat-name">Tất cả</span>
+        <span class="mh-cat-cnt"><%= _cnt.all %></span>
+      </a>
+      <a href="/lich-phat-song" class="mh-cat">
+        <span class="mh-cat-ico bg-orange-500/20 text-orange-400">🔥</span>
+        <span class="mh-cat-name">Hot</span>
+        <span class="mh-cat-cnt"><%= _cnt.hot %></span>
+      </a>
+      <a href="/the-thao/bong-da" class="mh-cat">
+        <span class="mh-cat-ico bg-emerald-500/20 text-emerald-400">⚽</span>
+        <span class="mh-cat-name">Bóng đá</span>
+        <span class="mh-cat-cnt"><%= _cnt.bongda %></span>
+      </a>
+      <a href="/the-thao/bong-ro" class="mh-cat">
+        <span class="mh-cat-ico bg-orange-500/20 text-orange-400">🏀</span>
+        <span class="mh-cat-name">Bóng rổ</span>
+        <span class="mh-cat-cnt"><%= _cnt.bongro %></span>
+      </a>
+      <a href="/the-thao/tennis" class="mh-cat">
+        <span class="mh-cat-ico bg-yellow-500/20 text-yellow-400">🎾</span>
+        <span class="mh-cat-name">Tennis</span>
+        <span class="mh-cat-cnt"><%= _cnt.tennis %></span>
+      </a>
+      <a href="/the-thao/bong-chuyen" class="mh-cat">
+        <span class="mh-cat-ico bg-blue-500/20 text-blue-400">🏐</span>
+        <span class="mh-cat-name">Bóng ch...</span>
+        <span class="mh-cat-cnt"><%= _cnt.bongchuyen %></span>
+      </a>
+      <a href="/the-thao/bong-ban" class="mh-cat">
+        <span class="mh-cat-ico bg-red-500/20 text-red-400">🏓</span>
+        <span class="mh-cat-name">Bóng bàn</span>
+        <span class="mh-cat-cnt"><%= _cnt.bongban %></span>
+      </a>
+      <a href="/esports" class="mh-cat">
+        <span class="mh-cat-ico bg-violet-500/20 text-violet-400">🎮</span>
+        <span class="mh-cat-name">Esport</span>
+        <span class="mh-cat-cnt"><%= _cnt.esport %></span>
+      </a>
+      <a href="/casino" class="mh-cat">
+        <span class="mh-cat-ico bg-emerald-500/20 text-emerald-400">🎰</span>
+        <span class="mh-cat-name">Casino</span>
+        <span class="mh-cat-cnt"><%= _cnt.casino %></span>
+      </a>
+      <a href="/idol-live" class="mh-cat">
+        <span class="mh-cat-ico bg-pink-500/20 text-pink-400">👑</span>
+        <span class="mh-cat-name">Idol Live</span>
+        <span class="mh-cat-cnt"><%= _cnt.idol %></span>
+      </a>
+    </div>
+
+    <!-- STREAM CARDS 2 cột -->
+    <% if (_cards.length === 0) { %>
+      <div class="bg-bg-card border border-line rounded-xl p-8 text-center text-muted">
+        <div class="text-3xl mb-2 opacity-50">📺</div>
+        <div class="text-sm">Chưa có phòng live nào</div>
+        <a href="/lich-phat-song" class="inline-block mt-3 text-pri-light text-xs font-bold">→ Xem lịch phát sóng</a>
+      </div>
+    <% } else { %>
+    <div class="grid grid-cols-2 gap-2.5 mb-3">
+      <% _cards.forEach(function(c){ %>
+        <a href="<%= c.href %>" class="mh-card rounded-xl overflow-hidden bg-bg-card border border-line relative block" style="aspect-ratio:1/1;">
+          <% if (c.type === 'idol') { %>
+            <% if (c.img) { %>
+              <img src="<%= c.img %>" alt="<%= c.name %>" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+            <% } %>
+            <div class="absolute inset-0" style="background:linear-gradient(135deg, hsl(<%= c.color %>,70%,40%), hsl(<%= (c.color+60)%360 %>,70%,30%));opacity:<%= c.img ? '0' : '1' %>;"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
+            <% if (c.isLive) { %>
+              <span class="absolute top-2 right-2 z-[2] bg-live text-white px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+            <% } %>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1] text-white text-center">
+              <div class="text-[11px] font-bold opacity-90"><%= c.time %></div>
+              <div class="bg-red-600 text-white text-[9px] font-bold rounded mt-1 px-1.5 py-0.5"><%= new Date().toLocaleDateString('vi-VN') %></div>
+            </div>
+            <div class="absolute bottom-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-between">
+              <div class="w-6 h-6 rounded-full bg-pri/80 border border-white/40 grid place-items-center text-xs"><%= c.emoji %></div>
+              <span class="text-white/90 text-[10px] font-bold"><%= c.viewers %></span>
+            </div>
+          <% } else { %>
+            <!-- SPORTS CARD: 2 teams + time -->
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-950"></div>
+            <div class="absolute inset-0 opacity-30" style="background:radial-gradient(ellipse at center, #fff 0%, transparent 60%);"></div>
+            <% if (c.league) { %>
+              <div class="absolute top-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-between">
+                <span class="bg-emerald-700/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded truncate max-w-[70%]"><%= c.league %></span>
+                <% if (c.isLive) { %><span class="bg-live text-white text-[9px] font-bold px-1 py-0.5 rounded">LIVE</span><% } %>
+              </div>
+            <% } %>
+            <div class="absolute inset-0 flex items-center justify-around px-2 z-[1]">
+              <div class="text-center">
+                <div class="w-10 h-10 rounded-full bg-white/90 grid place-items-center text-emerald-700 font-black text-sm mx-auto mb-1"><%= (c.home||'?').slice(0,2).toUpperCase() %></div>
+                <div class="text-white text-[8px] font-bold leading-tight w-14 truncate"><%= c.home %></div>
+              </div>
+              <div class="text-center">
+                <div class="text-white text-[11px] font-bold"><%= c.time %></div>
+                <div class="bg-red-600 text-white text-[8px] font-bold rounded mt-1 px-1.5 py-0.5"><%= new Date().toLocaleDateString('vi-VN') %></div>
+              </div>
+              <div class="text-center">
+                <div class="w-10 h-10 rounded-full bg-white/90 grid place-items-center text-emerald-700 font-black text-sm mx-auto mb-1"><%= (c.away||'?').slice(0,2).toUpperCase() %></div>
+                <div class="text-white text-[8px] font-bold leading-tight w-14 truncate"><%= c.away %></div>
+              </div>
+            </div>
+            <div class="absolute bottom-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-end">
+              <span class="text-white/90 text-[10px] font-bold"><%= c.viewers %></span>
+            </div>
+          <% } %>
+        </a>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <!-- Link tới full list -->
+    <a href="/lich-phat-song" class="block bg-bg-card border border-line rounded-lg py-2 text-center text-pri-light text-xs font-bold mb-3 hover:bg-bg-soft transition">Xem tất cả phòng live →</a>
+
+  </div>
+
+  <!-- BOTTOM NAVIGATION 5 tabs với center FAB -->
+  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-[#0f1218] border-t border-line h-16 px-2" id="mhBottomNav">
+    <div class="grid grid-cols-5 h-full items-center relative">
+      <a href="/lich-phat-song" class="mh-tab" data-tab="lich">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Lịch Trình</span>
+      </a>
+      <a href="/su-kien" class="mh-tab" data-tab="km">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <span>Khuyến Mãi</span>
+      </a>
+      <!-- CENTER FAB - về trang chủ -->
+      <a href="/" class="mh-tab mh-fab-wrap" data-tab="home">
+        <span class="mh-fab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg>
+        </span>
+        <span class="mt-7 text-pri-light">Trang Chủ</span>
+      </a>
+      <a href="/qua-tang" class="mh-tab" data-tab="qua">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="4"/><line x1="12" y1="8" x2="12" y2="21"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 12 8 12 8s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+        <span>Quà Tặng</span>
+      </a>
+      <a href="/profile" class="mh-tab" data-tab="profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Cá Nhân</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<style>
+/* Mobile home styles */
+.mh-cat {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  background:#1a1f29; border:1px solid #2a3344; border-radius:10px;
+  padding:8px 4px; position:relative; transition:all .2s;
+}
+.mh-cat:active { transform:scale(.96); }
+.mh-cat.active { background:linear-gradient(135deg,#ff7a18,#ea580c); border-color:#ff7a18; }
+.mh-cat.active .mh-cat-name,
+.mh-cat.active .mh-cat-cnt { color:#fff; }
+.mh-cat.active .mh-cat-ico { background:rgba(255,255,255,.15) !important; color:#fff !important; }
+
+.mh-cat-ico {
+  width:28px; height:28px; border-radius:50%;
+  display:grid; place-items:center; font-size:13px;
+}
+.mh-cat-name {
+  font-size:11px; font-weight:700; color:#cbd5e1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.mh-cat-cnt {
+  position:absolute; top:4px; right:6px;
+  background:#0f1218; color:#cbd5e1;
+  font-size:9px; font-weight:800; padding:1px 5px;
+  border-radius:8px; min-width:14px; text-align:center;
+}
+.mh-cat.active .mh-cat-cnt { background:#fff; color:#ea580c; }
+
+.mh-card { transition:transform .15s; }
+.mh-card:active { transform:scale(.97); }
+
+/* Bottom nav tabs */
+.mh-tab {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; color:#94a3b8; font-size:10px; font-weight:600;
+  height:100%; text-decoration:none; transition:color .15s;
+  position:relative;
+}
+.mh-tab:active { color:#fff; }
+.mh-tab svg { width:18px; height:18px; }
+
+/* Center FAB */
+.mh-fab-wrap {
+  position:relative;
+}
+.mh-fab {
+  position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+  width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg,#ff7a18,#ea580c);
+  display:grid; place-items:center; color:#fff;
+  box-shadow:0 4px 16px rgba(255,122,24,.5), 0 0 0 4px #0f1218;
+  z-index:1;
+}
+.mh-fab-wrap span:last-child { color:#ff7a18; font-weight:700; }
+</style>
+
+<script>
+(function initMobileHome(){
+  // Banner carousel auto-play
+  var slides = document.querySelectorAll('#mhBanner .mh-slide');
+  var dots = document.querySelectorAll('#mhDots span');
+  if (slides.length > 1) {
+    var idx = 0;
+    function show(i){
+      slides.forEach(function(s,k){
+        s.style.opacity = k===i ? 1 : 0;
+        s.style.pointerEvents = k===i ? 'auto' : 'none';
+      });
+      dots.forEach(function(d,k){
+        d.className = 'w-1.5 h-1.5 rounded-full bg-white/40 transition-all' + (k===i ? ' !w-4 !bg-white' : '');
+      });
+      idx = i;
+    }
+    setInterval(function(){ show((idx+1) % slides.length); }, 5000);
+    dots.forEach(function(d,k){ d.addEventListener('click', function(){ show(k); }); });
+  }
+})();
+</script>

@@ -42,6 +42,12 @@ var roomsIdol = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? 
 %>
 <%- include('partials/tw-layout-start') %>
 
+<!-- ===== MOBILE HOME (OkwinTV style) ===== -->
+<%- include('partials/tw-mobile-home') %>
+
+<!-- ===== DESKTOP HOME (giữ nguyên, ẩn trên mobile) ===== -->
+<div class="hidden md:block">
+
 <!-- H1 SEO hien thi (visible + keyword dense) -->
 <header class="hidden md:block hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-5 md:px-6 py-4 md:py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
   <h1 class="text-xl md:text-2xl font-black text-white mb-2 leading-tight flex items-center gap-2.5">
@@ -340,6 +346,8 @@ function tryEnterIdolRow(el, ev){
   });
 }
 </script>
+
+</div><!-- /hidden md:block (desktop wrapper end) -->
 
 <%- include('partials/tw-unlock-dialog') %>
 <%- include('partials/tw-footer') %>
