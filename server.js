@@ -134,14 +134,40 @@ app.get('/live/:id', async function (req, res, next) {
   try {
     const m  = req.params.id.match(/(\d+)$/);
     const id = m ? m[1] : req.params.id;
-    const match = await api.getEvent(id);
+    let match = await api.getEvent(id);
+    // Fallback 1: tìm trong tất cả fixtures 5 ngày gần (thay vì 404 ngay)
+    if (!match) {
+      const range = await api.getEventsRange(null, -2, 2);
+      match = range.find(function(x){ return String(x.id) === String(id); });
+    }
+    // Fallback 2: reconstruct match info từ slug nếu vẫn không tìm thấy
+    if (!match) {
+      const slugPart = req.params.id.replace(/-\d+$/, ''); // bỏ id ở cuối
+      const parts = slugPart.split('-vs-');
+      if (parts.length === 2) {
+        const cap = function(s){ return s.split('-').map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '); };
+        match = {
+          id: id,
+          sport: 'Soccer',
+          league: 'Trận đấu',
+          home: cap(parts[0]),
+          away: cap(parts[1]),
+          homeBadge: '', awayBadge: '',
+          score: null, date: '', time: '', matchTs: null,
+          venue: '', status: 'upcoming', statusText: 'Sắp diễn ra',
+          poster: '', slug: req.params.id
+        };
+      }
+    }
     if (!match) return res.status(404).render('tw-404');
-    const all = await api.getLiveStreams();
-    const others = all.filter(function (x) { return x.id !== match.id; }).slice(0, 6);
-    // Cho vao phong, nhung danh dau hasObs (de view hien hoac an player thiet)
+    const all = await api.getLiveStreams().catch(function(){ return []; });
+    const others = (all || []).filter(function (x) { return x.id !== match.id; }).slice(0, 6);
     const hasObs = hasAnyActiveStream('blv');
     res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs });
-  } catch (e) { next(e); }
+  } catch (e) {
+    console.error('[live/:id]', e.message);
+    next(e);
+  }
 });
 
 app.get('/lich-phat-song', async function (req, res, next) {
