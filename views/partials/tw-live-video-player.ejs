@@ -3,8 +3,11 @@
 // Cach goi: include('partials/tw-live-video-player', { streamKey: idolId })
 var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== 'undefined' ? idolId : 'unknown');
 %>
-<!-- VIDEO ELEMENT (ẩn ban đầu, hiện khi có stream live) -->
-<video id="liveVideo" class="hidden absolute inset-0 w-full h-full object-contain bg-black z-[1]" playsinline muted controls></video>
+<!-- VIDEO ELEMENT - autoplay muted để vượt qua chính sách autoplay browser -->
+<video id="liveVideo" class="hidden absolute inset-0 w-full h-full object-contain bg-black z-[5]" playsinline autoplay muted controls></video>
+
+<!-- Nút bật tiếng (cần user click vì muted autoplay) -->
+<button id="liveUnmute" class="hidden absolute bottom-20 left-4 z-[6] bg-pri text-white px-4 py-2 rounded-lg shadow-2xl font-bold text-sm hover:scale-110 transition animate-pulse" type="button">🔊 BẬT TIẾNG</button>
 
 <!-- Status overlay "Idol chưa lên sóng" -->
 <div id="liveOffline" class="hidden absolute inset-0 z-[3] grid place-items-center bg-black/60 backdrop-blur-sm">
@@ -32,33 +35,88 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   function showEl(id){ var e=document.getElementById(id); if(e)e.classList.remove('hidden'); }
   function hideEl(id){ var e=document.getElementById(id); if(e)e.classList.add('hidden'); }
 
+  // Ẩn TẤT CẢ placeholder con (butterfly/avatar/gradient) trong #livePlayer
+  function hidePlaceholder(){
+    var container = document.getElementById('livePlayer');
+    if (!container) return;
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading'];
+    var kids = container.children;
+    for (var i=0; i<kids.length; i++){
+      var el = kids[i];
+      if (keepIds.indexOf(el.id) === -1) {
+        el.style.transition = 'opacity .3s';
+        el.style.opacity = '0';
+        setTimeout((function(e){ return function(){ e.style.display='none'; }; })(el), 350);
+      }
+    }
+  }
+  function showPlaceholder(){
+    var container = document.getElementById('livePlayer');
+    if (!container) return;
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading'];
+    var kids = container.children;
+    for (var i=0; i<kids.length; i++){
+      var el = kids[i];
+      if (keepIds.indexOf(el.id) === -1) {
+        el.style.display = '';
+        el.style.opacity = '1';
+      }
+    }
+  }
+
+  function onVideoReady(){
+    console.log('[LIVE] ✅ Video ready, dims=', video.videoWidth+'x'+video.videoHeight);
+    showEl('liveVideo');
+    hideEl('liveOffline');
+    hideEl('liveLoading');
+    hidePlaceholder();
+    isPlaying = true;
+    if (video.muted) showEl('liveUnmute');
+  }
+
   function attachStream(){
     if (!window.flvjs || !flvjs.isSupported()) { console.log('[LIVE] FLV.js not supported'); return; }
     video = document.getElementById('liveVideo');
     if (!video) return;
     if (flvPlayer) try{ flvPlayer.destroy(); }catch(e){}
+
     flvPlayer = flvjs.createPlayer({
       type: 'flv', url: STREAM_URL, isLive: true, hasAudio: true, hasVideo: true
     }, {
-      enableWorker: false, enableStashBuffer: false, stashInitialSize: 128, autoCleanupSourceBuffer: true
+      enableWorker: false, enableStashBuffer: false, stashInitialSize: 128,
+      autoCleanupSourceBuffer: true, fixAudioTimestampGap: false, lazyLoad: false
     });
     flvPlayer.attachMediaElement(video);
     flvPlayer.load();
+
+    // Native video events - đáng tin cậy hơn flvjs events
+    video.addEventListener('loadedmetadata', onVideoReady, { once: true });
+    video.addEventListener('playing', onVideoReady, { once: true });
+    video.addEventListener('canplay', function(){
+      console.log('[LIVE] canplay');
+      var pr = video.play();
+      if (pr && pr.catch) pr.catch(function(e){ console.log('[LIVE] play() blocked:', e.message); });
+    });
+
     var p = flvPlayer.play();
-    if (p && p.catch) p.catch(function(err){ console.log('[LIVE] Autoplay blocked:', err.message); });
+    if (p && p.catch) p.catch(function(err){
+      console.log('[LIVE] Autoplay blocked:', err.message);
+      // Vẫn hiện video element để user click play manually
+      showEl('liveVideo'); hidePlaceholder(); showEl('liveUnmute');
+    });
 
     flvPlayer.on(flvjs.Events.ERROR, function(type, detail){
-      console.log('[LIVE] Stream error:', type, detail);
-      hideEl('liveVideo'); showEl('liveOffline'); hideEl('liveLoading');
-      isPlaying = false;
+      console.log('[LIVE] FLV error:', type, detail);
+      // Chỉ destroy khi lỗi nghiêm trọng
+      if (type === 'NetworkError') {
+        hideEl('liveVideo'); showEl('liveOffline'); hideEl('liveLoading');
+        showPlaceholder();
+        isPlaying = false;
+      }
     });
     flvPlayer.on(flvjs.Events.MEDIA_INFO, function(info){
-      console.log('[LIVE] Stream connected');
-      hideEl('liveOffline'); hideEl('liveLoading'); showEl('liveVideo');
-      // Ẩn placeholder emoji nếu có
-      var emoji = document.querySelector('#livePlayer .text-\\[200px\\]');
-      if (emoji) emoji.style.display = 'none';
-      isPlaying = true;
+      console.log('[LIVE] MEDIA_INFO:', info && info.mimeType);
+      onVideoReady();
     });
   }
 
@@ -71,6 +129,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
         } else if (!r.ok && isPlaying) {
           if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
           hideEl('liveVideo'); showEl('liveOffline');
+          showPlaceholder();
           isPlaying = false;
         }
       })
@@ -78,13 +137,24 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
         if (isPlaying) {
           if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
           hideEl('liveVideo'); showEl('liveOffline');
+          showPlaceholder();
           isPlaying = false;
         }
       });
   }
 
+  // Nút Bật tiếng - bind click sau khi DOM ready
+  function bindUnmute(){
+    var btn = document.getElementById('liveUnmute');
+    if (btn) btn.addEventListener('click', function(){
+      if (video) { video.muted = false; video.volume = 1; }
+      btn.classList.add('hidden');
+    });
+  }
+
   function start(){
     if (!window.flvjs) { setTimeout(start, 300); return; }
+    bindUnmute();
     checkStream();
     setInterval(checkStream, POLL_INTERVAL);
   }
