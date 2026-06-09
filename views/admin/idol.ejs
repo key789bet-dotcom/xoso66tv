@@ -52,6 +52,17 @@
           </button>
         </div>
 
+        <!-- CATEGORY SELECT (chuyên mục live) -->
+        <div class="mb-2 flex items-center gap-2 bg-bg-soft border border-line rounded px-2 py-1.5">
+          <span class="text-[11px] font-bold text-white shrink-0">🎯 Chuyên mục:</span>
+          <select onchange="adminAction('/admin/api/idol/<%= i.id %>/set-category', { category: this.value }, function(r){ if(r.ok){ showToast(r.message,'success'); } })" class="flex-1 bg-bg-deep border border-line text-white text-[11px] font-bold rounded px-1.5 py-1 outline-none focus:border-pri">
+            <option value="idol"   <%= (i.category||'idol')==='idol'   ? 'selected' : '' %>>👑 Idol Show (mặc định)</option>
+            <option value="bongda" <%= i.category==='bongda' ? 'selected' : '' %>>⚽ BLV Bóng Đá</option>
+            <option value="casino" <%= i.category==='casino' ? 'selected' : '' %>>🎰 Live Sòng Bài</option>
+            <option value="esport" <%= i.category==='esport' ? 'selected' : '' %>>🎮 BLV Esports</option>
+          </select>
+        </div>
+
         <div class="flex flex-wrap gap-1.5">
           <% if (i.status==='pending') { %>
             <button onclick="confirmAction('Duyet idol <%= i.name %>?', function(){ adminAction('/admin/api/idol/<%= i.id %>/approve') })" class="flex-1 px-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold">&check; Duyet</button>

@@ -269,6 +269,20 @@ function actionOn(kind) {
       db.audit(data, (item.canLive ? 'GRANT' : 'REVOKE') + ' live permission ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
       db.save(data);
       res.json({ ok:true, canLive: item.canLive, message: item.name + (item.canLive ? ' ✅ ĐƯỢC PHÉP LIVE' : ' ❌ ĐÃ THU HỒI QUYỀN LIVE') });
+    },
+    setCategory: function (req, res) {
+      const data = db.load();
+      const arr = data[kind];
+      const item = arr.find(function(x){ return x.id === req.params.id });
+      if (!item) return res.json({ ok:false, message:'Khong ton tai' });
+      const validCats = ['idol','bongda','casino','esport'];
+      const cat = String((req.body && req.body.category) || '').toLowerCase();
+      if (!validCats.includes(cat)) return res.json({ ok:false, message:'Category không hợp lệ' });
+      item.category = cat;
+      db.audit(data, 'SET category=' + cat + ' for ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
+      db.save(data);
+      const labels = { idol:'👑 Idol Show', bongda:'⚽ BLV Bóng đá', casino:'🎰 Live Sòng Bài', esport:'🎮 BLV Esports' };
+      res.json({ ok:true, category: cat, message: item.name + ' → ' + (labels[cat] || cat) });
     }
   };
 }
@@ -278,6 +292,7 @@ router.post('/api/blv/:id/approve', blvActions.approve);
 router.post('/api/blv/:id/reject',  blvActions.reject);
 router.post('/api/blv/:id/delete',  blvActions.del);
 router.post('/api/blv/:id/toggle-live', blvActions.toggleLive);
+router.post('/api/blv/:id/set-category', blvActions.setCategory);
 
 // ===== IDOL =====
 router.get('/idol', function (req, res) {
@@ -298,6 +313,7 @@ router.post('/api/idol/:id/approve', idolActions.approve);
 router.post('/api/idol/:id/reject',  idolActions.reject);
 router.post('/api/idol/:id/delete',  idolActions.del);
 router.post('/api/idol/:id/toggle-live', idolActions.toggleLive);
+router.post('/api/idol/:id/set-category', idolActions.setCategory);
 
 // ===== OBS =====
 const RTMP_SERVER = process.env.RTMP_SERVER || 'rtmp://stream.xoso66tv.com/live';

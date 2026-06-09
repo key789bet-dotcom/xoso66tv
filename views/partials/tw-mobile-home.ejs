@@ -35,13 +35,15 @@ function _sportToCat(s){
   return 'khac'; // các môn khác gộp vào "tất cả" thôi
 }
 
-// Live cards data - mix idol + sports + casino, có data-cat để filter
+// Live cards data - chỉ render IDOL cards (idol stream theo category)
+// Category mặc định = 'idol' nếu idol chưa chọn
 var _cards = [];
 
-// IDOL cards
+// IDOL cards - mỗi idol có category để chọn loại live (bongda/casino/esport/idol)
 _idolList.forEach(function(i){
+  var cat = i.category || 'idol'; // mặc định idol nếu chưa set
   _cards.push({
-    cat:'idol',
+    cat: cat,
     type:'idol',
     href:'/idol/' + i.id,
     name: i.name,
@@ -51,11 +53,11 @@ _idolList.forEach(function(i){
     time: '21:00',
     badge: i.lock > 0 ? ('VIP ' + i.lock) : 'FREE',
     isLive: !!i.liveNow,
-    viewers: 10 + Math.floor(Math.random()*200)
+    viewers: i.viewers || 10 + Math.floor(Math.random()*200)
   });
 });
 
-// SPORTS cards (live + upcoming)
+// SPORTS cards (live + upcoming) - cho category bongda/esport
 var _allSports = (_live.concat(_up)).slice(0, 30);
 _allSports.forEach(function(m){
   _cards.push({
@@ -70,30 +72,7 @@ _allSports.forEach(function(m){
   });
 });
 
-// CASINO cards (4 game chính)
-var _casinoGames = [
-  { name:'Tài Xỉu',  emoji:'🎲', href:'/game/tai-xiu',  color:'from-red-700 to-orange-900' },
-  { name:'Xóc Đĩa',  emoji:'🪙', href:'/game/xoc-dia',  color:'from-amber-700 to-yellow-900' },
-  { name:'Vòng Quay',emoji:'🎡', href:'/game/vong-quay',color:'from-violet-700 to-purple-900' },
-  { name:'Live Casino',emoji:'🎰',href:'/casino',       color:'from-emerald-700 to-green-900' }
-];
-_casinoGames.forEach(function(g){
-  _cards.push({ cat:'casino', type:'casino', href:g.href, name:g.name, emoji:g.emoji, gradient:g.color });
-});
-
-// ESPORT cards (dummy nếu chưa có dữ liệu thật)
-if (_cnt.esport === 0) {
-  ['LCK Spring','VCS Mùa Xuân','MSI 2026','Valorant Champions'].forEach(function(n, i){
-    _cards.push({
-      cat:'esport', type:'esport',
-      href:'/esports',
-      name: n,
-      emoji:'🎮', color: 250 + i*30
-    });
-  });
-}
-
-// Cập nhật count chính xác
+// Cập nhật count chính xác từ thực tế cards
 _cnt.idol = _cards.filter(function(c){ return c.cat==='idol'; }).length;
 _cnt.bongda = _cards.filter(function(c){ return c.cat==='bongda'; }).length;
 _cnt.esport = _cards.filter(function(c){ return c.cat==='esport'; }).length;
@@ -333,23 +312,17 @@ _cnt.all = _cards.length;
               </div>
               <span class="mh-lux-status <%= c.isLive ? 'live' : 'soon' %>"><%= c.isLive ? '● LIVE' : 'SẮP DIỄN RA' %></span>
             <% } else if (c.type === 'idol') { %>
+              <%
+                var _catIco = '👑', _catTxt = 'Idol Live Show';
+                if (c.cat === 'casino')      { _catIco = '🎰'; _catTxt = 'Live Sòng Bài'; }
+                else if (c.cat === 'bongda') { _catIco = '⚽'; _catTxt = 'BLV Bóng Đá'; }
+                else if (c.cat === 'esport') { _catIco = '🎮'; _catTxt = 'BLV Esports'; }
+              %>
               <div class="mh-lux-league">
-                <span class="mh-lux-league-ico">👑</span>
-                <span class="mh-lux-league-name">Idol Live Show</span>
+                <span class="mh-lux-league-ico"><%= _catIco %></span>
+                <span class="mh-lux-league-name"><%= _catTxt %></span>
               </div>
               <span class="mh-lux-status <%= c.isLive ? 'live' : 'soon' %>"><%= c.isLive ? '● LIVE' : c.badge %></span>
-            <% } else if (c.type === 'casino') { %>
-              <div class="mh-lux-league">
-                <span class="mh-lux-league-ico">🎰</span>
-                <span class="mh-lux-league-name">Casino Game</span>
-              </div>
-              <span class="mh-lux-status soon">HOT</span>
-            <% } else if (c.type === 'esport') { %>
-              <div class="mh-lux-league">
-                <span class="mh-lux-league-ico">🎮</span>
-                <span class="mh-lux-league-name">Esports</span>
-              </div>
-              <span class="mh-lux-status soon">SẮP DIỄN RA</span>
             <% } %>
           </div>
 
@@ -379,23 +352,6 @@ _cnt.all = _cards.length;
                 <div class="mh-lux-time text-white"><%= c.time %></div>
                 <div class="mh-lux-date"><%= new Date().toLocaleDateString('vi-VN') %></div>
                 <div class="mh-lux-idol-name"><%= c.name %></div>
-              </div>
-            <% } else if (c.type === 'casino') { %>
-              <!-- CASINO: emoji center + name -->
-              <div class="mh-lux-casino" style="background:linear-gradient(135deg,<%= c.gradient.replace(/from-|to-|-(\d+)/g, function(m,n){ return ''; }) %>);"></div>
-              <div class="mh-lux-casino-bg <%= c.gradient %>"></div>
-              <div class="mh-lux-emoji-wrap">
-                <div class="mh-lux-emoji"><%= c.emoji %></div>
-                <div class="mh-lux-cas-name"><%= c.name %></div>
-                <div class="mh-lux-cta">CHƠI NGAY →</div>
-              </div>
-            <% } else if (c.type === 'esport') { %>
-              <!-- ESPORT: emoji + tournament name -->
-              <div class="mh-lux-esport-bg" style="background:linear-gradient(135deg, hsl(<%= c.color %>,60%,25%), hsl(<%= (c.color+60)%360 %>,60%,10%));"></div>
-              <div class="mh-lux-emoji-wrap">
-                <div class="mh-lux-emoji"><%= c.emoji %></div>
-                <div class="mh-lux-cas-name"><%= c.name %></div>
-                <div class="mh-lux-cta esport">XEM NGAY →</div>
               </div>
             <% } %>
           </div>
