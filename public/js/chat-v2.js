@@ -101,19 +101,21 @@ function pushMsg(container, m){
   var time = m.time || nowHHMM();
 
   var el = document.createElement('div');
-  el.className = 'msg-row flex items-start gap-2 py-1.5 px-2.5 border-l-2 hover:bg-white/[0.02] transition-colors text-[12.5px] leading-snug';
-  el.style.borderLeftColor = nameColor;
+  el.className = 'msg-row';
+  // Inline style để đảm bảo render đúng dù Tailwind CDN không scan JS template
+  el.style.cssText = 'display:block;padding:5px 10px;border-left:2px solid ' + nameColor +
+    ';font-size:13px;line-height:1.4;color:#e5e7eb;word-break:break-word;';
 
-  var lvlHtml = '<span class="lvl shrink-0 inline-flex items-center justify-center min-w-[26px] h-[18px] px-1.5 rounded text-white text-[10px] font-extrabold" style="background:' + lvlBg + '">' + m.lvl + '</span>';
-  var cskhHtml = m.badge === 'CSKH' ? '<span class="shrink-0 inline-flex items-center gap-0.5 bg-emerald-600 text-white text-[9px] font-extrabold px-1 py-0.5 rounded">&#127908; CSKH</span>' : '';
+  var lvlHtml = '<span style="display:inline-block;vertical-align:middle;min-width:22px;height:16px;line-height:16px;padding:0 6px;border-radius:4px;color:#fff;font-size:10px;font-weight:800;text-align:center;background:' + lvlBg + ';margin-right:5px">' + m.lvl + '</span>';
+  var cskhHtml = m.badge === 'CSKH'
+    ? '<span style="display:inline-block;vertical-align:middle;background:#16a34a;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:3px;margin-right:5px">CSKH</span>'
+    : '';
+  var nameHtml = '<span style="font-weight:800;color:' + nameColor + ';margin-right:6px">' + esc(m.name) + ':</span>';
+  var textHtml = '<span style="color:#e5e7eb">' + esc(m.text) + '</span>';
+  var timeHtml = '<span style="float:right;color:#6b7280;font-size:10px;font-variant-numeric:tabular-nums;margin-left:6px">' + time + '</span>';
 
-  el.innerHTML =
-    '<div class="shrink-0 flex items-center gap-1.5 pt-0.5">' + lvlHtml + cskhHtml + '</div>' +
-    '<div class="flex-1 min-w-0">' +
-      '<span class="font-extrabold mr-1.5" style="color:' + nameColor + '">' + esc(m.name) + '</span>' +
-      '<span class="text-gray-200 break-words">' + esc(m.text) + '</span>' +
-    '</div>' +
-    '<span class="shrink-0 text-dim text-[10px] pt-1 tabular-nums">' + time + '</span>';
+  // Layout 1 dòng: [LVL] [CSKH?] Name: Text                 HH:MM
+  el.innerHTML = timeHtml + lvlHtml + cskhHtml + nameHtml + textHtml;
 
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
