@@ -420,26 +420,104 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
   res.render('tw-idol-studio', { active:'cat', activeCat:'idol', dbIdols: dbIdols });
 });
 
+// RTMP server URL (config qua env)
+// Mặc định trỏ về SRS đang chạy trên VPS (port 1935)
+const RTMP_SERVER_URL = process.env.RTMP_SERVER_URL || 'rtmp://xoso66tv.com:1935/live';
+
 app.get('/api/studio/get-key', pubAuth.requireStreamer, function (req, res){
   const data = db.load();
   const idolId = String(req.query.idolId||'');
   if (!idolId) return res.json({ ok:false, error:'Missing idolId' });
-  let obs = data.obs.find(function(o){ return o.requesterType==='idol' && o.requesterId===idolId && o.status==='approved'; });
-  if (!obs) return res.json({ ok:false, error:'No approved stream key. Please request approval from admin first.' });
-  res.json({ ok:true, streamKey: obs.streamKey, rtmpServer: obs.rtmpServer || 'rtmp://stream.xoso66tv.com/live' });
+  if (!data.obs) data.obs = [];
+  let obs = data.obs.find(function(o){ return o.requesterType==='idol' && o.requesterId===idolId; });
+  // 🆕 AUTO-CREATE nếu chưa có (cho idol đã được cấp quyền canLive)
+  if (!obs) {
+    const idol = (data.idols || []).find(function(i){ return i.id === idolId; });
+    if (!idol) return res.json({ ok:false, error:'Idol không tồn tại' });
+    if (!idol.canLive) return res.json({ ok:false, error:'Idol chưa được admin cấp quyền LIVE' });
+    obs = {
+      id: 'obs_' + idolId + '_' + Date.now(),
+      requesterType: 'idol',
+      requesterId: idolId,
+      requesterName: idol.name,
+      streamKey: 'sk_' + idolId + '_' + Math.random().toString(36).substring(2, 12),
+      rtmpServer: RTMP_SERVER_URL,
+      status: 'approved',
+      streamActive: false,
+      autoCreated: true,
+      createdAt: Date.now()
+    };
+    data.obs.push(obs);
+    db.save(data);
+  }
+  // Đảm bảo RTMP URL luôn fresh
+  if (!obs.rtmpServer || obs.rtmpServer.indexOf('stream.xoso66tv.com') >= 0) {
+    obs.rtmpServer = RTMP_SERVER_URL;
+    db.save(data);
+  }
+  res.json({ ok:true, streamKey: obs.streamKey, rtmpServer: obs.rtmpServer });
 });
 
 app.post('/api/studio/regenerate-key', pubAuth.requireStreamer, function (req, res){
   const idolId = String((req.body && req.body.idolId) || '');
   if (!idolId) return res.json({ ok:false, error:'Missing idolId' });
   const data = db.load();
+  if (!data.obs) data.obs = [];
   let obs = data.obs.find(function(o){ return o.requesterType==='idol' && o.requesterId===idolId; });
-  if (!obs) return res.json({ ok:false, error:'No OBS record. Request approval first.' });
+  if (!obs) {
+    const idol = (data.idols || []).find(function(i){ return i.id === idolId; });
+    if (!idol) return res.json({ ok:false, error:'Idol không tồn tại' });
+    obs = {
+      id: 'obs_' + idolId + '_' + Date.now(),
+      requesterType: 'idol', requesterId: idolId, requesterName: idol.name,
+      status: 'approved', streamActive: false, autoCreated: true, createdAt: Date.now()
+    };
+    data.obs.push(obs);
+  }
   obs.streamKey = 'sk_' + idolId + '_' + Math.random().toString(36).substring(2, 12);
-  obs.rtmpServer = obs.rtmpServer || 'rtmp://stream.xoso66tv.com/live';
+  obs.rtmpServer = RTMP_SERVER_URL;
   obs.streamActive = false;
   db.save(data);
-  res.json({ ok:true, streamKey: obs.streamKey });
+  res.json({ ok:true, streamKey: obs.streamKey, rtmpServer: obs.rtmpServer });
+});
+
+// 🆕 REAL test kết nối RTMP - check TCP socket SRS có sẵn sàng không
+app.post('/api/studio/test-rtmp', pubAuth.requireStreamer, function (req, res){
+  const net = require('net');
+  const RTMP_HOST = process.env.RTMP_HOST || 'xoso66tv.com';
+  const RTMP_PORT = parseInt(process.env.RTMP_PORT || '1935', 10);
+  // Cho test localhost nếu Node chạy cùng server SRS
+  const targets = ['127.0.0.1', RTMP_HOST];
+  const tryHost = function(host, done){
+    const sock = new net.Socket();
+    let resolved = false;
+    sock.setTimeout(3000);
+    sock.connect(RTMP_PORT, host, function(){
+      resolved = true;
+      sock.destroy();
+      done(null, { host: host, ok: true, latency: '<3s' });
+    });
+    sock.on('error', function(err){
+      if (resolved) return;
+      resolved = true;
+      done(err);
+    });
+    sock.on('timeout', function(){
+      if (resolved) return;
+      resolved = true;
+      sock.destroy();
+      done(new Error('Timeout 3s'));
+    });
+  };
+  // Thử 127.0.0.1 trước
+  tryHost('127.0.0.1', function(err, result){
+    if (!err && result) return res.json({ ok:true, host:'127.0.0.1', port: RTMP_PORT, message: '✅ RTMP server đang hoạt động (localhost)' });
+    // Fallback domain
+    tryHost(RTMP_HOST, function(err2, result2){
+      if (!err2 && result2) return res.json({ ok:true, host: RTMP_HOST, port: RTMP_PORT, message: '✅ RTMP server đang hoạt động (' + RTMP_HOST + ')' });
+      res.json({ ok:false, error: 'Không kết nối được RTMP port ' + RTMP_PORT + ' (' + (err2 ? err2.message : 'unknown') + ')' });
+    });
+  });
 });
 
 app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){

@@ -297,7 +297,7 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
         <div>
           <label class="text-[11px] text-muted uppercase font-bold block mb-1">📡 RTMP Server URL</label>
           <div class="flex gap-2">
-            <input id="stuRtmpUrl" readonly value="rtmp://stream.xoso66tv.com/live" class="flex-1 bg-bg-deep border border-line text-emerald-400 font-mono text-xs px-3 py-2 rounded-lg select-all">
+            <input id="stuRtmpUrl" readonly value="rtmp://xoso66tv.com:1935/live" class="flex-1 bg-bg-deep border border-line text-emerald-400 font-mono text-xs px-3 py-2 rounded-lg select-all">
             <button onclick="stuCopyText('stuRtmpUrl')" class="bg-pri hover:brightness-110 text-white px-3 rounded-lg text-xs font-bold active:scale-95">Copy</button>
           </div>
         </div>
@@ -786,18 +786,19 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   // ===== OBS STREAM KEY =====
   function loadStreamKey(){
     if (!state.identity) return;
-    var key = 'sk_' + state.identity.id + '_' + Math.random().toString(36).substring(2, 10);
-    // Try fetch from server
     fetch('/api/studio/get-key?idolId=' + state.identity.id)
       .then(function(r){ return r.json(); })
       .then(function(j){
         if (j.ok && j.streamKey) {
           document.getElementById('stuStreamKey').value = j.streamKey;
+          if (j.rtmpServer) document.getElementById('stuRtmpUrl').value = j.rtmpServer;
         } else {
-          document.getElementById('stuStreamKey').value = key;
+          document.getElementById('stuStreamKey').value = '';
+          alert('⚠ ' + (j.error || 'Không lấy được stream key. Liên hệ admin để được cấp quyền LIVE.'));
         }
-      }).catch(function(){
-        document.getElementById('stuStreamKey').value = key;
+      }).catch(function(e){
+        document.getElementById('stuStreamKey').value = '';
+        alert('⚠ Lỗi kết nối server: ' + e.message);
       });
   }
   window.stuCopyText = function(id){
@@ -831,7 +832,23 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     });
   };
   window.stuObsTestConnection = function(){
-    alert('🧪 Đang test kết nối RTMP...\n\n(Demo: Sản phẩm thực sẽ kiểm tra TCP socket đến port 1935 và ping RTMP handshake)');
+    var btn = event && event.target;
+    var orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.innerHTML = '⏳ Đang test...'; btn.disabled = true; }
+    fetch('/api/studio/test-rtmp', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity ? state.identity.id : '' })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        alert('✅ KẾT NỐI THÀNH CÔNG!\n\n' + j.message + '\n\nHost: ' + j.host + '\nPort: ' + j.port + '\n\n→ Bạn có thể bắt đầu stream từ OBS được rồi!');
+      } else {
+        alert('❌ KHÔNG KẾT NỐI ĐƯỢC RTMP SERVER!\n\nLỗi: ' + j.error + '\n\nKiểm tra:\n• SRS Docker container đang chạy?\n• Firewall mở port 1935?\n• Domain xoso66tv.com trỏ đúng IP?');
+      }
+    }).catch(function(e){
+      alert('❌ Lỗi gọi API test: ' + e.message);
+    }).finally(function(){
+      if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+    });
   };
   // ===== PIN LOCK MANAGEMENT =====
   function setupPinInputs(){
