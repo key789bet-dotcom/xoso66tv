@@ -477,7 +477,8 @@ app.get('/api/studio/get-key', pubAuth.requireStreamer, function (req, res){
       requesterType: 'idol',
       requesterId: idolId,
       requesterName: idol.name,
-      streamKey: 'sk_' + idolId + '_' + Math.random().toString(36).substring(2, 12),
+      // 🆕 Stream key = idolId (để FLV URL match: /live/{idolId}.flv)
+      streamKey: idolId,
       rtmpServer: RTMP_SERVER_URL,
       status: 'approved',
       streamActive: false,
@@ -487,8 +488,14 @@ app.get('/api/studio/get-key', pubAuth.requireStreamer, function (req, res){
     data.obs.push(obs);
     db.save(data);
   }
+  // 🆕 MIGRATE: nếu streamKey cũ có prefix lạ (webrtc_, sk_) → đổi lại = idolId
+  // để viewer FLV URL match đúng
+  if (obs.streamKey && obs.streamKey !== idolId) {
+    obs.streamKey = idolId;
+    db.save(data);
+  }
   // Đảm bảo RTMP URL luôn fresh
-  if (!obs.rtmpServer || obs.rtmpServer.indexOf('stream.xoso66tv.com') >= 0) {
+  if (!obs.rtmpServer || obs.rtmpServer.indexOf('stream.xoso66tv.com:1935') >= 0 || obs.rtmpServer.indexOf('xoso66tv.com:1935') >= 0) {
     obs.rtmpServer = RTMP_SERVER_URL;
     db.save(data);
   }
@@ -511,7 +518,8 @@ app.post('/api/studio/regenerate-key', pubAuth.requireStreamer, function (req, r
     };
     data.obs.push(obs);
   }
-  obs.streamKey = 'sk_' + idolId + '_' + Math.random().toString(36).substring(2, 12);
+  // 🆕 Regenerate vẫn dùng idolId cho khớp viewer URL
+  obs.streamKey = idolId;
   obs.rtmpServer = RTMP_SERVER_URL;
   obs.streamActive = false;
   db.save(data);
