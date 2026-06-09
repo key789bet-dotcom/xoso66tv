@@ -319,72 +319,99 @@ _cnt.all = _cards.length;
         <a href="/lich-phat-song" class="inline-block mt-3 text-pri-light text-xs font-bold">→ Xem lịch phát sóng</a>
       </div>
     <% } else { %>
+    <!-- ===== LUXURY CARDS - đồng bộ orange border, dark gradient ===== -->
     <div class="grid grid-cols-2 gap-2.5 mb-3" id="mhCardsGrid">
       <% _cards.forEach(function(c){ %>
-        <a href="<%= c.href %>" class="mh-card rounded-xl overflow-hidden bg-bg-card border border-line relative block" style="aspect-ratio:1/1;" data-cat="<%= c.cat %>">
-          <% if (c.type === 'idol') { %>
-            <% if (c.img) { %>
-              <img src="<%= c.img %>" alt="<%= c.name %>" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+        <a href="<%= c.href %>" class="mh-card-lux block relative" data-cat="<%= c.cat %>">
+
+          <!-- TOP HEADER: League/Category + Status -->
+          <div class="mh-lux-head">
+            <% if (c.type === 'sports') { %>
+              <div class="mh-lux-league">
+                <span class="mh-lux-league-ico">⚽</span>
+                <span class="mh-lux-league-name"><%= c.league || 'Sự kiện' %></span>
+              </div>
+              <span class="mh-lux-status <%= c.isLive ? 'live' : 'soon' %>"><%= c.isLive ? '● LIVE' : 'SẮP DIỄN RA' %></span>
+            <% } else if (c.type === 'idol') { %>
+              <div class="mh-lux-league">
+                <span class="mh-lux-league-ico">👑</span>
+                <span class="mh-lux-league-name">Idol Live Show</span>
+              </div>
+              <span class="mh-lux-status <%= c.isLive ? 'live' : 'soon' %>"><%= c.isLive ? '● LIVE' : c.badge %></span>
+            <% } else if (c.type === 'casino') { %>
+              <div class="mh-lux-league">
+                <span class="mh-lux-league-ico">🎰</span>
+                <span class="mh-lux-league-name">Casino Game</span>
+              </div>
+              <span class="mh-lux-status soon">HOT</span>
+            <% } else if (c.type === 'esport') { %>
+              <div class="mh-lux-league">
+                <span class="mh-lux-league-ico">🎮</span>
+                <span class="mh-lux-league-name">Esports</span>
+              </div>
+              <span class="mh-lux-status soon">SẮP DIỄN RA</span>
             <% } %>
-            <div class="absolute inset-0" style="background:linear-gradient(135deg, hsl(<%= c.color %>,70%,40%), hsl(<%= (c.color+60)%360 %>,70%,30%));opacity:<%= c.img ? '0' : '1' %>;"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
-            <% if (c.isLive) { %>
-              <span class="absolute top-2 right-2 z-[2] bg-live text-white px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
-            <% } %>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1] text-white text-center">
-              <div class="text-[11px] font-bold opacity-90"><%= c.time %></div>
-              <div class="bg-red-600 text-white text-[9px] font-bold rounded mt-1 px-1.5 py-0.5"><%= new Date().toLocaleDateString('vi-VN') %></div>
-            </div>
-            <div class="absolute bottom-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-between">
-              <div class="w-6 h-6 rounded-full bg-pri/80 border border-white/40 grid place-items-center text-xs"><%= c.emoji %></div>
-              <span class="text-white/90 text-[10px] font-bold"><%= c.viewers %></span>
-            </div>
-          <% } else if (c.type === 'sports') { %>
-            <!-- SPORTS CARD: 2 teams + time -->
-            <div class="absolute inset-0 bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-950"></div>
-            <div class="absolute inset-0 opacity-30" style="background:radial-gradient(ellipse at center, #fff 0%, transparent 60%);"></div>
-            <% if (c.league) { %>
-              <div class="absolute top-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-between">
-                <span class="bg-emerald-700/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded truncate max-w-[70%]"><%= c.league %></span>
-                <% if (c.isLive) { %><span class="bg-live text-white text-[9px] font-bold px-1 py-0.5 rounded">LIVE</span><% } %>
+          </div>
+
+          <!-- MIDDLE BODY -->
+          <div class="mh-lux-body">
+            <% if (c.type === 'sports') { %>
+              <!-- SPORTS: 2 teams + time -->
+              <div class="mh-lux-team">
+                <div class="mh-lux-team-circle"><%= (c.home||'?').slice(0,2).toUpperCase() %></div>
+                <div class="mh-lux-team-name"><%= c.home %></div>
+              </div>
+              <div class="mh-lux-mid">
+                <div class="mh-lux-time"><%= c.time %></div>
+                <div class="mh-lux-date"><%= new Date().toLocaleDateString('vi-VN') %></div>
+              </div>
+              <div class="mh-lux-team">
+                <div class="mh-lux-team-circle"><%= (c.away||'?').slice(0,2).toUpperCase() %></div>
+                <div class="mh-lux-team-name"><%= c.away %></div>
+              </div>
+            <% } else if (c.type === 'idol') { %>
+              <!-- IDOL: avatar full + name -->
+              <% if (c.img) { %>
+                <img src="<%= c.img %>" alt="<%= c.name %>" class="mh-lux-idol-img" onerror="this.style.display='none'">
+              <% } %>
+              <div class="mh-lux-idol-bg" style="background:linear-gradient(135deg, hsl(<%= c.color %>,70%,40%), hsl(<%= (c.color+60)%360 %>,70%,25%));opacity:<%= c.img ? '0' : '1' %>;"></div>
+              <div class="mh-lux-idol-overlay">
+                <div class="mh-lux-time text-white"><%= c.time %></div>
+                <div class="mh-lux-date"><%= new Date().toLocaleDateString('vi-VN') %></div>
+                <div class="mh-lux-idol-name"><%= c.name %></div>
+              </div>
+            <% } else if (c.type === 'casino') { %>
+              <!-- CASINO: emoji center + name -->
+              <div class="mh-lux-casino" style="background:linear-gradient(135deg,<%= c.gradient.replace(/from-|to-|-(\d+)/g, function(m,n){ return ''; }) %>);"></div>
+              <div class="mh-lux-casino-bg <%= c.gradient %>"></div>
+              <div class="mh-lux-emoji-wrap">
+                <div class="mh-lux-emoji"><%= c.emoji %></div>
+                <div class="mh-lux-cas-name"><%= c.name %></div>
+                <div class="mh-lux-cta">CHƠI NGAY →</div>
+              </div>
+            <% } else if (c.type === 'esport') { %>
+              <!-- ESPORT: emoji + tournament name -->
+              <div class="mh-lux-esport-bg" style="background:linear-gradient(135deg, hsl(<%= c.color %>,60%,25%), hsl(<%= (c.color+60)%360 %>,60%,10%));"></div>
+              <div class="mh-lux-emoji-wrap">
+                <div class="mh-lux-emoji"><%= c.emoji %></div>
+                <div class="mh-lux-cas-name"><%= c.name %></div>
+                <div class="mh-lux-cta esport">XEM NGAY →</div>
               </div>
             <% } %>
-            <div class="absolute inset-0 flex items-center justify-around px-2 z-[1]">
-              <div class="text-center">
-                <div class="w-10 h-10 rounded-full bg-white/90 grid place-items-center text-emerald-700 font-black text-sm mx-auto mb-1"><%= (c.home||'?').slice(0,2).toUpperCase() %></div>
-                <div class="text-white text-[8px] font-bold leading-tight w-14 truncate"><%= c.home %></div>
-              </div>
-              <div class="text-center">
-                <div class="text-white text-[11px] font-bold"><%= c.time %></div>
-                <div class="bg-red-600 text-white text-[8px] font-bold rounded mt-1 px-1.5 py-0.5"><%= new Date().toLocaleDateString('vi-VN') %></div>
-              </div>
-              <div class="text-center">
-                <div class="w-10 h-10 rounded-full bg-white/90 grid place-items-center text-emerald-700 font-black text-sm mx-auto mb-1"><%= (c.away||'?').slice(0,2).toUpperCase() %></div>
-                <div class="text-white text-[8px] font-bold leading-tight w-14 truncate"><%= c.away %></div>
-              </div>
+          </div>
+
+          <!-- BOTTOM FOOTER: Avatars + Viewers -->
+          <div class="mh-lux-foot">
+            <div class="mh-lux-avatars">
+              <% for (var ai=0; ai<3; ai++) { %>
+                <span class="mh-lux-avatar" style="background:linear-gradient(135deg,hsl(<%= (ai*120+30) %>,70%,50%),hsl(<%= (ai*120+90) %>,70%,40%))"></span>
+              <% } %>
             </div>
-            <div class="absolute bottom-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-end">
-              <span class="text-white/90 text-[10px] font-bold"><%= c.viewers %></span>
+            <div class="mh-lux-views">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff7a18"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+              <span><%= (c.viewers || 0).toLocaleString('vi-VN') %></span>
             </div>
-          <% } else if (c.type === 'casino') { %>
-            <!-- CASINO CARD -->
-            <div class="absolute inset-0 bg-gradient-to-br <%= c.gradient %>"></div>
-            <div class="absolute inset-0 opacity-30" style="background:radial-gradient(circle at 50% 30%, #fff 0%, transparent 60%);"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-3">
-              <div class="text-5xl drop-shadow-2xl mb-2"><%= c.emoji %></div>
-              <div class="text-sm font-extrabold text-center drop-shadow-lg"><%= c.name %></div>
-              <div class="mt-1.5 bg-white/20 backdrop-blur text-white text-[9px] font-bold px-2 py-0.5 rounded">CHƠI NGAY →</div>
-            </div>
-          <% } else if (c.type === 'esport') { %>
-            <!-- ESPORT CARD -->
-            <div class="absolute inset-0" style="background:linear-gradient(135deg, hsl(<%= c.color %>,70%,30%), hsl(<%= (c.color+60)%360 %>,70%,15%));"></div>
-            <div class="absolute inset-0 opacity-30" style="background:repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,.1) 12px, rgba(255,255,255,.1) 14px);"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-3">
-              <div class="text-5xl drop-shadow-2xl mb-2"><%= c.emoji %></div>
-              <div class="text-sm font-extrabold text-center drop-shadow-lg leading-tight"><%= c.name %></div>
-              <div class="mt-1.5 bg-violet-600/40 backdrop-blur text-white text-[9px] font-bold px-2 py-0.5 rounded">XEM NGAY →</div>
-            </div>
-          <% } %>
+          </div>
         </a>
       <% }); %>
     </div>
@@ -467,6 +494,131 @@ _cnt.all = _cards.length;
 
 .mh-card { transition:transform .15s; }
 .mh-card:active { transform:scale(.97); }
+
+/* ===== LUXURY CARDS - đồng bộ sang trọng ===== */
+.mh-card-lux {
+  display:flex; flex-direction:column;
+  background:linear-gradient(180deg,#1a1f29 0%,#0a0d12 100%);
+  border:1.5px solid rgba(255,122,24,.4);
+  border-radius:12px; overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
+  transition:all .2s ease; text-decoration:none;
+  min-height:155px;
+}
+.mh-card-lux:active { transform:scale(.97); border-color:rgba(255,122,24,.8); box-shadow:0 6px 20px rgba(255,122,24,.3); }
+
+/* HEADER bar */
+.mh-lux-head {
+  display:flex; align-items:center; justify-content:space-between; gap:4px;
+  padding:5px 7px;
+  background:linear-gradient(90deg,rgba(255,122,24,.12),rgba(255,122,24,.05));
+  border-bottom:1px solid rgba(255,122,24,.2);
+  min-height:24px;
+}
+.mh-lux-league {
+  display:flex; align-items:center; gap:3px; min-width:0; flex:1;
+}
+.mh-lux-league-ico { font-size:11px; flex-shrink:0; }
+.mh-lux-league-name {
+  color:#e2e8f0; font-size:9.5px; font-weight:700;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.mh-lux-status {
+  font-size:8px; font-weight:800; padding:2px 5px;
+  border-radius:3px; text-transform:uppercase; letter-spacing:.3px;
+  flex-shrink:0;
+}
+.mh-lux-status.live { background:#ef4444; color:#fff; animation:luxLivePulse 1.5s infinite; }
+.mh-lux-status.soon { background:linear-gradient(135deg,#ff7a18,#ea580c); color:#fff; }
+@keyframes luxLivePulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+
+/* BODY */
+.mh-lux-body {
+  flex:1; display:flex; align-items:center; justify-content:space-around;
+  padding:8px 4px; position:relative; min-height:95px;
+  background:linear-gradient(180deg,#0f1419 0%,#070a0e 100%);
+}
+.mh-lux-team { text-align:center; flex:0 0 30%; }
+.mh-lux-team-circle {
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,#fff,#e5e7eb);
+  color:#0f1419; font-weight:900; font-size:13px;
+  display:grid; place-items:center;
+  margin:0 auto 4px;
+  box-shadow:0 2px 6px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.5);
+  border:1.5px solid rgba(255,122,24,.3);
+}
+.mh-lux-team-name {
+  color:#cbd5e1; font-size:8px; font-weight:700; line-height:1.1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  padding:0 2px;
+}
+.mh-lux-mid { text-align:center; flex:0 0 38%; }
+.mh-lux-time {
+  color:#fbbf24; font-size:14px; font-weight:900; line-height:1;
+  text-shadow:0 0 8px rgba(251,191,36,.4);
+}
+.mh-lux-date {
+  display:inline-block; margin-top:4px;
+  background:linear-gradient(135deg,#dc2626,#991b1b);
+  color:#fff; font-size:8px; font-weight:800;
+  padding:1.5px 6px; border-radius:3px;
+  box-shadow:0 1px 3px rgba(220,38,38,.4);
+}
+
+/* IDOL specific */
+.mh-lux-idol-img,
+.mh-lux-idol-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.mh-lux-idol-overlay {
+  position:relative; z-index:1; text-align:center; width:100%; padding:8px;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.6));
+  height:100%; display:flex; flex-direction:column; justify-content:flex-end;
+}
+.mh-lux-idol-name {
+  color:#fff; font-size:11px; font-weight:800; margin-top:4px;
+  text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+
+/* CASINO/ESPORT */
+.mh-lux-casino-bg,
+.mh-lux-esport-bg { position:absolute; inset:0; }
+.mh-lux-casino-bg.from-red-700.to-orange-900 { background:linear-gradient(135deg,#b91c1c,#7c2d12); }
+.mh-lux-casino-bg.from-amber-700.to-yellow-900 { background:linear-gradient(135deg,#b45309,#713f12); }
+.mh-lux-casino-bg.from-violet-700.to-purple-900 { background:linear-gradient(135deg,#6d28d9,#581c87); }
+.mh-lux-casino-bg.from-emerald-700.to-green-900 { background:linear-gradient(135deg,#047857,#14532d); }
+.mh-lux-emoji-wrap {
+  position:relative; z-index:1; text-align:center; width:100%; padding:4px;
+}
+.mh-lux-emoji { font-size:38px; filter:drop-shadow(0 2px 8px rgba(0,0,0,.5)); margin-bottom:2px; }
+.mh-lux-cas-name { color:#fff; font-size:11px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+.mh-lux-cta {
+  display:inline-block; margin-top:4px;
+  background:rgba(255,255,255,.18); backdrop-filter:blur(4px);
+  color:#fff; font-size:8px; font-weight:800; padding:2px 7px;
+  border-radius:3px; border:1px solid rgba(255,255,255,.15);
+}
+.mh-lux-cta.esport { background:rgba(139,92,246,.35); border-color:rgba(139,92,246,.4); }
+
+/* FOOTER bar */
+.mh-lux-foot {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:4px 7px;
+  background:linear-gradient(90deg,#0a0d12,#0f1419);
+  border-top:1px solid rgba(255,122,24,.15);
+  min-height:22px;
+}
+.mh-lux-avatars { display:flex; gap:-4px; }
+.mh-lux-avatar {
+  width:14px; height:14px; border-radius:50%;
+  border:1.5px solid #0a0d12;
+  margin-right:-5px;
+  box-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+.mh-lux-views {
+  display:flex; align-items:center; gap:3px;
+  color:#cbd5e1; font-size:10px; font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
 
 /* Bottom nav tabs */
 .mh-tab {
