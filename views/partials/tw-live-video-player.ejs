@@ -96,8 +96,23 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     flvPlayer = flvjs.createPlayer({
       type: 'flv', url: STREAM_URL, isLive: true, hasAudio: true, hasVideo: true
     }, {
-      enableWorker: false, enableStashBuffer: false, stashInitialSize: 128,
-      autoCleanupSourceBuffer: true, fixAudioTimestampGap: false, lazyLoad: false
+      // ⚡ LOW LATENCY config
+      enableWorker: true,                  // worker thread tăng tốc
+      enableStashBuffer: false,            // không cache buffer
+      stashInitialSize: 64,                // 64KB initial (default 384)
+      autoCleanupSourceBuffer: true,
+      autoCleanupMaxBackwardDuration: 3,   // chỉ giữ 3s backward
+      autoCleanupMinBackwardDuration: 2,
+      fixAudioTimestampGap: false,
+      lazyLoad: false,
+      lazyLoadMaxDuration: 1,
+      lazyLoadRecoverDuration: 1,
+      deferLoadAfterSourceOpen: false,
+      // Live chase: skip buffer khi quá cách live edge
+      liveBufferLatencyChasing: true,
+      liveBufferLatencyMaxLatency: 2.0,    // max 2s sau live edge
+      liveBufferLatencyMinRemain: 0.3,
+      seekType: 'range'
     });
     flvPlayer.attachMediaElement(video);
     flvPlayer.load();
