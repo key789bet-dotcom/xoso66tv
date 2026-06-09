@@ -28,10 +28,20 @@ _live.forEach(function(x){
   _cnt.hot++;
 });
 
-// Live cards data - mix live + idol (max 8)
+// Map sport → category tag
+function _sportToCat(s){
+  if (s === 'Soccer') return 'bongda';
+  if (s === 'Esports') return 'esport';
+  return 'khac'; // các môn khác gộp vào "tất cả" thôi
+}
+
+// Live cards data - mix idol + sports + casino, có data-cat để filter
 var _cards = [];
-_idolList.slice(0, 4).forEach(function(i){
+
+// IDOL cards
+_idolList.forEach(function(i){
   _cards.push({
+    cat:'idol',
     type:'idol',
     href:'/idol/' + i.id,
     name: i.name,
@@ -44,17 +54,51 @@ _idolList.slice(0, 4).forEach(function(i){
     viewers: 10 + Math.floor(Math.random()*200)
   });
 });
-_live.slice(0, 4).forEach(function(m){
+
+// SPORTS cards (live + upcoming)
+var _allSports = (_live.concat(_up)).slice(0, 30);
+_allSports.forEach(function(m){
   _cards.push({
+    cat: _sportToCat(m.sport),
     type:'sports',
     href:'/live/' + (m.slug || m.id),
     home: m.home, away: m.away,
     league: m.league || '',
     time: m.time || 'LIVE',
-    isLive: true,
+    isLive: m.status === 'live',
     viewers: m.viewers || Math.floor(Math.random()*500)
   });
 });
+
+// CASINO cards (4 game chính)
+var _casinoGames = [
+  { name:'Tài Xỉu',  emoji:'🎲', href:'/game/tai-xiu',  color:'from-red-700 to-orange-900' },
+  { name:'Xóc Đĩa',  emoji:'🪙', href:'/game/xoc-dia',  color:'from-amber-700 to-yellow-900' },
+  { name:'Vòng Quay',emoji:'🎡', href:'/game/vong-quay',color:'from-violet-700 to-purple-900' },
+  { name:'Live Casino',emoji:'🎰',href:'/casino',       color:'from-emerald-700 to-green-900' }
+];
+_casinoGames.forEach(function(g){
+  _cards.push({ cat:'casino', type:'casino', href:g.href, name:g.name, emoji:g.emoji, gradient:g.color });
+});
+
+// ESPORT cards (dummy nếu chưa có dữ liệu thật)
+if (_cnt.esport === 0) {
+  ['LCK Spring','VCS Mùa Xuân','MSI 2026','Valorant Champions'].forEach(function(n, i){
+    _cards.push({
+      cat:'esport', type:'esport',
+      href:'/esports',
+      name: n,
+      emoji:'🎮', color: 250 + i*30
+    });
+  });
+}
+
+// Cập nhật count chính xác
+_cnt.idol = _cards.filter(function(c){ return c.cat==='idol'; }).length;
+_cnt.bongda = _cards.filter(function(c){ return c.cat==='bongda'; }).length;
+_cnt.esport = _cards.filter(function(c){ return c.cat==='esport'; }).length;
+_cnt.casino = _cards.filter(function(c){ return c.cat==='casino'; }).length;
+_cnt.all = _cards.length;
 %>
 
 <!-- ===== MOBILE HOME (md:hidden = chỉ hiện mobile) ===== -->
@@ -238,61 +282,36 @@ _live.slice(0, 4).forEach(function(m){
     })();
     </script>
 
-    <!-- CATEGORIES GRID 5 cột nhỏ gọn -->
+    <!-- CATEGORIES FILTER - 5 nút chính (lọc inline, không navigate) -->
     <div class="grid grid-cols-5 gap-1.5 mb-3">
-      <a href="/" class="mh-cat active" data-cat="all">
+      <button type="button" class="mh-cat active" data-filter="all">
         <span class="mh-cat-ico bg-pri text-white">📊</span>
         <span class="mh-cat-name">Tất cả</span>
         <% if (_cnt.all > 0) { %><span class="mh-cat-cnt"><%= _cnt.all %></span><% } %>
-      </a>
-      <a href="/lich-phat-song" class="mh-cat">
-        <span class="mh-cat-ico bg-orange-500/20 text-orange-400">🔥</span>
-        <span class="mh-cat-name">Hot</span>
-        <% if (_cnt.hot > 0) { %><span class="mh-cat-cnt"><%= _cnt.hot %></span><% } %>
-      </a>
-      <a href="/the-thao/bong-da" class="mh-cat">
+      </button>
+      <button type="button" class="mh-cat" data-filter="bongda">
         <span class="mh-cat-ico bg-emerald-500/20 text-emerald-400">⚽</span>
         <span class="mh-cat-name">Bóng đá</span>
         <% if (_cnt.bongda > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongda %></span><% } %>
-      </a>
-      <a href="/the-thao/bong-ro" class="mh-cat">
-        <span class="mh-cat-ico bg-orange-500/20 text-orange-400">🏀</span>
-        <span class="mh-cat-name">Bóng rổ</span>
-        <% if (_cnt.bongro > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongro %></span><% } %>
-      </a>
-      <a href="/the-thao/tennis" class="mh-cat">
-        <span class="mh-cat-ico bg-yellow-500/20 text-yellow-400">🎾</span>
-        <span class="mh-cat-name">Tennis</span>
-        <% if (_cnt.tennis > 0) { %><span class="mh-cat-cnt"><%= _cnt.tennis %></span><% } %>
-      </a>
-      <a href="/the-thao/bong-chuyen" class="mh-cat">
-        <span class="mh-cat-ico bg-blue-500/20 text-blue-400">🏐</span>
-        <span class="mh-cat-name">Chuyền</span>
-        <% if (_cnt.bongchuyen > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongchuyen %></span><% } %>
-      </a>
-      <a href="/the-thao/bong-ban" class="mh-cat">
-        <span class="mh-cat-ico bg-red-500/20 text-red-400">🏓</span>
-        <span class="mh-cat-name">Bóng bàn</span>
-        <% if (_cnt.bongban > 0) { %><span class="mh-cat-cnt"><%= _cnt.bongban %></span><% } %>
-      </a>
-      <a href="/esports" class="mh-cat">
+      </button>
+      <button type="button" class="mh-cat" data-filter="idol">
+        <span class="mh-cat-ico bg-pink-500/20 text-pink-400">👑</span>
+        <span class="mh-cat-name">Idol</span>
+        <% if (_cnt.idol > 0) { %><span class="mh-cat-cnt"><%= _cnt.idol %></span><% } %>
+      </button>
+      <button type="button" class="mh-cat" data-filter="casino">
+        <span class="mh-cat-ico bg-amber-500/20 text-amber-400">🎰</span>
+        <span class="mh-cat-name">Sòng Bài</span>
+        <% if (_cnt.casino > 0) { %><span class="mh-cat-cnt"><%= _cnt.casino %></span><% } %>
+      </button>
+      <button type="button" class="mh-cat" data-filter="esport">
         <span class="mh-cat-ico bg-violet-500/20 text-violet-400">🎮</span>
         <span class="mh-cat-name">Esport</span>
-        <span class="mh-cat-cnt"><%= _cnt.esport %></span>
-      </a>
-      <a href="/casino" class="mh-cat">
-        <span class="mh-cat-ico bg-emerald-500/20 text-emerald-400">🎰</span>
-        <span class="mh-cat-name">Casino</span>
-        <span class="mh-cat-cnt"><%= _cnt.casino %></span>
-      </a>
-      <a href="/idol-live" class="mh-cat">
-        <span class="mh-cat-ico bg-pink-500/20 text-pink-400">👑</span>
-        <span class="mh-cat-name">Idol Live</span>
-        <span class="mh-cat-cnt"><%= _cnt.idol %></span>
-      </a>
+        <% if (_cnt.esport > 0) { %><span class="mh-cat-cnt"><%= _cnt.esport %></span><% } %>
+      </button>
     </div>
 
-    <!-- STREAM CARDS 2 cột -->
+    <!-- STREAM CARDS 2 cột - có data-cat để filter -->
     <% if (_cards.length === 0) { %>
       <div class="bg-bg-card border border-line rounded-xl p-8 text-center text-muted">
         <div class="text-3xl mb-2 opacity-50">📺</div>
@@ -300,9 +319,9 @@ _live.slice(0, 4).forEach(function(m){
         <a href="/lich-phat-song" class="inline-block mt-3 text-pri-light text-xs font-bold">→ Xem lịch phát sóng</a>
       </div>
     <% } else { %>
-    <div class="grid grid-cols-2 gap-2.5 mb-3">
+    <div class="grid grid-cols-2 gap-2.5 mb-3" id="mhCardsGrid">
       <% _cards.forEach(function(c){ %>
-        <a href="<%= c.href %>" class="mh-card rounded-xl overflow-hidden bg-bg-card border border-line relative block" style="aspect-ratio:1/1;">
+        <a href="<%= c.href %>" class="mh-card rounded-xl overflow-hidden bg-bg-card border border-line relative block" style="aspect-ratio:1/1;" data-cat="<%= c.cat %>">
           <% if (c.type === 'idol') { %>
             <% if (c.img) { %>
               <img src="<%= c.img %>" alt="<%= c.name %>" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
@@ -320,7 +339,7 @@ _live.slice(0, 4).forEach(function(m){
               <div class="w-6 h-6 rounded-full bg-pri/80 border border-white/40 grid place-items-center text-xs"><%= c.emoji %></div>
               <span class="text-white/90 text-[10px] font-bold"><%= c.viewers %></span>
             </div>
-          <% } else { %>
+          <% } else if (c.type === 'sports') { %>
             <!-- SPORTS CARD: 2 teams + time -->
             <div class="absolute inset-0 bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-950"></div>
             <div class="absolute inset-0 opacity-30" style="background:radial-gradient(ellipse at center, #fff 0%, transparent 60%);"></div>
@@ -347,9 +366,33 @@ _live.slice(0, 4).forEach(function(m){
             <div class="absolute bottom-1.5 left-1.5 right-1.5 z-[2] flex items-center justify-end">
               <span class="text-white/90 text-[10px] font-bold"><%= c.viewers %></span>
             </div>
+          <% } else if (c.type === 'casino') { %>
+            <!-- CASINO CARD -->
+            <div class="absolute inset-0 bg-gradient-to-br <%= c.gradient %>"></div>
+            <div class="absolute inset-0 opacity-30" style="background:radial-gradient(circle at 50% 30%, #fff 0%, transparent 60%);"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-3">
+              <div class="text-5xl drop-shadow-2xl mb-2"><%= c.emoji %></div>
+              <div class="text-sm font-extrabold text-center drop-shadow-lg"><%= c.name %></div>
+              <div class="mt-1.5 bg-white/20 backdrop-blur text-white text-[9px] font-bold px-2 py-0.5 rounded">CHƠI NGAY →</div>
+            </div>
+          <% } else if (c.type === 'esport') { %>
+            <!-- ESPORT CARD -->
+            <div class="absolute inset-0" style="background:linear-gradient(135deg, hsl(<%= c.color %>,70%,30%), hsl(<%= (c.color+60)%360 %>,70%,15%));"></div>
+            <div class="absolute inset-0 opacity-30" style="background:repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,.1) 12px, rgba(255,255,255,.1) 14px);"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-3">
+              <div class="text-5xl drop-shadow-2xl mb-2"><%= c.emoji %></div>
+              <div class="text-sm font-extrabold text-center drop-shadow-lg leading-tight"><%= c.name %></div>
+              <div class="mt-1.5 bg-violet-600/40 backdrop-blur text-white text-[9px] font-bold px-2 py-0.5 rounded">XEM NGAY →</div>
+            </div>
           <% } %>
         </a>
       <% }); %>
+    </div>
+
+    <!-- Empty state khi filter không có card -->
+    <div id="mhEmptyFilter" class="hidden bg-bg-card border border-line rounded-xl p-8 text-center text-muted mb-3">
+      <div class="text-3xl mb-2 opacity-50">🔍</div>
+      <div class="text-sm">Chưa có phòng thuộc danh mục này</div>
     </div>
     <% } %>
 
@@ -452,7 +495,7 @@ _live.slice(0, 4).forEach(function(m){
 
 <script>
 (function initMobileHome(){
-  // Banner carousel auto-play
+  // ===== Banner carousel auto-play =====
   var slides = document.querySelectorAll('#mhBanner .mh-slide');
   var dots = document.querySelectorAll('#mhDots span');
   if (slides.length > 1) {
@@ -470,5 +513,31 @@ _live.slice(0, 4).forEach(function(m){
     setInterval(function(){ show((idx+1) % slides.length); }, 5000);
     dots.forEach(function(d,k){ d.addEventListener('click', function(){ show(k); }); });
   }
+
+  // ===== Category filter (inline lọc cards) =====
+  var catBtns = document.querySelectorAll('.mh-cat[data-filter]');
+  var cards = document.querySelectorAll('#mhCardsGrid .mh-card[data-cat]');
+  var emptyEl = document.getElementById('mhEmptyFilter');
+
+  function applyFilter(filterVal){
+    var visible = 0;
+    cards.forEach(function(card){
+      var ok = (filterVal === 'all') || (card.dataset.cat === filterVal);
+      card.style.display = ok ? '' : 'none';
+      if (ok) visible++;
+    });
+    if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
+  }
+
+  catBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      catBtns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyFilter(btn.dataset.filter);
+      // Scroll mượt xuống cards
+      var grid = document.getElementById('mhCardsGrid');
+      if (grid) grid.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
 })();
 </script>
