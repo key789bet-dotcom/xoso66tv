@@ -115,6 +115,28 @@ app.post('/api/push/unsubscribe', function(req, res){
   const removed = pushLib.removeSubscription(endpoint);
   res.json({ ok:true, removed: removed });
 });
+// 🆕 Idol/BLV self-set category (chuyên mục live - không cần admin)
+app.post('/api/idol-self/set-category', function(req, res){
+  const user = pubAuth.getUser(req);
+  if (!user) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  if (!['idol','blv','admin'].includes(user.role)) return res.status(403).json({ ok:false, error:'Cần quyền streamer' });
+  const cat = String((req.body && req.body.category) || '').toLowerCase();
+  if (!['idol','bongda','casino','esport'].includes(cat)) return res.json({ ok:false, error:'Category không hợp lệ' });
+  const data = db.load();
+  const uname = String(user.username || '').toLowerCase();
+  // Tìm idol record của user (giống logic ở /idol-studio)
+  const idol = (data.idols || []).find(function(i){
+    return (String(i.userId||'').toLowerCase() === uname) ||
+           (String(i.username||'').toLowerCase() === uname) ||
+           (String(i.name||'').toLowerCase() === uname);
+  });
+  if (!idol) return res.json({ ok:false, error:'Không tìm thấy profile idol của bạn' });
+  idol.category = cat;
+  idol.categoryUpdatedAt = Date.now();
+  db.save(data);
+  res.json({ ok:true, category: cat });
+});
+
 // Idol/BLV set quality khi go live
 app.post('/api/streamer/set-quality', function(req, res){
   const user = pubAuth.getUser(req);
@@ -416,8 +438,23 @@ app.get('/api/auth/me', function (req, res) {
 // ===== IDOL STUDIO =====
 app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
   const data = db.load();
+  const user = pubAuth.getUser(req);
   const dbIdols = data.idols.filter(function(i){ return i.status==='active'; });
-  res.render('tw-idol-studio', { active:'cat', activeCat:'idol', dbIdols: dbIdols });
+  // 🆕 Auto-detect idol record của user đang login
+  const uname = user ? String(user.username || '').toLowerCase() : '';
+  const myIdol = uname ? dbIdols.find(function(i){
+    return (String(i.userId||'').toLowerCase() === uname) ||
+           (String(i.username||'').toLowerCase() === uname) ||
+           (String(i.name||'').toLowerCase() === uname);
+  }) : null;
+  const isAdmin = user && user.role === 'admin';
+  res.render('tw-idol-studio', {
+    active:'cat', activeCat:'idol',
+    dbIdols: dbIdols,
+    myIdol: myIdol,           // idol record của user đang đăng nhập
+    isAdmin: isAdmin,         // admin được switch sang idol khác
+    currentUser: user
+  });
 });
 
 // RTMP server URL (config qua env)
@@ -521,9 +558,12 @@ app.post('/api/studio/test-rtmp', pubAuth.requireStreamer, function (req, res){
 });
 
 app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){
-  const idolId = String((req.body && req.body.idolId) || '');
-  const title  = String((req.body && req.body.title) || '');
-  const source = String((req.body && req.body.source) || 'mobile');
+  const idolId   = String((req.body && req.body.idolId) || '');
+  const title    = String((req.body && req.body.title) || '');
+  const source   = String((req.body && req.body.source) || 'mobile');
+  // 🆕 Chuyên mục stream (mặc định 'idol' nếu không gửi)
+  const category = String((req.body && req.body.category) || '').toLowerCase();
+  const validCats = ['idol','bongda','casino','esport'];
   if (!idolId) return res.json({ ok:false, error:'Missing idolId' });
   const data = db.load();
   let obs = data.obs.find(function(o){ return o.requesterType==='idol' && o.requesterId===idolId; });
@@ -549,11 +589,20 @@ app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){
     obs.liveTitle = title;
     obs.liveStartedAt = Date.now();
   }
-  // Also update idol.liveNow
+  // Also update idol.liveNow + category
   let idol = data.idols.find(function(i){ return i.id === idolId; });
-  if (idol) { idol.liveNow = true; idol.liveTitle = title; }
+  if (idol) {
+    idol.liveNow = true;
+    idol.liveTitle = title;
+    if (validCats.indexOf(category) >= 0) idol.category = category;
+    idol.liveStartedAt = Date.now();
+  }
   db.save(data);
-  res.json({ ok:true });
+  // Push notify idol go live (nếu có VAPID + subscribers)
+  try {
+    if (idol) require('./lib/push').notifyIdolLive(idol).catch(function(){});
+  } catch(e){}
+  res.json({ ok:true, category: idol ? idol.category : null });
 });
 
 app.post('/api/studio/end-live', pubAuth.requireStreamer, function (req, res){

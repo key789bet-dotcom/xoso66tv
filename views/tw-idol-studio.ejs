@@ -22,31 +22,151 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   </header>
 
   <!-- Identity selector + status -->
+  <%
+    // myIdol = idol record của user đang login (server detect tự động)
+    var _autoIdol = (typeof myIdol !== 'undefined' && myIdol) ? myIdol : null;
+    var _isAdmin  = (typeof isAdmin !== 'undefined' && isAdmin) ? true : false;
+  %>
   <div id="stuIdentityBox" class="bg-bg-card border border-line rounded-xl p-4 mb-4">
     <div class="flex items-center gap-3 mb-3">
-      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center text-2xl shrink-0" id="stuAvatar">👑</div>
+      <% if (_autoIdol) { %>
+        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center text-3xl shrink-0 shadow-lg shadow-pri/40 border-2 border-pri" id="stuAvatar"><%= _autoIdol.emoji || '👑' %></div>
+      <% } else { %>
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center text-2xl shrink-0" id="stuAvatar">👑</div>
+      <% } %>
       <div class="flex-1 min-w-0">
         <div class="text-[11px] text-muted uppercase tracking-wider">Bạn đang stream với tư cách</div>
-        <div class="font-extrabold text-white text-base truncate" id="stuIdentityName">Chưa chọn</div>
+        <div class="font-extrabold text-white text-base truncate" id="stuIdentityName"><%= _autoIdol ? _autoIdol.name : 'Chưa có profile idol' %></div>
+        <% if (_autoIdol) { %>
+          <div class="text-[10px] text-emerald-400 flex items-center gap-1">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+            ID: <%= _autoIdol.id %> · <%= _autoIdol.room || 'Phòng FREE' %>
+          </div>
+        <% } %>
         <div class="text-[11px] text-emerald-400 flex items-center gap-1 hidden" id="stuLiveStatus">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           ĐANG LIVE · <span id="stuLiveTime">00:00</span>
         </div>
       </div>
-      <button onclick="stuChangeIdentity()" class="px-3 py-1.5 bg-bg-soft border border-line hover:border-pri text-pri-light text-xs font-bold rounded-lg" id="stuChangeBtn">Đổi</button>
+      <% if (_isAdmin) { %>
+        <button onclick="stuChangeIdentity()" class="px-3 py-1.5 bg-bg-soft border border-line hover:border-pri text-pri-light text-xs font-bold rounded-lg" id="stuChangeBtn" title="Admin có thể switch sang idol khác">🔁 Đổi</button>
+      <% } %>
     </div>
-    <!-- Identity dropdown -->
+
+    <% if (!_autoIdol && !_isAdmin) { %>
+      <!-- User chưa có idol profile -->
+      <div class="bg-yellow-900/30 border border-yellow-500/40 rounded-lg p-3 text-[12px] text-yellow-200">
+        ⚠ Tài khoản chưa có profile idol. Liên hệ admin để tạo hoặc <a href="/dang-ky-idol" class="text-yellow-300 underline font-bold">đăng ký làm idol</a>.
+      </div>
+    <% } %>
+
+    <!-- Admin-only dropdown để switch idol -->
+    <% if (_isAdmin) { %>
     <div id="stuIdentityDropdown" class="hidden border-t border-line/40 pt-3">
-      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Chọn idol đang quản lý</label>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">🛡 Admin: chọn idol để xem/stream thử</label>
       <select id="stuIdolSelect" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm">
         <option value="">-- Chọn idol --</option>
-        <% idolsActive.forEach(function(i){ %>
-          <option value="<%= i.id %>" data-name="<%= i.name %>" data-emoji="<%= i.emoji %>"><%= i.emoji %> <%= i.name %> (<%= i.room %>)</option>
+        <% dbIdols.forEach(function(i){ %>
+          <option value="<%= i.id %>" data-name="<%= i.name %>" data-emoji="<%= i.emoji %>" <%= (_autoIdol && i.id === _autoIdol.id) ? 'selected' : '' %>><%= i.emoji %> <%= i.name %> (<%= i.room %>)</option>
         <% }); %>
       </select>
-      <button onclick="stuSelectIdentity()" class="mt-2 w-full bg-gradient-to-r from-pri to-live text-white py-2 rounded-lg font-bold text-sm">Xác nhận</button>
+      <button onclick="stuSelectIdentity()" class="mt-2 w-full bg-gradient-to-r from-pri to-live text-white py-2 rounded-lg font-bold text-sm">Xác nhận switch</button>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- 🎯 CHỌN CHUYÊN MỤC LIVE -->
+  <% if (_autoIdol) { %>
+  <div class="bg-bg-card border border-line rounded-xl p-4 mb-4">
+    <div class="flex items-center justify-between mb-2.5">
+      <label class="text-[11px] text-muted uppercase font-bold flex items-center gap-1.5">
+        <span class="text-base">🎯</span>
+        <span>Chuyên mục bạn đang LIVE</span>
+      </label>
+      <span class="text-[10px] text-pri-light font-bold" id="stuCatLabel">
+        <%
+          var _cur = _autoIdol.category || 'idol';
+          var _lbl = _cur === 'bongda' ? '⚽ Bóng đá' :
+                     _cur === 'casino' ? '🎰 Sòng bài' :
+                     _cur === 'esport' ? '🎮 Esports' : '👑 Idol Show';
+        %>
+        <%= _lbl %>
+      </span>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5">
+      <button onclick="stuSetCategory('idol')" data-cat="idol" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+        <span class="text-xl mb-0.5">👑</span>
+        <span class="text-[10px]">Idol Show</span>
+      </button>
+      <button onclick="stuSetCategory('bongda')" data-cat="bongda" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+        <span class="text-xl mb-0.5">⚽</span>
+        <span class="text-[10px]">Bóng đá</span>
+      </button>
+      <button onclick="stuSetCategory('casino')" data-cat="casino" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+        <span class="text-xl mb-0.5">🎰</span>
+        <span class="text-[10px]">Sòng bài</span>
+      </button>
+      <button onclick="stuSetCategory('esport')" data-cat="esport" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+        <span class="text-xl mb-0.5">🎮</span>
+        <span class="text-[10px]">Esports</span>
+      </button>
+    </div>
+    <div class="text-[10px] text-muted mt-2 leading-relaxed">
+      💡 Viewer sẽ thấy phòng bạn trong tab <b class="text-pri-light" id="stuCatHint"><%= _lbl %></b> trên trang chủ.
     </div>
   </div>
+  <script>
+    // Auto-set state.identity từ server (không cần user chọn)
+    <% if (_autoIdol) { %>
+    window.__autoIdol = {
+      id: '<%= _autoIdol.id %>',
+      name: <%- JSON.stringify(_autoIdol.name) %>,
+      emoji: <%- JSON.stringify(_autoIdol.emoji || '👑') %>,
+      category: <%- JSON.stringify(_autoIdol.category || 'idol') %>
+    };
+    <% } %>
+
+    // Highlight category button đã chọn
+    (function(){
+      var cur = (window.__autoIdol && window.__autoIdol.category) || 'idol';
+      document.querySelectorAll('.stu-cat-btn').forEach(function(b){
+        if (b.dataset.cat === cur) {
+          b.classList.remove('bg-bg-deep','border-line');
+          b.classList.add('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
+        }
+      });
+    })();
+
+    // User click chọn chuyên mục
+    window.stuSetCategory = function(cat){
+      // Update UI
+      document.querySelectorAll('.stu-cat-btn').forEach(function(b){
+        b.classList.remove('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
+        b.classList.add('bg-bg-deep','border-line');
+      });
+      var btn = document.querySelector('.stu-cat-btn[data-cat="'+cat+'"]');
+      if (btn) {
+        btn.classList.remove('bg-bg-deep','border-line');
+        btn.classList.add('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
+      }
+      var labels = { idol:'👑 Idol Show', bongda:'⚽ Bóng đá', casino:'🎰 Sòng bài', esport:'🎮 Esports' };
+      document.getElementById('stuCatLabel').textContent = labels[cat] || cat;
+      document.getElementById('stuCatHint').textContent = labels[cat] || cat;
+      if (window.__autoIdol) window.__autoIdol.category = cat;
+      // Save lên DB ngay
+      if (window.state && window.state.identity) {
+        window.state.identity.category = cat;
+      }
+      fetch('/api/idol-self/set-category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: cat })
+      }).then(function(r){ return r.json(); }).then(function(j){
+        if (j.ok && typeof showToast === 'function') showToast('✓ Đã chuyển chuyên mục: ' + (labels[cat]||cat), 'success');
+      }).catch(function(){});
+    };
+  </script>
+  <% } %>
 
   <!-- ===== HTTPS WARNING + TEST GUIDE (chỉ hiện khi không secure context) ===== -->
   <div id="stuHttpsWarn" class="hidden bg-gradient-to-br from-yellow-900/50 via-orange-900/30 to-bg-card border-2 border-yellow-500/60 rounded-xl p-4 mb-4">
@@ -477,12 +597,28 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
 
   // ===== IDENTITY =====
   function loadIdentity(){
+    // 🆕 ƯU TIÊN auto-detect từ server (user đang login)
+    if (window.__autoIdol && window.__autoIdol.id) {
+      state.identity = {
+        id: window.__autoIdol.id,
+        name: window.__autoIdol.name,
+        emoji: window.__autoIdol.emoji,
+        category: window.__autoIdol.category || 'idol'
+      };
+      // Lưu vào localStorage để các module khác đọc
+      try { localStorage.setItem('x66_idol_identity', JSON.stringify(state.identity)); } catch(e){}
+      loadStreamKey();
+      return;
+    }
+    // Fallback: load từ localStorage (admin đã từng switch)
     try {
       var saved = JSON.parse(localStorage.getItem('x66_idol_identity')||'null');
       if (saved && saved.id) {
         state.identity = saved;
-        document.getElementById('stuIdentityName').textContent = saved.name;
-        document.getElementById('stuAvatar').textContent = saved.emoji;
+        var nameEl = document.getElementById('stuIdentityName');
+        var avEl   = document.getElementById('stuAvatar');
+        if (nameEl) nameEl.textContent = saved.name;
+        if (avEl) avEl.textContent = saved.emoji;
         loadStreamKey();
       }
     } catch(e){}
@@ -697,10 +833,12 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       console.error('[WHIP]', e);
     }
 
-    // STEP 2: Call API to mark stream active
+    // STEP 2: Call API to mark stream active (kèm category đang chọn)
+    var _cat = (state.identity && state.identity.category) ||
+               (window.__autoIdol && window.__autoIdol.category) || 'idol';
     fetch('/api/studio/go-live', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ idolId: state.identity.id, title: title, category: state.category, goal: parseInt(document.getElementById('stuGoal').value||0) })
+      body: JSON.stringify({ idolId: state.identity.id, title: title, category: _cat, goal: parseInt(document.getElementById('stuGoal').value||0) })
     }).then(function(r){ return r.json(); }).then(function(j){
       if (j.ok) {
         state.isLive = true;
@@ -1024,12 +1162,21 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
 
   window.stuObsGoLive = function(){
     if (!state.identity) { alert('Chọn idol trước'); return; }
+    var _cat = (state.identity && state.identity.category) ||
+               (window.__autoIdol && window.__autoIdol.category) || 'idol';
+    var _title = document.getElementById('stuTitle') ? document.getElementById('stuTitle').value.trim() : '';
     fetch('/api/studio/go-live', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ idolId: state.identity.id, source: 'obs' })
-    }).catch(function(){});
-    document.getElementById('stuObsStatus').classList.remove('hidden');
-    alert('🎉 Phòng đã mở! Viewer có thể vào /idol/' + state.identity.id);
+      body: JSON.stringify({ idolId: state.identity.id, source: 'obs', category: _cat, title: _title })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        document.getElementById('stuObsStatus').classList.remove('hidden');
+        var labels = { idol:'👑 Idol Show', bongda:'⚽ Bóng đá', casino:'🎰 Sòng bài', esport:'🎮 Esports' };
+        alert('🎉 Phòng đã mở!\n\n📺 Chuyên mục: ' + (labels[_cat] || _cat) + '\n🔗 Viewer xem tại: /idol/' + state.identity.id);
+      } else {
+        alert('❌ ' + (j.error || 'Không thể go-live'));
+      }
+    }).catch(function(e){ alert('❌ Lỗi: ' + e.message); });
   };
 })();
 </script>
