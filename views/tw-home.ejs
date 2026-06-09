@@ -22,7 +22,6 @@ function _bySport(arr, sport) {
   if (!arr) return [];
   return arr.filter(function(x){ return (x.sport||'')===sport; });
 }
-var roomsHot       = (live||[]).slice(0, 8);
 var roomsTheThao   = (live||[]).concat(upcoming||[]).filter(function(x){ return ['Soccer','Basketball','Tennis','Volleyball'].indexOf(x.sport)>=0; }).slice(0, 8);
 
 // Idol thật từ DB, có CATEGORY để lọc tab
@@ -33,7 +32,9 @@ var _allIdolRooms = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length
       id: i.id,
       home: i.name,
       away: i.room || 'Phòng',
-      league: 'Idol Live Show',
+      league: i.category === 'casino' ? 'Live Sòng Bài' :
+              i.category === 'bongda' ? 'BLV Bóng Đá' :
+              i.category === 'esport' ? 'BLV Esports' : 'Idol Live Show',
       sport: 'Idol',
       category: i.category || 'idol',  // chuyên mục stream
       status: i.liveNow ? 'live' : 'offline',
@@ -44,6 +45,20 @@ var _allIdolRooms = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length
       isIdolRoom: true
     };
   }) : [];
+
+// Tab HOT: TẤT CẢ phòng đang LIVE (sports + idol mọi category)
+var roomsHot = (live||[])
+  .concat(_allIdolRooms.filter(function(r){ return r.status === 'live'; }))
+  .sort(function(a, b){
+    // Live trước, offline sau; trong cùng nhóm sắp theo viewers nếu có
+    var aLive = (a.status === 'live') ? 1 : 0;
+    var bLive = (b.status === 'live') ? 1 : 0;
+    if (aLive !== bLive) return bLive - aLive;
+    return (b.viewers || 0) - (a.viewers || 0);
+  })
+  .slice(0, 12);
+// Nếu không có ai live → fallback hiện sports trên trang chủ
+if (roomsHot.length === 0) roomsHot = (live||[]).slice(0, 8);
 
 // Tab Idol Live: chỉ idol có category='idol' (idol show thuần)
 var roomsIdol = _allIdolRooms.filter(function(r){ return r.category === 'idol'; });
