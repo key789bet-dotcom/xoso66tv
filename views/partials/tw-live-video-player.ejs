@@ -1,0 +1,94 @@
+<%
+// Partial: Video player FLV.js cho idol/blv live room
+// Sử dụng: <%- include('partials/tw-live-video-player', { streamKey: idolId }) %>
+var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== 'undefined' ? idolId : 'unknown');
+%>
+<!-- VIDEO ELEMENT (ẩn ban đầu, hiện khi có stream live) -->
+<video id="liveVideo" class="hidden absolute inset-0 w-full h-full object-contain bg-black z-[1]" playsinline muted controls></video>
+
+<!-- Status overlay "Idol chưa lên sóng" -->
+<div id="liveOffline" class="hidden absolute inset-0 z-[3] grid place-items-center bg-black/60 backdrop-blur-sm">
+  <div class="text-center text-white px-4">
+    <div class="text-5xl mb-2">📵</div>
+    <div class="text-lg font-extrabold mb-1">Chưa lên sóng</div>
+    <div class="text-xs text-gray-300">Quay lại sau hoặc theo dõi để được thông báo</div>
+  </div>
+</div>
+
+<!-- Loading spinner -->
+<div id="liveLoading" class="hidden absolute inset-0 z-[3] grid place-items-center bg-black/40">
+  <div class="w-12 h-12 border-4 border-pri border-t-transparent rounded-full animate-spin"></div>
+</div>
+
+<!-- FLV.js library + auto-attach to stream -->
+<script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
+<script>
+(function initLiveStream(){
+  var STREAM_KEY = '<%= __sk %>';
+  var STREAM_URL = 'https://xoso66tv.com/live/' + STREAM_KEY + '.flv';
+  var POLL_INTERVAL = 8000;
+  var video, flvPlayer, isPlaying = false;
+
+  function showEl(id){ var e=document.getElementById(id); if(e)e.classList.remove('hidden'); }
+  function hideEl(id){ var e=document.getElementById(id); if(e)e.classList.add('hidden'); }
+
+  function attachStream(){
+    if (!window.flvjs || !flvjs.isSupported()) { console.log('[LIVE] FLV.js not supported'); return; }
+    video = document.getElementById('liveVideo');
+    if (!video) return;
+    if (flvPlayer) try{ flvPlayer.destroy(); }catch(e){}
+    flvPlayer = flvjs.createPlayer({
+      type: 'flv', url: STREAM_URL, isLive: true, hasAudio: true, hasVideo: true
+    }, {
+      enableWorker: false, enableStashBuffer: false, stashInitialSize: 128, autoCleanupSourceBuffer: true
+    });
+    flvPlayer.attachMediaElement(video);
+    flvPlayer.load();
+    var p = flvPlayer.play();
+    if (p && p.catch) p.catch(function(err){ console.log('[LIVE] Autoplay blocked:', err.message); });
+
+    flvPlayer.on(flvjs.Events.ERROR, function(type, detail){
+      console.log('[LIVE] Stream error:', type, detail);
+      hideEl('liveVideo'); showEl('liveOffline'); hideEl('liveLoading');
+      isPlaying = false;
+    });
+    flvPlayer.on(flvjs.Events.MEDIA_INFO, function(info){
+      console.log('[LIVE] Stream connected');
+      hideEl('liveOffline'); hideEl('liveLoading'); showEl('liveVideo');
+      // Ẩn placeholder emoji nếu có
+      var emoji = document.querySelector('#livePlayer .text-\\[200px\\]');
+      if (emoji) emoji.style.display = 'none';
+      isPlaying = true;
+    });
+  }
+
+  function checkStream(){
+    fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
+      .then(function(r){
+        if (r.ok && !isPlaying) {
+          hideEl('liveOffline'); showEl('liveLoading');
+          setTimeout(attachStream, 500);
+        } else if (!r.ok && isPlaying) {
+          if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+          hideEl('liveVideo'); showEl('liveOffline');
+          isPlaying = false;
+        }
+      })
+      .catch(function(){
+        if (isPlaying) {
+          if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+          hideEl('liveVideo'); showEl('liveOffline');
+          isPlaying = false;
+        }
+      });
+  }
+
+  function start(){
+    if (!window.flvjs) { setTimeout(start, 300); return; }
+    checkStream();
+    setInterval(checkStream, POLL_INTERVAL);
+  }
+  if (document.readyState !== 'loading') start();
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>

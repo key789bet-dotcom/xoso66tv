@@ -25,12 +25,62 @@ var quickGifts = [
     <!-- Radial spotlight -->
     <div class="absolute inset-0 opacity-50" style="background:radial-gradient(circle at 30% 40%,rgba(255,255,255,.35),transparent 60%),radial-gradient(circle at 70% 60%,rgba(255,255,255,.25),transparent 55%)"></div>
     <!-- Idol emoji center (placeholder cho video) -->
-    <div class="absolute inset-0 grid place-items-center pointer-events-none">
+    <div class="absolute inset-0 grid place-items-center pointer-events-none" id="mlrEmojiBox">
       <div class="text-[200px] drop-shadow-2xl mlr-idol-anim"><%= idol.emoji || '👑' %></div>
     </div>
+
+    <!-- VIDEO ELEMENT (ẩn ban đầu, hiện khi stream live) -->
+    <video id="mlrLiveVideo" class="hidden absolute inset-0 w-full h-full object-cover bg-black z-[2]" playsinline muted autoplay></video>
+
     <!-- Subtle vignette -->
-    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.4) 100%)"></div>
+    <div class="absolute inset-0 pointer-events-none z-[3]" style="background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.4) 100%)"></div>
   </div>
+
+  <!-- FLV.js + stream loader for mobile -->
+  <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
+  <script>
+  (function initMobileStream(){
+    var STREAM_KEY = '<%= idolId %>';
+    var STREAM_URL = 'https://xoso66tv.com/live/' + STREAM_KEY + '.flv';
+    var player, isLive = false;
+    function attach(){
+      if (!window.flvjs || !flvjs.isSupported()) return;
+      var v = document.getElementById('mlrLiveVideo');
+      if (!v) return;
+      if (player) try{ player.destroy(); }catch(e){}
+      player = flvjs.createPlayer({ type:'flv', url:STREAM_URL, isLive:true, hasAudio:true, hasVideo:true },
+        { enableWorker:false, enableStashBuffer:false, stashInitialSize:128 });
+      player.attachMediaElement(v);
+      player.load();
+      var p = player.play(); if(p&&p.catch) p.catch(function(){});
+      player.on(flvjs.Events.MEDIA_INFO, function(){
+        var box = document.getElementById('mlrEmojiBox');
+        if (box) box.style.display='none';
+        v.classList.remove('hidden');
+        isLive = true;
+      });
+      player.on(flvjs.Events.ERROR, function(){
+        if (player) try{ player.destroy(); player=null; }catch(e){}
+        v.classList.add('hidden');
+        var box = document.getElementById('mlrEmojiBox');
+        if (box) box.style.display='';
+        isLive = false;
+      });
+    }
+    function check(){
+      fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
+        .then(function(r){ if (r.ok && !isLive) setTimeout(attach, 300); })
+        .catch(function(){});
+    }
+    function start(){
+      if (!window.flvjs) { setTimeout(start, 300); return; }
+      check();
+      setInterval(check, 10000);
+    }
+    if (document.readyState !== 'loading') start();
+    else document.addEventListener('DOMContentLoaded', start);
+  })();
+  </script>
 
   <!-- ===== LAYER 2: Gesture catcher (transparent overlay for taps) ===== -->
   <div class="absolute inset-0 z-[5]" id="mlrGestureLayer"></div>

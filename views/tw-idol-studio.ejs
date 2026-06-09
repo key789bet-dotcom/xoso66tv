@@ -510,14 +510,51 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     });
   };
 
+  // ===== WHIP PUSH: WebRTC → SRS server (browser native live) =====
+  state.pc = null;
+  async function whipPublish(streamKey){
+    var WHIP_URL = 'https://xoso66tv.com/rtc/v1/whip/?app=live&stream=' + encodeURIComponent(streamKey);
+    var pc = new RTCPeerConnection({
+      iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }]
+    });
+    // Add tracks từ camera đã có
+    state.mediaStream.getTracks().forEach(function(t){ pc.addTrack(t, state.mediaStream); });
+    // Tạo SDP offer
+    var offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    // POST offer tới WHIP endpoint
+    var resp = await fetch(WHIP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/sdp' },
+      body: pc.localDescription.sdp
+    });
+    if (!resp.ok) throw new Error('WHIP HTTP ' + resp.status);
+    var answerSdp = await resp.text();
+    await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+    console.log('[WHIP] Stream published to SRS:', streamKey);
+    return pc;
+  }
+  async function whipUnpublish(){
+    if (state.pc) { try { state.pc.close(); } catch(e){} state.pc = null; }
+  }
+
   // ===== GO LIVE / END LIVE =====
-  window.stuGoLive = function(){
+  window.stuGoLive = async function(){
     if (!state.identity) { alert('Chọn idol trước'); return; }
     if (!state.mediaStream) { alert('Bật camera trước khi lên sóng'); return; }
     var title = document.getElementById('stuTitle').value.trim();
     if (!title) { alert('Nhập tiêu đề buổi live'); document.getElementById('stuTitle').focus(); return; }
-    if (!confirm('Bắt đầu lên sóng với tư cách ' + state.identity.name + '?')) return;
-    // Call API to mark stream active
+    if (!confirm('Bắt đầu lên sóng với tư cách ' + state.identity.name + '?\n\n📡 Stream sẽ phát qua WebRTC (browser native, latency ~1s)')) return;
+
+    // STEP 1: Publish WebRTC stream lên SRS server
+    try {
+      state.pc = await whipPublish(state.identity.id);
+    } catch(e) {
+      alert('❌ Lỗi WebRTC: ' + e.message + '\n\n(SRS server có thể chưa sẵn sàng. Vẫn tiếp tục với mode demo)');
+      console.error('[WHIP]', e);
+    }
+
+    // STEP 2: Call API to mark stream active
     fetch('/api/studio/go-live', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ idolId: state.identity.id, title: title, category: state.category, goal: parseInt(document.getElementById('stuGoal').value||0) })
@@ -559,8 +596,10 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       alert('🎉 ĐANG LIVE (Demo mode)');
     });
   };
-  window.stuEndLive = function(){
+  window.stuEndLive = async function(){
     if (!confirm('Kết thúc buổi live?')) return;
+    // Close WebRTC connection
+    await whipUnpublish();
     fetch('/api/studio/end-live', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ idolId: state.identity ? state.identity.id : '' })
