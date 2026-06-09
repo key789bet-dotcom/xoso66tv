@@ -47,6 +47,19 @@
           </div>
           <% } %>
 
+          <!-- LIVE PERMISSION TOGGLE -->
+          <div class="mt-3 flex items-center justify-between bg-bg-soft border border-line rounded-lg px-3 py-2">
+            <span class="text-xs font-bold flex items-center gap-1.5">
+              <span class="text-base">📡</span>
+              <span class="<%= b.canLive ? 'text-emerald-400' : 'text-muted' %>">
+                Quyen Live: <%= b.canLive ? 'CHO PHEP ✅' : 'CHUA CAP ❌' %>
+              </span>
+            </span>
+            <button onclick="adminAction('/admin/api/blv/<%= b.id %>/toggle-live', {}, function(r){ if(r.ok) location.reload(); })" class="<%= b.canLive ? 'bg-live hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700' %> text-white px-3 py-1 rounded text-xs font-extrabold transition-colors">
+              <%= b.canLive ? '🚫 THU HOI' : '✅ CAP QUYEN' %>
+            </button>
+          </div>
+
           <div class="mt-3 flex flex-wrap gap-2">
             <% if (b.status==='pending') { %>
               <button onclick="confirmAction('Duyet BLV <%= b.name %>?', function(){ adminAction('/admin/api/blv/<%= b.id %>/approve') })" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold">&check; Duyet</button>

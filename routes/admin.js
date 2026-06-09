@@ -249,6 +249,16 @@ function actionOn(kind) {
       db.audit(data, 'Delete ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
       db.save(data);
       res.json({ ok:true, message:'Da xoa ' + item.name });
+    },
+    toggleLive: function (req, res) {
+      const data = db.load();
+      const arr = data[kind];
+      const item = arr.find(function(x){ return x.id === req.params.id });
+      if (!item) return res.json({ ok:false, message:'Khong ton tai' });
+      item.canLive = !item.canLive;
+      db.audit(data, (item.canLive ? 'GRANT' : 'REVOKE') + ' live permission ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
+      db.save(data);
+      res.json({ ok:true, canLive: item.canLive, message: item.name + (item.canLive ? ' ✅ ĐƯỢC PHÉP LIVE' : ' ❌ ĐÃ THU HỒI QUYỀN LIVE') });
     }
   };
 }
@@ -257,6 +267,7 @@ const blvActions = actionOn('blvs');
 router.post('/api/blv/:id/approve', blvActions.approve);
 router.post('/api/blv/:id/reject',  blvActions.reject);
 router.post('/api/blv/:id/delete',  blvActions.del);
+router.post('/api/blv/:id/toggle-live', blvActions.toggleLive);
 
 // ===== IDOL =====
 router.get('/idol', function (req, res) {
@@ -276,6 +287,7 @@ const idolActions = actionOn('idols');
 router.post('/api/idol/:id/approve', idolActions.approve);
 router.post('/api/idol/:id/reject',  idolActions.reject);
 router.post('/api/idol/:id/delete',  idolActions.del);
+router.post('/api/idol/:id/toggle-live', idolActions.toggleLive);
 
 // ===== OBS =====
 const RTMP_SERVER = process.env.RTMP_SERVER || 'rtmp://stream.xoso66tv.com/live';
