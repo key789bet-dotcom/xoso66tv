@@ -96,19 +96,13 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     flvPlayer = flvjs.createPlayer({
       type: 'flv', url: STREAM_URL, isLive: true, hasAudio: true, hasVideo: true
     }, {
-      // ⚡ LOW LATENCY config (KHÔNG dùng Worker - gây Class extends undefined)
-      enableWorker: false,                 // ← FIX: Worker FLV.js bị crash trong production
+      // ⚡ Config TỐI THIỂU SAFE (low latency từ SRS server)
+      // Bỏ liveBufferLatencyChasing vì FLV.js v1.6.2 bug remove negative range gây lag
+      enableWorker: false,
       enableStashBuffer: false,
-      stashInitialSize: 128,               // về default an toàn
-      autoCleanupSourceBuffer: true,
-      autoCleanupMaxBackwardDuration: 3,
-      autoCleanupMinBackwardDuration: 2,
-      fixAudioTimestampGap: false,
+      stashInitialSize: 128,
       lazyLoad: false,
-      // Live chase: skip buffer khi quá cách live edge
-      liveBufferLatencyChasing: true,
-      liveBufferLatencyMaxLatency: 2.0,
-      liveBufferLatencyMinRemain: 0.3
+      fixAudioTimestampGap: false
     });
     flvPlayer.attachMediaElement(video);
     flvPlayer.load();

@@ -72,11 +72,8 @@ var quickGifts = [
       if (player) try{ player.destroy(); }catch(e){}
 
       player = flvjs.createPlayer({ type:'flv', url:STREAM_URL, isLive:true, hasAudio:true, hasVideo:true }, {
-        // ⚡ LOW LATENCY mobile (worker=false để tránh "Class extends undefined")
-        enableWorker:false, enableStashBuffer:false, stashInitialSize:128,
-        autoCleanupSourceBuffer:true, autoCleanupMaxBackwardDuration:3,
-        liveBufferLatencyChasing:true, liveBufferLatencyMaxLatency:2.0, liveBufferLatencyMinRemain:0.3,
-        lazyLoad:false
+        // ⚡ Config tối thiểu SAFE (bỏ liveBufferLatencyChasing - gây remove negative range bug)
+        enableWorker:false, enableStashBuffer:false, stashInitialSize:128, lazyLoad:false
       });
       player.attachMediaElement(video);
       player.load();
