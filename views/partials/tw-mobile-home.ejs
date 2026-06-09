@@ -7,6 +7,15 @@ var _featured = _live[0] || _up[0] || null;
 var _featuredLink = _featured ? ('/live/' + (_featured.slug || _featured.id)) : '#';
 var _idolList = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? dbIdols.filter(function(i){ return i.status==='active'; }) : [];
 
+// Danh sách stream keys có thể đang live (idol đã được cấp quyền live)
+var _liveCandidates = _idolList
+  .filter(function(i){ return i.canLive; })
+  .map(function(i){ return { key: i.id, href: '/idol/' + i.id, name: i.name }; });
+// Fallback: nếu chưa có idol canLive, vẫn thử tất cả idol active
+if (_liveCandidates.length === 0) {
+  _liveCandidates = _idolList.map(function(i){ return { key: i.id, href: '/idol/' + i.id, name: i.name }; });
+}
+
 // Count by category
 var _cnt = { all: _live.length + _idolList.length, hot: 0, bongda: 0, bongro: 0, tennis: 0, bongchuyen: 0, bongban: 0, esport: 0, casino: 5, idol: _idolList.length };
 _live.forEach(function(x){
@@ -91,21 +100,143 @@ _live.slice(0, 4).forEach(function(m){
     </div>
     <% } %>
 
-    <!-- LIVE PREVIEW BLOCK - nhỏ hơn -->
-    <a href="<%= _featuredLink %>" class="block rounded-xl bg-black border border-line overflow-hidden mb-3 relative" style="aspect-ratio:16/7;">
+    <!-- LIVE PREVIEW BLOCK - VIDEO THỰC + overlay button -->
+    <div id="mhLivePreview" class="block rounded-xl bg-black border border-line overflow-hidden mb-3 relative cursor-pointer" style="aspect-ratio:16/8;">
+      <!-- Video element ẩn ban đầu, hiện khi có stream live -->
+      <video id="mhLiveVideo" class="hidden absolute inset-0 w-full h-full object-cover bg-black" playsinline autoplay muted></video>
+
+      <!-- Poster placeholder (hiện khi chưa có video) -->
       <% if (_featured && _featured.poster) { %>
-        <img src="<%= _featured.poster %>" class="absolute inset-0 w-full h-full object-cover opacity-40" alt="" onerror="this.style.display='none'">
+        <img id="mhLivePoster" src="<%= _featured.poster %>" class="absolute inset-0 w-full h-full object-cover opacity-50" alt="" onerror="this.style.display='none'">
       <% } %>
-      <div class="absolute inset-0 grid place-items-center">
-        <div class="bg-black/60 border-2 border-pri/60 rounded-lg px-4 py-2 flex items-center gap-2 text-white backdrop-blur shadow-lg">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-pri"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span class="font-bold text-[12px]">Vào Phòng Trực Tiếp</span>
+      <div id="mhLiveGradient" class="absolute inset-0 bg-gradient-to-br from-bg-card via-bg to-black"></div>
+
+      <!-- LIVE badge top-left -->
+      <span id="mhLiveBadge" class="hidden absolute top-2 left-2 z-[3] bg-live text-white px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 shadow-lg"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+
+      <!-- Viewer count top-right -->
+      <span id="mhLiveViewers" class="hidden absolute top-2 right-2 z-[3] bg-black/70 text-white px-2 py-0.5 rounded text-[10px] font-bold backdrop-blur">👁 <span class="tabular-nums">--</span></span>
+
+      <!-- Idol name bottom -->
+      <div id="mhLiveName" class="hidden absolute bottom-2 left-2 right-2 z-[3] text-white text-xs font-bold drop-shadow-lg truncate"></div>
+
+      <!-- Overlay nút "Vào Phòng Trực Tiếp" giữa -->
+      <div class="absolute inset-0 grid place-items-center z-[4] pointer-events-none">
+        <div id="mhLiveCta" class="bg-black/60 border-2 border-pri/70 rounded-full px-5 py-2.5 flex items-center gap-2 text-white backdrop-blur shadow-2xl pointer-events-auto" style="box-shadow:0 0 20px rgba(255,122,24,.4);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-pri"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span class="font-bold text-[13px]">Vào Phòng Trực Tiếp</span>
         </div>
       </div>
-      <% if (_featured && _featured.status === 'live') { %>
-        <span class="absolute top-1.5 left-1.5 z-[2] bg-live text-white px-1.5 py-0.5 rounded font-bold text-[9px] flex items-center gap-1"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
-      <% } %>
-    </a>
+
+      <!-- Nút bật tiếng (góc dưới phải) -->
+      <button id="mhLiveUnmute" class="hidden absolute bottom-2 right-2 z-[5] bg-pri/90 text-white w-8 h-8 rounded-full grid place-items-center shadow-lg" type="button" aria-label="Bật tiếng">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
+    <script>
+    (function initMhLivePreview(){
+      var candidates = <%- JSON.stringify(_liveCandidates) %>;
+      if (!candidates.length) return;
+
+      var box = document.getElementById('mhLivePreview');
+      var video = document.getElementById('mhLiveVideo');
+      var poster = document.getElementById('mhLivePoster');
+      var gradient = document.getElementById('mhLiveGradient');
+      var badge = document.getElementById('mhLiveBadge');
+      var viewers = document.getElementById('mhLiveViewers');
+      var nameEl = document.getElementById('mhLiveName');
+      var unmuteBtn = document.getElementById('mhLiveUnmute');
+      var ctaBtn = document.getElementById('mhLiveCta');
+
+      var currentStream = null;
+      var flvPlayer = null;
+      var clickHref = candidates[0].href;
+
+      // Click toàn vùng → vào phòng
+      box.addEventListener('click', function(e){
+        if (e.target === unmuteBtn || unmuteBtn.contains(e.target)) return;
+        location.href = clickHref;
+      });
+
+      // Unmute button
+      unmuteBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if (video) { video.muted = false; video.volume = 1; }
+        unmuteBtn.classList.add('hidden');
+      });
+
+      function attachStream(cand){
+        var url = 'https://xoso66tv.com/live/' + cand.key + '.flv';
+        if (!window.flvjs || !flvjs.isSupported()) return;
+        try { if (flvPlayer) flvPlayer.destroy(); } catch(e){}
+        flvPlayer = flvjs.createPlayer({
+          type:'flv', url:url, isLive:true, hasAudio:true, hasVideo:true
+        }, { enableWorker:false, enableStashBuffer:false, stashInitialSize:128 });
+        flvPlayer.attachMediaElement(video);
+        flvPlayer.load();
+        var p = flvPlayer.play();
+        if (p && p.catch) p.catch(function(){});
+
+        var shown = false;
+        function showLive(){
+          if (shown) return; shown = true;
+          video.classList.remove('hidden');
+          if (poster) poster.style.display = 'none';
+          if (gradient) gradient.style.display = 'none';
+          badge.classList.remove('hidden');
+          badge.style.display = 'flex';
+          viewers.classList.remove('hidden');
+          nameEl.classList.remove('hidden');
+          nameEl.textContent = '🔴 ' + cand.name;
+          unmuteBtn.classList.remove('hidden');
+          clickHref = cand.href;
+          // Random viewers count update
+          var n = 50 + Math.floor(Math.random()*500);
+          viewers.querySelector('span').textContent = n.toLocaleString('vi-VN');
+          setInterval(function(){
+            n += Math.floor(Math.random()*5) - 2;
+            if (n < 30) n = 30;
+            viewers.querySelector('span').textContent = n.toLocaleString('vi-VN');
+          }, 4000);
+        }
+
+        video.addEventListener('loadedmetadata', showLive, { once:true });
+        video.addEventListener('playing', showLive, { once:true });
+        flvPlayer.on(flvjs.Events.ERROR, function(){
+          if (shown) return; // đã có stream khác work
+          tryNext();
+        });
+      }
+
+      var idx = 0;
+      function tryNext(){
+        if (idx >= candidates.length) return; // không stream nào live
+        var cand = candidates[idx++];
+        // HEAD check trước để khỏi tốn FLV connect
+        fetch('https://xoso66tv.com/live/' + cand.key + '.flv', { method:'HEAD', cache:'no-store' })
+          .then(function(r){
+            if (r.ok) attachStream(cand);
+            else tryNext();
+          })
+          .catch(tryNext);
+      }
+
+      function start(){
+        if (!window.flvjs) { setTimeout(start, 300); return; }
+        tryNext();
+        // Recheck mỗi 30s nếu chưa có stream
+        setInterval(function(){
+          if (!flvPlayer || video.classList.contains('hidden')) {
+            idx = 0; tryNext();
+          }
+        }, 30000);
+      }
+      if (document.readyState !== 'loading') start();
+      else document.addEventListener('DOMContentLoaded', start);
+    })();
+    </script>
 
     <!-- CATEGORIES GRID 5 cột nhỏ gọn -->
     <div class="grid grid-cols-5 gap-1.5 mb-3">
