@@ -798,6 +798,8 @@ function toggleFollow(b){ b.textContent = b.textContent.indexOf('Đã')>=0 ? '�
 // hasObs do server truyền vào → quyết định bot có chạy không
 (function initIdolChat(){
   var hasObs = <%= (typeof hasObs !== 'undefined' && hasObs) ? 'true' : 'false' %>;
+  // 🚨 Flag global cho gift-panel + chat-v2 biết phòng có đang live thật không
+  window.__x66HasObs = hasObs;
   function start(){
     if (typeof window.startChat === 'function') {
       window.startChat('chatBody', { mode: 'idol', isLive: hasObs });

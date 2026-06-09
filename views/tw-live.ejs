@@ -110,7 +110,11 @@ seo = {
 </article>
 
 <script src="/static/js/chat-v2.js"></script>
-<script>startChat('chatBody', { isLive: <%= hasObs ? 'true' : 'false' %> });</script>
+<script>
+  // Flag để chat-v2 + gift-panel biết phòng có đang live thật không
+  window.__x66HasObs = <%= hasObs ? 'true' : 'false' %>;
+  startChat('chatBody', { isLive: window.__x66HasObs });
+</script>
 
 <%- include('partials/tw-gift-panel') %>
 

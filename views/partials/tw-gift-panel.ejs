@@ -256,10 +256,21 @@ var TIER_ICON_DECO = {
     });
   });
 
-  // Click gift to send
+  // Click gift to send - CHẶN khi BLV/Idol chưa lên sóng
   if (grid) grid.addEventListener('click', function(e){
     var btn = e.target.closest('.gp-item');
     if (!btn) return;
+
+    // 🚨 CHẶN tặng quà khi phòng chưa LIVE
+    if (typeof window.__x66HasObs !== 'undefined' && !window.__x66HasObs) {
+      if (typeof showToast === 'function') {
+        showToast('🔇 BLV/Idol chưa lên sóng - không thể tặng quà lúc này', 'error');
+      } else {
+        alert('🔇 BLV/Idol chưa lên sóng\n\nVui lòng đợi BLV kết nối OBS rồi mới tặng quà nhé!');
+      }
+      return;
+    }
+
     var name  = btn.getAttribute('data-name');
     var icon  = btn.getAttribute('data-icon');
     var price = parseInt(btn.getAttribute('data-price'), 10);
@@ -369,13 +380,24 @@ var TIER_ICON_DECO = {
 
   function escapeHtml(s){ return String(s||'').replace(/[<>&"]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
 
-  // ===== SIMULATE: bot khac tang qua de demo dong bo (random moi 30-60s) =====
+  // ===== SIMULATE: bot khac tang qua - CHỈ chạy khi phòng đang LIVE =====
   var BOT_NAMES = ['vipFan88','Le_HoaiAnh','TranMinh','BoMy_X66','HoangLong','MissT'];
+
+  // Lấy trạng thái live từ window flag (set bởi view khi render)
+  // hasObs = true → BLV/Idol đang kết nối OBS
+  // window.__x66HasObs được set trong tw-live.ejs / tw-idol-room.ejs
+  function isRoomLive(){
+    if (typeof window.__x66HasObs !== 'undefined') return window.__x66HasObs === true;
+    // Fallback: check video element có visible không
+    var v = document.getElementById('liveVideo') || document.getElementById('mlrLiveVideo');
+    return v && !v.classList.contains('hidden');
+  }
+
   function simulateOtherGift(){
+    if (!isRoomLive()) return; // 🔇 BLV chưa lên sóng → KHÔNG tặng quà giả
     if (!document.getElementById('livePlayer')) return;
     var items = document.querySelectorAll('.gp-item');
     if (!items.length) return;
-    // 80% chon common/rare, 20% chon epic/legendary
     var pool = Math.random() < .8
       ? Array.from(items).filter(function(b){var t=b.getAttribute('data-tier');return t==='common'||t==='rare';})
       : Array.from(items).filter(function(b){var t=b.getAttribute('data-tier');return t==='epic'||t==='legendary';});
