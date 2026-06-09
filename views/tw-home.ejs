@@ -123,7 +123,7 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
 </div>
 
 <!-- MAIN PLAYER + ROOM LIST -->
-<section class="grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-3.5 mb-4" aria-label="Player">
+<section class="grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-3.5 mb-4 items-stretch" aria-label="Player">
 
   <!-- Video player frame (always present) -->
   <article class="bg-black rounded-xl relative overflow-hidden flex flex-col">
@@ -189,8 +189,8 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
     </div>
   </article>
 
-  <!-- Right sidebar: Tab list of rooms -->
-  <aside class="bg-bg-card border border-line rounded-xl overflow-hidden flex flex-col lg:max-h-[calc(100vh-220px)]">
+  <!-- Right sidebar: Tab list of rooms - CỐ ĐỊNH max-height, scroll bên trong -->
+  <aside class="bg-bg-card border border-line rounded-xl overflow-hidden flex flex-col" style="max-height:560px;min-height:0;">
     <!-- Tabs - LOC IDOL THEO CATEGORY -->
     <nav class="flex gap-1 p-2 border-b border-line overflow-x-auto scrollbar-hide" role="tablist" id="roomTabs">
       <button data-tab="hot"     class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap bg-pri text-white shadow-pri transition-all" role="tab">&#128293; Hot</button>
