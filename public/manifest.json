@@ -1,0 +1,65 @@
+{
+  "name": "XOSO66 TV - Live Bóng Đá & Idol",
+  "short_name": "XOSO66 TV",
+  "description": "Xem trực tiếp bóng đá HD, idol live show, casino, esports 24/7 miễn phí",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#ff7a18",
+  "background_color": "#0a0d12",
+  "lang": "vi",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/static/img/logoxoso66tv.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/logoxoso66tv.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/favicon.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["sports", "entertainment", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/static/img/logoxoso66tv.webp",
+      "sizes": "1280x720",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Trang chủ XOSO66 TV"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Trận live hôm nay",
+      "short_name": "Live",
+      "url": "/?source=pwa_shortcut_live",
+      "icons": [{ "src": "/static/img/favicon.webp", "sizes": "96x96" }]
+    },
+    {
+      "name": "Idol đang live",
+      "short_name": "Idol",
+      "url": "/idol-live?source=pwa_shortcut_idol",
+      "icons": [{ "src": "/static/img/favicon.webp", "sizes": "96x96" }]
+    },
+    {
+      "name": "Khuyến mãi",
+      "short_name": "Quà",
+      "url": "/qua-tang?source=pwa_shortcut_qua",
+      "icons": [{ "src": "/static/img/favicon.webp", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

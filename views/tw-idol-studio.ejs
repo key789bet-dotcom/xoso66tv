@@ -172,6 +172,65 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       </button>
     </div>
 
+    <!-- ===== QUALITY SELECTOR (chọn 1080p / 720p / 480p / 360p) ===== -->
+    <div class="bg-bg-card border border-line rounded-xl p-3">
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-[11px] text-muted uppercase font-bold flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          Chất lượng stream
+        </label>
+        <span id="stuQualityBadge" class="hidden text-white text-[10px] font-extrabold px-2 py-0.5 rounded">720p</span>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5">
+        <button onclick="stuSetQuality('1080p')" data-q="1080p" class="stu-q-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+          <span class="text-[14px] leading-tight">1080p</span>
+          <span class="text-[8px] opacity-70 mt-0.5">Full HD</span>
+        </button>
+        <button onclick="stuSetQuality('720p')" data-q="720p" class="stu-q-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+          <span class="text-[14px] leading-tight">720p</span>
+          <span class="text-[8px] opacity-70 mt-0.5">HD</span>
+        </button>
+        <button onclick="stuSetQuality('480p')" data-q="480p" class="stu-q-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+          <span class="text-[14px] leading-tight">480p</span>
+          <span class="text-[8px] opacity-70 mt-0.5">SD</span>
+        </button>
+        <button onclick="stuSetQuality('360p')" data-q="360p" class="stu-q-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
+          <span class="text-[14px] leading-tight">360p</span>
+          <span class="text-[8px] opacity-70 mt-0.5">LOW</span>
+        </button>
+      </div>
+      <div class="text-[10px] text-muted mt-1.5 leading-relaxed">
+        💡 <b class="text-pri-light">720p (HD)</b> được khuyến nghị cho hầu hết mạng 4G/Wi-Fi.
+        Chọn 480p nếu mạng yếu.
+      </div>
+    </div>
+    <script>
+      // Highlight quality đang chọn
+      (function highlightQuality(){
+        var saved = (function(){ try { return localStorage.getItem('x66_stu_quality') || '720p'; } catch(e){ return '720p'; } })();
+        document.querySelectorAll('.stu-q-btn').forEach(function(b){
+          if (b.dataset.q === saved) {
+            b.classList.remove('bg-bg-deep','border-line');
+            b.classList.add('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
+          }
+        });
+      })();
+      // Update highlight khi đổi
+      var _origSetQ = window.stuSetQuality;
+      window.stuSetQuality = async function(q){
+        document.querySelectorAll('.stu-q-btn').forEach(function(b){
+          b.classList.remove('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
+          b.classList.add('bg-bg-deep','border-line');
+        });
+        var btn = document.querySelector('.stu-q-btn[data-q="'+q+'"]');
+        if (btn) {
+          btn.classList.remove('bg-bg-deep','border-line');
+          btn.classList.add('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
+        }
+        if (typeof _origSetQ === 'function') return _origSetQ(q);
+      };
+    </script>
+
     <!-- Stream meta inputs -->
     <div class="bg-bg-card border border-line rounded-xl p-4 space-y-3">
       <div>
@@ -444,17 +503,77 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   };
   loadIdentity();
 
+  // ===== QUALITY PRESETS =====
+  var QUALITY_PRESETS = {
+    '1080p': { width: 1920, height: 1080, frameRate: 30, bitrate: 3500000, label: 'Full HD', badge:'1080p', color:'#10b981' },
+    '720p':  { width: 1280, height: 720,  frameRate: 30, bitrate: 2000000, label: 'HD',      badge:'720p',  color:'#3b82f6' },
+    '480p':  { width: 854,  height: 480,  frameRate: 25, bitrate: 1000000, label: 'SD',      badge:'480p',  color:'#f59e0b' },
+    '360p':  { width: 640,  height: 360,  frameRate: 25, bitrate: 600000,  label: 'LOW',     badge:'360p',  color:'#ef4444' }
+  };
+  // Quality mặc định lấy từ localStorage hoặc 720p
+  state.quality = (function(){
+    try { return localStorage.getItem('x66_stu_quality') || '720p'; } catch(e) { return '720p'; }
+  })();
+
+  window.stuSetQuality = async function(q) {
+    if (!QUALITY_PRESETS[q]) return;
+    state.quality = q;
+    try { localStorage.setItem('x66_stu_quality', q); } catch(e){}
+    // Update UI badge
+    var badge = document.getElementById('stuQualityBadge');
+    if (badge) {
+      badge.textContent = QUALITY_PRESETS[q].badge;
+      badge.style.background = QUALITY_PRESETS[q].color;
+    }
+    // Nếu camera đang chạy → restart với quality mới
+    if (state.mediaStream) {
+      state.mediaStream.getTracks().forEach(function(t){ t.stop(); });
+      state.mediaStream = null;
+      await stuStartCamera();
+      // Nếu đang live → restart stream với quality mới
+      if (state.isLive && typeof stuRestartLive === 'function') stuRestartLive();
+    }
+    if (typeof showToast === 'function') showToast('✓ Đã chuyển sang ' + QUALITY_PRESETS[q].label + ' (' + q + ')', 'success');
+  };
+
   // ===== MOBILE CAMERA (WebRTC getUserMedia) =====
   window.stuStartCamera = async function(){
     try {
+      var preset = QUALITY_PRESETS[state.quality] || QUALITY_PRESETS['720p'];
       var stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: state.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: state.micOn
+        video: {
+          facingMode: state.facingMode,
+          width:  { ideal: preset.width },
+          height: { ideal: preset.height },
+          frameRate: { ideal: preset.frameRate, max: preset.frameRate }
+        },
+        audio: state.micOn ? {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } : false
       });
       state.mediaStream = stream;
       var video = document.getElementById('stuVideo');
       video.srcObject = stream;
       document.getElementById('stuNoCam').classList.add('hidden');
+
+      // Update quality badge sau khi camera ready
+      var badge = document.getElementById('stuQualityBadge');
+      if (badge) {
+        badge.textContent = preset.badge;
+        badge.style.background = preset.color;
+        badge.classList.remove('hidden');
+      }
+
+      // Lưu quality lên DB để viewer biết
+      try {
+        await fetch('/api/streamer/set-quality', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quality: state.quality })
+        });
+      } catch(e){}
     } catch(e) {
       var msg = 'Không thể truy cập camera: ' + e.message;
       if (!window.isSecureContext) msg += '\n\n⚠ Trang đang HTTP non-secure → camera bị chặn.\n→ Xem hướng dẫn HTTPS ở banner vàng phía trên.';

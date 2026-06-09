@@ -83,6 +83,68 @@ app.set('siteUrl', SITE);
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+
+// ===== PWA assets (phải serve ở root scope) =====
+app.get('/sw.js', function(req, res){
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.setHeader('Cache-Control', 'no-cache'); // luôn check update SW
+  res.sendFile(path.join(__dirname, 'public', 'sw.js'));
+});
+app.get('/manifest.json', function(req, res){
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile(path.join(__dirname, 'public', 'manifest.json'));
+});
+
+// ===== Push notification API =====
+const pushLib = require('./lib/push');
+app.get('/api/push/vapid-key', function(req, res){
+  res.json({ publicKey: pushLib.VAPID.publicKey || null });
+});
+app.post('/api/push/subscribe', function(req, res){
+  const b = req.body || {};
+  if (!b.subscription || !b.subscription.endpoint) return res.json({ ok:false, error:'subscription thiếu endpoint' });
+  const user = pubAuth.getUser(req);
+  const ok = pushLib.saveSubscription(b.subscription, b.topics, user ? user.username : null);
+  res.json({ ok: ok, message: ok ? 'Đã bật thông báo' : 'Lưu thất bại' });
+});
+app.post('/api/push/unsubscribe', function(req, res){
+  const endpoint = req.body && req.body.endpoint;
+  if (!endpoint) return res.json({ ok:false });
+  const removed = pushLib.removeSubscription(endpoint);
+  res.json({ ok:true, removed: removed });
+});
+// Idol/BLV set quality khi go live
+app.post('/api/streamer/set-quality', function(req, res){
+  const user = pubAuth.getUser(req);
+  if (!user) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  if (!['idol','blv','admin'].includes(user.role)) return res.status(403).json({ ok:false, error:'Cần quyền streamer' });
+  const q = String((req.body && req.body.quality) || '').trim();
+  if (!['1080p','720p','480p','360p'].includes(q)) return res.json({ ok:false, error:'Quality không hợp lệ' });
+  const data = db.load();
+  // Tìm trong idols và blvs
+  const all = (data.idols || []).concat(data.blvs || []);
+  const item = all.find(function(x){ return (x.userId === user.username) || (x.username === user.username); });
+  if (!item) return res.json({ ok:false, error:'Không tìm thấy profile streamer' });
+  item.quality = q;
+  item.qualityUpdatedAt = Date.now();
+  db.save(data);
+  res.json({ ok:true, quality: q });
+});
+
+// Test push (chỉ admin)
+app.post('/api/push/test', function(req, res){
+  const user = pubAuth.getUser(req);
+  if (!user || user.role !== 'admin') return res.status(403).json({ ok:false });
+  const b = req.body || {};
+  pushLib.sendToTopic(b.topic || 'idol_live', {
+    title: b.title || '🎬 Test notification',
+    body: b.body || 'Đây là tin nhắn test từ admin',
+    url: b.url || '/'
+  }).then(function(r){ res.json(r); }).catch(function(e){ res.json({ ok:false, error:e.message }); });
+});
+
 app.use(analytics.track);
 
 // Rate limit all /api/* requests

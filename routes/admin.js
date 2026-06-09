@@ -283,10 +283,20 @@ function actionOn(kind) {
       const arr = data[kind];
       const item = arr.find(function(x){ return x.id === req.params.id });
       if (!item) return res.json({ ok:false, message:'Khong ton tai' });
+      const wasLive = !!item.canLive;
       item.canLive = !item.canLive;
+      // Đánh dấu live "khởi tạo" khi bật quyền
+      if (item.canLive && !wasLive) item.liveNow = true;
+      if (!item.canLive) item.liveNow = false;
       db.audit(data, (item.canLive ? 'GRANT' : 'REVOKE') + ' live permission ' + kind.slice(0,-1).toUpperCase(), item.name, res.locals.adminUser);
       db.save(data);
-      res.json({ ok:true, canLive: item.canLive, message: item.name + (item.canLive ? ' ✅ ĐƯỢC PHÉP LIVE' : ' ❌ ĐÃ THU HỒI QUYỀN LIVE') });
+      // 🔔 PUSH NOTIFY khi idol bắt đầu được phép LIVE
+      if (item.canLive && !wasLive && kind === 'idols') {
+        try {
+          require('../lib/push').notifyIdolLive(item).catch(function(e){ console.log('[push] notify err:', e.message); });
+        } catch(e){}
+      }
+      res.json({ ok:true, canLive: item.canLive, message: item.name + (item.canLive ? ' ✅ ĐƯỢC PHÉP LIVE (đã push notify)' : ' ❌ ĐÃ THU HỒI QUYỀN LIVE') });
     },
     setCategory: function (req, res) {
       const data = db.load();

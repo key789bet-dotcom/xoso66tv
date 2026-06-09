@@ -6,6 +6,18 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
 <!-- VIDEO ELEMENT - autoplay muted để vượt qua chính sách autoplay browser -->
 <video id="liveVideo" class="hidden absolute inset-0 w-full h-full object-contain bg-black z-[5]" playsinline autoplay muted controls></video>
 
+<!-- Quality badge (HD/SD - hiện khi stream live) -->
+<% var _qBadge = (typeof dbIdol !== 'undefined' && dbIdol && dbIdol.quality) ? dbIdol.quality : null;
+   var _qLabel = _qBadge === '1080p' ? 'FULL HD' : _qBadge === '720p' ? 'HD' : _qBadge === '480p' ? 'SD' : _qBadge === '360p' ? 'LOW' : '';
+   var _qColor = _qBadge === '1080p' ? '#10b981' : _qBadge === '720p' ? '#3b82f6' : _qBadge === '480p' ? '#f59e0b' : '#ef4444';
+%>
+<% if (_qBadge) { %>
+<span id="liveQualityBadge" class="hidden absolute top-3 right-16 z-[6] text-white text-[10px] font-extrabold px-2 py-1 rounded shadow-lg flex items-center gap-1" style="background:<%= _qColor %>">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+  <%= _qLabel %> · <%= _qBadge %>
+</span>
+<% } %>
+
 <!-- Nút bật tiếng (cần user click vì muted autoplay) -->
 <button id="liveUnmute" class="hidden absolute bottom-20 left-4 z-[6] bg-pri text-white px-4 py-2 rounded-lg shadow-2xl font-bold text-sm hover:scale-110 transition animate-pulse" type="button">🔊 BẬT TIẾNG</button>
 
@@ -70,6 +82,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     hideEl('liveOffline');
     hideEl('liveLoading');
     hidePlaceholder();
+    showEl('liveQualityBadge'); // Hiện badge HD/SD
     isPlaying = true;
     if (video.muted) showEl('liveUnmute');
   }
