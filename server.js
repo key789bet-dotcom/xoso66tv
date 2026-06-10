@@ -500,10 +500,28 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
 // Mặc định trỏ về SRS đang chạy trên VPS (port 1935)
 const RTMP_SERVER_URL = process.env.RTMP_SERVER_URL || 'rtmp://xoso66tv.com:1935/live';
 
+const scheduleStore = require('./lib/schedule-store');
+
 app.get('/api/studio/get-key', pubAuth.requireStreamer, function (req, res){
   const data = db.load();
   const idolId = String(req.query.idolId||'');
   if (!idolId) return res.json({ ok:false, error:'Missing idolId' });
+
+  // 🔐 SCHEDULE GATING: chỉ admin bypass, idol/BLV phải có schedule approved active
+  const user = res.locals.publicUser || {};
+  if (user.role !== 'admin') {
+    const active = scheduleStore.getActiveSchedule(user.username);
+    if (!active) {
+      return res.json({
+        ok: false,
+        needSchedule: true,
+        error: 'Bạn chưa có lịch live được duyệt. Vào "Đăng ký lịch live" để submit, đợi admin duyệt rồi quay lại.'
+      });
+    }
+    // Hiện lịch active cho UI
+    res.locals._activeSchedule = active;
+  }
+
   if (!data.obs) data.obs = [];
   let obs = data.obs.find(function(o){ return o.requesterType==='idol' && o.requesterId===idolId; });
   // 🆕 AUTO-CREATE nếu chưa có (cho idol đã được cấp quyền canLive)
@@ -538,7 +556,137 @@ app.get('/api/studio/get-key', pubAuth.requireStreamer, function (req, res){
     obs.rtmpServer = RTMP_SERVER_URL;
     db.save(data);
   }
-  res.json({ ok:true, streamKey: obs.streamKey, rtmpServer: obs.rtmpServer });
+  const _active = res.locals._activeSchedule || null;
+  res.json({
+    ok:true,
+    streamKey: obs.streamKey,
+    rtmpServer: obs.rtmpServer,
+    schedule: _active ? {
+      title: _active.title,
+      startTime: _active.startTime,
+      endTime: _active.endTime,
+      type: _active.type,
+      matchTitle: _active.matchTitle
+    } : null
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// SCHEDULE - đăng ký lịch live cho idol/BLV
+// ═══════════════════════════════════════════════════════════════
+
+// POST /api/schedule/request - idol/BLV submit lịch live mới
+app.post('/api/schedule/request', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const b = req.body || {};
+  const type = (b.type === 'match') ? 'match' : 'time';
+
+  // Validate
+  if (type === 'time') {
+    if (!b.startTime || !b.endTime) return res.json({ ok:false, error:'Cần startTime + endTime' });
+    if (parseInt(b.endTime,10) <= parseInt(b.startTime,10)) return res.json({ ok:false, error:'endTime phải sau startTime' });
+    const minDuration = 30 * 60 * 1000;
+    const maxDuration = 6 * 3600 * 1000;
+    const dur = parseInt(b.endTime,10) - parseInt(b.startTime,10);
+    if (dur < minDuration) return res.json({ ok:false, error:'Lịch tối thiểu 30 phút' });
+    if (dur > maxDuration) return res.json({ ok:false, error:'Lịch tối đa 6 giờ' });
+  } else if (type === 'match') {
+    if (!b.matchId) return res.json({ ok:false, error:'Cần matchId' });
+    if (!b.startTime) return res.json({ ok:false, error:'Cần startTime (giờ trận đấu)' });
+    if (!b.endTime) b.endTime = parseInt(b.startTime,10) + 2.5 * 3600 * 1000;  // mặc định 2.5h cho trận
+  }
+
+  const item = scheduleStore.add({
+    username: user.username,
+    userType: user.role === 'blv' ? 'blv' : 'idol',
+    type: type,
+    startTime: b.startTime,
+    endTime: b.endTime,
+    title: b.title,
+    description: b.description,
+    matchId: b.matchId || null,
+    matchTitle: b.matchTitle || null
+  });
+  res.json({ ok:true, schedule: item });
+});
+
+// GET /api/schedule/mine - xem lịch của mình
+app.get('/api/schedule/mine', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const list = scheduleStore.listByUser(user.username);
+  const active = scheduleStore.getActiveSchedule(user.username);
+  res.json({ ok:true, list: list, active: active });
+});
+
+// DELETE /api/schedule/:id - cancel pending của mình
+app.delete('/api/schedule/:id', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const ok = scheduleStore.cancel(req.params.id, user.username);
+  if (!ok) return res.json({ ok:false, error:'Không thể huỷ (đã được duyệt hoặc không phải lịch của bạn)' });
+  res.json({ ok:true });
+});
+
+// GET /api/schedule/notifications - xem bell notif (cho idol/BLV)
+app.get('/api/schedule/notifications', pubAuth.requireLogin, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const list = scheduleStore.listNotifications(user.username, { limit: 20 });
+  res.json({ ok:true, list: list, unread: list.filter(n => !n.read).length });
+});
+
+// POST /api/schedule/notifications/:id/read
+app.post('/api/schedule/notifications/:id/read', pubAuth.requireLogin, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const ok = scheduleStore.markNotifRead(user.username, req.params.id);
+  res.json({ ok: ok });
+});
+
+// ═══ ADMIN: review schedule ═══
+app.get('/api/admin/schedules/list', pubAuth.requireAdmin, function (req, res) {
+  const status = req.query.status || null;
+  const list = scheduleStore.listAll({ status: status, limit: 200 });
+  res.json({ ok:true, list: list, stats: scheduleStore.stats() });
+});
+
+app.post('/api/admin/schedules/:id/approve', pubAuth.requireAdmin, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const item = scheduleStore.approve(req.params.id, user.username);
+  if (!item) return res.json({ ok:false, error:'Schedule không tồn tại' });
+  // Notify idol/BLV
+  scheduleStore.pushNotification(item.username, {
+    title: '✅ Lịch live đã được duyệt!',
+    body: '"' + item.title + '" - ' + new Date(item.startTime).toLocaleString('vi-VN'),
+    type: 'schedule-approved',
+    link: '/idol-studio'
+  });
+  res.json({ ok:true, schedule: item });
+});
+
+app.post('/api/admin/schedules/:id/reject', pubAuth.requireAdmin, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const reason = String((req.body && req.body.reason) || '').trim();
+  if (!reason) return res.json({ ok:false, error:'Cần nhập lý do từ chối' });
+  const item = scheduleStore.reject(req.params.id, reason, user.username);
+  if (!item) return res.json({ ok:false, error:'Schedule không tồn tại' });
+  scheduleStore.pushNotification(item.username, {
+    title: '❌ Lịch live bị từ chối',
+    body: 'Lý do: ' + reason,
+    type: 'schedule-rejected',
+    link: '/idol-studio'
+  });
+  res.json({ ok:true, schedule: item });
+});
+
+// Helper endpoint: list upcoming matches để idol pick khi đăng ký theo trận
+app.get('/api/upcoming-list', pubAuth.requireStreamer, async function (req, res) {
+  try {
+    const list = await api.getUpcomingStreams(null, 40);
+    res.json({ ok:true, list: list });
+  } catch (e) { res.json({ ok:false, error: e.message }); }
+});
+
+// Admin page render
+app.get('/admin/schedules', pubAuth.requireAdmin, function (req, res) {
+  res.render('admin/schedules', { active:'schedules' });
 });
 
 app.post('/api/studio/regenerate-key', pubAuth.requireStreamer, function (req, res){

@@ -407,6 +407,82 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   <!-- ============ TAB 2: OBS STREAM ============ -->
   <div id="stuPanelObs" class="hidden space-y-4">
     <!-- OBS info card -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 📅 ĐĂNG KÝ LỊCH LIVE - bắt buộc trước khi push OBS              -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="bg-gradient-to-br from-pri/15 via-bg-card to-bg-soft border-2 border-pri/40 rounded-xl p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📅</span>
+          <h3 class="text-white font-extrabold text-base">Đăng ký lịch live</h3>
+        </div>
+        <span id="schActiveStatus" class="text-[11px] font-bold"></span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-1 bg-bg-deep rounded-lg p-1 mb-3">
+        <button id="schTabMy" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors bg-pri text-white">📋 Lịch của tôi</button>
+        <button id="schTabNew" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors text-gray-200">➕ Đăng ký mới</button>
+      </div>
+
+      <!-- TAB 1: List lịch của tôi -->
+      <div id="schMyPanel">
+        <div id="schMyList" class="space-y-2 min-h-[60px]">
+          <div class="text-center text-muted text-xs py-4">Đang tải...</div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Form đăng ký mới -->
+      <div id="schNewPanel" class="hidden">
+        <!-- Type selector -->
+        <div class="flex gap-1.5 mb-3">
+          <button id="schTypeTime" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-pri text-white border-pri" data-type="time">⏰ Theo giờ tự do</button>
+          <button id="schTypeMatch" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-bg-deep text-gray-200 border-line" data-type="match">⚽ Theo trận đấu</button>
+        </div>
+
+        <!-- Form theo giờ -->
+        <div id="schFormTime" class="space-y-2.5">
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Tiêu đề show</label>
+            <input id="schTitle" maxlength="120" placeholder="VD: Live show hát cover tối T7" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-muted uppercase font-bold block mb-1">Bắt đầu</label>
+              <input id="schStartTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+            </div>
+            <div>
+              <label class="text-[10px] text-muted uppercase font-bold block mb-1">Kết thúc</label>
+              <input id="schEndTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Mô tả (tuỳ chọn)</label>
+            <textarea id="schDescription" maxlength="500" rows="2" placeholder="Nội dung show, theme..." class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Form theo trận -->
+        <div id="schFormMatch" class="hidden space-y-2.5">
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Chọn trận đấu</label>
+            <select id="schMatchSelect" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+              <option value="">Đang tải lịch...</option>
+            </select>
+          </div>
+          <div class="text-[11px] text-muted">⚠️ BLV sẽ được duyệt bình luận trận đã chọn (thời gian tự auto theo trận).</div>
+        </div>
+
+        <button id="schSubmitBtn" class="w-full bg-gradient-to-r from-pri to-live hover:brightness-110 text-white font-bold py-2.5 rounded-lg mt-3 active:scale-95">
+          📤 Gửi cho admin duyệt
+        </button>
+      </div>
+
+      <div class="text-[10.5px] text-muted mt-3 leading-relaxed">
+        💡 <b>Quy tắc:</b> Mỗi lịch cần admin duyệt trước. Sau khi duyệt, bạn được push OBS từ <b>30 phút trước</b> giờ start đến <b>3 giờ sau</b> giờ end.
+      </div>
+    </div>
+
     <div class="bg-gradient-to-br from-purple-900/40 via-bg-card to-bg-soft border-2 border-purple-500/40 rounded-xl p-4">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-2xl">🎮</span>
@@ -1178,5 +1254,200 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       }
     }).catch(function(e){ alert('❌ Lỗi: ' + e.message); });
   };
+})();
+</script>
+
+<!-- ═══════════ SCHEDULE: đăng ký lịch live + admin duyệt ═══════════ -->
+<script>
+(function(){
+  var currentType = 'time';
+
+  function $(id){ return document.getElementById(id); }
+  function escHtml(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+  function fmtTime(ts){
+    if (!ts) return '-';
+    var d = new Date(ts);
+    return d.getDate()+'/'+(d.getMonth()+1)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  // ===== TAB SWITCHING =====
+  $('schTabMy').addEventListener('click', function(){
+    $('schTabMy').classList.add('bg-pri','text-white'); $('schTabMy').classList.remove('text-gray-200');
+    $('schTabNew').classList.remove('bg-pri','text-white'); $('schTabNew').classList.add('text-gray-200');
+    $('schMyPanel').classList.remove('hidden');
+    $('schNewPanel').classList.add('hidden');
+  });
+  $('schTabNew').addEventListener('click', function(){
+    $('schTabNew').classList.add('bg-pri','text-white'); $('schTabNew').classList.remove('text-gray-200');
+    $('schTabMy').classList.remove('bg-pri','text-white'); $('schTabMy').classList.add('text-gray-200');
+    $('schNewPanel').classList.remove('hidden');
+    $('schMyPanel').classList.add('hidden');
+    // Default startTime = now+1h, endTime = now+3h
+    var d1 = new Date(Date.now() + 3600000); d1.setSeconds(0,0);
+    var d2 = new Date(Date.now() + 3*3600000); d2.setSeconds(0,0);
+    function toLocal(d){
+      var p = function(n){return String(n).padStart(2,'0');};
+      return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+    }
+    if (!$('schStartTime').value) $('schStartTime').value = toLocal(d1);
+    if (!$('schEndTime').value) $('schEndTime').value = toLocal(d2);
+    // Lazy load matches
+    loadMatches();
+  });
+
+  // ===== TYPE BUTTON =====
+  document.querySelectorAll('.sch-type-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      currentType = b.getAttribute('data-type');
+      document.querySelectorAll('.sch-type-btn').forEach(function(x){
+        x.classList.remove('bg-pri','text-white','border-pri');
+        x.classList.add('bg-bg-deep','text-gray-200','border-line');
+      });
+      b.classList.add('bg-pri','text-white','border-pri');
+      b.classList.remove('bg-bg-deep','text-gray-200','border-line');
+      if (currentType === 'time') {
+        $('schFormTime').classList.remove('hidden');
+        $('schFormMatch').classList.add('hidden');
+      } else {
+        $('schFormMatch').classList.remove('hidden');
+        $('schFormTime').classList.add('hidden');
+      }
+    });
+  });
+
+  // ===== LOAD UPCOMING MATCHES (cho type=match) =====
+  var __matchesLoaded = false;
+  function loadMatches(){
+    if (__matchesLoaded) return;
+    var sel = $('schMatchSelect');
+    if (!sel) return;
+    fetch('/api/upcoming-list', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok) { sel.innerHTML = '<option value="">(Không tải được)</option>'; return; }
+        var opts = ['<option value="">-- Chọn trận --</option>'];
+        (data.list || []).slice(0,40).forEach(function(m){
+          var ts = m.matchTs || (m.date && new Date(m.date).getTime()) || Date.now();
+          var label = m.home + ' vs ' + m.away + ' • ' + (m.league||'') + ' • ' + new Date(ts).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          opts.push('<option value="'+escHtml(m.id)+'" data-ts="'+ts+'" data-title="'+escHtml(label)+'">'+escHtml(label)+'</option>');
+        });
+        sel.innerHTML = opts.join('');
+        __matchesLoaded = true;
+      })
+      .catch(function(){ sel.innerHTML = '<option value="">(Lỗi tải)</option>'; });
+  }
+
+  // ===== LOAD MY SCHEDULES =====
+  function loadMine(){
+    fetch('/api/schedule/mine', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok) { $('schMyList').innerHTML = '<div class="text-center text-red-400 text-xs py-4">Lỗi tải</div>'; return; }
+        // Active status
+        var active = data.active;
+        var statusEl = $('schActiveStatus');
+        if (active) {
+          statusEl.innerHTML = '🟢 <span class="text-emerald-400">Đang trong khung giờ live</span>';
+        } else {
+          statusEl.innerHTML = '⏸️ <span class="text-muted">Chưa có lịch active</span>';
+        }
+        var list = data.list || [];
+        if (list.length === 0) {
+          $('schMyList').innerHTML = '<div class="text-center text-muted text-xs py-6"><div class="text-3xl mb-1 opacity-60">📭</div>Chưa đăng ký lịch nào.<br>Click "➕ Đăng ký mới" để bắt đầu.</div>';
+          return;
+        }
+        $('schMyList').innerHTML = list.map(function(s){
+          var statusBadge =
+            s.status === 'pending'  ? '<span class="bg-yellow-500/20 text-yellow-300 text-[10px] font-bold px-2 py-0.5 rounded">CHỜ DUYỆT</span>' :
+            s.status === 'approved' ? '<span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded">✅ DUYỆT</span>' :
+                                       '<span class="bg-red-500/20 text-red-300 text-[10px] font-bold px-2 py-0.5 rounded">❌ TỪ CHỐI</span>';
+          var typeIcon = s.type === 'match' ? '⚽' : '⏰';
+          var cancelBtn = s.status === 'pending'
+            ? '<button onclick="schCancel(\''+s.id+'\')" class="text-[10px] text-red-400 hover:underline">Huỷ</button>'
+            : '';
+          var rejectReason = s.rejectReason ? '<div class="text-[10px] text-red-300 mt-1"><b>Lý do:</b> '+escHtml(s.rejectReason)+'</div>' : '';
+          return ''
+            + '<div class="bg-bg-deep border border-line rounded-lg p-2.5">'
+            +   '<div class="flex items-center justify-between mb-1">'
+            +     '<div class="flex items-center gap-1.5 min-w-0">'
+            +       '<span>'+typeIcon+'</span>'
+            +       '<span class="text-white text-xs font-bold truncate">'+escHtml(s.title)+'</span>'
+            +     '</div>'
+            +     statusBadge
+            +   '</div>'
+            +   '<div class="text-[11px] text-gray-300">⏰ '+fmtTime(s.startTime)+' → '+fmtTime(s.endTime)+'</div>'
+            +   (s.matchTitle ? '<div class="text-[10px] text-pri-light mt-0.5">⚽ '+escHtml(s.matchTitle)+'</div>' : '')
+            +   rejectReason
+            +   (cancelBtn ? '<div class="text-right mt-1">'+cancelBtn+'</div>' : '')
+            + '</div>';
+        }).join('');
+      })
+      .catch(function(){ $('schMyList').innerHTML = '<div class="text-center text-red-400 text-xs py-4">Lỗi kết nối</div>'; });
+  }
+
+  // ===== CANCEL pending =====
+  window.schCancel = function(id){
+    if (!confirm('Huỷ lịch đang chờ duyệt?')) return;
+    fetch('/api/schedule/'+id, { method:'DELETE', credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data.ok) { loadMine(); }
+        else alert('Lỗi: ' + (data.error||''));
+      });
+  };
+
+  // ===== SUBMIT =====
+  $('schSubmitBtn').addEventListener('click', function(){
+    var body = { type: currentType };
+    if (currentType === 'time') {
+      body.title = $('schTitle').value.trim();
+      body.description = $('schDescription').value.trim();
+      var s = $('schStartTime').value;
+      var e = $('schEndTime').value;
+      if (!body.title) return alert('Cần nhập tiêu đề');
+      if (!s || !e) return alert('Cần chọn bắt đầu + kết thúc');
+      body.startTime = new Date(s).getTime();
+      body.endTime = new Date(e).getTime();
+    } else {
+      var sel = $('schMatchSelect');
+      var opt = sel.options[sel.selectedIndex];
+      if (!opt || !opt.value) return alert('Cần chọn trận');
+      body.matchId = opt.value;
+      body.matchTitle = opt.getAttribute('data-title');
+      body.title = 'BLV: ' + opt.getAttribute('data-title');
+      body.startTime = parseInt(opt.getAttribute('data-ts'), 10);
+      body.endTime = body.startTime + 2.5*3600*1000;
+    }
+    $('schSubmitBtn').disabled = true;
+    $('schSubmitBtn').textContent = '⏳ Đang gửi...';
+    fetch('/api/schedule/request', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        $('schSubmitBtn').disabled = false;
+        $('schSubmitBtn').innerHTML = '📤 Gửi cho admin duyệt';
+        if (data.ok) {
+          alert('✅ Đã gửi! Chờ admin duyệt.');
+          $('schTitle').value = '';
+          $('schDescription').value = '';
+          $('schTabMy').click();
+          loadMine();
+        } else {
+          alert('Lỗi: ' + (data.error || ''));
+        }
+      })
+      .catch(function(){
+        $('schSubmitBtn').disabled = false;
+        $('schSubmitBtn').innerHTML = '📤 Gửi cho admin duyệt';
+        alert('Lỗi kết nối');
+      });
+  });
+
+  // Initial load
+  loadMine();
+  setInterval(loadMine, 20000);  // refresh mỗi 20s để bắt status change
 })();
 </script>
