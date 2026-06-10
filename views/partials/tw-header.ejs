@@ -72,6 +72,10 @@
           </div>
         </div>
         <nav class="p-2">
+          <!-- 🎬 Quản Lý Kênh - chỉ idol/blv/admin (JS ẩn cho user thường) -->
+          <a href="/profile?tab=studio" id="hdrDropStudio" class="hidden items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors border border-pri/30 bg-pri/5 mb-1">
+            <span class="text-pri">🎬</span> Quản Lý Kênh <span class="ml-auto bg-live text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded animate-pulse-live">LIVE</span>
+          </a>
           <a href="/profile?tab=info"    class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#128100;</span> Th&ocirc;ng tin c&aacute; nh&acirc;n</a>
           <a href="/profile?tab=wallet"  class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#128176;</span> V&iacute; c&#7911;a t&ocirc;i</a>
           <a href="/profile?tab=checkin" class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-white hover:bg-bg-soft hover:text-pri-light transition-colors"><span class="text-pri">&#128197;</span> &#272;i&#7875;m danh</a>
@@ -123,6 +127,18 @@ window.x66ShowAdminBadge = function(){
         document.getElementById('hdrDropName').textContent    = name;
         document.getElementById('hdrDropId').textContent      = id;
         document.getElementById('hdrDropCoin').textContent    = (typeof u.coin==='number'?u.coin:79).toLocaleString('vi-VN');
+        // 🎬 Show "Quản Lý Kênh" cho idol/blv/admin
+        var studioLink = document.getElementById('hdrDropStudio');
+        if (studioLink) {
+          fetch('/api/auth/me', { credentials:'same-origin' })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+              if (d && d.ok && ['idol','blv','admin'].indexOf(d.role) !== -1) {
+                studioLink.classList.remove('hidden');
+                studioLink.classList.add('flex');
+              }
+            }).catch(function(){});
+        }
         hdrNotifSeedIfEmpty(name);
         hdrNotifRender();
       } else {

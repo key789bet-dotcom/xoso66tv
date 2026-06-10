@@ -881,7 +881,15 @@ app.get('/dang-nhap',     function (req, res) { res.render('tw-dang-nhap',     {
 app.get('/dang-ky',       function (req, res) { res.render('tw-dang-ky',       { active:'auth' }); });
 app.get('/quen-mat-khau', function (req, res) { res.render('tw-quen-mat-khau', { active:'auth' }); });
 
-app.get('/profile',      function (req, res) { res.render('tw-profile', { active:'profile', tabName: (req.query.tab || 'checkin') }); });
+app.get('/profile',      function (req, res) {
+  // Lấy user từ JWT cookie để view biết role (idol/blv/admin → show tab "Quản Lý Kênh")
+  const user = pubAuth.getUser(req);
+  res.render('tw-profile', {
+    active:'profile',
+    tabName: (req.query.tab || 'checkin'),
+    publicUser: user  // ← truyền role vào view
+  });
+});
 
 app.get('/gioi-thieu',             function (req, res) { res.render('tw-gioi-thieu',             { active:'static' }); });
 app.get('/lien-he',                function (req, res) { res.render('tw-lien-he',                { active:'static' }); });
