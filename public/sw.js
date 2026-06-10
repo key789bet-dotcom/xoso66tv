@@ -1,8 +1,8 @@
 /**
  * Service Worker - XOSO66 TV PWA
- * v3 - cache static + push notifications + chat sync support
+ * v4 - cache static + push notifications + chat sync + mobile bottom nav
  */
-const CACHE_VERSION = 'xoso66tv-v3';
+const CACHE_VERSION = 'xoso66tv-v4-bottomnav';
 const STATIC_CACHE = [
   '/',
   '/manifest.json',
