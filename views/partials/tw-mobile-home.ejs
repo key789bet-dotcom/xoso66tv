@@ -511,21 +511,31 @@ _cnt.all = _cards.length;
 .mh-lux-status.soon { background:linear-gradient(135deg,#ff7a18,#ea580c); color:#fff; }
 @keyframes luxLivePulse { 0%,100%{opacity:1} 50%{opacity:.7} }
 
-/* BODY */
+/* BODY - 3 cột grid CỐ ĐỊNH (không phụ thuộc flex space-around) */
 .mh-lux-body {
-  flex:1; display:flex; align-items:center; justify-content:space-around;
-  padding:8px 4px; position:relative; min-height:95px;
+  flex:1;
+  display:grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  align-items:center; justify-items:center;
+  padding:10px 8px; position:relative; min-height:95px;
   background:linear-gradient(180deg,#0f1419 0%,#070a0e 100%);
+  gap:4px;
 }
-.mh-lux-team { text-align:center; flex:0 0 30%; }
+.mh-lux-team {
+  text-align:center;
+  width:100%;
+  min-width:0;        /* cho phép text truncate */
+  display:flex; flex-direction:column; align-items:center;
+}
 .mh-lux-team-circle {
-  width:44px; height:44px; border-radius:50%;
+  width:40px; height:40px; border-radius:50%;
   display:grid; place-items:center;
   margin:0 auto 4px;
-  box-shadow:0 4px 12px rgba(0,0,0,.5);
+  box-shadow:0 3px 8px rgba(0,0,0,.5);
   border:2px solid rgba(255,122,24,.4);
   overflow:hidden;
   position:relative;
+  flex-shrink:0;       /* không bị co khi text dài */
 }
 .mh-lux-team-circle img {
   width:100%; height:100%;
@@ -533,20 +543,27 @@ _cnt.all = _cards.length;
   object-fit:contain;
   background:#fff;
   padding:2px;
+  display:block;
 }
 .mh-lux-team-init {
   display:flex; align-items:center; justify-content:center;
   width:100%; height:100%; border-radius:50%;
-  color:#fff; font-weight:900; font-size:14px;
+  color:#fff; font-weight:900; font-size:13px;
   letter-spacing:.5px;
   text-shadow:0 1px 2px rgba(0,0,0,.4);
 }
 .mh-lux-team-name {
-  color:#cbd5e1; font-size:8px; font-weight:700; line-height:1.1;
+  color:#cbd5e1; font-size:9px; font-weight:700; line-height:1.15;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  width:100%;
+  max-width:100%;
   padding:0 2px;
 }
-.mh-lux-mid { text-align:center; flex:0 0 38%; }
+.mh-lux-mid {
+  text-align:center;
+  width:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
 .mh-lux-time {
   color:#fbbf24; font-size:14px; font-weight:900; line-height:1;
   text-shadow:0 0 8px rgba(251,191,36,.4);
