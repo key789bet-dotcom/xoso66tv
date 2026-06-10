@@ -98,10 +98,11 @@
       <button type="submit" class="btn-submit">🚀 ĐĂNG KÝ NGAY - NHẬN 100% THƯỞNG</button>
 
       <div class="divider">Hoặc đăng ký nhanh với</div>
+      <% var __regUrl = partner.register; var __sep = (__regUrl.indexOf('?') >= 0 ? '&' : '?'); %>
       <div class="social-row">
-        <a href="<%= partner.register %>&via=fb" target="_blank" rel="noopener" class="social-btn fb">📘 Facebook</a>
-        <a href="<%= partner.register %>&via=google" target="_blank" rel="noopener" class="social-btn google">G Google</a>
-        <a href="<%= partner.register %>&via=tele" target="_blank" rel="noopener" class="social-btn tele">📨 Telegram</a>
+        <a href="<%= __regUrl + __sep + 'via=fb' %>" target="_blank" rel="noopener" class="social-btn fb">📘 Facebook</a>
+        <a href="<%= __regUrl + __sep + 'via=google' %>" target="_blank" rel="noopener" class="social-btn google">G Google</a>
+        <a href="<%= __regUrl + __sep + 'via=tele' %>" target="_blank" rel="noopener" class="social-btn tele">📨 Telegram</a>
       </div>
 
       <p class="auth-foot">Đã có tài khoản? <a href="/dang-nhap">Đăng nhập ngay →</a></p>
@@ -164,7 +165,8 @@ document.getElementById('regForm').addEventListener('submit', async function(e){
     if (j.ok) {
       showToast('Đăng ký thành công! Đang chuyển sang xoso66 nạp tiền nhận thưởng...', 'success');
       setTimeout(()=>{
-        location.href = '<%= partner.register %>' + '&u=' + encodeURIComponent(data.username || '');
+        var __b = '<%= partner.register %>';
+        location.href = __b + (__b.indexOf('?') >= 0 ? '&' : '?') + 'u=' + encodeURIComponent(data.username || '');
       }, 1500);
     } else {
       showToast(j.error || j.message || 'Đăng ký thất bại', 'error');

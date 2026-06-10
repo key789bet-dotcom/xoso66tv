@@ -28,7 +28,9 @@ router.post('/api/dang-ky', function (req, res) {
   }
   // 🔒 SECURITY: KHÔNG bao giờ truyền SĐT hay mật khẩu vào URL redirect (PII leak + log file capture)
   // Chỉ truyền tracking ref + username (username là public). SĐT sẽ được lưu phía xoso66 qua API riêng nếu cần.
-  res.json({ ok: true, redirect: partners.partner.register + '&u=' + encodeURIComponent(b.username) });
+  var __base = partners.partner.register;
+  var __sep = (__base.indexOf('?') >= 0 ? '&' : '?');
+  res.json({ ok: true, redirect: __base + __sep + 'u=' + encodeURIComponent(b.username) });
 });
 
 module.exports = router;
