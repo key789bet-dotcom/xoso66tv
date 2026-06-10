@@ -10,110 +10,109 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
 %>
 <%- include('partials/tw-layout-start') %>
 
+<%
+  // myIdol = idol record của user đang login (server detect tự động)
+  var _autoIdol = (typeof myIdol !== 'undefined' && myIdol) ? myIdol : null;
+  var _isAdmin  = (typeof isAdmin !== 'undefined' && isAdmin) ? true : false;
+  var _cur = _autoIdol ? (_autoIdol.category || 'idol') : 'idol';
+  var _lbl = _cur === 'bongda' ? '⚽ Bóng đá' : _cur === 'casino' ? '🎰 Sòng bài' : _cur === 'esport' ? '🎮 Esports' : '👑 Idol Show';
+%>
 <section class="max-w-md md:max-w-4xl mx-auto mb-6">
-  <!-- Hero header -->
-  <header class="bg-gradient-to-br from-pri/20 via-bg-card to-bg-soft border border-pri/30 rounded-2xl p-4 md:p-5 mb-4 hero-animated-bg">
-    <div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-    <h1 class="text-xl md:text-2xl font-black text-white mb-1.5 flex items-center gap-2">
-      <span class="text-2xl md:text-3xl">📡</span>
-      <span class="text-shimmer">IDOL STUDIO</span>
-    </h1>
-    <p class="text-muted text-sm">Lên sóng trực tiếp bằng <b class="text-pri-light">điện thoại</b> (WebRTC) hoặc <b class="text-pri-light">OBS Studio</b> (RTMP). Bắt đầu kiếm X COIN từ viewers ngay!</p>
-  </header>
 
-  <!-- Identity selector + status -->
-  <%
-    // myIdol = idol record của user đang login (server detect tự động)
-    var _autoIdol = (typeof myIdol !== 'undefined' && myIdol) ? myIdol : null;
-    var _isAdmin  = (typeof isAdmin !== 'undefined' && isAdmin) ? true : false;
-  %>
-  <div id="stuIdentityBox" class="bg-bg-card border border-line rounded-xl p-4 mb-4">
-    <div class="flex items-center gap-3 mb-3">
-      <% if (_autoIdol) { %>
-        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center text-3xl shrink-0 shadow-lg shadow-pri/40 border-2 border-pri" id="stuAvatar"><%= _autoIdol.emoji || '👑' %></div>
-      <% } else { %>
-        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pri to-pink grid place-items-center text-2xl shrink-0" id="stuAvatar">👑</div>
-      <% } %>
-      <div class="flex-1 min-w-0">
-        <div class="text-[11px] text-muted uppercase tracking-wider">Bạn đang stream với tư cách</div>
-        <div class="font-extrabold text-white text-base truncate" id="stuIdentityName"><%= _autoIdol ? _autoIdol.name : 'Chưa có profile idol' %></div>
-        <% if (_autoIdol) { %>
-          <div class="text-[10px] text-emerald-400 flex items-center gap-1">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
-            ID: <%= _autoIdol.id %> · <%= _autoIdol.room || 'Phòng FREE' %>
+  <!-- ════════════ HERO PRO - all-in-one card ════════════ -->
+  <div class="relative overflow-hidden rounded-2xl mb-4 border border-pri/40 shadow-2xl shadow-pri/20">
+    <!-- BG gradient + sparkle -->
+    <div class="absolute inset-0 bg-gradient-to-br from-pri via-rose-600 to-violet-700 opacity-90"></div>
+    <div class="absolute inset-0" style="background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.18),transparent 50%),radial-gradient(circle at 20% 80%,rgba(255,122,24,.3),transparent 60%)"></div>
+
+    <div class="relative p-5 md:p-6">
+      <!-- Top: title + status pill -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-3xl drop-shadow-lg">🎙️</span>
+          <div>
+            <div class="text-[10px] uppercase tracking-[.2em] text-white/70 font-bold">XOSO66 TV</div>
+            <h1 class="text-xl md:text-2xl font-black text-white leading-none drop-shadow">Studio Live</h1>
           </div>
-        <% } %>
-        <div class="text-[11px] text-emerald-400 flex items-center gap-1 hidden" id="stuLiveStatus">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          ĐANG LIVE · <span id="stuLiveTime">00:00</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="hidden md:inline-flex items-center gap-1.5 bg-white/15 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> OFFLINE
+          </span>
+          <span class="inline-flex items-center gap-1 bg-white/10 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20" id="stuLiveStatus">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="hidden" id="stuLiveTime">00:00</span>
+            <span>READY</span>
+          </span>
         </div>
       </div>
-      <% if (_isAdmin) { %>
-        <button onclick="stuChangeIdentity()" class="px-3 py-1.5 bg-bg-soft border border-line hover:border-pri text-pri-light text-xs font-bold rounded-lg" id="stuChangeBtn" title="Admin có thể switch sang idol khác">🔁 Đổi</button>
+
+      <!-- Bottom: avatar + identity + category compact -->
+      <div class="flex items-center gap-3">
+        <% if (_autoIdol) { %>
+          <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur grid place-items-center text-4xl shrink-0 border-2 border-white/30 shadow-xl" id="stuAvatar"><%= _autoIdol.emoji || '👑' %></div>
+        <% } else { %>
+          <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur grid place-items-center text-4xl shrink-0 border-2 border-white/30" id="stuAvatar">👑</div>
+        <% } %>
+        <div class="flex-1 min-w-0">
+          <div class="text-[10px] uppercase tracking-wider text-white/70 font-bold mb-0.5">Streamer</div>
+          <div class="font-black text-white text-lg md:text-xl truncate drop-shadow" id="stuIdentityName"><%= _autoIdol ? _autoIdol.name : 'Chưa có profile idol' %></div>
+          <% if (_autoIdol) { %>
+            <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-white/85">
+              <span class="font-mono"><%= _autoIdol.id %></span>
+              <span>·</span>
+              <span class="truncate"><%= _autoIdol.room || 'Phòng FREE' %></span>
+            </div>
+          <% } %>
+        </div>
+        <% if (_isAdmin) { %>
+          <button onclick="stuChangeIdentity()" class="bg-white/15 hover:bg-white/25 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-white/30" title="Switch idol">🔁</button>
+        <% } %>
+      </div>
+
+      <% if (!_autoIdol && !_isAdmin) { %>
+        <div class="mt-3 bg-yellow-900/40 border border-yellow-500/50 rounded-lg p-3 text-[12px] text-yellow-100 backdrop-blur">
+          ⚠ Chưa có profile idol. <a href="/dang-ky-idol" class="text-yellow-200 underline font-bold">Đăng ký làm Idol</a>
+        </div>
       <% } %>
     </div>
 
-    <% if (!_autoIdol && !_isAdmin) { %>
-      <!-- User chưa có idol profile -->
-      <div class="bg-yellow-900/30 border border-yellow-500/40 rounded-lg p-3 text-[12px] text-yellow-200">
-        ⚠ Tài khoản chưa có profile idol. Liên hệ admin để tạo hoặc <a href="/dang-ky-idol" class="text-yellow-300 underline font-bold">đăng ký làm idol</a>.
-      </div>
-    <% } %>
-
-    <!-- Admin-only dropdown để switch idol -->
     <% if (_isAdmin) { %>
-    <div id="stuIdentityDropdown" class="hidden border-t border-line/40 pt-3">
-      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">🛡 Admin: chọn idol để xem/stream thử</label>
+    <div id="stuIdentityDropdown" class="hidden relative border-t border-white/20 bg-black/30 backdrop-blur p-4">
+      <label class="text-[11px] text-white/70 uppercase font-bold block mb-1.5">🛡 Admin: chọn idol</label>
       <select id="stuIdolSelect" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm">
         <option value="">-- Chọn idol --</option>
         <% dbIdols.forEach(function(i){ %>
           <option value="<%= i.id %>" data-name="<%= i.name %>" data-emoji="<%= i.emoji %>" <%= (_autoIdol && i.id === _autoIdol.id) ? 'selected' : '' %>><%= i.emoji %> <%= i.name %> (<%= i.room %>)</option>
         <% }); %>
       </select>
-      <button onclick="stuSelectIdentity()" class="mt-2 w-full bg-gradient-to-r from-pri to-live text-white py-2 rounded-lg font-bold text-sm">Xác nhận switch</button>
+      <button onclick="stuSelectIdentity()" class="mt-2 w-full bg-gradient-to-r from-pri to-live text-white py-2 rounded-lg font-bold text-sm">Xác nhận</button>
     </div>
     <% } %>
   </div>
 
-  <!-- 🎯 CHỌN CHUYÊN MỤC LIVE -->
+  <!-- 🎯 CHỌN CHUYÊN MỤC LIVE - compact pills ngang -->
   <% if (_autoIdol) { %>
-  <div class="bg-bg-card border border-line rounded-xl p-4 mb-4">
-    <div class="flex items-center justify-between mb-2.5">
-      <label class="text-[11px] text-muted uppercase font-bold flex items-center gap-1.5">
-        <span class="text-base">🎯</span>
-        <span>Chuyên mục bạn đang LIVE</span>
-      </label>
-      <span class="text-[10px] text-pri-light font-bold" id="stuCatLabel">
-        <%
-          var _cur = _autoIdol.category || 'idol';
-          var _lbl = _cur === 'bongda' ? '⚽ Bóng đá' :
-                     _cur === 'casino' ? '🎰 Sòng bài' :
-                     _cur === 'esport' ? '🎮 Esports' : '👑 Idol Show';
-        %>
-        <%= _lbl %>
-      </span>
+  <div class="bg-bg-card border border-line rounded-xl p-3 mb-4">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] text-muted uppercase tracking-wider font-bold">Chuyên Mục Đang Live</div>
+      <span class="text-[10px] text-pri-light font-bold" id="stuCatLabel"><%= _lbl %></span>
     </div>
     <div class="grid grid-cols-4 gap-1.5">
-      <button onclick="stuSetCategory('idol')" data-cat="idol" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
-        <span class="text-xl mb-0.5">👑</span>
-        <span class="text-[10px]">Idol Show</span>
+      <button onclick="stuSetCategory('idol')" data-cat="idol" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95 transition-all">
+        <span class="text-base mb-0.5">👑</span><span class="text-[9.5px]">Idol</span>
       </button>
-      <button onclick="stuSetCategory('bongda')" data-cat="bongda" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
-        <span class="text-xl mb-0.5">⚽</span>
-        <span class="text-[10px]">Bóng đá</span>
+      <button onclick="stuSetCategory('bongda')" data-cat="bongda" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95 transition-all">
+        <span class="text-base mb-0.5">⚽</span><span class="text-[9.5px]">Bóng đá</span>
       </button>
-      <button onclick="stuSetCategory('casino')" data-cat="casino" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
-        <span class="text-xl mb-0.5">🎰</span>
-        <span class="text-[10px]">Sòng bài</span>
+      <button onclick="stuSetCategory('casino')" data-cat="casino" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95 transition-all">
+        <span class="text-base mb-0.5">🎰</span><span class="text-[9.5px]">Sòng bài</span>
       </button>
-      <button onclick="stuSetCategory('esport')" data-cat="esport" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2.5 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95">
-        <span class="text-xl mb-0.5">🎮</span>
-        <span class="text-[10px]">Esports</span>
+      <button onclick="stuSetCategory('esport')" data-cat="esport" class="stu-cat-btn bg-bg-deep border border-line hover:border-pri text-white py-2 rounded-lg font-bold text-[11px] flex flex-col items-center active:scale-95 transition-all">
+        <span class="text-base mb-0.5">🎮</span><span class="text-[9.5px]">Esports</span>
       </button>
     </div>
-    <div class="text-[10px] text-muted mt-2 leading-relaxed">
-      💡 Viewer sẽ thấy phòng bạn trong tab <b class="text-pri-light" id="stuCatHint"><%= _lbl %></b> trên trang chủ.
-    </div>
+    <div class="text-[10px] text-muted mt-1.5">💡 Hiển thị trên tab <span class="text-pri-light font-bold" id="stuCatHint"><%= _lbl %></span></div>
   </div>
   <script>
     // Auto-set state.identity từ server (không cần user chọn)
@@ -168,61 +167,11 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   </script>
   <% } %>
 
-  <!-- ===== HTTPS WARNING + TEST GUIDE (chỉ hiện khi không secure context) ===== -->
-  <div id="stuHttpsWarn" class="hidden bg-gradient-to-br from-yellow-900/50 via-orange-900/30 to-bg-card border-2 border-yellow-500/60 rounded-xl p-4 mb-4">
-    <div class="flex items-start gap-2.5">
-      <span class="text-2xl shrink-0">⚠️</span>
-      <div class="flex-1">
-        <h3 class="text-yellow-300 font-extrabold text-sm mb-1">Camera điện thoại cần HTTPS</h3>
-        <p class="text-gray-200 text-[12px] leading-relaxed mb-2">
-          Trang đang chạy <code class="bg-bg-deep px-1 py-0.5 rounded text-yellow-300 text-[11px]" id="stuCurrentUrl">http://localhost:4000</code> — browser <b>chặn camera</b> trên HTTP (non-secure). Cần 1 trong 3 cách dưới:
-        </p>
-        <details class="mt-2 bg-bg-deep border border-line rounded-lg p-2.5">
-          <summary class="cursor-pointer font-bold text-pri-light text-[12px]">📱 Cách 1: ngrok (dễ nhất, 2 phút)</summary>
-          <ol class="mt-2 text-[11.5px] text-gray-200 space-y-1 list-decimal list-inside leading-relaxed">
-            <li>Tải <a href="https://ngrok.com/download" target="_blank" class="text-pri-light underline">ngrok</a> (file .exe)</li>
-            <li>Đăng ký miễn phí → copy authtoken</li>
-            <li>Mở CMD trong thư mục ngrok, chạy:
-              <div class="bg-black/60 rounded px-2 py-1 mt-1 font-mono text-[11px] text-emerald-300">ngrok config add-authtoken &lt;TOKEN&gt;<br>ngrok http 4000</div>
-            </li>
-            <li>Copy URL https://xxx.ngrok-free.app → mở trên điện thoại → vào <code>/idol-studio</code></li>
-          </ol>
-        </details>
-        <details class="mt-2 bg-bg-deep border border-line rounded-lg p-2.5">
-          <summary class="cursor-pointer font-bold text-pri-light text-[12px]">🔧 Cách 2: Chrome Flag điện thoại (cùng WiFi)</summary>
-          <ol class="mt-2 text-[11.5px] text-gray-200 space-y-1 list-decimal list-inside leading-relaxed">
-            <li>Tìm IP PC: mở CMD chạy <code class="bg-black/60 px-1 rounded text-emerald-300">ipconfig</code> → tìm <b>IPv4 Address</b></li>
-            <li>Mở firewall Windows cho port 4000 inbound</li>
-            <li>Restart server bind 0.0.0.0:
-              <div class="bg-black/60 rounded px-2 py-1 mt-1 font-mono text-[11px] text-emerald-300">HOST=0.0.0.0 npm start</div>
-            </li>
-            <li>Trên Chrome điện thoại → mở <code class="bg-black/60 px-1 rounded text-emerald-300">chrome://flags</code></li>
-            <li>Tìm "Insecure origins treated as secure" → thêm <code class="bg-black/60 px-1 rounded text-emerald-300">http://192.168.x.x:4000</code> (IP của PC bạn)</li>
-            <li>Relaunch Chrome → vào IP đó/idol-studio</li>
-          </ol>
-        </details>
-        <details class="mt-2 bg-bg-deep border border-line rounded-lg p-2.5">
-          <summary class="cursor-pointer font-bold text-pri-light text-[12px]">🛠 Cách 3: mkcert (HTTPS local vĩnh viễn)</summary>
-          <ol class="mt-2 text-[11.5px] text-gray-200 space-y-1 list-decimal list-inside leading-relaxed">
-            <li>Cài <a href="https://github.com/FiloSottile/mkcert" target="_blank" class="text-pri-light underline">mkcert</a> (chocolatey: <code class="bg-black/60 px-1 rounded text-emerald-300">choco install mkcert</code>)</li>
-            <li>Chạy: <code class="bg-black/60 px-1 rounded text-emerald-300">mkcert -install</code></li>
-            <li>Tạo cert: <code class="bg-black/60 px-1 rounded text-emerald-300">mkcert localhost 192.168.1.10</code></li>
-            <li>Sửa server.js dùng https module với cert đó</li>
-            <li>Truy cập https://192.168.1.10:4000 từ điện thoại</li>
-          </ol>
-        </details>
-        <div class="mt-3 text-[11px] text-gray-300 bg-bg-deep border border-line rounded p-2">
-          💡 <b>Lưu ý</b>: Trên iPhone Safari, ngay cả HTTPS đôi khi vẫn cần user gesture. Bấm "Bật camera" sau khi tap màn hình thì OK.
-        </div>
-      </div>
-    </div>
+  <!-- HTTPS warning chỉ hiện trong dev (localhost) - production luôn HTTPS -->
+  <div id="stuHttpsWarn" class="hidden bg-yellow-900/30 border border-yellow-500/40 rounded-lg px-3 py-2 mb-3 text-yellow-200 text-[12px] flex items-center gap-2">
+    <span>⚠️</span><span>Camera cần HTTPS. Dev local cần dùng ngrok hoặc mkcert.</span>
   </div>
-
-  <!-- ===== SUCCESS BADGE (HTTPS OK) ===== -->
-  <div id="stuHttpsOk" class="hidden bg-gradient-to-r from-emerald-900/40 to-bg-card border border-emerald-500/50 rounded-lg px-3 py-2 mb-4 flex items-center gap-2 text-emerald-200 text-[12px]">
-    <span class="text-base">✓</span>
-    <span><b>HTTPS sẵn sàng</b> — camera điện thoại sẽ hoạt động</span>
-  </div>
+  <div id="stuHttpsOk" class="hidden"></div>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- 📅 ĐĂNG KÝ LỊCH LIVE - bắt buộc cho cả Mobile + OBS             -->
