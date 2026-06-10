@@ -14,7 +14,10 @@ module.exports = {
     watch: false,                         // Không watch file production
     env: {
       NODE_ENV: 'production',
-      PORT: 4000
+      PORT: 4000,
+      // 🔐 Admin login credentials (bcrypt hash tự tạo lúc start)
+      ADMIN_USER: 'admin',
+      ADMIN_PASS: 'Baohan@04072023'
     },
     error_file: '/var/log/xoso66tv/error.log',
     out_file: '/var/log/xoso66tv/out.log',

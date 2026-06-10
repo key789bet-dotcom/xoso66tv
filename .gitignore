@@ -5,3 +5,9 @@ node_modules/
 .DS_Store
 .vscode/
 .idea/
+
+# ⚠️ DB runtime - KHÔNG BAO GIỜ commit (mỗi VPS giữ data riêng)
+data/db.json
+data/db.json.bak
+data/db.json.before-init-*
+data/*.backup.json
