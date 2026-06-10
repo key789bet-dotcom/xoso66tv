@@ -207,8 +207,21 @@ app.get('/', async function (req, res, next) {
     const finished = await api.getFinishedStreams(null, 8);
     const data     = db.load();
     const liveIdols= data.idols.filter(function(i){ return i.status==='active' && i.liveNow; });
-    const topStreamers = data.blvs.concat(data.idols).filter(function(x){return x.status==='active'}).slice(0, 16).map(function(s){
-      return { name: s.name, avatar: s.avatar, followers: (s.followers||s.viewers||0).toLocaleString('vi-VN'), liveNow: !!s.liveNow };
+    // Top Streamer: gộp BLV + Idol active, ưu tiên đang LIVE trước
+    const _allActive = data.blvs.concat(data.idols).filter(function(x){return x.status==='active'});
+    _allActive.sort(function(a,b){ return (b.liveNow?1:0) - (a.liveNow?1:0); });
+    const _blvIds = (data.blvs || []).map(function(b){ return b.id; });
+    const topStreamers = _allActive.slice(0, 16).map(function(s){
+      var isBlv = _blvIds.indexOf(s.id) !== -1;
+      return {
+        id:        s.id,
+        name:      s.name,
+        avatar:    s.avatar,
+        followers: (s.followers || s.viewers || 0).toLocaleString('vi-VN'),
+        liveNow:   !!s.liveNow,
+        href:      isBlv ? ('/live/' + s.id) : ('/idol/' + s.id),
+        type:      isBlv ? 'blv' : 'idol'
+      };
     });
     res.render('tw-home', { active:'home', live:live, upcoming:upcoming, finished:finished, dbIdols:liveIdols, topStreamers:topStreamers });
   } catch (e) { next(e); }
@@ -724,4 +737,65 @@ app.listen(PORT, HOST, function () {
   console.log('  Local:    http://localhost:' + PORT);
   console.log('  Network:  http://<YOUR-IP>:' + PORT + ' (truy cập từ điện thoại cùng WiFi)');
   console.log('  HTTPS:    Để bật camera trên điện thoại, dùng ngrok: ngrok http ' + PORT);
+  console.log('[SYNC] Auto sync SRS publish → DB liveNow: enabled (10s interval)');
 });
+
+// ╔════════════════════════════════════════════════════════════════════╗
+// ║ AUTO SYNC SRS publish state → DB liveNow                          ║
+// ║ - Poll SRS API mỗi 10s                                            ║
+// ║ - Match stream.name === idol.id / blv.id                          ║
+// ║ - Set liveNow=true/false tương ứng publish.active                 ║
+// ║ - Tránh: OBS push nhưng DB không cập nhật (mismatch hôm nay)      ║
+// ╚════════════════════════════════════════════════════════════════════╝
+const SRS_API_URL = process.env.SRS_API_URL || 'http://127.0.0.1:1985/api/v1/streams/';
+async function syncLiveStatusFromSRS() {
+  try {
+    const fetchFn = (typeof fetch === 'function') ? fetch : require('node-fetch');
+    const resp = await fetchFn(SRS_API_URL);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const activeStreamNames = (data.streams || [])
+      .filter(function(s){ return s && s.publish && s.publish.active; })
+      .map(function(s){ return s.name; });
+
+    const dbData = db.load();
+    let changed = false;
+
+    (dbData.idols || []).forEach(function(idol){
+      const shouldLive = activeStreamNames.indexOf(idol.id) !== -1;
+      if (!!idol.liveNow !== shouldLive) {
+        idol.liveNow = shouldLive;
+        if (shouldLive) {
+          idol.liveStartedAt = Date.now();
+        } else {
+          delete idol.liveStartedAt;
+        }
+        changed = true;
+        console.log('[SYNC] idol', idol.id, '(' + idol.name + ') → liveNow=' + shouldLive);
+      }
+    });
+
+    (dbData.blvs || []).forEach(function(blv){
+      const shouldLive = activeStreamNames.indexOf(blv.id) !== -1;
+      if (!!blv.liveNow !== shouldLive) {
+        blv.liveNow = shouldLive;
+        if (shouldLive) {
+          blv.liveStartedAt = Date.now();
+        } else {
+          delete blv.liveStartedAt;
+        }
+        changed = true;
+        console.log('[SYNC] blv', blv.id, '(' + blv.name + ') → liveNow=' + shouldLive);
+      }
+    });
+
+    if (changed) db.save(dbData);
+  } catch (e) {
+    // SRS down, network error → bỏ qua silent (không spam log)
+  }
+}
+// Run lần đầu sau 5s (đợi SRS sẵn sàng), sau đó mỗi 10s
+setTimeout(function(){
+  syncLiveStatusFromSRS();
+  setInterval(syncLiveStatusFromSRS, 10000);
+}, 5000);

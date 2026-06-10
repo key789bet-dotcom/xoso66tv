@@ -34,25 +34,28 @@ var TOP_STREAMERS = (typeof topStreamers !== 'undefined' && topStreamers && topS
     <!-- Track (overflow hidden, scroll-snap horizontal) -->
     <div id="tsTrack" class="flex gap-2 md:gap-5 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory py-1 md:py-2" style="scroll-snap-type:x mandatory">
       <% TOP_STREAMERS.forEach(function(s, i){ %>
-        <article class="ts-card snap-center shrink-0 flex flex-col items-center gap-1 md:gap-2 transition-all duration-300 w-[72px] md:!w-[120px]" data-idx="<%= i %>">
-          <!-- Avatar with orange border -->
-          <div class="relative">
-            <div class="ts-ring w-12 h-12 md:w-[88px] md:h-[88px] rounded-full p-[2px] md:p-[3px] bg-gradient-to-br from-pri-light via-pri to-pri-dark shadow-pri transition-all">
-              <div class="w-full h-full rounded-full bg-bg-deep overflow-hidden">
-                <img src="<%= s.avatar %>" alt="<%= s.name %>" loading="lazy" class="w-full h-full object-cover" onerror="this.outerHTML='<div class=&quot;w-full h-full grid place-items-center text-2xl font-black text-white bg-gradient-to-br from-pri to-pri-dark&quot;>'+'<%= (s.name||'?')[0] %>'+'</div>'">
+        <article class="ts-card snap-center shrink-0 flex flex-col items-center gap-1 md:gap-2 transition-all duration-300 w-[72px] md:!w-[120px]" data-idx="<%= i %>" data-id="<%= s.id %>">
+          <!-- Avatar + Name là LINK đến phòng -->
+          <a href="<%= s.href || '#' %>" class="contents" aria-label="Vào phòng <%= s.name %>">
+            <!-- Avatar with orange border -->
+            <div class="relative">
+              <div class="ts-ring w-12 h-12 md:w-[88px] md:h-[88px] rounded-full p-[2px] md:p-[3px] bg-gradient-to-br from-pri-light via-pri to-pri-dark shadow-pri transition-all">
+                <div class="w-full h-full rounded-full bg-bg-deep overflow-hidden">
+                  <img src="<%= s.avatar %>" alt="<%= s.name %>" loading="lazy" class="w-full h-full object-cover" onerror="this.outerHTML='<div class=&quot;w-full h-full grid place-items-center text-2xl font-black text-white bg-gradient-to-br from-pri to-pri-dark&quot;>'+'<%= (s.name||'?')[0] %>'+'</div>'">
+                </div>
               </div>
+              <!-- LIVE dot - dùng s.liveNow THẬT từ DB (đã sync auto từ SRS) -->
+              <% if (s.liveNow) { %>
+                <span class="ts-live absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-live text-white text-[8px] md:text-[9px] font-extrabold px-1 md:px-1.5 py-0 rounded-full border md:border-2 border-bg-card animate-pulse-live">LIVE</span>
+              <% } %>
             </div>
-            <!-- LIVE dot for some -->
-            <% if (i % 3 === 0) { %>
-              <span class="ts-live absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-live text-white text-[8px] md:text-[9px] font-extrabold px-1 md:px-1.5 py-0 rounded-full border md:border-2 border-bg-card animate-pulse-live">LIVE</span>
-            <% } %>
-          </div>
 
-          <!-- Name -->
-          <div class="ts-name text-[10px] md:text-[13px] font-extrabold text-white text-center leading-tight max-w-[72px] md:max-w-[110px] truncate"><%= s.name %></div>
+            <!-- Name -->
+            <div class="ts-name text-[10px] md:text-[13px] font-extrabold text-white text-center leading-tight max-w-[72px] md:max-w-[110px] truncate hover:text-pri-light transition-colors"><%= s.name %></div>
+          </a>
 
-          <!-- Follow button (compact mobile, full desktop) -->
-          <button type="button" onclick="event.stopPropagation();this.classList.toggle('!bg-pri');this.classList.toggle('!text-white');var t=this.querySelector('.ts-fwd-txt'); if(t)t.textContent=t.textContent.trim()==='Theo dõi'?'Đã theo':'Theo dõi'" class="inline-flex items-center gap-0.5 md:gap-1 bg-bg-soft hover:bg-pri text-gray-200 hover:text-white text-[9px] md:text-[11px] font-semibold px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md border border-line/60 hover:border-pri transition-all">
+          <!-- Follow button (compact mobile, full desktop) - KHÔNG nằm trong link để click follow không vào phòng -->
+          <button type="button" onclick="event.stopPropagation();event.preventDefault();this.classList.toggle('!bg-pri');this.classList.toggle('!text-white');var t=this.querySelector('.ts-fwd-txt'); if(t)t.textContent=t.textContent.trim()==='Theo dõi'?'Đã theo':'Theo dõi'" class="inline-flex items-center gap-0.5 md:gap-1 bg-bg-soft hover:bg-pri text-gray-200 hover:text-white text-[9px] md:text-[11px] font-semibold px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md border border-line/60 hover:border-pri transition-all">
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="md:w-[11px] md:h-[11px]"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span class="ts-fwd-txt">Theo dõi</span>
           </button>
