@@ -759,16 +759,27 @@ app.post('/api/chat/:roomId/send', function (req, res) {
   let user = null;
   try { user = require('./lib/public-auth').getUser(req); } catch(e){}
 
-  // Rate-limit theo IP+user: 3s cho member, 5p cho guest
   const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').split(',')[0].trim();
+
+  // 🛡️ Check ban
+  if (roomChat.isBanned(user ? user.username : null, ip)) {
+    return res.json({ ok:false, error:'Bạn đã bị admin chặn chat. Liên hệ CSKH nếu nhầm.' });
+  }
+
+  // 🐢 Slow mode override: nếu admin set slow mode → áp dụng cho TẤT CẢ (kể cả member)
+  const slowSec = roomChat.getSlowMode(roomId);
   const key = (user && user.username) ? ('u:' + user.username) : ('ip:' + ip);
   const now = Date.now();
   if (!global.__chatLastSent) global.__chatLastSent = new Map();
   const last = global.__chatLastSent.get(key) || 0;
-  const cooldown = user ? 3000 : 5 * 60 * 1000;
-  if (now - last < cooldown) {
+  let cooldown;
+  if (user && user.role === 'admin') cooldown = 0;          // Admin không cooldown
+  else if (slowSec > 0) cooldown = slowSec * 1000;          // Slow mode đè lên
+  else if (user) cooldown = 3000;                            // Member 3s
+  else cooldown = 5 * 60 * 1000;                             // Guest 5p
+  if (cooldown > 0 && now - last < cooldown) {
     const remain = Math.ceil((cooldown - (now - last)) / 1000);
-    return res.json({ ok:false, error:'Cooldown', remain: remain });
+    return res.json({ ok:false, error:'Cooldown', remain: remain, slowMode: slowSec });
   }
   global.__chatLastSent.set(key, now);
 
@@ -779,10 +790,60 @@ app.post('/api/chat/:roomId/send', function (req, res) {
     badge: user ? (user.role === 'admin' ? 'SVIP' : user.role === 'idol' ? 'VIP' : user.role === 'blv' ? 'VIP' : '') : '',
     text: text,
     isUser: true,
-    by: user ? user.username : null
+    by: user ? user.username : null,
+    ip: ip  // lưu IP để admin có thể ban
   };
   const saved = roomChat.addMessage(roomId, msg);
-  res.json({ ok:true, message: saved });
+  // Không trả IP về client
+  const safeMsg = Object.assign({}, saved); delete safeMsg.ip;
+  res.json({ ok:true, message: safeMsg });
+});
+
+// ═══ ADMIN MODERATION ═══
+function requireAdmin(req, res, next) {
+  let user = null;
+  try { user = require('./lib/public-auth').getUser(req); } catch(e){}
+  if (!user || user.role !== 'admin') return res.status(403).json({ ok:false, error:'Cần admin' });
+  next();
+}
+
+// DELETE /api/admin/chat/:roomId/msg/:msgId
+app.delete('/api/admin/chat/:roomId/msg/:msgId', requireAdmin, function (req, res) {
+  const ok = roomChat.deleteMessage(req.params.roomId, req.params.msgId);
+  res.json({ ok: ok });
+});
+
+// POST /api/admin/chat/:roomId/clear
+app.post('/api/admin/chat/:roomId/clear', requireAdmin, function (req, res) {
+  const ok = roomChat.clearRoom(req.params.roomId);
+  res.json({ ok: ok });
+});
+
+// POST /api/admin/chat/:roomId/slow  body {seconds}
+app.post('/api/admin/chat/:roomId/slow', requireAdmin, function (req, res) {
+  const sec = parseInt((req.body && req.body.seconds) || '0', 10);
+  const result = roomChat.setSlowMode(req.params.roomId, sec);
+  res.json({ ok:true, slowMode: result });
+});
+
+// POST /api/admin/chat/ban  body {username|ip}
+app.post('/api/admin/chat/ban', requireAdmin, function (req, res) {
+  const b = req.body || {};
+  if (!b.username && !b.ip) return res.json({ ok:false, error:'Cần username hoặc ip' });
+  roomChat.banUser({ username: b.username, ip: b.ip });
+  res.json({ ok:true, bans: roomChat.listBans() });
+});
+
+// POST /api/admin/chat/unban  body {username|ip}
+app.post('/api/admin/chat/unban', requireAdmin, function (req, res) {
+  const b = req.body || {};
+  const ok = roomChat.unbanUser({ username: b.username, ip: b.ip });
+  res.json({ ok: ok, bans: roomChat.listBans() });
+});
+
+// GET /api/admin/chat/bans
+app.get('/api/admin/chat/bans', requireAdmin, function (req, res) {
+  res.json({ ok:true, bans: roomChat.listBans(), stats: roomChat.stats() });
 });
 
 // 404 + error handler (đăng ký CUỐI CÙNG - sau mọi route)
@@ -825,6 +886,7 @@ async function syncLiveStatusFromSRS() {
     (dbData.idols || []).forEach(function(idol){
       const shouldLive = activeStreamNames.indexOf(idol.id) !== -1;
       if (!!idol.liveNow !== shouldLive) {
+        const wasOff = !idol.liveNow;
         idol.liveNow = shouldLive;
         if (shouldLive) {
           idol.liveStartedAt = Date.now();
@@ -833,12 +895,34 @@ async function syncLiveStatusFromSRS() {
         }
         changed = true;
         console.log('[SYNC] idol', idol.id, '(' + idol.name + ') → liveNow=' + shouldLive);
+
+        // 🔔 NOTIFY FOLLOWERS: chỉ khi transition false→true (vừa go live)
+        if (shouldLive && wasOff) {
+          try {
+            const pushLib = require('./lib/push');
+            pushLib.sendToTopic('idol_live', {
+              title: '🔴 ' + idol.name + ' đang LIVE!',
+              body: (idol.category === 'casino' ? 'Show casino' :
+                     idol.category === 'bongda' ? 'Bình luận bóng đá' :
+                     idol.category === 'esport' ? 'Stream esport' : 'Idol Live Show') +
+                    ' - Vào ngay để xem và tặng quà!',
+              icon: idol.avatar || '/static/img/logoxoso66tv.webp',
+              url: '/idol/' + idol.id,
+              tag: 'idol_' + idol.id
+            }).then(function(r){
+              console.log('[PUSH] Notified', r.sent, 'followers cho', idol.name);
+            }).catch(function(e){
+              console.error('[PUSH] Fail:', e.message);
+            });
+          } catch (e) { console.error('[PUSH] Error:', e.message); }
+        }
       }
     });
 
     (dbData.blvs || []).forEach(function(blv){
       const shouldLive = activeStreamNames.indexOf(blv.id) !== -1;
       if (!!blv.liveNow !== shouldLive) {
+        const wasOff = !blv.liveNow;
         blv.liveNow = shouldLive;
         if (shouldLive) {
           blv.liveStartedAt = Date.now();
@@ -847,6 +931,22 @@ async function syncLiveStatusFromSRS() {
         }
         changed = true;
         console.log('[SYNC] blv', blv.id, '(' + blv.name + ') → liveNow=' + shouldLive);
+
+        // 🔔 NOTIFY khi BLV vừa lên sóng
+        if (shouldLive && wasOff) {
+          try {
+            const pushLib = require('./lib/push');
+            pushLib.sendToTopic('blv_live', {
+              title: '⚽ ' + blv.name + ' đang bình luận!',
+              body: 'BLV vừa lên sóng - vào ngay xem trận đấu',
+              icon: blv.avatar || '/static/img/logoxoso66tv.webp',
+              url: '/live/' + blv.id,
+              tag: 'blv_' + blv.id
+            }).then(function(r){
+              console.log('[PUSH] Notified', r.sent, 'followers cho BLV', blv.name);
+            }).catch(function(){});
+          } catch (e) {}
+        }
       }
     });
 

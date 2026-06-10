@@ -30,6 +30,20 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   </div>
 </div>
 
+<!-- 🔄 RECONNECT overlay - hiện khi OBS ngắt tạm thời -->
+<div id="liveReconnect" class="hidden absolute inset-0 z-[4] grid place-items-center bg-black/75 backdrop-blur">
+  <div class="text-center text-white px-4 max-w-xs">
+    <div class="relative mx-auto w-16 h-16 mb-3">
+      <div class="absolute inset-0 border-4 border-pri/30 rounded-full"></div>
+      <div class="absolute inset-0 border-4 border-pri border-t-transparent rounded-full animate-spin"></div>
+      <div class="absolute inset-0 grid place-items-center text-2xl">📡</div>
+    </div>
+    <div class="text-lg font-extrabold mb-1 text-pri-light">Đang khôi phục stream...</div>
+    <div class="text-xs text-gray-300 mb-1">Tín hiệu tạm gián đoạn, đang tự động kết nối lại</div>
+    <div class="text-[10px] text-muted">Lần thử: <span id="liveRetryCount">1</span>/20</div>
+  </div>
+</div>
+
 <!-- Loading spinner -->
 <div id="liveLoading" class="hidden absolute inset-0 z-[3] grid place-items-center bg-black/40">
   <div class="w-12 h-12 border-4 border-pri border-t-transparent rounded-full animate-spin"></div>
@@ -125,11 +139,14 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
 
     flvPlayer.on(flvjs.Events.ERROR, function(type, detail){
       console.log('[LIVE] FLV error:', type, detail);
-      // Chỉ destroy khi lỗi nghiêm trọng
+      // 🔄 NetworkError = OBS có thể bị ngắt tạm thời → hiện overlay reconnect, KHÔNG show "Chưa lên sóng"
       if (type === 'NetworkError') {
-        hideEl('liveVideo'); showEl('liveOffline'); hideEl('liveLoading');
-        showPlaceholder();
+        hideEl('liveVideo');
+        hideEl('liveLoading');
+        // KHÔNG showPlaceholder() ngay - giữ kênh, hiện reconnect overlay
+        showEl('liveReconnect');
         isPlaying = false;
+        startReconnectLoop();
       }
     });
     flvPlayer.on(flvjs.Events.MEDIA_INFO, function(info){
@@ -165,7 +182,10 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
       .then(function(r){
         if (r.ok && !isPlaying) {
-          hideEl('liveOffline'); showEl('liveLoading');
+          // Stream sống lại → ẩn cả offline + reconnect overlay
+          hideEl('liveOffline'); hideEl('liveReconnect');
+          showEl('liveLoading');
+          stopReconnectLoop();
           setTimeout(attachStream, 500);
         } else if (!r.ok && isPlaying) {
           if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
@@ -174,14 +194,50 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
           isPlaying = false;
         }
       })
-      .catch(function(){
-        if (isPlaying) {
-          if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
-          hideEl('liveVideo'); showEl('liveOffline');
-          showPlaceholder();
-          isPlaying = false;
-        }
-      });
+      .catch(function(){});
+  }
+
+  // 🔄 RECONNECT LOOP - retry 20 lần × 3s = 60s, sau đó mới giả định offline
+  var __reconnectId = null;
+  var __reconnectCount = 0;
+  function startReconnectLoop(){
+    if (__reconnectId) return;
+    __reconnectCount = 0;
+    var countEl = document.getElementById('liveRetryCount');
+    __reconnectId = setInterval(function(){
+      __reconnectCount++;
+      if (countEl) countEl.textContent = __reconnectCount;
+      // Check stream còn sống không
+      fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
+        .then(function(r){
+          if (r.ok) {
+            console.log('[LIVE] ✅ Stream hồi phục sau', __reconnectCount, 'lần thử');
+            hideEl('liveReconnect');
+            showEl('liveLoading');
+            stopReconnectLoop();
+            setTimeout(attachStream, 500);
+          } else if (__reconnectCount >= 20) {
+            // Sau 60s vẫn không có → coi như offline thật
+            console.log('[LIVE] ❌ Hết 60s không hồi phục → offline');
+            stopReconnectLoop();
+            hideEl('liveReconnect');
+            showEl('liveOffline');
+            showPlaceholder();
+          }
+        })
+        .catch(function(){
+          if (__reconnectCount >= 20) {
+            stopReconnectLoop();
+            hideEl('liveReconnect');
+            showEl('liveOffline');
+            showPlaceholder();
+          }
+        });
+    }, 3000);
+  }
+  function stopReconnectLoop(){
+    if (__reconnectId) { clearInterval(__reconnectId); __reconnectId = null; }
+    __reconnectCount = 0;
   }
 
   // Nút Bật tiếng - bind click sau khi DOM ready
