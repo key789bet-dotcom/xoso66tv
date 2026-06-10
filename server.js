@@ -304,9 +304,24 @@ app.get('/video-noi-bat', async function (req, res, next) {
   catch (e) { next(e); }
 });
 
-app.get('/tin-tuc', async function (req, res, next) {
-  try { res.render('tw-tin-tuc', { active:'news', list: await api.getNews(18) }); }
-  catch (e) { next(e); }
+// ═══ TIN TỨC - dùng news.json từ AI generate ═══
+const newsStore = require('./lib/news-store');
+
+app.get('/tin-tuc', function (req, res, next) {
+  try {
+    const list = newsStore.listRecent(30);
+    res.render('tw-tin-tuc', { active:'news', list: list });
+  } catch (e) { next(e); }
+});
+
+// GET /tin-tuc/:slug - chi tiết bài
+app.get('/tin-tuc/:slug', function (req, res, next) {
+  try {
+    const article = newsStore.findBySlug(req.params.slug);
+    if (!article) return res.status(404).render('tw-404');
+    const related = newsStore.listRecent(6).filter(n => n.slug !== article.slug).slice(0, 4);
+    res.render('tw-tin-tuc-detail', { active:'news', article: article, related: related });
+  } catch (e) { next(e); }
 });
 
 app.get('/the-thao/:cat', async function (req, res, next) {
@@ -964,3 +979,41 @@ setTimeout(function(){
   syncLiveStatusFromSRS();
   setInterval(syncLiveStatusFromSRS, 10000);
 }, 5000);
+
+// ╔════════════════════════════════════════════════════════════════════╗
+// ║ AUTO GENERATE NEWS - chạy hàng ngày lúc 6h sáng VN (UTC+7 = 23h UTC)║
+// ║ Cần env CLAUDE_API_KEY (set trong ecosystem.config.js)             ║
+// ║ Run thủ công: node scripts/generate-news.js                        ║
+// ╚════════════════════════════════════════════════════════════════════╝
+function runNewsGenerator() {
+  const { exec } = require('child_process');
+  const path = require('path');
+  const script = path.join(__dirname, 'scripts', 'generate-news.js');
+  console.log('[NEWS-CRON] 🤖 Bắt đầu auto generate news...');
+  exec('node ' + script, { env: process.env, maxBuffer: 10 * 1024 * 1024 }, function(err, stdout, stderr){
+    if (err) console.error('[NEWS-CRON] ❌ Error:', err.message);
+    if (stdout) console.log('[NEWS-CRON]', stdout.trim());
+    if (stderr) console.error('[NEWS-CRON] stderr:', stderr.trim());
+  });
+}
+
+// Schedule: check mỗi phút, run khi đúng 6h sáng VN
+let __lastNewsRunDate = null;
+setInterval(function(){
+  const now = new Date();
+  // Convert sang VN time (UTC+7)
+  const vnHour = (now.getUTCHours() + 7) % 24;
+  const vnMin = now.getUTCMinutes();
+  const dateKey = new Date(now.getTime() + 7 * 3600000).toISOString().slice(0,10);
+  // Chạy lúc 6:00-6:05 VN, chỉ 1 lần/ngày
+  if (vnHour === 6 && vnMin < 5 && __lastNewsRunDate !== dateKey) {
+    __lastNewsRunDate = dateKey;
+    if (process.env.CLAUDE_API_KEY) {
+      runNewsGenerator();
+    } else {
+      console.log('[NEWS-CRON] ⏸️  Skipped - CLAUDE_API_KEY chưa set');
+    }
+  }
+}, 60 * 1000); // check mỗi phút
+
+console.log('[NEWS-CRON] Schedule enabled: auto generate news lúc 6:00 sáng VN');

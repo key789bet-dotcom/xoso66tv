@@ -1,45 +1,60 @@
 <%
 var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
 seo = {
-  title: 'Tin Tức Thể Thao Hôm Nay '+_todayVi+' - '+brand.name,
-  description: 'Cập nhật tin tức thể thao nóng hổi 24/7: kết quả, chuyển nhượng, phân tích. '+list.length+' bài viết mới nhất.',
-  keywords: 'tin tức thể thao, tin bóng đá hôm nay, chuyển nhượng, tin nhanh thể thao',
+  title: 'Nhận Định & Soi Kèo Bóng Đá Hôm Nay '+_todayVi+' - '+brand.name,
+  description: 'Tổng hợp nhận định, soi kèo bóng đá cập nhật mỗi ngày: phong độ, đối đầu, dự đoán tỉ số. '+list.length+' bài viết mới nhất từ chuyên gia AI.',
+  keywords: 'nhận định bóng đá, soi kèo, dự đoán tỉ số, phân tích trận đấu, '+brand.short,
   canonical: '/tin-tuc',
-  breadcrumb: [{ name:'Tin tức', url:'/tin-tuc' }]
+  breadcrumb: [{ name:'Tin tức & Nhận định', url:'/tin-tuc' }]
 };
 function _iso(d){ try{return new Date(d).toISOString();}catch(e){return new Date().toISOString();} }
+function _fmtDate(d){
+  try { var dt = new Date(d); return dt.getDate()+'/'+(dt.getMonth()+1)+'/'+dt.getFullYear(); }
+  catch(e) { return ''; }
+}
 %>
 <%- include('partials/tw-layout-start') %>
+
+<!-- ═══════════ DESKTOP ═══════════ -->
+<div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
 <header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5"><span class="text-2xl">&#128240;</span> <span class="text-shimmer">Tin Tức Thể Thao Hôm Nay <%= _todayVi %> - Cập Nhật 24/7</span></h1>
-  <p class="text-muted text-sm">Tin nóng hổi từ làng thể thao thế giới và Việt Nam: <a href="/lich-phat-song?mon=bong-da" class="text-pri-light">bóng đá</a>, <a href="/the-thao/bong-ro" class="text-pri-light">bóng rổ</a>, <a href="/the-thao/tennis" class="text-pri-light">tennis</a>, <a href="/esports" class="text-pri-light">esports</a>.</p>
+  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5"><span class="text-2xl">📰</span> <span class="text-shimmer">Nhận Định & Soi Kèo Bóng Đá Hôm Nay <%= _todayVi %></span></h1>
+  <p class="text-muted text-sm">Tổng hợp <strong class="text-white"><%= list.length %> bài</strong> nhận định, soi kèo chuyên sâu từ chuyên gia AI. Cập nhật mỗi ngày các trận hot của <a href="/lich-phat-song?mon=bong-da" class="text-pri-light">bóng đá</a>.</p>
 </header>
 
-<section aria-label="Tin tức">
+<section aria-label="Nhận định bóng đá">
   <% if (!list || list.length === 0) { %>
-    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted"><div class="text-5xl mb-2 opacity-60">&#128240;</div>Chưa có bài viết.</div>
+    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
+      <div class="text-5xl mb-2 opacity-60">📰</div>
+      <div>Chưa có bài viết. AI sẽ tự động sinh bài mỗi sáng 6:00.</div>
+    </div>
   <% } else { %>
-    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
-      <% list.forEach(function(m){ %>
-        <article class="bg-bg-card border border-line rounded-xl overflow-hidden transition-all hover:border-pri hover:-translate-y-1" itemscope itemtype="https://schema.org/NewsArticle">
-          <a href="/live/<%= m.slug || m.id %>" itemprop="url" class="block">
-            <div class="aspect-video bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden">
-              <% if (m.poster) { %>
-                <img src="<%= m.poster %>" loading="lazy" alt="<%= m.home %> vs <%= m.away %>" class="w-full h-full object-cover" itemprop="image" onerror="this.style.display='none'">
+    <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      <% list.forEach(function(n){ %>
+        <article class="bg-bg-card border border-line rounded-xl overflow-hidden transition-all hover:border-pri hover:-translate-y-1 hover:shadow-pri/30 flex flex-col" itemscope itemtype="https://schema.org/NewsArticle">
+          <a href="/tin-tuc/<%= n.slug %>" itemprop="url" class="block">
+            <div class="aspect-video bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden relative">
+              <% if (n.image) { %>
+                <img src="<%= n.image %>" loading="lazy" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" onerror="this.style.display='none';this.parentNode.classList.add('grid','place-items-center');this.parentNode.innerHTML='<span class=&quot;text-5xl opacity-60&quot;>⚽</span>'">
               <% } else { %>
-                <div class="w-full h-full grid place-items-center text-muted text-4xl">&#128240;</div>
+                <div class="w-full h-full grid place-items-center text-muted text-5xl opacity-60">⚽</div>
               <% } %>
+              <!-- Badge tỉ số dự đoán -->
+              <% if (n.predictedScore) { %>
+                <span class="absolute top-2 left-2 bg-pri text-white text-[11px] font-extrabold px-2 py-1 rounded shadow">🎯 <%= n.predictedScore %></span>
+              <% } %>
+              <span class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded">📰 AI Phân Tích</span>
             </div>
-            <div class="p-3">
-              <h2 class="text-[14px] font-bold text-white leading-snug mb-1.5 line-clamp-2" itemprop="headline"><%= m.headline %></h2>
-              <p class="text-xs text-muted mb-2 line-clamp-2" itemprop="description"><%= m.excerpt %></p>
-              <div class="flex justify-between text-[11px] text-dim">
-                <span>&#127942; <span itemprop="about"><%= m.league %></span></span>
-                <time datetime="<%= _iso(m.date) %>" itemprop="datePublished">&#128197; <%= m.date %></time>
+            <div class="p-3.5 flex-1 flex flex-col">
+              <h2 class="text-[14px] font-bold text-white leading-snug mb-1.5 line-clamp-2 hover:text-pri-light" itemprop="headline"><%= n.title %></h2>
+              <p class="text-xs text-muted mb-2 line-clamp-3 flex-1" itemprop="description"><%= n.excerpt %></p>
+              <div class="flex items-center justify-between text-[11px] text-dim mt-auto">
+                <% if (n.league) { %><span>🏆 <span itemprop="about" class="truncate"><%= n.league %></span></span><% } %>
+                <time datetime="<%= _iso(n.publishedAt) %>" itemprop="datePublished">📅 <%= _fmtDate(n.publishedAt) %></time>
               </div>
-              <meta itemprop="author" content="<%= brand.name %>">
+              <meta itemprop="author" content="<%= n.author %>">
               <meta itemprop="publisher" content="<%= brand.name %>">
             </div>
           </a>
@@ -50,16 +65,81 @@ function _iso(d){ try{return new Date(d).toISOString();}catch(e){return new Date
 </section>
 
 <%- include('partials/tw-seo-bottom', { seoContent: {
-  h2:'Về trang Tin tức thể thao của '+brand.name,
-  intro:'<strong>'+brand.name+'</strong> là nguồn tin tức thể thao nhanh, chính xác và toàn diện nhất Việt Nam. Tin tức sync trực tiếp từ các nguồn chính thức quốc tế.',
+  h2:'Về trang Nhận định & Soi kèo của '+brand.name,
+  intro:'<strong>'+brand.name+'</strong> tự động tổng hợp và phân tích trận đấu bằng AI chuyên dụng, kết hợp dữ liệu thống kê thực tế.',
   sections: [
-    { h3:'Bao phủ mọi giải đấu', p:'Premier League, La Liga, Serie A, Bundesliga, Champions League, World Cup, V-League, NBA, ATP/WTA, esports... Tất cả đều có chuyên mục riêng.' },
-    { h3:'Cộng đồng BLV và chuyên gia', p:'Sau mỗi tin, bạn có thể thảo luận, soi kèo, dự đoán tỉ số cùng hàng nghìn fan. <a href="/dang-ky">Đăng ký miễn phí</a> để tham gia.' }
+    { h3:'Bao phủ mọi giải đấu', p:'Premier League, La Liga, Serie A, Bundesliga, Champions League, World Cup, V-League. Mỗi sáng có bài cho 5 trận hot nhất.' },
+    { h3:'Phân tích chuyên sâu', p:'Mỗi bài có 6 mục: phong độ gần đây, lịch sử đối đầu, đội hình dự kiến, nhận định kèo châu Á/châu Âu/Tài Xỉu, dự đoán tỉ số, lời khuyên.' }
   ],
   faqs: [
-    { q:'Tin tức có chính xác không?', a:'Có. Dữ liệu sync trực tiếp từ TheSportsDB - nguồn chuẩn quốc tế.' },
-    { q:'Tin được cập nhật bao lâu một lần?', a:'Tin kết quả: ngay khi trận kết thúc. Tin chuyển nhượng: mỗi giờ. Tin highlight: 1-2 giờ sau trận.' }
+    { q:'Bài viết có chính xác không?', a:'AI phân tích dựa trên dữ liệu thực tế. Tỉ lệ chính xác cao nhưng vẫn cần kết hợp với nhận định cá nhân.' },
+    { q:'Bài được cập nhật bao lâu một lần?', a:'Tự động sinh mới mỗi sáng 6:00 giờ Việt Nam, cho các trận đấu trong ngày và sắp tới.' }
   ]
 }}) %>
+</div>
+
+<!-- ═══════════ 📱 MOBILE ═══════════ -->
+<div class="md:hidden px-3">
+  <div class="flex items-center gap-2 mb-3 mt-1">
+    <a href="/" class="text-pri-light text-2xl leading-none" aria-label="Back">‹</a>
+    <h1 class="text-pri-light font-extrabold text-xl flex-1">Nhận Định 📰</h1>
+    <span class="text-[10px] text-muted"><%= list.length %> bài</span>
+  </div>
+
+  <% if (!list || list.length === 0) { %>
+    <div class="p-8 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
+      <div class="text-4xl mb-2 opacity-60">📰</div>
+      <div class="text-sm">AI sẽ tự sinh bài mỗi sáng 6:00.</div>
+    </div>
+  <% } else { %>
+    <!-- Featured: bài đầu tiên to nhất -->
+    <% var _hot = list[0]; %>
+    <a href="/tin-tuc/<%= _hot.slug %>" class="block bg-bg-card border border-pri/40 rounded-xl overflow-hidden mb-3 shadow-lg shadow-pri/20">
+      <div class="aspect-[16/9] relative bg-gradient-to-br from-[#1a2030] to-bg">
+        <% if (_hot.image) { %>
+          <img src="<%= _hot.image %>" alt="<%= _hot.title %>" class="w-full h-full object-cover">
+        <% } %>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent"></div>
+        <% if (_hot.predictedScore) { %>
+          <span class="absolute top-2 left-2 bg-pri text-white text-[11px] font-extrabold px-2 py-1 rounded">🎯 <%= _hot.predictedScore %></span>
+        <% } %>
+        <span class="absolute top-2 right-2 bg-emerald-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded">🔥 HOT</span>
+        <div class="absolute bottom-0 inset-x-0 p-3 text-white">
+          <h2 class="text-sm font-extrabold leading-tight line-clamp-2"><%= _hot.title %></h2>
+          <div class="flex items-center justify-between mt-1 text-[10px] opacity-80">
+            <span>📅 <%= _fmtDate(_hot.publishedAt) %></span>
+            <% if (_hot.league) { %><span>🏆 <%= _hot.league %></span><% } %>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- List còn lại: image trái + text phải -->
+    <div class="space-y-2.5 mb-4">
+      <% list.slice(1).forEach(function(n){ %>
+      <a href="/tin-tuc/<%= n.slug %>" class="flex gap-2.5 bg-bg-card border border-line rounded-xl p-2 active:scale-[.98] transition-transform">
+        <div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[#1a2030] to-bg grid place-items-center relative">
+          <% if (n.image) { %>
+            <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+          <% } else { %>
+            <span class="text-3xl opacity-60">⚽</span>
+          <% } %>
+          <% if (n.predictedScore) { %>
+            <span class="absolute top-1 left-1 bg-pri text-white text-[9px] font-extrabold px-1 py-0.5 rounded"><%= n.predictedScore %></span>
+          <% } %>
+        </div>
+        <div class="flex-1 min-w-0 flex flex-col">
+          <h3 class="text-[12.5px] font-bold text-white leading-tight line-clamp-2 mb-1"><%= n.title %></h3>
+          <p class="text-[10.5px] text-muted line-clamp-2 mb-1"><%= n.excerpt %></p>
+          <div class="flex items-center justify-between text-[9.5px] text-dim mt-auto">
+            <% if (n.league) { %><span class="truncate max-w-[100px]">🏆 <%= n.league %></span><% } else { %><span></span><% } %>
+            <span>📅 <%= _fmtDate(n.publishedAt) %></span>
+          </div>
+        </div>
+      </a>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
 
 <%- include('partials/tw-footer') %>

@@ -11,3 +11,6 @@ data/db.json
 data/db.json.bak
 data/db.json.before-init-*
 data/*.backup.json
+data/chat-history.json
+data/chat-bans.json
+data/news.json

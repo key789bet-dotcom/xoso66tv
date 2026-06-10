@@ -1,0 +1,175 @@
+<%
+function _iso(d){ try{return new Date(d).toISOString();}catch(e){return new Date().toISOString();} }
+function _fmtDate(d){ try{var dt=new Date(d);return dt.getDate()+'/'+(dt.getMonth()+1)+'/'+dt.getFullYear();}catch(e){return '';} }
+
+// Render markdown → HTML đơn giản (không cần lib ngoài)
+function _md2html(md) {
+  if (!md) return '';
+  var html = String(md);
+  // Code blocks
+  html = html.replace(/```[\s\S]*?```/g, function(m){ return '<pre class="bg-bg-deep border border-line rounded p-3 overflow-x-auto text-xs my-3"><code>' + m.replace(/```\w*\n?/g,'').replace(/```/g,'') + '</code></pre>'; });
+  // Headings
+  html = html.replace(/^#### (.+)$/gm, '<h4 class="text-base font-bold text-pri-light mt-4 mb-2">$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-white mt-5 mb-2.5">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2 class="text-xl font-extrabold text-pri-light mt-6 mb-3 border-b border-line pb-1.5">$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1 class="text-2xl font-black text-white mt-2 mb-3">$1</h1>');
+  // Bold + italic
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white">$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  // Lists
+  html = html.replace(/^[\-\*] (.+)$/gm, '<li class="ml-5 mb-1.5 list-disc">$1</li>');
+  html = html.replace(/^\d+\.\s+(.+)$/gm, '<li class="ml-5 mb-1.5 list-decimal">$1</li>');
+  // Links
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-pri-light hover:underline" target="_blank" rel="noopener">$1</a>');
+  // Paragraphs (lines that aren't already wrapped)
+  html = html.split(/\n{2,}/).map(function(p){
+    p = p.trim();
+    if (!p) return '';
+    if (p.match(/^<(h\d|li|pre|blockquote|div|ul|ol|table)/)) return p;
+    return '<p class="text-gray-200 leading-relaxed my-2.5">' + p + '</p>';
+  }).join('\n');
+  // Wrap consecutive <li> in <ul>
+  html = html.replace(/(<li[^>]*>[^<]+<\/li>\s*)+/g, function(m){ return '<ul class="my-3">' + m + '</ul>'; });
+  return html;
+}
+
+var _articleHtml = _md2html(article.content);
+var _imageUrl = article.image || '/static/img/logoxoso66tv.webp';
+
+seo = {
+  title: article.title + ' - ' + brand.name,
+  description: article.excerpt,
+  keywords: (article.tags || []).join(', ') + ', soi kèo, nhận định bóng đá',
+  canonical: '/tin-tuc/' + article.slug,
+  ogType: 'article',
+  ogImage: _imageUrl,
+  breadcrumb: [
+    { name:'Tin tức', url:'/tin-tuc' },
+    { name: article.title, url:'/tin-tuc/'+article.slug }
+  ]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<!-- JSON-LD Article schema for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "<%= article.title %>",
+  "description": "<%= article.excerpt %>",
+  "image": "<%= _imageUrl %>",
+  "datePublished": "<%= _iso(article.publishedAt) %>",
+  "dateModified": "<%= _iso(article.publishedAt) %>",
+  "author": { "@type": "Organization", "name": "<%= article.author %>" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "<%= brand.name %>",
+    "logo": { "@type": "ImageObject", "url": "https://xoso66tv.com/static/img/logoxoso66tv.webp" }
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://xoso66tv.com/tin-tuc/<%= article.slug %>" },
+  "articleSection": "Bóng đá",
+  "keywords": "<%= (article.tags||[]).join(', ') %>"
+}
+</script>
+
+<article class="mb-6">
+  <!-- ═══════════ COVER IMAGE ═══════════ -->
+  <div class="relative w-full aspect-video md:aspect-[21/9] overflow-hidden rounded-xl mb-4 md:mb-6 bg-gradient-to-br from-[#1a2030] to-bg">
+    <% if (article.image) { %>
+      <img src="<%= article.image %>" alt="<%= article.title %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+    <% } %>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+    <div class="absolute bottom-0 inset-x-0 p-4 md:p-6 text-white">
+      <% if (article.league) { %>
+        <span class="inline-block bg-pri text-white text-[10px] md:text-xs font-extrabold px-2 py-0.5 rounded mb-2">🏆 <%= article.league %></span>
+      <% } %>
+      <h1 class="text-xl md:text-3xl font-black leading-tight drop-shadow-lg"><%= article.title %></h1>
+      <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] md:text-sm opacity-90">
+        <span>📅 <%= _fmtDate(article.publishedAt) %></span>
+        <% if (article.matchTime) { %><span>⏰ <%= article.matchTime %></span><% } %>
+        <% if (article.predictedScore) { %><span class="bg-pri/80 text-white px-2 py-0.5 rounded font-bold">🎯 Dự đoán: <%= article.predictedScore %></span><% } %>
+        <span class="opacity-80">✍️ <%= article.author %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 2 TEAMS preview (nếu có) ═══════════ -->
+  <% if (article.home && article.away) { %>
+  <div class="bg-bg-card border border-line rounded-xl p-4 mb-5 flex items-center justify-around">
+    <div class="text-center">
+      <% if (article.homeBadge) { %>
+        <img src="<%= article.homeBadge %>" alt="<%= article.home %>" class="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full bg-white p-1 shadow" onerror="this.style.display='none'">
+      <% } %>
+      <div class="font-bold text-white mt-2 text-sm md:text-base"><%= article.home %></div>
+    </div>
+    <div class="text-3xl md:text-5xl font-black text-pri">VS</div>
+    <div class="text-center">
+      <% if (article.awayBadge) { %>
+        <img src="<%= article.awayBadge %>" alt="<%= article.away %>" class="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full bg-white p-1 shadow" onerror="this.style.display='none'">
+      <% } %>
+      <div class="font-bold text-white mt-2 text-sm md:text-base"><%= article.away %></div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- ═══════════ CONTENT (markdown rendered) ═══════════ -->
+  <div class="bg-bg-card border border-line rounded-xl p-4 md:p-6 prose-content">
+    <%- _articleHtml %>
+  </div>
+
+  <!-- ═══════════ TAGS ═══════════ -->
+  <% if (article.tags && article.tags.length) { %>
+  <div class="mt-5 flex flex-wrap items-center gap-2">
+    <span class="text-muted text-xs font-bold">🏷️ Tags:</span>
+    <% article.tags.forEach(function(t){ %>
+      <a href="/tin-tuc" class="bg-bg-soft hover:bg-pri/20 text-pri-light text-xs font-bold px-2.5 py-1 rounded-full border border-line hover:border-pri">#<%= t %></a>
+    <% }); %>
+  </div>
+  <% } %>
+
+  <!-- ═══════════ CTA buttons ═══════════ -->
+  <div class="mt-6 grid grid-cols-2 gap-3">
+    <% if (article.matchId) { %>
+      <a href="/live/<%= article.matchId %>" class="bg-gradient-to-r from-pri to-live text-white text-center font-bold py-3 rounded-xl shadow-lg shadow-pri/30">▶️ Xem trực tiếp</a>
+    <% } else { %>
+      <a href="/lich-phat-song" class="bg-bg-card border border-line text-white text-center font-bold py-3 rounded-xl">📅 Lịch thi đấu</a>
+    <% } %>
+    <a href="<%= (typeof partner !== 'undefined' && partner.register) ? partner.register : 'https://qt99.click' %>" target="_blank" rel="noopener" class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white text-center font-bold py-3 rounded-xl shadow-lg">💰 Đặt cược ngay</a>
+  </div>
+</article>
+
+<!-- ═══════════ Bài liên quan ═══════════ -->
+<% if (related && related.length) { %>
+<section class="mt-8" aria-label="Bài liên quan">
+  <div class="flex items-center gap-2 mb-3">
+    <span class="w-1 h-5 bg-pri rounded-sm"></span>
+    <h2 class="text-lg font-extrabold text-white">📖 Bài liên quan</h2>
+  </div>
+  <div class="grid gap-3 grid-cols-2 md:grid-cols-4">
+    <% related.forEach(function(n){ %>
+      <a href="/tin-tuc/<%= n.slug %>" class="bg-bg-card border border-line rounded-lg overflow-hidden active:scale-[.98] transition-transform">
+        <div class="aspect-video bg-bg-deep grid place-items-center">
+          <% if (n.image) { %><img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" onerror="this.style.display='none'"><% } else { %><span class="text-2xl opacity-60">⚽</span><% } %>
+        </div>
+        <div class="p-2">
+          <h3 class="text-[11.5px] font-bold text-white line-clamp-2 leading-tight"><%= n.title %></h3>
+          <div class="text-[9.5px] text-muted mt-1"><%= _fmtDate(n.publishedAt) %></div>
+        </div>
+      </a>
+    <% }); %>
+  </div>
+</section>
+<% } %>
+
+<style>
+.prose-content h2 { scroll-margin-top: 70px; }
+.prose-content p { margin: 12px 0; }
+.prose-content ul, .prose-content ol { margin: 12px 0; padding-left: 22px; }
+.prose-content li { margin-bottom: 6px; }
+.prose-content strong { color: #ffd9a8; font-weight: 800; }
+.prose-content a { color: #ffb14a; text-decoration: underline; }
+</style>
+
+<%- include('partials/tw-footer') %>
