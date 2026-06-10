@@ -98,6 +98,27 @@ var quickGifts = [
           hideVideo();
         }
       });
+
+      // ⚡ Custom seek-to-live: tránh latency drift sau lag (thay built-in chasing buggy)
+      startLatencyGuard();
+    }
+
+    // Loại bỏ drift: check mỗi 5s, drift > 6s thì seek về sát live edge
+    var __mlrGuardId = null;
+    function startLatencyGuard(){
+      if (__mlrGuardId) clearInterval(__mlrGuardId);
+      __mlrGuardId = setInterval(function(){
+        if (!video || video.paused || video.readyState < 2) return;
+        var b = video.buffered;
+        if (!b || b.length === 0) return;
+        var bufferEnd = b.end(b.length - 1);
+        var drift = bufferEnd - video.currentTime;
+        if (drift > 6) {
+          var target = bufferEnd - 1;
+          console.log('[MLR] ⚡ Drift', drift.toFixed(1) + 's → seek về live');
+          try { video.currentTime = target; } catch(e) {}
+        }
+      }, 5000);
     }
 
     function check(){

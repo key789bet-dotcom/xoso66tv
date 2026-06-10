@@ -136,6 +136,29 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
       console.log('[LIVE] MEDIA_INFO:', info && info.mimeType);
       onVideoReady();
     });
+
+    // ⚡ Custom seek-to-live: tránh latency drift sau khi viewer lag
+    // FLV.js built-in liveBufferLatencyChasing bị bug remove negative range → tự code thay thế
+    startLatencyGuard();
+  }
+
+  // Stop previous guard interval khi destroy/reload
+  var __latencyGuardId = null;
+  function startLatencyGuard(){
+    if (__latencyGuardId) clearInterval(__latencyGuardId);
+    __latencyGuardId = setInterval(function(){
+      if (!video || video.paused || video.readyState < 2) return;
+      var b = video.buffered;
+      if (!b || b.length === 0) return;
+      var bufferEnd = b.end(b.length - 1);
+      var drift = bufferEnd - video.currentTime;
+      // Skip về live khi drift > 6s (giữ 1s buffer cho mượt)
+      if (drift > 6) {
+        var target = bufferEnd - 1;
+        console.log('[LIVE] ⚡ Drift', drift.toFixed(1) + 's → seek về live (target=' + target.toFixed(1) + ')');
+        try { video.currentTime = target; } catch(e) { console.warn('[LIVE] seek fail:', e.message); }
+      }
+    }, 5000);
   }
 
   function checkStream(){
