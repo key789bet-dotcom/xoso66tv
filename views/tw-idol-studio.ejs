@@ -210,21 +210,38 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
           <label class="text-[10px] text-muted uppercase font-bold block mb-1">Tiêu đề show</label>
           <input id="schTitle" maxlength="120" placeholder="VD: Live show hát cover tối T7" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Bắt đầu</label>
-            <input id="schStartTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
-          </div>
-          <div>
-            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Kết thúc</label>
-            <input id="schEndTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+        <!-- BẮT ĐẦU: 2 input riêng (date + time 24h) -->
+        <div>
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⏰ Bắt đầu (giờ 24h)</label>
+          <div class="grid grid-cols-[1fr_100px] gap-2">
+            <input id="schStartDate" type="date" lang="vi-VN" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+            <input id="schStartTimeOnly" type="time" lang="vi-VN" step="60" placeholder="HH:MM" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri tabular-nums" style="font-feature-settings:'tnum'">
           </div>
         </div>
+        <!-- KẾT THÚC: 2 input riêng (date + time 24h) -->
+        <div>
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⏰ Kết thúc (giờ 24h)</label>
+          <div class="grid grid-cols-[1fr_100px] gap-2">
+            <input id="schEndDate" type="date" lang="vi-VN" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+            <input id="schEndTimeOnly" type="time" lang="vi-VN" step="60" placeholder="HH:MM" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri tabular-nums" style="font-feature-settings:'tnum'">
+          </div>
+        </div>
+        <!-- Hidden compat inputs (giữ ID cũ để JS submit không lỗi) -->
+        <input id="schStartTime" type="hidden">
+        <input id="schEndTime" type="hidden">
         <div>
           <label class="text-[10px] text-muted uppercase font-bold block mb-1">Mô tả (tuỳ chọn)</label>
           <textarea id="schDescription" maxlength="500" rows="2" placeholder="Nội dung show, theme..." class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri resize-none"></textarea>
         </div>
       </div>
+
+      <!-- CSS force 24h hour picker (Chrome/Firefox/Safari) -->
+      <style>
+        #schStartTimeOnly::-webkit-datetime-edit-ampm-field,
+        #schEndTimeOnly::-webkit-datetime-edit-ampm-field { display: none; }
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(.7); cursor: pointer; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); cursor: pointer; }
+      </style>
 
       <div id="schFormMatch" class="hidden space-y-2.5">
         <div>
@@ -1228,15 +1245,16 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     $('schTabMy').classList.remove('bg-pri','text-white'); $('schTabMy').classList.add('text-gray-200');
     $('schNewPanel').classList.remove('hidden');
     $('schMyPanel').classList.add('hidden');
-    // Default startTime = now+1h, endTime = now+3h
+    // Default: start = now+1h, end = now+3h (24h format)
     var d1 = new Date(Date.now() + 3600000); d1.setSeconds(0,0);
     var d2 = new Date(Date.now() + 3*3600000); d2.setSeconds(0,0);
-    function toLocal(d){
-      var p = function(n){return String(n).padStart(2,'0');};
-      return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
-    }
-    if (!$('schStartTime').value) $('schStartTime').value = toLocal(d1);
-    if (!$('schEndTime').value) $('schEndTime').value = toLocal(d2);
+    var p = function(n){return String(n).padStart(2,'0');};
+    function toDate(d){ return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+    function toTime24(d){ return p(d.getHours())+':'+p(d.getMinutes()); }
+    if (!$('schStartDate').value) $('schStartDate').value = toDate(d1);
+    if (!$('schStartTimeOnly').value) $('schStartTimeOnly').value = toTime24(d1);
+    if (!$('schEndDate').value) $('schEndDate').value = toDate(d2);
+    if (!$('schEndTimeOnly').value) $('schEndTimeOnly').value = toTime24(d2);
     // Lazy load matches
     loadMatches();
   });
@@ -1348,12 +1366,19 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     if (currentType === 'time') {
       body.title = $('schTitle').value.trim();
       body.description = $('schDescription').value.trim();
-      var s = $('schStartTime').value;
-      var e = $('schEndTime').value;
+      // Combine date + time 24h
+      var sd = $('schStartDate').value;
+      var st = $('schStartTimeOnly').value;
+      var ed = $('schEndDate').value;
+      var et = $('schEndTimeOnly').value;
       if (!body.title) return alert('Cần nhập tiêu đề');
-      if (!s || !e) return alert('Cần chọn bắt đầu + kết thúc');
-      body.startTime = new Date(s).getTime();
-      body.endTime = new Date(e).getTime();
+      if (!sd || !st) return alert('Cần chọn ngày + giờ bắt đầu');
+      if (!ed || !et) return alert('Cần chọn ngày + giờ kết thúc');
+      // Validate time HH:MM 24h format
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(st)) return alert('Giờ bắt đầu sai format. Dùng HH:MM (24h)');
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(et)) return alert('Giờ kết thúc sai format. Dùng HH:MM (24h)');
+      body.startTime = new Date(sd + 'T' + st + ':00').getTime();
+      body.endTime = new Date(ed + 'T' + et + ':00').getTime();
     } else {
       var sel = $('schMatchSelect');
       var opt = sel.options[sel.selectedIndex];
@@ -1379,6 +1404,9 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
           alert('✅ Đã gửi! Chờ admin duyệt.');
           $('schTitle').value = '';
           $('schDescription').value = '';
+          // Reset date/time về default
+          $('schStartDate').value = ''; $('schStartTimeOnly').value = '';
+          $('schEndDate').value = ''; $('schEndTimeOnly').value = '';
           $('schTabMy').click();
           loadMine();
         } else {
