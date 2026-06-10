@@ -8,6 +8,11 @@ seo = {
 };
 %>
 <%- include('partials/tw-layout-start') %>
+
+<% var _promos = (typeof promos !== 'undefined' && promos && promos.length) ? promos : banners.concat(banners).slice(0,6); %>
+
+<!-- ═══════════ DESKTOP ═══════════ -->
+<div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
 <header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
@@ -17,7 +22,7 @@ seo = {
 
 <section aria-label="Khuyến mãi">
   <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(360px,1fr))]">
-    <% var _promos = (typeof promos !== 'undefined' && promos && promos.length) ? promos : banners.concat(banners).slice(0,6); _promos.forEach(function(b, i){ %>
+    <% _promos.forEach(function(b, i){ %>
       <% var _pBg = 'background:'+b.bg+';' + (b.image ? 'background-image:url('+b.image+');background-size:cover;background-position:center;' : ''); %>
       <article class="p-6 rounded-xl text-white relative overflow-hidden min-h-[220px]" style="<%= _pBg %>">
         <% if (b.image) { %><div class="absolute inset-0 bg-gradient-to-br from-black/55 to-black/15"></div><% } %>
@@ -43,6 +48,69 @@ seo = {
     </ol>
   </aside>
 </section>
+</div>
+
+<!-- ═══════════ 📱 MOBILE ═══════════ -->
+<div class="md:hidden px-3">
+  <!-- Title -->
+  <div class="flex items-center gap-2 mb-3 mt-1">
+    <a href="/" class="text-pri-light text-2xl leading-none" aria-label="Back">‹</a>
+    <h1 class="text-pri-light font-extrabold text-xl">Khuyến Mãi 🎁</h1>
+  </div>
+
+  <!-- Hot promo banner (cái đầu tiên - to nhất) -->
+  <% if (_promos.length > 0) { var _hot = _promos[0]; var _hotBg = 'background:'+_hot.bg+';' + (_hot.image ? 'background-image:url('+_hot.image+');background-size:cover;background-position:center;' : ''); %>
+  <a href="<%= _hot.url %>" target="_blank" rel="noopener" class="block relative rounded-2xl overflow-hidden mb-4 shadow-xl shadow-pri/30" style="<%= _hotBg %>">
+    <% if (_hot.image) { %><div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div><% } %>
+    <div class="relative z-10 p-5 min-h-[180px] flex flex-col justify-end text-white">
+      <span class="inline-block bg-yellow-400 text-red-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full self-start mb-2 animate-pulse">🔥 HOT</span>
+      <h2 class="text-lg font-black mb-1 leading-tight"><%= _hot.title %></h2>
+      <p class="text-[12px] opacity-95 mb-3 line-clamp-2"><%= _hot.desc %></p>
+      <span class="inline-flex items-center gap-1 bg-white text-red-700 px-4 py-2 rounded-full font-extrabold text-xs self-start"><%= _hot.cta %> →</span>
+    </div>
+  </a>
+  <% } %>
+
+  <!-- Other promos: stack list with image left + text right -->
+  <div class="space-y-3 mb-5">
+    <% _promos.slice(1).forEach(function(b, i){ var _bg = b.bg || '#1a1f29'; %>
+    <a href="<%= b.url %>" target="_blank" rel="noopener" class="flex items-stretch bg-bg-card border border-line rounded-xl overflow-hidden active:scale-[.98] transition-transform">
+      <!-- Left: image/bg square -->
+      <div class="w-24 shrink-0 relative" style="background:<%= _bg %>;<% if (b.image) { %>background-image:url(<%= b.image %>);background-size:cover;background-position:center;<% } %>">
+        <div class="absolute inset-0 grid place-items-center">
+          <% if (!b.image) { %><span class="text-4xl">🎁</span><% } %>
+        </div>
+        <span class="absolute top-1 left-1 bg-pri text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded">KM<%= i+2 %></span>
+      </div>
+      <!-- Right: text -->
+      <div class="flex-1 p-3 flex flex-col justify-between min-w-0">
+        <div>
+          <h3 class="text-white font-extrabold text-[13px] leading-tight line-clamp-1"><%= b.title %></h3>
+          <p class="text-muted text-[11px] mt-1 line-clamp-2"><%= b.desc %></p>
+        </div>
+        <span class="inline-flex items-center gap-1 text-pri-light text-[11px] font-bold mt-1.5"><%= b.cta %> →</span>
+      </div>
+    </a>
+    <% }); %>
+  </div>
+
+  <!-- Steps guide compact -->
+  <div class="bg-bg-card border border-line rounded-xl p-4 mb-4">
+    <h2 class="text-pri-light text-base font-bold mb-2 flex items-center gap-1.5"><span>🏆</span> Cách tham gia</h2>
+    <ol class="text-muted text-[12px] leading-relaxed pl-5 list-decimal space-y-1">
+      <li><a href="/dang-ky" class="text-pri-light">Đăng ký</a> tài khoản miễn phí</li>
+      <li>Xác thực thông tin</li>
+      <li>Nạp lần đầu để kích hoạt</li>
+      <li>Click "Nhận ngay" trên mỗi KM</li>
+      <li>CSKH <a href="<%= partner.telegram %>" target="_blank" class="text-pri-light">Telegram 24/7</a> nếu cần</li>
+    </ol>
+  </div>
+
+  <!-- CTA support -->
+  <a href="<%= partner.telegram %>" target="_blank" rel="noopener" class="block bg-gradient-to-r from-pri to-live text-white text-center font-bold py-3 rounded-xl mb-4 shadow-lg shadow-pri/30">
+    💬 Liên hệ CSKH ngay
+  </a>
+</div>
 
 <%- include('partials/tw-seo-bottom', { seoContent: {
   h2:'Khuyến mãi cập nhật và hấp dẫn nhất thị trường',

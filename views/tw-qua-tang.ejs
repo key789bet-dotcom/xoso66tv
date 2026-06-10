@@ -8,21 +8,39 @@ seo = {
 };
 %>
 <%- include('partials/tw-layout-start') %>
+
+<!-- ═══════════ 📱 MOBILE - Title compact ═══════════ -->
+<div class="md:hidden px-3 mb-3 mt-1">
+  <div class="flex items-center gap-2 mb-2">
+    <a href="/" class="text-pri-light text-2xl leading-none" aria-label="Back">‹</a>
+    <h1 class="text-pri-light font-extrabold text-xl flex-1">Quà Tặng 🎁</h1>
+    <!-- Balance pill mobile -->
+    <span class="flex items-center gap-1 bg-bg-card border border-pri/40 px-2.5 py-1 rounded-full text-gold font-bold text-xs">
+      🪙 <span id="qtBalanceMobile">—</span>
+    </span>
+  </div>
+</div>
+
+<!-- ═══════════ DESKTOP only ═══════════ -->
+<div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
 <header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
   <h1 class="text-xl md:text-2xl font-black text-white mb-2.5"><span class="text-2xl">&#128176;</span> <span class="text-shimmer">Quà Tặng & Đổi Quà X COIN</span></h1>
   <p class="text-muted text-sm">Nhận quà miễn phí mỗi ngày, tích lũy X COIN để đổi voucher Shopee, GrabFood, tiền mặt thật. Số dư hiện tại: <strong class="text-gold" id="qtBalance">— 🪙</strong></p>
 </header>
+</div>
 
-<!-- HERO: Vòng quay -->
-<div class="bg-gradient-to-br from-orange-500 to-orange-600 p-9 rounded-2xl text-white text-center mb-6 relative overflow-hidden">
+<div class="px-3 md:px-0">
+
+<!-- HERO: Vòng quay - giảm padding mobile -->
+<div class="bg-gradient-to-br from-orange-500 to-orange-600 p-5 md:p-9 rounded-2xl text-white text-center mb-4 md:mb-6 relative overflow-hidden">
   <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 30% 50%,#fff,transparent 50%),radial-gradient(circle at 70% 50%,#fff,transparent 50%)"></div>
   <div class="relative z-10">
-    <div class="text-5xl mb-2.5">&#127873;</div>
-    <h2 class="text-2xl font-black mb-2">QUAY VÒNG QUAY MAY MẮN MIỄN PHÍ</h2>
-    <p class="text-sm opacity-95 mb-4">1 lượt FREE mỗi ngày · Trúng từ 5 đến 1.000 X COIN · Chơi trong site</p>
-    <a href="/game/vong-quay" class="inline-block bg-white text-red-700 px-8 py-3 rounded-full font-extrabold text-sm hover:scale-105 transition-transform">&#127920; Quay ngay</a>
+    <div class="text-4xl md:text-5xl mb-2 md:mb-2.5">&#127873;</div>
+    <h2 class="text-base md:text-2xl font-black mb-1.5 md:mb-2 leading-tight">QUAY VÒNG QUAY MAY MẮN MIỄN PHÍ</h2>
+    <p class="text-[11px] md:text-sm opacity-95 mb-3 md:mb-4">1 lượt FREE/ngày · 5 → 1.000 X COIN</p>
+    <a href="/game/vong-quay" class="inline-block bg-white text-red-700 px-6 md:px-8 py-2.5 md:py-3 rounded-full font-extrabold text-xs md:text-sm hover:scale-105 transition-transform">&#127920; Quay ngay</a>
   </div>
 </div>
 
@@ -33,7 +51,7 @@ seo = {
     <h2 class="text-lg font-extrabold text-white">&#127873; Quà miễn phí hàng ngày</h2>
     <span class="ml-auto text-xs text-muted">Reset 00:00 mỗi ngày</span>
   </div>
-  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+  <div class="grid gap-2.5 md:gap-3.5 grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
     <%
       var DAILY_GIFTS = [
         { id:'g_register',  ico:'&#127915;', n:'Voucher chào mừng',  d:'Đăng ký mới',           reward:50,   cond:'register', condText:'Cần là member' },
@@ -47,15 +65,15 @@ seo = {
       ];
     %>
     <% DAILY_GIFTS.forEach(function(g){ %>
-      <article class="bg-bg-card border border-line rounded-xl text-center px-4 py-6 transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri relative" id="card-<%= g.id %>">
-        <div class="text-5xl mb-2.5 drop-shadow"><%- g.ico %></div>
-        <h3 class="font-extrabold text-white mb-1"><%= g.n %></h3>
-        <p class="text-muted text-xs mb-2"><%= g.d %></p>
-        <div class="text-gold font-extrabold mb-3 flex items-center justify-center gap-1">
-          <span class="text-base">🪙</span>
+      <article class="bg-bg-card border border-line rounded-xl text-center px-2 md:px-4 py-3 md:py-6 transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri relative" id="card-<%= g.id %>">
+        <div class="text-3xl md:text-5xl mb-1.5 md:mb-2.5 drop-shadow"><%- g.ico %></div>
+        <h3 class="font-extrabold text-white mb-0.5 md:mb-1 text-[12px] md:text-base leading-tight line-clamp-2"><%= g.n %></h3>
+        <p class="text-muted text-[10px] md:text-xs mb-1.5 md:mb-2 line-clamp-1"><%= g.d %></p>
+        <div class="text-gold font-extrabold mb-2 md:mb-3 flex items-center justify-center gap-1 text-[12px] md:text-base">
+          <span>🪙</span>
           <span class="tabular-nums">+<%= g.reward.toLocaleString('vi-VN') %></span>
         </div>
-        <button onclick="claimGift('<%= g.id %>', '<%= g.cond %>', <%= g.reward %>, '<%= g.condText %>')" class="qt-btn inline-block bg-pri hover:bg-pri-dark text-white px-4 py-1.5 rounded-md font-bold text-xs transition-colors">Nhận quà</button>
+        <button onclick="claimGift('<%= g.id %>', '<%= g.cond %>', <%= g.reward %>, '<%= g.condText %>')" class="qt-btn inline-block bg-pri hover:bg-pri-dark text-white px-3 md:px-4 py-1 md:py-1.5 rounded-md font-bold text-[11px] md:text-xs transition-colors">Nhận quà</button>
       </article>
     <% }); %>
   </div>
@@ -74,7 +92,7 @@ seo = {
     📦 Toàn bộ là <strong class="text-white">quà vật lý XOSO66 chính hãng</strong>. Sau khi đổi, CSKH sẽ liên hệ trong 24h để giao hàng.
   </div>
 
-  <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]" id="shopGrid">
+  <div class="grid gap-2.5 md:gap-3.5 grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]" id="shopGrid">
     <%
       var SHOP_ITEMS = [
         { id:'s_cap',        ico:'🧢', n:'Mũ lưỡi trai XOSO66',   cost:800,    type:'phys', stock:100 },
@@ -279,7 +297,17 @@ seo = {
   // Init
   refreshBal();
   renderHistory();
+  // Sync balance pill mobile
+  function _syncMobileBal(){
+    var el = document.getElementById('qtBalanceMobile');
+    var src = document.getElementById('qtBalance');
+    if (el && src) el.textContent = src.textContent.replace(/[^\d.,]/g, '') || '0';
+  }
+  _syncMobileBal();
+  setInterval(_syncMobileBal, 1500);
 })();
 </script>
+
+</div><!-- /px-3 mobile wrapper -->
 
 <%- include('partials/tw-footer') %>

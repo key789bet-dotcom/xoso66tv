@@ -22,7 +22,40 @@ seo = {
 (function(){ try { if (!localStorage.getItem('x66_user')) { location.href='/dang-nhap'; } } catch(e){} })();
 </script>
 
-<section class="grid lg:grid-cols-[300px_1fr] gap-4 mb-6" aria-label="Hồ sơ">
+<style>
+/* ===== MOBILE PROFILE OPTIMIZE ===== */
+@media (max-width: 1023px) {
+  /* Profile section: stack vertical */
+  #profileSection { grid-template-columns: 1fr !important; padding: 8px 12px; }
+  /* Avatar header smaller */
+  #profileSection .border-b.border-line .w-28 { width: 80px !important; height: 80px !important; font-size: 28px !important; }
+  /* Tab nav: horizontal scroll instead of vertical */
+  #profileSection nav[role="tablist"] {
+    display: flex !important; gap: 6px !important; padding: 8px !important;
+    overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+    border-bottom: 1px solid var(--line, #2a3344);
+  }
+  #profileSection nav[role="tablist"]::-webkit-scrollbar { display: none; }
+  #profileSection nav[role="tablist"] a {
+    flex-shrink: 0; padding: 8px 12px !important;
+    background: #1a1f29; border-radius: 999px !important;
+    font-size: 12px !important; white-space: nowrap;
+    border: 1px solid #2a3344;
+  }
+  #profileSection nav[role="tablist"] a.bg-gradient-to-r,
+  #profileSection nav[role="tablist"] a[class*="text-pri-light"] {
+    background: linear-gradient(135deg, #ff7a18, #ea580c) !important;
+    border-color: #ff7a18 !important; color: #fff !important;
+  }
+  #profileSection nav[role="tablist"] a span.absolute { display: none; }
+  /* Content card: padding nhỏ hơn */
+  #profileSection > section { padding: 16px !important; min-height: auto !important; }
+  /* Toast position - tránh đè bottom nav */
+  #toast { top: 70px !important; right: 12px !important; left: 12px !important; }
+}
+</style>
+
+<section id="profileSection" class="grid lg:grid-cols-[300px_1fr] gap-4 mb-6" aria-label="Hồ sơ">
 
   <!-- LEFT: Gộp avatar + info + menu + X COIN + logout vào 1 card -->
   <aside class="bg-bg-card border border-line rounded-xl overflow-hidden flex flex-col h-fit lg:sticky lg:top-20">
