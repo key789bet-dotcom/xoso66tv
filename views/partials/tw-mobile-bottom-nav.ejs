@@ -1,0 +1,74 @@
+<%
+// ╔════════════════════════════════════════════════════════════════════╗
+// ║ MOBILE BOTTOM NAV - GLOBAL (hiển thị ở MỌI trang trên mobile)     ║
+// ║ Include từ tw-footer.ejs                                          ║
+// ║ Sử dụng res.locals.active để highlight tab đang ở                 ║
+// ╚════════════════════════════════════════════════════════════════════╝
+var __activeTab = (typeof active !== 'undefined') ? active : '';
+function __isActive(tab){ return __activeTab === tab ? 'is-active' : ''; }
+%>
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#0f1218] border-t border-line h-16 px-2" id="globalMobileBottomNav" style="padding-bottom:env(safe-area-inset-bottom);">
+  <div class="grid grid-cols-5 h-full items-center relative">
+    <a href="/lich-phat-song" class="gmn-tab <%= __isActive('lich') %>" data-tab="lich">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Lịch</span>
+    </a>
+    <a href="/su-kien" class="gmn-tab <%= __isActive('su-kien') %>" data-tab="km">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Khuyến mãi</span>
+    </a>
+    <!-- CENTER FAB - Trang chủ -->
+    <a href="/" class="gmn-tab gmn-fab-wrap <%= __isActive('home') %>" data-tab="home">
+      <span class="gmn-fab">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg>
+      </span>
+      <span class="mt-7">Trang chủ</span>
+    </a>
+    <a href="/qua-tang" class="gmn-tab <%= __isActive('qua-tang') %>" data-tab="qua">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="4"/><line x1="12" y1="8" x2="12" y2="21"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 12 8 12 8s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+      <span>Quà tặng</span>
+    </a>
+    <a href="/profile" class="gmn-tab <%= __isActive('profile') %>" data-tab="profile">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Cá nhân</span>
+    </a>
+  </div>
+</nav>
+
+<style>
+/* ===== GLOBAL Mobile Bottom Nav (gmn-*) ===== */
+.gmn-tab {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; color:#94a3b8; font-size:10px; font-weight:600;
+  height:100%; text-decoration:none; transition:color .15s;
+  position:relative;
+}
+.gmn-tab:active { color:#fff; }
+.gmn-tab svg { width:18px; height:18px; }
+.gmn-tab.is-active { color:#ff7a18; }
+.gmn-tab.is-active svg { color:#ff7a18; }
+
+/* Center FAB - Trang chủ */
+.gmn-fab-wrap { position:relative; }
+.gmn-fab {
+  position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+  width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg,#ff7a18,#ea580c);
+  display:grid; place-items:center; color:#fff;
+  box-shadow:0 4px 16px rgba(255,122,24,.5), 0 0 0 4px #0f1218;
+  z-index:1;
+}
+.gmn-fab-wrap span:last-child { color:#ff7a18; font-weight:700; }
+.gmn-fab-wrap.is-active .gmn-fab {
+  background:linear-gradient(135deg,#ff9a3a,#ff7a18);
+  box-shadow:0 6px 20px rgba(255,122,24,.7), 0 0 0 4px #0f1218;
+}
+
+/* Ẩn bottom nav cũ trong tw-mobile-home (để không trùng) */
+#mhBottomNav { display:none !important; }
+
+/* Mobile: add padding-bottom cho main để tránh nav che content */
+@media (max-width: 767px) {
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+</style>
