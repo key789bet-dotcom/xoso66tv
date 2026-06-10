@@ -101,14 +101,7 @@ try {
   console.warn('[perf] compression not installed, skip (npm i compression)');
 }
 
-// Cache control cho HTML trang động (browser cache 1 phút, CDN cache 5 phút stale-while-revalidate)
-app.use(function(req, res, next){
-  // Chỉ áp cho GET HTML page (không phải API/static)
-  if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/static/') && !req.path.startsWith('/uploads/')) {
-    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-  }
-  next();
-});
+// (Cache-Control cho HTML page được set ở middleware bên dưới sau apiLimiter để tránh override)
 
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
@@ -232,13 +225,23 @@ app.use('/api/', function (req, res, next) {
   return apiLimiter(req, res, next);
 });
 
-// Disable browser cache for HTML to prevent stale broken renders
+// ⚡ Cache strategy:
+//   - Trang public (home, idol, lich, news, etc): cache 60s + SWR 5p → click chuyển trang INSTANT
+//   - Trang nhạy cảm (admin, profile, auth, dashboard): no-store để tránh leak data sau logout
+//   - Static assets: 30 ngày immutable (đã set ở express.static)
 app.use(function (req, res, next) {
-  // Only set no-cache for HTML pages (not /static assets which keep 7d cache)
-  if (!req.path.startsWith('/static') && !req.path.startsWith('/api')) {
+  if (req.path.startsWith('/static') || req.path.startsWith('/uploads') || req.path.startsWith('/api')) {
+    return next();  // skip, đã có cache header riêng
+  }
+  // Auth-sensitive paths: cấm cache hoàn toàn
+  var sensitive = /^\/(admin|profile|idol-studio|nap-tien|dang-nhap|dang-ky|dang-xuat|quen-mat-khau|2fa|admin-2fa)(\/|$|\?)/i;
+  if (sensitive.test(req.path)) {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
+  } else {
+    // Trang public - cho browser cache 60s, CDN/proxy cache 5 phút với stale-while-revalidate
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
   }
   next();
 });
