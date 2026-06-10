@@ -20,12 +20,25 @@ window.addEventListener('load', function() {
     .catch(function(err) { console.log('[PWA] SW fail:', err); });
 });
 
-// ===== INSTALL PROMPT =====
+// ===== INSTALL PROMPT (CHỈ HIỂN THỊ TRÊN MOBILE) =====
 var deferredPrompt = null;
+
+// Detect mobile: viewport < 768px HOẶC user agent mobile
+function __isMobileDevice() {
+  if (window.innerWidth < 768) return true;
+  var ua = (navigator.userAgent || '').toLowerCase();
+  return /mobi|android|iphone|ipad|ipod|blackberry|iemobile|opera mini|webos/.test(ua);
+}
+
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   deferredPrompt = e;
-  showInstallBanner();
+  // ⚠️ CHỈ show banner trên mobile - desktop không hiện
+  if (__isMobileDevice()) {
+    showInstallBanner();
+  } else {
+    console.log('[PWA] Desktop detected → skip install banner');
+  }
 });
 
 window.addEventListener('appinstalled', function() {
@@ -35,6 +48,9 @@ window.addEventListener('appinstalled', function() {
 });
 
 function showInstallBanner() {
+  // Double-check mobile (phòng case window resize)
+  if (!__isMobileDevice()) return;
+
   // Check user đã dismiss chưa hoặc đã install
   try {
     if (localStorage.getItem('x66_pwa_installed') === '1') return;
