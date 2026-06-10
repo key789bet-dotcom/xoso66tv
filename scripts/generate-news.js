@@ -18,8 +18,38 @@ const ai = require('../lib/claude-ai');
 const newsStore = require('../lib/news-store');
 const api = require('../lib/api');
 
-// Số trận sinh bài mỗi lần chạy
-const MAX_ARTICLES_PER_RUN = parseInt(process.env.NEWS_MAX || '5', 10);
+// Số bài tối thiểu mỗi lần chạy (default 10)
+const MIN_ARTICLES = parseInt(process.env.NEWS_MAX || '10', 10);
+// Cap cứng: không sinh quá 40 bài/lần để tránh blow-up cost
+const HARD_CAP = parseInt(process.env.NEWS_CAP || '40', 10);
+
+/**
+ * Danh sách giải đấu ƯU TIÊN cao
+ * Nếu trong list trận hôm nay có giải này → sinh FULL tất cả trận của giải đó
+ * Match theo case-insensitive substring trong tên league
+ */
+const PRIORITY_LEAGUES = [
+  // International
+  'world cup', 'fifa world cup', 'euro', 'uefa euro', 'copa america', 'afc asian',
+  'champions league', 'europa league', 'conference league', 'club world cup',
+  // Top 5 European leagues
+  'premier league', 'ngoại hạng anh',
+  'la liga', 'laliga', 'primera division',
+  'serie a',
+  'bundesliga',
+  'ligue 1',
+  // Vietnamese
+  'v-league', 'v league', 'aff cup', 'aff championship', 'sea games',
+  // Other big
+  'fa cup', 'copa del rey', 'dfb pokal',
+  'super league', 'a-league',
+];
+
+function isPriorityLeague(name) {
+  if (!name) return false;
+  const lname = String(name).toLowerCase();
+  return PRIORITY_LEAGUES.some(k => lname.indexOf(k) !== -1);
+}
 
 // Image: dùng badge của 2 đội + bg football. Fallback Unsplash random
 function buildImage(match) {
@@ -48,24 +78,45 @@ async function main() {
     process.exit(1);
   }
 
-  // Ưu tiên trận có league lớn + Soccer
   const allMatches = live.concat(upcoming).filter(m => m && m.home && m.away);
   // Dedupe theo id
   const seen = new Set();
-  const candidates = allMatches.filter(m => {
+  const uniqueMatches = allMatches.filter(m => {
     const k = m.id || (m.home + '_' + m.away);
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
-  }).slice(0, MAX_ARTICLES_PER_RUN);
+  });
+
+  // 🏆 BƯỚC 1: Lấy TẤT CẢ trận của giải đấu ưu tiên (full all)
+  const priorityMatches = uniqueMatches.filter(m => isPriorityLeague(m.league));
+  const otherMatches = uniqueMatches.filter(m => !isPriorityLeague(m.league));
+
+  // 🎯 BƯỚC 2: Build danh sách candidates
+  //   - Priority matches: FULL hết (không cắt)
+  //   - Other matches: chỉ thêm cho đủ MIN_ARTICLES
+  let candidates = priorityMatches.slice(0); // tất cả giải ưu tiên
+  if (candidates.length < MIN_ARTICLES) {
+    const need = MIN_ARTICLES - candidates.length;
+    candidates = candidates.concat(otherMatches.slice(0, need));
+  }
+  // Cap cứng để bảo vệ cost
+  candidates = candidates.slice(0, HARD_CAP);
 
   if (candidates.length === 0) {
     console.warn('⚠️  Không có trận nào để sinh bài. Bỏ qua.');
     process.exit(0);
   }
 
-  console.log(`📊 Sẽ sinh bài cho ${candidates.length} trận:`);
-  candidates.forEach((m, i) => console.log(`  ${i+1}. ${m.home} vs ${m.away} (${m.league || m.sport})`));
+  console.log(`📊 Phân tích:`);
+  console.log(`   🏆 Giải ưu tiên: ${priorityMatches.length} trận`);
+  console.log(`   ⚽ Giải khác: ${otherMatches.length} trận`);
+  console.log(`   🎯 Sẽ sinh: ${candidates.length} bài (min ${MIN_ARTICLES}, cap ${HARD_CAP})`);
+  console.log('');
+  candidates.forEach((m, i) => {
+    const tag = isPriorityLeague(m.league) ? '🔥' : '  ';
+    console.log(`  ${tag} ${i+1}. ${m.home} vs ${m.away} (${m.league || m.sport})`);
+  });
 
   // 2. Check tránh trùng - skip nếu đã có bài cho match này hôm nay
   const existing = newsStore.load();
@@ -83,11 +134,14 @@ async function main() {
     process.exit(0);
   }
 
+  console.log(`\n✏️  Sẽ sinh mới: ${newMatches.length} bài (đã skip ${candidates.length - newMatches.length} bài đã có sẵn)\n`);
+
   // 3. Generate từng bài (sequential để tránh rate limit)
   let success = 0; let failed = 0;
   for (let i = 0; i < newMatches.length; i++) {
     const m = newMatches[i];
-    console.log(`\n📝 [${i+1}/${newMatches.length}] Đang sinh: ${m.home} vs ${m.away}...`);
+    const tag = isPriorityLeague(m.league) ? '🔥 PRIORITY' : '';
+    console.log(`\n📝 [${i+1}/${newMatches.length}] ${tag} Đang sinh: ${m.home} vs ${m.away}...`);
     try {
       const raw = await ai.generateMatchPreview(m);
       const parsed = ai.parseGeneratedArticle(raw);
