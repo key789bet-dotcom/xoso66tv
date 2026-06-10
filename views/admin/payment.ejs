@@ -1,0 +1,319 @@
+<%- include('partials/layout-start', { title:'Tiền công Idol/BLV', active:'payment', obsPending: 0, adminUser: typeof adminUser !== 'undefined' ? adminUser : {} }) %>
+
+<div class="bg-bg-card border border-line rounded-xl p-5 mb-5">
+  <div class="flex items-start gap-3">
+    <div class="text-3xl">💰</div>
+    <div class="flex-1">
+      <h2 class="text-base font-extrabold text-white">Quản Lý Phiên Live & Tiền Công</h2>
+      <p class="text-muted text-xs mt-1">Xem chi tiết mỗi phiên live (giờ bắt đầu/kết thúc, viewers, payment). Set rate per giờ hoặc per trận cho từng Idol/BLV.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<nav class="flex gap-2 mb-4 bg-bg-card border border-line rounded-xl p-2 overflow-x-auto">
+  <button data-tab="sessions" class="pay-tab is-active flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">📊 Phiên Live</button>
+  <button data-tab="rates"    class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">💰 Set Tiền Công</button>
+  <button data-tab="payable"  class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">💳 Chưa Trả</button>
+</nav>
+
+<!-- ════════════ TAB 1: PHIÊN LIVE ════════════ -->
+<div id="payPanelSessions" class="pay-panel">
+  <!-- Filter -->
+  <div class="bg-bg-card border border-line rounded-xl p-3 mb-3 flex flex-wrap items-center gap-2">
+    <select id="paySessFilterType" class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded">
+      <option value="">Tất cả (Idol + BLV)</option>
+      <option value="idol">Chỉ Idol</option>
+      <option value="blv">Chỉ BLV</option>
+    </select>
+    <input id="paySessFilterUser" type="text" placeholder="Username..." class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded flex-1 max-w-[200px]">
+    <select id="paySessFilterPaid" class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded">
+      <option value="">Tất cả status</option>
+      <option value="paid">Đã trả</option>
+      <option value="unpaid">Chưa trả</option>
+    </select>
+    <button onclick="paySessLoad()" class="bg-pri text-white text-xs font-bold px-4 py-1.5 rounded">Lọc</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase font-bold">Tổng Session</div><div class="text-xl font-black text-white" id="paySessTotal">—</div></div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase font-bold">Tổng Giờ</div><div class="text-xl font-black text-pri-light" id="paySessHours">—</div></div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase font-bold">Tổng Tiền</div><div class="text-xl font-black text-emerald-400 tabular-nums" id="paySessEarn">—</div></div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase font-bold">Chưa Trả</div><div class="text-xl font-black text-yellow-400 tabular-nums" id="paySessUnpaid">—</div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-bg-card border border-line rounded-xl overflow-x-auto">
+    <table class="w-full text-[12px]">
+      <thead class="bg-bg-soft border-b border-line text-muted text-[10px] uppercase tracking-wider">
+        <tr>
+          <th class="px-2 py-2 text-left">User</th>
+          <th class="px-2 py-2 text-left">Lịch / Trận</th>
+          <th class="px-2 py-2 text-left">Start</th>
+          <th class="px-2 py-2 text-left">End</th>
+          <th class="px-2 py-2 text-center">Duration</th>
+          <th class="px-2 py-2 text-center">Method</th>
+          <th class="px-2 py-2 text-right">Tiền</th>
+          <th class="px-2 py-2 text-center">Status</th>
+          <th class="px-2 py-2 text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody id="paySessTbody" class="text-white">
+        <tr><td colspan="9" class="text-center text-muted py-8">Đang tải...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════ TAB 2: SET RATE ════════════ -->
+<div id="payPanelRates" class="pay-panel hidden">
+  <div class="bg-bg-card border border-line rounded-xl p-4 mb-3">
+    <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span>💰</span> Set tiền công cho Idol</h3>
+    <div class="grid md:grid-cols-2 gap-3">
+      <% (idols || []).forEach(function(i){ %>
+        <div class="bg-bg-deep border border-line rounded-lg p-3" data-user-rate="idol-<%= i.id %>">
+          <div class="flex items-center gap-2 mb-2.5">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 grid place-items-center text-base">👑</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-white text-sm truncate"><%= i.name %></div>
+              <div class="text-[10px] text-muted truncate">@<%= i.userId || i.username || i.id %></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <label class="text-[9px] text-muted uppercase">Per Giờ (VND)</label>
+              <input type="number" min="0" step="10000" class="rate-per-hour w-full bg-bg-card border border-line text-white text-xs px-2 py-1.5 rounded mt-0.5" value="<%= (i.paymentRate && i.paymentRate.perHour) || 50000 %>">
+            </div>
+            <div>
+              <label class="text-[9px] text-muted uppercase">Per Trận (VND)</label>
+              <input type="number" min="0" step="50000" class="rate-per-match w-full bg-bg-card border border-line text-white text-xs px-2 py-1.5 rounded mt-0.5" value="<%= (i.paymentRate && i.paymentRate.perMatch) || 200000 %>">
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-[11px] text-gray-200 mb-2">
+            <input type="checkbox" class="rate-use-match" <%= (i.paymentRate && i.paymentRate.useMatchRate) ? 'checked' : '' %>>
+            <span>Khi BLV bind trận: tính theo trận thay vì giờ</span>
+          </label>
+          <button onclick="paySetRate(this, 'idol', '<%= i.id %>')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 rounded">💾 Lưu</button>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <div class="bg-bg-card border border-line rounded-xl p-4">
+    <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span>🎙️</span> Set tiền công cho BLV</h3>
+    <div class="grid md:grid-cols-2 gap-3">
+      <% if (!blvs || blvs.length === 0) { %>
+        <div class="col-span-2 text-center text-muted text-sm py-6">Chưa có BLV nào active</div>
+      <% } %>
+      <% (blvs || []).forEach(function(b){ %>
+        <div class="bg-bg-deep border border-line rounded-lg p-3" data-user-rate="blv-<%= b.id %>">
+          <div class="flex items-center gap-2 mb-2.5">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 grid place-items-center text-base">🎙️</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-white text-sm truncate"><%= b.name %></div>
+              <div class="text-[10px] text-muted truncate">@<%= b.userId || b.username || b.id %></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <label class="text-[9px] text-muted uppercase">Per Giờ (VND)</label>
+              <input type="number" min="0" step="10000" class="rate-per-hour w-full bg-bg-card border border-line text-white text-xs px-2 py-1.5 rounded mt-0.5" value="<%= (b.paymentRate && b.paymentRate.perHour) || 100000 %>">
+            </div>
+            <div>
+              <label class="text-[9px] text-muted uppercase">Per Trận (VND)</label>
+              <input type="number" min="0" step="50000" class="rate-per-match w-full bg-bg-card border border-line text-white text-xs px-2 py-1.5 rounded mt-0.5" value="<%= (b.paymentRate && b.paymentRate.perMatch) || 300000 %>">
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-[11px] text-gray-200 mb-2">
+            <input type="checkbox" class="rate-use-match" <%= (b.paymentRate && b.paymentRate.useMatchRate) ? 'checked' : '' %>>
+            <span>Tính theo trận thay vì giờ (mặc định cho BLV)</span>
+          </label>
+          <button onclick="paySetRate(this, 'blv', '<%= b.id %>')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 rounded">💾 Lưu</button>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB 3: CHƯA TRẢ ════════════ -->
+<div id="payPanelPayable" class="pay-panel hidden">
+  <div class="bg-bg-card border border-line rounded-xl p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-white font-bold flex items-center gap-2"><span>💳</span> Tổng kết chưa trả - theo user</h3>
+      <button onclick="payLoadPayable()" class="text-pri-light text-xs hover:underline">🔄 Refresh</button>
+    </div>
+    <div id="payPayableList" class="space-y-2">
+      <div class="text-center text-muted text-sm py-6">Đang tải...</div>
+    </div>
+  </div>
+</div>
+
+<style>
+.pay-tab { background:transparent; color:#cbd5e1; border:none; cursor:pointer; }
+.pay-tab.is-active { background:linear-gradient(135deg,#f97316,#ef4444); color:#fff; }
+</style>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function escHtml(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+  function fmt(ts){ return ts ? new Date(ts).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'; }
+  function dur(ms){
+    if (!ms || ms < 0) return '—';
+    var s = Math.floor(ms/1000);
+    var h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+    return h + 'h ' + String(m).padStart(2,'0') + 'm';
+  }
+  function vnd(n){ return (n||0).toLocaleString('vi-VN') + 'đ'; }
+
+  // ===== TAB SWITCHING =====
+  document.querySelectorAll('.pay-tab').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.pay-tab').forEach(function(x){ x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+      var tab = b.getAttribute('data-tab');
+      document.querySelectorAll('.pay-panel').forEach(function(p){ p.classList.add('hidden'); });
+      var panel = $('payPanel' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (panel) panel.classList.remove('hidden');
+      if (tab === 'sessions') paySessLoad();
+      if (tab === 'payable') payLoadPayable();
+    });
+  });
+
+  // ===== SESSIONS =====
+  window.paySessLoad = function(){
+    var params = new URLSearchParams();
+    var t = $('paySessFilterType').value; if (t) params.set('userType', t);
+    var u = $('paySessFilterUser').value.trim(); if (u) params.set('username', u);
+    var p = $('paySessFilterPaid').value; if (p) params.set('paid', p);
+    fetch('/api/admin/sessions/list?' + params.toString(), { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) { $('paySessTbody').innerHTML = '<tr><td colspan="9" class="text-center text-red-400 py-8">Lỗi tải</td></tr>'; return; }
+        // Stats
+        var list = d.list || [];
+        var totalDur = 0, totalEarn = 0, unpaid = 0;
+        list.forEach(function(s){
+          totalDur += s.duration || 0;
+          totalEarn += s.paymentAmount || 0;
+          if (!s.paid && s.endTime) unpaid += s.paymentAmount || 0;
+        });
+        $('paySessTotal').textContent = list.length;
+        $('paySessHours').textContent = (totalDur/3600000).toFixed(1) + 'h';
+        $('paySessEarn').textContent = vnd(totalEarn);
+        $('paySessUnpaid').textContent = vnd(unpaid);
+
+        if (list.length === 0) {
+          $('paySessTbody').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-8">Không có session nào.</td></tr>';
+          return;
+        }
+        $('paySessTbody').innerHTML = list.map(function(s){
+          var statusBadge = s.endTime
+            ? (s.paid
+              ? '<span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded">✓ ĐÃ TRẢ</span>'
+              : '<span class="bg-yellow-500/20 text-yellow-300 text-[9px] font-bold px-1.5 py-0.5 rounded">⏳ CHỜ TRẢ</span>')
+            : '<span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded animate-pulse">🔴 LIVE</span>';
+          var actionBtn = !s.endTime ? '<span class="text-muted text-[10px]">Đang live</span>'
+            : (s.paid
+              ? '<button onclick="payUnmarkPaid(\''+s.id+'\')" class="text-[10px] text-red-400 hover:underline">Hủy</button>'
+              : '<button onclick="payMarkPaid(\''+s.id+'\')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded">✓ Trả</button>');
+          var userTypeBadge = s.userType === 'blv' ? '🎙️' : '👑';
+          var matchInfo = s.matchTitle ? '<div class="text-[9px] text-pri-light truncate max-w-[180px]">⚽ '+escHtml(s.matchTitle)+'</div>' : '<span class="text-[9px] text-muted">Tự do</span>';
+          return ''
+            + '<tr class="border-b border-line/40 hover:bg-bg-soft/40">'
+            +   '<td class="px-2 py-1.5 font-bold"><span class="mr-1">'+userTypeBadge+'</span>'+escHtml(s.username)+'</td>'
+            +   '<td class="px-2 py-1.5">'+matchInfo+'</td>'
+            +   '<td class="px-2 py-1.5 text-[11px] tabular-nums">'+fmt(s.startTime)+'</td>'
+            +   '<td class="px-2 py-1.5 text-[11px] tabular-nums">'+fmt(s.endTime)+'</td>'
+            +   '<td class="px-2 py-1.5 text-center text-pri-light font-bold">'+dur(s.duration)+'</td>'
+            +   '<td class="px-2 py-1.5 text-center text-[10px]">'+(s.paymentMethod==='match'?'⚽ Trận':'⏰ Giờ')+'</td>'
+            +   '<td class="px-2 py-1.5 text-right font-extrabold text-gold tabular-nums">'+vnd(s.paymentAmount)+'</td>'
+            +   '<td class="px-2 py-1.5 text-center">'+statusBadge+'</td>'
+            +   '<td class="px-2 py-1.5 text-center">'+actionBtn+'</td>'
+            + '</tr>';
+        }).join('');
+      });
+  };
+
+  window.payMarkPaid = function(id){
+    if (!confirm('Đánh dấu đã trả?')) return;
+    fetch('/api/admin/sessions/'+id+'/mark-paid', { method:'POST', credentials:'same-origin' })
+      .then(function(r){return r.json();}).then(function(d){ if (d.ok) paySessLoad(); else alert(d.error); });
+  };
+
+  window.payUnmarkPaid = function(id){
+    if (!confirm('Hủy đánh dấu đã trả?')) return;
+    fetch('/api/admin/sessions/'+id+'/unmark-paid', { method:'POST', credentials:'same-origin' })
+      .then(function(r){return r.json();}).then(function(d){ if (d.ok) paySessLoad(); else alert(d.error); });
+  };
+
+  // ===== SET RATE =====
+  window.paySetRate = function(btn, userType, idOrUsername){
+    var card = btn.closest('[data-user-rate]');
+    var body = {
+      userType: userType,
+      idOrUsername: idOrUsername,
+      perHour: card.querySelector('.rate-per-hour').value,
+      perMatch: card.querySelector('.rate-per-match').value,
+      useMatchRate: card.querySelector('.rate-use-match').checked
+    };
+    btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+    fetch('/api/admin/payment-rate', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    }).then(function(r){return r.json();}).then(function(d){
+      btn.disabled = false; btn.textContent = '💾 Lưu';
+      if (d.ok) { btn.textContent = '✓ Đã lưu'; setTimeout(function(){ btn.textContent = '💾 Lưu'; }, 1500); }
+      else alert(d.error);
+    });
+  };
+
+  // ===== PAYABLE - tổng kết chưa trả per user =====
+  window.payLoadPayable = function(){
+    fetch('/api/admin/sessions/list?paid=unpaid&limit=500', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) { $('payPayableList').innerHTML = '<div class="text-red-400 text-sm">Lỗi tải</div>'; return; }
+        var byUser = {};
+        (d.list || []).forEach(function(s){
+          if (!byUser[s.username]) byUser[s.username] = { count:0, total:0, type:s.userType };
+          byUser[s.username].count++;
+          byUser[s.username].total += s.paymentAmount || 0;
+        });
+        var keys = Object.keys(byUser).sort(function(a,b){ return byUser[b].total - byUser[a].total; });
+        if (keys.length === 0) {
+          $('payPayableList').innerHTML = '<div class="text-center text-muted py-6">🎉 Không còn ai chưa trả!</div>';
+          return;
+        }
+        $('payPayableList').innerHTML = keys.map(function(u){
+          var info = byUser[u];
+          var icon = info.type === 'blv' ? '🎙️' : '👑';
+          return ''
+            + '<div class="flex items-center justify-between bg-bg-deep border border-line rounded-lg p-3">'
+            +   '<div class="flex items-center gap-2.5">'
+            +     '<span class="text-xl">'+icon+'</span>'
+            +     '<div><div class="font-bold text-white">@'+escHtml(u)+'</div>'
+            +     '<div class="text-[11px] text-muted">'+info.count+' session chưa trả</div></div>'
+            +   '</div>'
+            +   '<div class="text-right">'
+            +     '<div class="text-xl font-black text-yellow-400 tabular-nums">'+vnd(info.total)+'</div>'
+            +     '<button onclick="paySessFilterByUser(\''+u+'\')" class="text-[10px] text-pri-light hover:underline mt-0.5">Xem chi tiết →</button>'
+            +   '</div>'
+            + '</div>';
+        }).join('');
+      });
+  };
+
+  window.paySessFilterByUser = function(u){
+    $('paySessFilterUser').value = u;
+    document.querySelector('.pay-tab[data-tab="sessions"]').click();
+  };
+
+  // Initial
+  paySessLoad();
+})();
+</script>
+
+<%- include('partials/layout-end') %>

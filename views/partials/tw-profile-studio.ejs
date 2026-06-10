@@ -79,6 +79,41 @@ var __role = (typeof publicUser !== 'undefined' && publicUser && publicUser.role
     </div>
   </div>
 
+  <!-- ═══════════ PHIÊN LIVE THỐNG KÊ ═══════════ -->
+  <div class="mt-5 bg-bg-deep border border-line rounded-xl p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-extrabold text-white flex items-center gap-2"><span>📊</span> Phiên Live & Tiền Công</h2>
+      <span class="text-[10px] text-muted">Auto track khi go live</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+      <div class="bg-bg-card border border-line rounded-lg p-2.5"><div class="text-[9px] text-muted uppercase">Tổng session</div><div class="text-lg font-black text-white" id="pfMyTotalSess">—</div></div>
+      <div class="bg-bg-card border border-line rounded-lg p-2.5"><div class="text-[9px] text-muted uppercase">Tổng giờ</div><div class="text-lg font-black text-pri-light" id="pfMyTotalHours">—</div></div>
+      <div class="bg-bg-card border border-line rounded-lg p-2.5"><div class="text-[9px] text-muted uppercase">Đã kiếm</div><div class="text-base font-black text-emerald-400 tabular-nums" id="pfMyEarn">—</div></div>
+      <div class="bg-bg-card border border-line rounded-lg p-2.5"><div class="text-[9px] text-muted uppercase">Chưa nhận</div><div class="text-base font-black text-yellow-400 tabular-nums" id="pfMyUnpaid">—</div></div>
+    </div>
+
+    <!-- Session list -->
+    <div class="bg-bg-card border border-line rounded-lg overflow-x-auto">
+      <table class="w-full text-[11px]">
+        <thead class="bg-bg-soft border-b border-line text-muted text-[9px] uppercase tracking-wider">
+          <tr>
+            <th class="px-2 py-2 text-left">Bắt đầu</th>
+            <th class="px-2 py-2 text-left">Kết thúc</th>
+            <th class="px-2 py-2 text-center">Thời lượng</th>
+            <th class="px-2 py-2 text-left">Lịch / Trận</th>
+            <th class="px-2 py-2 text-right">Tiền</th>
+            <th class="px-2 py-2 text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody id="pfMySessTbody" class="text-gray-200">
+          <tr><td colspan="6" class="text-center text-muted py-6">Đang tải...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Guidelines -->
   <div class="mt-5 bg-bg-soft border border-line rounded-xl p-4">
     <h3 class="text-pri-light font-bold mb-2 flex items-center gap-2"><span>💡</span> Quy tắc lên sóng</h3>
@@ -199,10 +234,60 @@ var __role = (typeof publicUser !== 'undefined' && publicUser && publicUser.role
       });
   };
 
+  // ===== LOAD MY SESSIONS =====
+  function fmt(ts){ return ts ? new Date(ts).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'; }
+  function dur(ms){
+    if (!ms || ms < 0) return '—';
+    var s = Math.floor(ms/1000);
+    var h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+    return h + 'h ' + String(m).padStart(2,'0') + 'm';
+  }
+  function vnd(n){ return (n||0).toLocaleString('vi-VN') + 'đ'; }
+
+  function loadSessions(){
+    fetch('/api/sessions/mine', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok) { $('pfMySessTbody').innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-4">Lỗi tải</td></tr>'; return; }
+        var st = data.stats || {};
+        $('pfMyTotalSess').textContent = st.totalSessions || 0;
+        $('pfMyTotalHours').textContent = (st.totalHours || 0) + 'h';
+        $('pfMyEarn').textContent = vnd(st.totalEarning);
+        $('pfMyUnpaid').textContent = vnd(st.unpaidAmount);
+
+        var list = data.list || [];
+        if (list.length === 0) {
+          $('pfMySessTbody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-6">Chưa có phiên live nào. Hãy lên sóng để bắt đầu!</td></tr>';
+          return;
+        }
+        $('pfMySessTbody').innerHTML = list.map(function(s){
+          var statusBadge = !s.endTime
+            ? '<span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded animate-pulse">🔴 LIVE</span>'
+            : (s.paid
+              ? '<span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded">✓ ĐÃ NHẬN</span>'
+              : '<span class="bg-yellow-500/20 text-yellow-300 text-[9px] font-bold px-1.5 py-0.5 rounded">⏳ CHỜ</span>');
+          var matchInfo = s.matchTitle
+            ? '<div class="text-[10px] text-pri-light truncate max-w-[140px]" title="'+escHtml(s.matchTitle)+'">⚽ '+escHtml(s.matchTitle.slice(0,30))+'</div>'
+            : '<span class="text-[10px] text-muted">⏰ Tự do</span>';
+          return ''
+            + '<tr class="border-b border-line/40">'
+            +   '<td class="px-2 py-1.5 tabular-nums">'+fmt(s.startTime)+'</td>'
+            +   '<td class="px-2 py-1.5 tabular-nums">'+fmt(s.endTime)+'</td>'
+            +   '<td class="px-2 py-1.5 text-center font-bold text-pri-light">'+dur(s.duration)+'</td>'
+            +   '<td class="px-2 py-1.5">'+matchInfo+'</td>'
+            +   '<td class="px-2 py-1.5 text-right font-extrabold text-gold tabular-nums">'+vnd(s.paymentAmount)+'</td>'
+            +   '<td class="px-2 py-1.5 text-center">'+statusBadge+'</td>'
+            + '</tr>';
+        }).join('');
+      })
+      .catch(function(){ $('pfMySessTbody').innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-4">Lỗi kết nối</td></tr>'; });
+  }
+
   loadSchedules();
   loadNotifications();
+  loadSessions();
   // Auto refresh mỗi 20s
-  setInterval(function(){ loadSchedules(); loadNotifications(); }, 20000);
+  setInterval(function(){ loadSchedules(); loadNotifications(); loadSessions(); }, 20000);
 })();
 </script>
 

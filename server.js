@@ -689,6 +689,87 @@ app.get('/admin/schedules', pubAuth.requireAdmin, function (req, res) {
   res.render('admin/schedules', { active:'schedules' });
 });
 
+// ═══════════════════════════════════════════════════════════════
+// 📊 LIVE SESSIONS - thống kê + tiền công
+// ═══════════════════════════════════════════════════════════════
+const sessionStore = require('./lib/session-store');
+
+// GET /api/sessions/mine - idol/blv xem session của mình
+app.get('/api/sessions/mine', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const list = sessionStore.listByUser(user.username, { limit: 100 });
+  const stats = sessionStore.stats(user.username);
+  res.json({ ok: true, list: list, stats: stats });
+});
+
+// ADMIN: GET /api/admin/sessions/list - xem TẤT CẢ sessions
+app.get('/api/admin/sessions/list', pubAuth.requireAdmin, function (req, res) {
+  const opts = {
+    userType: req.query.userType || null,
+    username: req.query.username || null,
+    paidStatus: req.query.paid || null,  // 'paid' | 'unpaid'
+    limit: parseInt(req.query.limit, 10) || 200
+  };
+  if (req.query.from) opts.from = parseInt(req.query.from, 10);
+  if (req.query.to) opts.to = parseInt(req.query.to, 10);
+  const list = sessionStore.listAll(opts);
+  res.json({ ok: true, list: list, total: list.length });
+});
+
+// ADMIN: GET /api/admin/sessions/stats?username=
+app.get('/api/admin/sessions/stats', pubAuth.requireAdmin, function (req, res) {
+  const username = req.query.username || null;
+  const stats = sessionStore.stats(username);
+  res.json({ ok: true, stats: stats });
+});
+
+// ADMIN: POST /api/admin/sessions/:id/mark-paid
+app.post('/api/admin/sessions/:id/mark-paid', pubAuth.requireAdmin, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const s = sessionStore.markPaid(req.params.id, user.username);
+  if (!s) return res.json({ ok:false, error:'Session không tồn tại' });
+  res.json({ ok: true, session: s });
+});
+
+// ADMIN: POST /api/admin/sessions/:id/unmark-paid
+app.post('/api/admin/sessions/:id/unmark-paid', pubAuth.requireAdmin, function (req, res) {
+  const s = sessionStore.unmarkPaid(req.params.id);
+  if (!s) return res.json({ ok:false, error:'Session không tồn tại' });
+  res.json({ ok: true, session: s });
+});
+
+// ADMIN: POST /api/admin/payment-rate
+// body: { userType: 'idol'|'blv', idOrUsername, perHour, perMatch, useMatchRate }
+app.post('/api/admin/payment-rate', pubAuth.requireAdmin, function (req, res) {
+  const b = req.body || {};
+  const userType = b.userType === 'blv' ? 'blv' : 'idol';
+  if (!b.idOrUsername) return res.json({ ok:false, error:'Cần idOrUsername' });
+  const item = sessionStore.setRate(userType, b.idOrUsername, {
+    perHour: b.perHour,
+    perMatch: b.perMatch,
+    useMatchRate: b.useMatchRate
+  });
+  if (!item) return res.json({ ok:false, error:'Không tìm thấy user' });
+  res.json({ ok:true, rate: item.paymentRate, name: item.name });
+});
+
+// ADMIN: GET /api/admin/payment-rate?userType=idol&idOrUsername=...
+app.get('/api/admin/payment-rate', pubAuth.requireAdmin, function (req, res) {
+  const userType = req.query.userType === 'blv' ? 'blv' : 'idol';
+  const rate = sessionStore.getRate(userType, req.query.idOrUsername);
+  res.json({ ok:true, rate: rate });
+});
+
+// Admin page render: thống kê + payment
+app.get('/admin/payment', pubAuth.requireAdmin, function (req, res) {
+  const dbData = db.load();
+  res.render('admin/payment', {
+    active:'payment',
+    idols: (dbData.idols || []).filter(i => i.status === 'active'),
+    blvs:  (dbData.blvs  || []).filter(b => b.status === 'active')
+  });
+});
+
 app.post('/api/studio/regenerate-key', pubAuth.requireStreamer, function (req, res){
   const idolId = String((req.body && req.body.idolId) || '');
   if (!idolId) return res.json({ ok:false, error:'Missing idolId' });
@@ -1058,6 +1139,9 @@ async function syncLiveStatusFromSRS() {
     const dbData = db.load();
     let changed = false;
 
+    const sessionStore = require('./lib/session-store');
+    const scheduleStore = require('./lib/schedule-store');
+
     (dbData.idols || []).forEach(function(idol){
       const shouldLive = activeStreamNames.indexOf(idol.id) !== -1;
       if (!!idol.liveNow !== shouldLive) {
@@ -1070,6 +1154,22 @@ async function syncLiveStatusFromSRS() {
         }
         changed = true;
         console.log('[SYNC] idol', idol.id, '(' + idol.name + ') → liveNow=' + shouldLive);
+
+        // 📊 SESSION TRACKING: start khi go live, end khi off
+        const _idolUsername = idol.userId || idol.username || idol.id;
+        if (shouldLive && wasOff) {
+          const active = scheduleStore.getActiveSchedule(_idolUsername);
+          sessionStore.startSession({
+            username: _idolUsername,
+            userType: 'idol',
+            idolId: idol.id,
+            scheduleId: active ? active.id : null,
+            matchId: active ? active.matchId : null,
+            matchTitle: active ? active.matchTitle : null
+          });
+        } else if (!shouldLive && !wasOff) {
+          sessionStore.endSession(_idolUsername);
+        }
 
         // 🔔 NOTIFY FOLLOWERS: chỉ khi transition false→true (vừa go live)
         if (shouldLive && wasOff) {
@@ -1106,6 +1206,22 @@ async function syncLiveStatusFromSRS() {
         }
         changed = true;
         console.log('[SYNC] blv', blv.id, '(' + blv.name + ') → liveNow=' + shouldLive);
+
+        // 📊 SESSION TRACKING for BLV
+        const _blvUsername = blv.userId || blv.username || blv.id;
+        if (shouldLive && wasOff) {
+          const active = scheduleStore.getActiveSchedule(_blvUsername);
+          sessionStore.startSession({
+            username: _blvUsername,
+            userType: 'blv',
+            idolId: blv.id,
+            scheduleId: active ? active.id : null,
+            matchId: active ? active.matchId : null,
+            matchTitle: active ? active.matchTitle : null
+          });
+        } else if (!shouldLive && !wasOff) {
+          sessionStore.endSession(_blvUsername);
+        }
 
         // 🔔 NOTIFY khi BLV vừa lên sóng
         if (shouldLive && wasOff) {
