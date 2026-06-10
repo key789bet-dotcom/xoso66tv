@@ -282,7 +282,11 @@ app.get('/lich-phat-song', async function (req, res, next) {
     const sport = req.query.mon || null;
     const cat   = sport ? api.CATEGORIES[sport] : null;
     const list = await api.getUpcomingStreams(cat ? cat.sport : null, 50);
-    res.render('tw-lich-phat-song', { active:'lich', list:list, sport:sport });
+    // Data thật từ DB cho mobile: BLV active + Idol active để hiện trên card + filter
+    const dbData = db.load();
+    const blvs   = (dbData.blvs || []).filter(function(b){ return b.status === 'active'; });
+    const idols  = (dbData.idols || []).filter(function(i){ return i.status === 'active'; });
+    res.render('tw-lich-phat-song', { active:'lich', list:list, sport:sport, blvs:blvs, idols:idols });
   } catch (e) { next(e); }
 });
 

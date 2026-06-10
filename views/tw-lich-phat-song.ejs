@@ -19,6 +19,53 @@ for (var _di=0; _di<6; _di++) {
   var _label = _di===0 ? 'Hôm nay' : _di===1 ? 'Ngày mai' : _vnDays[_d.getDay()];
   _dayPicker.push({ label: _label, date: _dd+'-'+_mm, key: _dd+_mm, iso: _d.toISOString().slice(0,10) });
 }
+
+// ===== DATA THẬT =====
+var _blvList = (typeof blvs !== 'undefined' && blvs) ? blvs : [];
+var _idolList = (typeof idols !== 'undefined' && idols) ? idols : [];
+
+// Helper: assign 2 BLV deterministic cho mỗi match (dựa trên match.id)
+function _pickBlvs(matchId){
+  if (_blvList.length === 0) return [];
+  // Hash đơn giản từ ID để pick stable
+  var h = 0; var s = String(matchId || '');
+  for (var i=0; i<s.length; i++) h = (h*31 + s.charCodeAt(i)) & 0xfff;
+  var a = _blvList[h % _blvList.length];
+  var b = _blvList.length > 1 ? _blvList[(h*7) % _blvList.length] : null;
+  if (b && b.id === a.id) b = _blvList[(h*7+1) % _blvList.length];
+  return b ? [a, b] : [a];
+}
+
+// Build allCards: matches + idol cards (cat=idol)
+var _allCards = [];
+// 1. Sports matches
+(list || []).forEach(function(m){
+  var _isoDate = '';
+  try { if (m.date) _isoDate = new Date(m.date).toISOString().slice(0,10); } catch(e){}
+  var _cat = m.sport==='Soccer' ? 'bong-da'
+           : m.sport==='Basketball' ? 'bong-ro'
+           : m.sport==='Tennis' ? 'tennis'
+           : m.sport==='Volleyball' ? 'bong-chuyen'
+           : m.sport==='Esports' ? 'esports' : 'khac';
+  _allCards.push({
+    type: 'match',
+    cat: _cat,
+    isoDate: _isoDate || _dayPicker[0].iso,
+    data: m,
+    blvs: _pickBlvs(m.id || m.slug)
+  });
+});
+// 2. Idol cards (cat=idol) - mỗi idol là 1 "lịch" stream
+_idolList.forEach(function(i){
+  if (i.category && i.category !== 'idol') return; // skip casino/bongda idols (đã thuộc cat khác)
+  _allCards.push({
+    type: 'idol',
+    cat: 'idol',
+    isoDate: _dayPicker[0].iso, // idol live mặc định hôm nay
+    data: i,
+    blvs: []
+  });
+});
 %>
 <%- include('partials/tw-layout-start') %>
 
@@ -108,45 +155,80 @@ for (var _di=0; _di<6; _di++) {
     </button>
   </div>
 
-  <!-- Match cards list -->
+  <!-- Match cards list - data thật từ server -->
   <div class="space-y-3" id="mLichList">
-    <% if (!list || list.length === 0) { %>
+    <% if (_allCards.length === 0) { %>
       <div class="p-10 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
         <div class="text-4xl mb-2 opacity-60">📥</div>
         <div class="text-sm">Không có trận sắp diễn ra.</div>
       </div>
     <% } else { %>
-      <% list.slice(0, 30).forEach(function(m){
-        var _statusBadge = m.status==='live' ? '<span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>'
-                         : m.status==='finished' ? '<span class="bg-black/60 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>'
-                         : '<span class="bg-pri/20 text-pri-light text-[10px] font-extrabold px-2 py-0.5 rounded">SẮP DIỄN RA</span>';
-        var _catSlug = m.sport==='Soccer' ? 'bong-da' : m.sport==='Basketball' ? 'bong-ro' : m.sport==='Tennis' ? 'tennis' : m.sport==='Volleyball' ? 'bong-chuyen' : m.sport==='Esports' ? 'esports' : 'khac';
-        var _leagueIcon = '⚽';
-        var _dateStr=''; try { _dateStr = m.date ? new Date(m.date).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}) : ''; } catch(e){}
+      <% _allCards.slice(0, 40).forEach(function(card){
+        if (card.type === 'idol') {
+          // ===== IDOL CARD =====
+          var i = card.data;
       %>
-        <article class="m-match-card bg-bg-card border border-line rounded-xl overflow-hidden" data-cat="<%= _catSlug %>" data-status="<%= m.status %>">
-          <!-- Header: League + Status -->
+        <article class="m-match-card bg-bg-card border border-line rounded-xl overflow-hidden" data-cat="idol" data-date="<%= card.isoDate %>" data-status="<%= i.liveNow ? 'live' : 'upcoming' %>">
+          <header class="flex items-center justify-between px-3 py-2 bg-bg-soft/40 border-b border-line">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="bg-pink-500/20 text-pink-400 w-5 h-5 rounded grid place-items-center text-[11px] shrink-0">👑</span>
+              <span class="text-white text-[12px] font-bold truncate">Idol Live Show</span>
+            </div>
+            <% if (i.liveNow) { %>
+              <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+            <% } else { %>
+              <span class="bg-pri/20 text-pri-light text-[10px] font-extrabold px-2 py-0.5 rounded">SẮP LÊN SÓNG</span>
+            <% } %>
+          </header>
+          <a href="/idol/<%= i.id %>" class="flex items-center px-3 py-4 hover:bg-bg-soft/30 active:scale-[.98] transition-all">
+            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-pink-500 shrink-0">
+              <img src="<%= i.avatar || ('https://i.pravatar.cc/100?u='+i.id) %>" alt="<%= i.name %>" class="w-full h-full object-cover" onerror="this.outerHTML='<div class=&quot;w-full h-full grid place-items-center text-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white&quot;>'+'<%= (i.name||'?')[0] %>'+'</div>'">
+            </div>
+            <div class="flex-1 min-w-0 ml-3">
+              <div class="text-white font-extrabold text-base truncate"><%= i.name %></div>
+              <div class="text-pri-light text-[11px] font-semibold mt-0.5"><%= i.room || ('Phòng riêng ' + i.name) %></div>
+              <% if (i.viewers) { %>
+                <div class="text-muted text-[10px] mt-1">👁 <%= i.viewers.toLocaleString('vi-VN') %> đang xem</div>
+              <% } %>
+            </div>
+            <div class="shrink-0">
+              <% if (i.lock > 0) { %>
+                <span class="bg-yellow-500/20 text-yellow-300 text-[10px] font-bold px-2 py-1 rounded">🔒 <%= i.lock %></span>
+              <% } else { %>
+                <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded">FREE</span>
+              <% } %>
+            </div>
+          </a>
+        </article>
+      <% } else {
+          // ===== MATCH CARD =====
+          var m = card.data;
+          var _dateStr=''; try { _dateStr = m.date ? new Date(m.date).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}) : ''; } catch(e){}
+          var _leagueIcon = m.sport==='Soccer'?'⚽':m.sport==='Basketball'?'🏀':m.sport==='Tennis'?'🎾':m.sport==='Volleyball'?'🏐':m.sport==='Esports'?'🎮':'🏆';
+      %>
+        <article class="m-match-card bg-bg-card border border-line rounded-xl overflow-hidden" data-cat="<%= card.cat %>" data-date="<%= card.isoDate %>" data-status="<%= m.status %>">
           <header class="flex items-center justify-between px-3 py-2 bg-bg-soft/40 border-b border-line">
             <div class="flex items-center gap-1.5 min-w-0">
               <span class="bg-pri/20 text-pri-light w-5 h-5 rounded grid place-items-center text-[11px] shrink-0"><%= _leagueIcon %></span>
               <span class="text-white text-[12px] font-bold truncate"><%= m.league || m.sport %></span>
             </div>
-            <%- _statusBadge %>
+            <% if (m.status==='live') { %>
+              <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+            <% } else if (m.status==='finished') { %>
+              <span class="bg-black/60 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>
+            <% } else { %>
+              <span class="bg-pri/20 text-pri-light text-[10px] font-extrabold px-2 py-0.5 rounded">SẮP DIỄN RA</span>
+            <% } %>
           </header>
-          <!-- Body: 2 teams + score -->
           <a href="/live/<%= m.slug || m.id %>" class="flex items-center px-3 py-3 hover:bg-bg-soft/30 active:scale-[.98] transition-all">
-            <!-- Home team -->
             <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
               <% if (m.homeBadge) { %>
-                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center">
-                  <img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>⚽</span>'">
-                </div>
+                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center"><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>'+_leagueIcon+'</span>'"></div>
               <% } else { %>
                 <div class="w-12 h-12 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-base"><%= (m.home||'?')[0] %></div>
               <% } %>
               <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.home || '?' %></div>
             </div>
-            <!-- Score / Time -->
             <div class="px-3 text-center shrink-0">
               <% if (m.score) { %>
                 <div class="text-xl font-black text-white"><%= m.score[0] %> : <%= m.score[1] %></div>
@@ -157,35 +239,37 @@ for (var _di=0; _di<6; _di++) {
                 <div class="inline-block bg-pri text-white text-[10px] font-bold px-2 py-0.5 rounded mt-1"><%= _dateStr %></div>
               <% } %>
             </div>
-            <!-- Away team -->
             <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
               <% if (m.awayBadge) { %>
-                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center">
-                  <img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>⚽</span>'">
-                </div>
+                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center"><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>'+_leagueIcon+'</span>'"></div>
               <% } else { %>
                 <div class="w-12 h-12 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-base"><%= (m.away||'?')[0] %></div>
               <% } %>
               <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.away || '?' %></div>
             </div>
           </a>
-          <!-- Footer: BLV strip -->
+          <% if (card.blvs && card.blvs.length > 0) { %>
           <footer class="flex items-center gap-2 px-3 py-2 border-t border-line bg-bg-deep/40">
-            <button class="text-muted text-lg leading-none px-1" type="button" aria-label="Trước">‹</button>
-            <div class="flex-1 flex items-center gap-3 overflow-hidden">
-              <div class="flex items-center gap-1.5 shrink-0">
-                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center text-white text-[10px] font-bold">B</div>
-                <span class="text-gray-200 text-[11px] font-semibold">BLV Nếp</span>
-              </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 grid place-items-center text-white text-[10px] font-bold">R</div>
-                <span class="text-gray-200 text-[11px] font-semibold">BLV RICH</span>
-              </div>
+            <div class="flex-1 flex items-center gap-3 overflow-x-auto scrollbar-hide">
+              <% card.blvs.forEach(function(blv, _bi){
+                var _colors = ['from-pri to-live','from-emerald-500 to-emerald-700','from-violet-500 to-purple-700','from-sky-500 to-blue-700'];
+                var _color = _colors[_bi % _colors.length];
+              %>
+                <a href="/live/<%= m.slug || m.id %>" class="flex items-center gap-1.5 shrink-0">
+                  <% if (blv.avatar) { %>
+                    <img src="<%= blv.avatar %>" class="w-6 h-6 rounded-full object-cover border border-line" alt="<%= blv.name %>" onerror="this.outerHTML='<div class=&quot;w-6 h-6 rounded-full bg-gradient-to-br <%= _color %> grid place-items-center text-white text-[10px] font-bold&quot;>'+'<%= (blv.name||'?')[0] %>'+'</div>'">
+                  <% } else { %>
+                    <div class="w-6 h-6 rounded-full bg-gradient-to-br <%= _color %> grid place-items-center text-white text-[10px] font-bold"><%= (blv.name||'?')[0] %></div>
+                  <% } %>
+                  <span class="text-gray-200 text-[11px] font-semibold truncate max-w-[100px]"><%= blv.name %></span>
+                  <% if (blv.liveNow) { %><span class="bg-live text-white text-[8px] font-extrabold px-1 rounded">LIVE</span><% } %>
+                </a>
+              <% }); %>
             </div>
-            <button class="text-muted text-lg leading-none px-1" type="button" aria-label="Sau">›</button>
           </footer>
+          <% } %>
         </article>
-      <% }); %>
+      <% } }); %>
     <% } %>
   </div>
 </div>
@@ -251,16 +335,37 @@ for (var _di=0; _di<6; _di++) {
   function applyFilter(){
     var activeCat = document.querySelector('#mLichCats .m-cat-pill.is-active');
     var catFilter = activeCat ? activeCat.getAttribute('data-cat') : 'all';
-    // 'all' = hiện hết (không filter)
     if (catFilter === 'all') catFilter = null;
 
+    var activeDay = document.querySelector('#mLichDays .m-day-pill.is-active');
+    var dayFilter = activeDay ? activeDay.getAttribute('data-day') : null;
+
     var cards = document.querySelectorAll('#mLichList .m-match-card');
+    var shown = 0;
     cards.forEach(function(card){
       var cat = card.getAttribute('data-cat');
+      var date = card.getAttribute('data-date');
       var match = true;
       if (catFilter && cat !== catFilter) match = false;
+      if (dayFilter && date !== dayFilter) match = false;
       card.style.display = match ? '' : 'none';
+      if (match) shown++;
     });
+
+    // Show empty state nếu không có card nào
+    var emptyId = 'mLichEmpty';
+    var emptyEl = document.getElementById(emptyId);
+    if (shown === 0) {
+      if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.id = emptyId;
+        emptyEl.className = 'p-10 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted';
+        emptyEl.innerHTML = '<div class="text-4xl mb-2 opacity-60">📥</div><div class="text-sm">Không có trận khớp bộ lọc.</div>';
+        document.getElementById('mLichList').appendChild(emptyEl);
+      }
+    } else {
+      if (emptyEl) emptyEl.remove();
+    }
   }
 })();
 </script>
