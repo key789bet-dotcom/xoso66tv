@@ -471,7 +471,17 @@ app.post('/api/auth/logout', function (req, res) {
 app.get('/api/auth/me', function (req, res) {
   const u = pubAuth.getUser(req);
   if (!u) return res.json({ ok:false });
-  res.json({ ok:true, username: u.username, role: u.role });
+  // Lookup full user để lấy vnd balance
+  let vnd = 0, coin = 0;
+  try {
+    const data = db.load();
+    const full = (data.users || []).find(x => (x.username || '').toLowerCase() === u.username);
+    if (full) {
+      vnd  = parseInt(full.vnd  || 0, 10);
+      coin = parseInt(full.coin || 0, 10);
+    }
+  } catch(e){}
+  res.json({ ok:true, username: u.username, role: u.role, user: { username: u.username, role: u.role, vnd: vnd, coin: coin } });
 });
 
 // ===== IDOL STUDIO =====
@@ -771,6 +781,110 @@ app.get('/admin/payment', pubAuth.requireAdmin, function (req, res) {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// 🎁 PREMIUM GIFTS - Quà THẬT (mua bằng VND nạp) → tính earnings cho streamer
+// ═══════════════════════════════════════════════════════════════
+const giftsLib   = require('./lib/gifts');
+const giftTxStore= require('./lib/gift-tx-store');
+
+// GET /api/gifts/premium - danh sách quà thật
+app.get('/api/gifts/premium', function (req, res) {
+  res.json({ ok:true, list: giftsLib.PREMIUM_GIFTS });
+});
+
+// POST /api/gift/send - user tặng quà thật cho idol/BLV
+// body: { giftId, qty, toIdolId? hoặc toUsername }
+app.post('/api/gift/send', pubAuth.requireLogin, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const b = req.body || {};
+  const giftId = String(b.giftId || '');
+  const qty = Math.max(1, Math.min(99, parseInt(b.qty, 10) || 1));
+
+  const gift = giftsLib.findPremium(giftId);
+  if (!gift) return res.json({ ok:false, error:'Quà không hợp lệ hoặc không phải quà thật' });
+
+  // Xác định người nhận
+  const data = db.load();
+  let toUsername = String(b.toUsername || '').toLowerCase();
+  let toIdolId = b.toIdolId || null;
+  if (toIdolId && !toUsername) {
+    const idol = (data.idols || []).find(i => i.id === toIdolId);
+    if (idol) toUsername = (idol.userId || idol.username || '').toLowerCase();
+  }
+  if (!toUsername) {
+    const blv = (data.blvs || []).find(x => x.id === toIdolId);
+    if (blv) toUsername = (blv.userId || blv.username || '').toLowerCase();
+  }
+  if (!toUsername) return res.json({ ok:false, error:'Không xác định được người nhận' });
+  if (toUsername === user.username) return res.json({ ok:false, error:'Không thể tự tặng quà' });
+
+  const totalVnd = gift.priceVnd * qty;
+
+  // Trừ VND của user (số dư nạp thật từ xoso66)
+  const userIdx = (data.users || []).findIndex(u => (u.username || '').toLowerCase() === user.username);
+  if (userIdx === -1) return res.json({ ok:false, error:'User không tồn tại' });
+  const userObj = data.users[userIdx];
+  const balVnd = parseInt(userObj.vnd || 0, 10);
+  if (balVnd < totalVnd) {
+    return res.json({
+      ok:false,
+      error:'Số dư VND không đủ. Cần ' + totalVnd.toLocaleString('vi-VN') + 'đ, hiện có ' + balVnd.toLocaleString('vi-VN') + 'đ. Vui lòng nạp thêm.',
+      needTopup: true,
+      currentBalance: balVnd,
+      required: totalVnd
+    });
+  }
+  userObj.vnd = balVnd - totalVnd;
+  db.save(data);
+
+  // Tạo tx + tính earnings cho streamer
+  const tx = giftTxStore.add({
+    fromUser: user.username,
+    toUser: toUsername,
+    toIdolId: toIdolId,
+    gift: gift,
+    qty: qty
+  });
+
+  // Notification cho streamer
+  try {
+    scheduleStore.pushNotification(toUsername, {
+      title: '🎁 Nhận được quà THẬT!',
+      body: '@' + user.username + ' tặng ' + qty + 'x ' + gift.icon + ' ' + gift.name + ' (+' + tx.earnedVnd.toLocaleString('vi-VN') + 'đ)',
+      type: 'gift-received',
+      link: '/profile?tab=studio'
+    });
+  } catch(e){}
+
+  res.json({
+    ok: true,
+    tx: tx,
+    newBalance: userObj.vnd,
+    streamerEarned: tx.earnedVnd
+  });
+});
+
+// GET /api/gifts/received - streamer xem quà thật nhận được
+app.get('/api/gifts/received', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const list = giftTxStore.listByStreamer(user.username, { limit: 200 });
+  const stats = giftTxStore.stats(user.username);
+  const top = giftTxStore.topDonors(user.username, 10);
+  res.json({ ok:true, list: list, stats: stats, topDonors: top });
+});
+
+// ADMIN: GET /api/admin/gifts/list - xem tất cả gift tx
+app.get('/api/admin/gifts/list', pubAuth.requireAdmin, function (req, res) {
+  const opts = {
+    toUser: req.query.toUser || null,
+    fromUser: req.query.fromUser || null,
+    paid: req.query.paid || null,
+    limit: parseInt(req.query.limit, 10) || 200
+  };
+  const list = giftTxStore.listAll(opts);
+  res.json({ ok:true, list: list, stats: giftTxStore.stats() });
+});
+
+// ═══════════════════════════════════════════════════════════════
 // 💸 WITHDRAW - Idol/BLV rút tiền công
 // ═══════════════════════════════════════════════════════════════
 const withdrawStore = require('./lib/withdraw-store');
@@ -800,11 +914,14 @@ app.post('/api/withdraw/request', pubAuth.requireStreamer, function (req, res) {
     }
   }
 
-  // Check balance available: sessions earned - paid - pending
+  // Check balance available: sessions earned + GIFT earnings - paid - pending
   let earned = 0;
   try {
     const stats = sessionStore.stats(user.username);
     earned = (stats && (stats.totalEarned || stats.earned)) || 0;
+  } catch(e){}
+  try {
+    earned += giftTxStore.totalEarnedByStreamer(user.username);
   } catch(e){}
   const alreadyPaid    = withdrawStore.totalPaidByUser(user.username);
   const alreadyPending = withdrawStore.totalPendingByUser(user.username);
@@ -860,17 +977,21 @@ app.get('/api/withdraw/mine', pubAuth.requireStreamer, function (req, res) {
   const user = res.locals.publicUser || {};
   const list = withdrawStore.listByUser(user.username, { limit: 50 });
 
-  let earned = 0;
+  let sessionEarned = 0, giftEarned = 0;
   try {
     const s = sessionStore.stats(user.username);
-    earned = (s && (s.totalEarned || s.earned)) || 0;
+    sessionEarned = (s && (s.totalEarned || s.earned)) || 0;
   } catch(e){}
+  try { giftEarned = giftTxStore.totalEarnedByStreamer(user.username); } catch(e){}
+  const earned  = sessionEarned + giftEarned;
   const paid    = withdrawStore.totalPaidByUser(user.username);
   const pending = withdrawStore.totalPendingByUser(user.username);
   res.json({
     ok:true, list: list,
     balance: {
       earned: earned,
+      sessionEarned: sessionEarned,
+      giftEarned: giftEarned,
       paid: paid,
       pending: pending,
       available: Math.max(0, earned - paid - pending)

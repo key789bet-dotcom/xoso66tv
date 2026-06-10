@@ -1,0 +1,245 @@
+<%
+// ═══════════════════════════════════════════════════════════
+// MODAL TẶNG QUÀ THẬT (VND) - PREMIUM GIFTS
+// Required vars: streamerUsername (string) hoặc streamerIdolId
+//                streamerName (display)
+// ═══════════════════════════════════════════════════════════
+var PG = require('../../lib/gifts').PREMIUM_GIFTS;
+var _toUser = (typeof streamerUsername !== 'undefined' && streamerUsername) ? streamerUsername : '';
+var _toId   = (typeof streamerIdolId   !== 'undefined' && streamerIdolId)   ? streamerIdolId   : '';
+var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? streamerName     : 'Idol';
+%>
+
+<!-- Floating PREMIUM gift button (vàng/cam đặt cạnh nút 🎁 ảo) -->
+<button id="pgBtn" onclick="pgOpen()" class="fixed bottom-5 right-[88px] z-50 bg-gradient-to-br from-amber-400 via-yellow-500 to-rose-500 hover:scale-110 text-white font-extrabold w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(245,158,11,.6)] grid place-items-center text-xl transition-transform animate-pulse" aria-label="Tặng quà thật">
+  💎
+</button>
+
+<!-- Modal -->
+<div id="pgModal" class="hidden fixed inset-0 z-[110] bg-black/80 backdrop-blur-md grid place-items-center p-2 sm:p-4" onclick="if(event.target===this)pgClose()">
+  <div class="bg-gradient-to-b from-bg-card to-bg-deep border-2 border-amber-500/40 rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden shadow-2xl shadow-amber-500/30 flex flex-col">
+    <!-- Header -->
+    <header class="flex items-center justify-between p-3 sm:p-4 border-b border-amber-500/30 bg-gradient-to-r from-amber-900/40 to-rose-900/30">
+      <div class="flex items-center gap-2.5">
+        <div class="text-2xl">💎</div>
+        <div>
+          <h3 class="text-white font-extrabold text-base sm:text-lg leading-tight">Tặng quà THẬT</h3>
+          <div class="text-amber-200 text-[11px] font-bold">Cho <%= _toName %> • Trừ VND đã nạp</div>
+        </div>
+      </div>
+      <button onclick="pgClose()" class="text-muted hover:text-white text-3xl leading-none px-2">×</button>
+    </header>
+
+    <!-- Balance bar -->
+    <div class="px-3 sm:px-4 py-2.5 bg-bg-deep/60 border-b border-line flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-muted">Số dư VND:</span>
+        <b class="text-emerald-400 tabular-nums text-base" id="pgBalance">—</b>
+        <button onclick="pgRefreshBalance()" class="text-pri-light text-[10px] hover:underline">🔄</button>
+      </div>
+      <a href="<%= typeof partner!=='undefined' && partner ? partner.register : 'https://qt99.click' %>" target="_blank" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded font-bold">+ Nạp tiền</a>
+    </div>
+
+    <!-- Premium gifts grid -->
+    <div class="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin">
+      <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+        <% PG.forEach(function(g){
+          var ring = g.tier==='legend' ? 'from-rose-500 via-amber-400 to-yellow-500'
+                   : g.tier==='royal'  ? 'from-amber-400 to-yellow-600'
+                   :                     'from-pink-400 to-rose-600';
+          var glow = g.tier==='legend' ? '#f43f5e' : g.tier==='royal' ? '#f59e0b' : '#f472b6';
+          var tierLabel = g.tier==='legend' ? 'LEGEND' : g.tier==='royal' ? 'ROYAL' : 'VIP';
+        %>
+          <button onclick="pgPickGift('<%= g.id %>')" data-id="<%= g.id %>" data-price="<%= g.priceVnd %>" data-name="<%= g.name %>" data-icon="<%= g.icon %>"
+                  class="pg-card group relative overflow-hidden bg-gradient-to-b from-bg-soft to-bg-deep border-2 border-white/5 hover:border-amber-400 rounded-xl p-2 sm:p-3 text-center transition-all hover:-translate-y-1">
+            <span class="absolute top-1 right-1 text-[8px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r <%= ring %> text-white shadow"><%= tierLabel %></span>
+            <div class="relative mx-auto w-14 h-14 sm:w-16 sm:h-16 mt-1 mb-1.5">
+              <div class="absolute inset-0 rounded-full p-[2px] bg-gradient-to-br <%= ring %> animate-spin-slow">
+                <div class="w-full h-full rounded-full bg-bg-deep"></div>
+              </div>
+              <div class="absolute inset-[5px] rounded-full grid place-items-center">
+                <span class="text-3xl sm:text-4xl" style="filter:drop-shadow(0 0 8px <%= glow %>) drop-shadow(0 0 16px <%= glow %>);"><%= g.icon %></span>
+              </div>
+            </div>
+            <div class="text-[10px] sm:text-[11px] font-extrabold text-white truncate"><%= g.name %></div>
+            <div class="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40">
+              <span class="text-[9px]">💵</span>
+              <span class="text-emerald-300 font-black text-[10px] tabular-nums"><%= g.priceVnd.toLocaleString('vi-VN') %></span>
+            </div>
+          </button>
+        <% }); %>
+      </div>
+
+      <div class="mt-3 bg-emerald-900/20 border border-emerald-500/30 rounded-lg p-2.5 text-[11px] text-emerald-200">
+        💡 <b>Quà THẬT</b> được trả bằng tiền VND bạn đã nạp tại xoso66.<br>
+        🎁 Idol/BLV nhận được <b>70-80%</b> giá trị quà — số tiền này có thể rút về tài khoản ngân hàng.
+      </div>
+    </div>
+
+    <!-- Quantity + confirm bar (hidden cho đến khi chọn quà) -->
+    <div id="pgConfirmBar" class="hidden border-t border-line bg-bg-deep p-3">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-2xl" id="pgPickIcon">🎁</span>
+        <div class="flex-1 min-w-0">
+          <div class="text-white font-bold truncate" id="pgPickName">—</div>
+          <div class="text-[11px] text-amber-300 tabular-nums" id="pgPickUnit">—</div>
+        </div>
+        <div class="flex items-center bg-bg-card border border-line rounded-lg overflow-hidden">
+          <button onclick="pgQty(-1)" class="px-3 py-1.5 text-white hover:bg-bg-soft">−</button>
+          <input id="pgQty" type="number" min="1" max="99" value="1" class="w-12 text-center bg-transparent text-white font-bold tabular-nums outline-none">
+          <button onclick="pgQty(1)" class="px-3 py-1.5 text-white hover:bg-bg-soft">+</button>
+        </div>
+      </div>
+      <button id="pgSubmit" onclick="pgSubmit()" class="w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:brightness-110 text-white font-extrabold py-3 rounded-lg text-base shadow-lg">
+        💎 Tặng — <span id="pgTotalVnd" class="tabular-nums">0đ</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin-slow { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+.animate-spin-slow { animation: spin-slow 8s linear infinite; }
+.pg-card:hover { box-shadow: 0 10px 25px rgba(245,158,11,.35); }
+</style>
+
+<script>
+(function(){
+  var __toUser = <%- JSON.stringify(_toUser) %>;
+  var __toId   = <%- JSON.stringify(_toId) %>;
+  var __pick   = null;
+
+  function $(id){ return document.getElementById(id); }
+  function vnd(n){ return (n||0).toLocaleString('vi-VN') + 'đ'; }
+
+  window.pgOpen = function(){
+    $('pgModal').classList.remove('hidden');
+    pgRefreshBalance();
+  };
+  window.pgClose = function(){
+    $('pgModal').classList.add('hidden');
+    $('pgConfirmBar').classList.add('hidden');
+    __pick = null;
+  };
+
+  window.pgRefreshBalance = function(){
+    fetch('/api/auth/me', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d && d.ok && d.user) {
+          var v = parseInt(d.user.vnd || 0, 10);
+          $('pgBalance').textContent = vnd(v);
+        } else {
+          $('pgBalance').textContent = '— (chưa đăng nhập)';
+        }
+      })
+      .catch(function(){ $('pgBalance').textContent = '— (lỗi)'; });
+  };
+
+  window.pgPickGift = function(id){
+    var btn = document.querySelector('.pg-card[data-id="'+id+'"]');
+    if (!btn) return;
+    __pick = {
+      id: id,
+      name: btn.getAttribute('data-name'),
+      icon: btn.getAttribute('data-icon'),
+      price: parseInt(btn.getAttribute('data-price'), 10) || 0
+    };
+    $('pgPickIcon').textContent = __pick.icon;
+    $('pgPickName').textContent = __pick.name;
+    $('pgPickUnit').textContent = vnd(__pick.price) + ' / cái';
+    $('pgQty').value = 1;
+    pgUpdateTotal();
+    $('pgConfirmBar').classList.remove('hidden');
+    // Highlight
+    document.querySelectorAll('.pg-card').forEach(function(c){ c.classList.remove('!border-amber-400','ring-2','ring-amber-400'); });
+    btn.classList.add('!border-amber-400','ring-2','ring-amber-400');
+  };
+
+  window.pgQty = function(d){
+    var q = parseInt($('pgQty').value, 10) || 1;
+    q = Math.max(1, Math.min(99, q + d));
+    $('pgQty').value = q;
+    pgUpdateTotal();
+  };
+  $('pgQty') && $('pgQty').addEventListener('input', pgUpdateTotal);
+  function pgUpdateTotal(){
+    if (!__pick) return;
+    var q = parseInt($('pgQty').value, 10) || 1;
+    $('pgTotalVnd').textContent = vnd(__pick.price * q);
+  }
+
+  window.pgSubmit = function(){
+    if (!__pick) return alert('Hãy chọn quà trước');
+    var q = parseInt($('pgQty').value, 10) || 1;
+    var btn = $('pgSubmit');
+    btn.disabled = true;
+    var oldHtml = btn.innerHTML;
+    btn.textContent = '⏳ Đang gửi...';
+
+    fetch('/api/gift/send', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        giftId: __pick.id,
+        qty: q,
+        toUsername: __toUser || undefined,
+        toIdolId: __toId || undefined
+      })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        if (d.ok) {
+          // Floating animation overlay
+          pgFloatAnim(__pick.icon, q);
+          // Show success
+          alert('🎉 Đã tặng ' + q + 'x ' + __pick.icon + ' ' + __pick.name + ' cho ' + <%- JSON.stringify(_toName) %> + '!\nIdol nhận: ' + vnd(d.streamerEarned) + '\nSố dư còn: ' + vnd(d.newBalance));
+          pgRefreshBalance();
+          pgClose();
+        } else {
+          if (d.needTopup) {
+            if (confirm(d.error + '\n\nNạp tiền ngay?')) {
+              window.open(<%- JSON.stringify(typeof partner!=='undefined' && partner ? partner.register : 'https://qt99.click') %>, '_blank');
+            }
+          } else {
+            alert('❌ ' + (d.error || 'Lỗi không xác định'));
+          }
+        }
+      })
+      .catch(function(){
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        alert('❌ Lỗi kết nối server');
+      });
+  };
+
+  // Floating gift icon animation
+  function pgFloatAnim(icon, qty){
+    var layer = document.getElementById('giftAnimLayer');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.id = 'giftAnimLayer';
+      layer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:200';
+      document.body.appendChild(layer);
+    }
+    var n = Math.min(qty, 12);
+    for (var i = 0; i < n; i++) {
+      (function(idx){
+        setTimeout(function(){
+          var e = document.createElement('div');
+          e.textContent = icon;
+          e.style.cssText = 'position:absolute;bottom:80px;left:'+(20+Math.random()*70)+'%;font-size:'+(40+Math.random()*30)+'px;filter:drop-shadow(0 0 12px gold);transition:transform 2.5s cubic-bezier(.2,.7,.2,1),opacity 2.5s ease-out;';
+          layer.appendChild(e);
+          requestAnimationFrame(function(){
+            e.style.transform = 'translateY(-'+(window.innerHeight*0.7)+'px) rotate('+(Math.random()*720-360)+'deg) scale(1.5)';
+            e.style.opacity = '0';
+          });
+          setTimeout(function(){ e.remove(); }, 2600);
+        }, idx * 100);
+      })(i);
+    }
+  }
+})();
+</script>

@@ -836,4 +836,10 @@ function toggleFollow(b){ b.textContent = b.textContent.indexOf('Đã')>=0 ? '�
 
 <%- include("partials/tw-gift-panel") %>
 
+<%- include("partials/tw-premium-gift-modal", {
+  streamerUsername: (idol.userId || idol.username || ''),
+  streamerIdolId: idolId,
+  streamerName: idol.name
+}) %>
+
 <%- include("partials/tw-footer") %>

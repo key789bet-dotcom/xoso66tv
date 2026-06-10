@@ -45,10 +45,14 @@
           <button type="button" onclick="wlFillMax()" class="text-emerald-400 hover:underline font-bold">Rút tối đa</button>
         </div>
         <div class="text-xl font-black text-emerald-400 tabular-nums mt-0.5" id="wlWdAvail">—</div>
-        <div class="grid grid-cols-3 gap-1 mt-1.5 text-[10px]">
-          <div class="text-muted">Đã nhận: <b class="text-white" id="wlWdEarned">—</b></div>
-          <div class="text-muted">Đang xử lý: <b class="text-yellow-300" id="wlWdHold">—</b></div>
-          <div class="text-muted">Đã rút: <b class="text-gray-300" id="wlWdPaid">—</b></div>
+        <div class="grid grid-cols-2 gap-1 mt-1.5 text-[10px]">
+          <div class="text-muted">⏰ Tiền công live: <b class="text-pri-light" id="wlWdSessionEarn">—</b></div>
+          <div class="text-muted">💎 Quà thật: <b class="text-amber-300" id="wlWdGiftEarn">—</b></div>
+          <div class="text-muted">⏳ Đang xử lý: <b class="text-yellow-300" id="wlWdHold">—</b></div>
+          <div class="text-muted">✓ Đã rút: <b class="text-gray-300" id="wlWdPaid">—</b></div>
+        </div>
+        <div class="mt-1.5 pt-1.5 border-t border-line/40 text-[10px] text-emerald-300">
+          ➕ <b class="text-white" id="wlWdEarned">—</b> tổng đã nhận
         </div>
       </div>
 
@@ -199,10 +203,12 @@ window.wlOpenWithdraw = function(){
     .then(function(d){
       if (d && d.ok && d.balance) {
         __wlAvailable = d.balance.available || 0;
-        document.getElementById('wlWdAvail').textContent   = __wlVnd(d.balance.available);
-        document.getElementById('wlWdEarned').textContent  = __wlVnd(d.balance.earned);
-        document.getElementById('wlWdHold').textContent    = __wlVnd(d.balance.pending);
-        document.getElementById('wlWdPaid').textContent    = __wlVnd(d.balance.paid);
+        document.getElementById('wlWdAvail').textContent       = __wlVnd(d.balance.available);
+        document.getElementById('wlWdEarned').textContent      = __wlVnd(d.balance.earned);
+        document.getElementById('wlWdSessionEarn').textContent = __wlVnd(d.balance.sessionEarned || 0);
+        document.getElementById('wlWdGiftEarn').textContent    = __wlVnd(d.balance.giftEarned || 0);
+        document.getElementById('wlWdHold').textContent        = __wlVnd(d.balance.pending);
+        document.getElementById('wlWdPaid').textContent        = __wlVnd(d.balance.paid);
         document.getElementById('wlWdBalanceBox').classList.remove('hidden');
       }
     })

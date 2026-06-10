@@ -114,6 +114,53 @@ var __role = (typeof publicUser !== 'undefined' && publicUser && publicUser.role
     </div>
   </div>
 
+  <!-- ════════════ QUÀ THẬT NHẬN ĐƯỢC ════════════ -->
+  <div class="mt-5 bg-gradient-to-br from-amber-900/20 to-bg-card border border-amber-500/30 rounded-xl p-4">
+    <h2 class="text-base font-extrabold text-white mb-3 flex items-center gap-2">
+      <span class="text-xl">💎</span> Quà THẬT nhận được
+      <span class="text-[10px] bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full font-bold">QUY ĐỔI RA VND</span>
+    </h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+      <div class="bg-bg-deep border border-line rounded-lg p-2.5">
+        <div class="text-[9px] text-muted uppercase">Tổng lượt tặng</div>
+        <div class="text-lg font-black text-white" id="pfGiftCount">—</div>
+      </div>
+      <div class="bg-bg-deep border border-line rounded-lg p-2.5">
+        <div class="text-[9px] text-muted uppercase">User chi</div>
+        <div class="text-lg font-black text-pri-light tabular-nums" id="pfGiftRevenue">—</div>
+      </div>
+      <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2.5">
+        <div class="text-[9px] text-emerald-300 uppercase font-bold">Bạn nhận được</div>
+        <div class="text-lg font-black text-emerald-300 tabular-nums" id="pfGiftEarned">—</div>
+      </div>
+      <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5">
+        <div class="text-[9px] text-amber-300 uppercase font-bold">Top fan</div>
+        <div class="text-sm font-extrabold text-amber-200 truncate" id="pfGiftTopFan">—</div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto border border-line rounded-lg max-h-[260px] overflow-y-auto">
+      <table class="w-full text-[11px]">
+        <thead class="bg-bg-deep text-muted text-[10px] uppercase sticky top-0">
+          <tr>
+            <th class="px-2 py-1.5 text-left">Thời gian</th>
+            <th class="px-2 py-1.5 text-left">Từ user</th>
+            <th class="px-2 py-1.5 text-left">Quà</th>
+            <th class="px-2 py-1.5 text-right">User trả</th>
+            <th class="px-2 py-1.5 text-right">Bạn nhận</th>
+          </tr>
+        </thead>
+        <tbody id="pfGiftTbody" class="text-gray-200">
+          <tr><td colspan="5" class="text-center text-muted py-4">Đang tải...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-2 text-[10px] text-muted">
+      ℹ️ Quà ảo (X COIN) tặng từ điểm danh/vòng quay <b class="text-yellow-300">KHÔNG</b> tính vào thu nhập. Chỉ quà THẬT trả bằng VND mới quy đổi rút tiền được.
+    </div>
+  </div>
+
   <!-- Guidelines -->
   <div class="mt-5 bg-bg-soft border border-line rounded-xl p-4">
     <h3 class="text-pri-light font-bold mb-2 flex items-center gap-2"><span>💡</span> Quy tắc lên sóng</h3>
@@ -283,11 +330,43 @@ var __role = (typeof publicUser !== 'undefined' && publicUser && publicUser.role
       .catch(function(){ $('pfMySessTbody').innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-4">Lỗi kết nối</td></tr>'; });
   }
 
+  function loadGifts(){
+    fetch('/api/gifts/received', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d || !d.ok) { $('pfGiftTbody').innerHTML = '<tr><td colspan="5" class="text-center text-red-400 py-4">Lỗi tải</td></tr>'; return; }
+        var s = d.stats || {};
+        $('pfGiftCount').textContent   = s.totalTx || 0;
+        $('pfGiftRevenue').textContent = vnd(s.totalVndIn);
+        $('pfGiftEarned').textContent  = vnd(s.totalEarned);
+        var top = (d.topDonors && d.topDonors[0]) ? d.topDonors[0] : null;
+        $('pfGiftTopFan').textContent = top ? ('@' + top.user + ' (' + vnd(top.totalVnd) + ')') : '—';
+
+        var list = d.list || [];
+        if (list.length === 0) {
+          $('pfGiftTbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Chưa có quà thật nào. Hãy mời fan tặng quà 💎 khi live!</td></tr>';
+          return;
+        }
+        $('pfGiftTbody').innerHTML = list.slice(0, 50).map(function(g){
+          return ''
+            + '<tr class="border-b border-line/30">'
+            +   '<td class="px-2 py-1.5 tabular-nums text-muted">'+fmt(g.createdAt)+'</td>'
+            +   '<td class="px-2 py-1.5 font-bold text-white">@'+escHtml(g.fromUser)+'</td>'
+            +   '<td class="px-2 py-1.5">'+g.giftIcon+' '+escHtml(g.giftName)+' <span class="text-muted">x'+g.qty+'</span></td>'
+            +   '<td class="px-2 py-1.5 text-right text-pri-light tabular-nums">'+vnd(g.totalVnd)+'</td>'
+            +   '<td class="px-2 py-1.5 text-right font-extrabold text-emerald-400 tabular-nums">+'+vnd(g.earnedVnd)+'</td>'
+            + '</tr>';
+        }).join('');
+      })
+      .catch(function(){ $('pfGiftTbody').innerHTML = '<tr><td colspan="5" class="text-center text-red-400 py-4">Lỗi kết nối</td></tr>'; });
+  }
+
   loadSchedules();
   loadNotifications();
   loadSessions();
+  loadGifts();
   // Auto refresh mỗi 20s
-  setInterval(function(){ loadSchedules(); loadNotifications(); loadSessions(); }, 20000);
+  setInterval(function(){ loadSchedules(); loadNotifications(); loadSessions(); loadGifts(); }, 20000);
 })();
 </script>
 
