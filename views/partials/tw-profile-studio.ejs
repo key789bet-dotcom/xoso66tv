@@ -1,0 +1,209 @@
+<%
+// Tab "Quản Lý Kênh Live" trong /profile - chỉ idol/blv/admin
+var __role = (typeof publicUser !== 'undefined' && publicUser && publicUser.role) ? publicUser.role : 'user';
+%>
+
+<!-- Server-side guard nếu user thường truy cập trực tiếp /profile?tab=studio -->
+<% if (__role !== 'idol' && __role !== 'blv' && __role !== 'admin') { %>
+  <div class="text-center py-12">
+    <div class="text-6xl mb-3">🔒</div>
+    <h2 class="text-xl font-extrabold text-white mb-2">Chỉ Idol/BLV mới truy cập</h2>
+    <p class="text-muted mb-4">Tab "Quản lý kênh" dành cho user đã được duyệt làm Idol hoặc BLV.</p>
+    <div class="flex gap-3 justify-center">
+      <a href="/dang-ky-idol" class="bg-gradient-to-br from-pink-500 to-rose-600 text-white font-bold px-5 py-2.5 rounded-lg">👑 Đăng ký làm Idol</a>
+      <a href="/dang-ky-blv" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold px-5 py-2.5 rounded-lg">🎙️ Đăng ký làm BLV</a>
+    </div>
+  </div>
+<% } else { %>
+
+<div>
+  <!-- Header -->
+  <header class="flex items-center justify-between mb-4 pb-3 border-b border-line">
+    <div>
+      <h1 class="text-xl font-extrabold text-white flex items-center gap-2"><span class="text-2xl">🎬</span> Quản Lý Kênh Live</h1>
+      <p class="text-muted text-xs mt-1">Đăng ký lịch, lên sóng, xem thông báo từ admin</p>
+    </div>
+    <span class="text-[10px] bg-pri/20 text-pri-light font-bold px-2.5 py-1 rounded-full"><%= __role.toUpperCase() %></span>
+  </header>
+
+  <!-- Quick stats -->
+  <div class="grid grid-cols-3 gap-3 mb-5">
+    <div class="bg-bg-deep border border-line rounded-lg p-3 text-center">
+      <div class="text-[10px] text-muted uppercase font-bold">Lịch chờ duyệt</div>
+      <div class="text-2xl font-black text-yellow-400 mt-1 tabular-nums" id="pfStudioPending">—</div>
+    </div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3 text-center">
+      <div class="text-[10px] text-muted uppercase font-bold">Lịch đã duyệt</div>
+      <div class="text-2xl font-black text-emerald-400 mt-1 tabular-nums" id="pfStudioApproved">—</div>
+    </div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3 text-center">
+      <div class="text-[10px] text-muted uppercase font-bold">Thông báo mới</div>
+      <div class="text-2xl font-black text-pri-light mt-1 tabular-nums" id="pfStudioNotif">—</div>
+    </div>
+  </div>
+
+  <!-- CTA: mở studio để lên sóng -->
+  <a href="/idol-studio" class="block bg-gradient-to-r from-pri to-live hover:brightness-110 text-white font-extrabold py-4 rounded-xl text-center mb-5 shadow-lg shadow-pri/30 active:scale-95 transition-all">
+    <div class="flex items-center justify-center gap-3">
+      <span class="text-3xl">📡</span>
+      <div class="text-left">
+        <div class="text-base">Mở Studio - Lên Sóng Ngay</div>
+        <div class="text-[11px] opacity-90 font-medium">Camera điện thoại hoặc OBS</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- Nội dung 2 cột: Lịch của tôi + Thông báo -->
+  <div class="grid md:grid-cols-2 gap-4">
+
+    <!-- LEFT: Lịch live của tôi -->
+    <div class="bg-bg-deep border border-line rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-extrabold text-white flex items-center gap-2"><span>📅</span> Lịch của tôi</h2>
+        <a href="/idol-studio" class="text-[10px] text-pri-light font-bold hover:underline">+ Đăng ký mới</a>
+      </div>
+      <div id="pfStudioSchList" class="space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin">
+        <div class="text-center text-muted text-xs py-6">Đang tải...</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Thông báo admin -->
+    <div class="bg-bg-deep border border-line rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-extrabold text-white flex items-center gap-2"><span>🔔</span> Thông báo</h2>
+        <button onclick="pfStudioMarkAllRead()" class="text-[10px] text-pri-light font-bold hover:underline">✓ Đánh dấu đã đọc</button>
+      </div>
+      <div id="pfStudioNotifList" class="space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin">
+        <div class="text-center text-muted text-xs py-6">Đang tải...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guidelines -->
+  <div class="mt-5 bg-bg-soft border border-line rounded-xl p-4">
+    <h3 class="text-pri-light font-bold mb-2 flex items-center gap-2"><span>💡</span> Quy tắc lên sóng</h3>
+    <ul class="text-muted text-xs space-y-1.5 list-disc pl-5">
+      <li>Mỗi lịch live cần admin duyệt <b class="text-white">TRƯỚC KHI</b> bạn được push OBS / mở camera</li>
+      <li>Cửa sổ live: <b class="text-emerald-400">30 phút trước</b> giờ bắt đầu → <b class="text-emerald-400">3 giờ sau</b> giờ kết thúc</li>
+      <li>Có thể đăng ký theo <b class="text-white">giờ tự do</b> (tiêu đề + start/end) hoặc <b class="text-white">theo trận đấu</b> (BLV bình luận)</li>
+      <li>Bị admin từ chối → xem lý do trong thông báo, có thể submit lịch mới</li>
+      <li>Vi phạm nội dung → bị khoá lịch, liên hệ <a href="<%= partner.telegram %>" target="_blank" class="text-pri-light">Telegram CSKH</a></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function escHtml(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+  function fmtTime(ts){
+    if (!ts) return '-';
+    var d = new Date(ts);
+    return d.getDate()+'/'+(d.getMonth()+1)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function loadSchedules(){
+    fetch('/api/schedule/mine', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok) { $('pfStudioSchList').innerHTML = '<div class="text-center text-red-400 text-xs py-4">Lỗi tải</div>'; return; }
+        var list = data.list || [];
+        // Update stats
+        var pending = list.filter(function(s){return s.status==='pending';}).length;
+        var approved = list.filter(function(s){return s.status==='approved';}).length;
+        $('pfStudioPending').textContent = pending;
+        $('pfStudioApproved').textContent = approved;
+
+        if (list.length === 0) {
+          $('pfStudioSchList').innerHTML = '<div class="text-center text-muted text-xs py-8"><div class="text-3xl mb-1 opacity-60">📭</div>Chưa có lịch nào.<br><a href="/idol-studio" class="text-pri-light hover:underline mt-2 inline-block">+ Đăng ký lịch đầu tiên</a></div>';
+          return;
+        }
+        $('pfStudioSchList').innerHTML = list.slice(0,10).map(function(s){
+          var statusBadge =
+            s.status === 'pending'  ? '<span class="bg-yellow-500/20 text-yellow-300 text-[10px] font-bold px-1.5 py-0.5 rounded">CHỜ</span>' :
+            s.status === 'approved' ? '<span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">✅</span>' :
+                                       '<span class="bg-red-500/20 text-red-300 text-[10px] font-bold px-1.5 py-0.5 rounded">❌</span>';
+          var typeIcon = s.type === 'match' ? '⚽' : '⏰';
+          var rejectInfo = s.rejectReason ? '<div class="text-[10px] text-red-300 mt-0.5">⚠ '+escHtml(s.rejectReason)+'</div>' : '';
+          return ''
+            + '<div class="bg-bg-card border border-line rounded-lg p-2.5">'
+            +   '<div class="flex items-center justify-between mb-1">'
+            +     '<div class="flex items-center gap-1.5 min-w-0">'
+            +       '<span>'+typeIcon+'</span>'
+            +       '<span class="text-white text-xs font-bold truncate">'+escHtml(s.title)+'</span>'
+            +     '</div>'
+            +     statusBadge
+            +   '</div>'
+            +   '<div class="text-[11px] text-gray-300">⏰ '+fmtTime(s.startTime)+' → '+fmtTime(s.endTime)+'</div>'
+            +   rejectInfo
+            + '</div>';
+        }).join('');
+      })
+      .catch(function(){ $('pfStudioSchList').innerHTML = '<div class="text-center text-red-400 text-xs py-4">Lỗi kết nối</div>'; });
+  }
+
+  function loadNotifications(){
+    fetch('/api/schedule/notifications', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok) { $('pfStudioNotifList').innerHTML = '<div class="text-center text-red-400 text-xs py-4">Lỗi tải</div>'; return; }
+        $('pfStudioNotif').textContent = data.unread || 0;
+        var list = data.list || [];
+        if (list.length === 0) {
+          $('pfStudioNotifList').innerHTML = '<div class="text-center text-muted text-xs py-8"><div class="text-3xl mb-1 opacity-60">🔕</div>Chưa có thông báo nào</div>';
+          return;
+        }
+        $('pfStudioNotifList').innerHTML = list.map(function(n){
+          var unreadCls = n.read ? '' : 'bg-pri/5 border-pri/30';
+          var dotCls = n.read ? '' : '<span class="w-1.5 h-1.5 bg-pri rounded-full shrink-0 mt-1.5"></span>';
+          var icon = n.type === 'schedule-approved' ? '✅' : (n.type === 'schedule-rejected' ? '❌' : '🔔');
+          var time = '';
+          var diff = Date.now() - n.createdAt;
+          if (diff < 60000) time = 'vừa xong';
+          else if (diff < 3600000) time = Math.floor(diff/60000) + ' phút trước';
+          else if (diff < 86400000) time = Math.floor(diff/3600000) + ' giờ trước';
+          else time = Math.floor(diff/86400000) + ' ngày trước';
+
+          return ''
+            + '<div class="bg-bg-card border border-line rounded-lg p-2.5 ' + unreadCls + '" onclick="pfStudioMarkRead(\''+n.id+'\')">'
+            +   '<div class="flex items-start gap-2">'
+            +     '<span class="text-base">' + icon + '</span>'
+            +     '<div class="flex-1 min-w-0">'
+            +       '<div class="font-bold text-white text-xs leading-tight">'+escHtml(n.title)+'</div>'
+            +       '<div class="text-[11px] text-gray-300 mt-0.5">'+escHtml(n.body)+'</div>'
+            +       '<div class="text-[9px] text-muted mt-1">'+time+'</div>'
+            +     '</div>'
+            +     dotCls
+            +   '</div>'
+            + '</div>';
+        }).join('');
+      })
+      .catch(function(){ $('pfStudioNotifList').innerHTML = '<div class="text-center text-red-400 text-xs py-4">Lỗi kết nối</div>'; });
+  }
+
+  window.pfStudioMarkRead = function(id){
+    fetch('/api/schedule/notifications/'+id+'/read', { method:'POST', credentials:'same-origin' })
+      .then(function(){ loadNotifications(); });
+  };
+
+  window.pfStudioMarkAllRead = function(){
+    if (!confirm('Đánh dấu tất cả đã đọc?')) return;
+    fetch('/api/schedule/notifications', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var unreads = (data.list||[]).filter(function(n){ return !n.read; });
+        var promises = unreads.map(function(n){
+          return fetch('/api/schedule/notifications/'+n.id+'/read', { method:'POST', credentials:'same-origin' });
+        });
+        Promise.all(promises).then(function(){ loadNotifications(); });
+      });
+  };
+
+  loadSchedules();
+  loadNotifications();
+  // Auto refresh mỗi 20s
+  setInterval(function(){ loadSchedules(); loadNotifications(); }, 20000);
+})();
+</script>
+
+<% } %>

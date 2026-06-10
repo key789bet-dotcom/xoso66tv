@@ -1,6 +1,8 @@
 <%
 var tab = (typeof tabName!=='undefined' && tabName) ? tabName : 'checkin';
+// Tab "studio" chỉ hiện cho idol/blv - được filter ở client-side JS (server không biết role lúc render)
 var TABS = [
+  { key:'studio',   text:'Quản Lý Kênh',       streamerOnly: true, icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>' },
   { key:'info',     text:'Thông Tin Cá Nhân', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' },
   { key:'password', text:'Thay Đổi Mật Khẩu', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' },
   { key:'wallet',   text:'Ví Của Tôi',         icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>' },
@@ -9,7 +11,10 @@ var TABS = [
   { key:'follow',   text:'Theo Dõi',           icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
   { key:'link',     text:'Liên kết Xoso66',    icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>' }
 ];
-var tabTitleMap = { info:'Thông Tin Cá Nhân', password:'Đổi Mật Khẩu', wallet:'Ví Của Tôi', history:'Lịch Sử Đổi Quà', checkin:'Điểm Danh Nhận X COIN', follow:'Theo Dõi', link:'Liên Kết Xoso66' };
+var tabTitleMap = { studio:'Quản Lý Kênh Live', info:'Thông Tin Cá Nhân', password:'Đổi Mật Khẩu', wallet:'Ví Của Tôi', history:'Lịch Sử Đổi Quà', checkin:'Điểm Danh Nhận X COIN', follow:'Theo Dõi', link:'Liên Kết Xoso66' };
+// User role - server-side (set bởi pubAuth middleware)
+var __userRole = (typeof publicUser !== 'undefined' && publicUser && publicUser.role) ? publicUser.role : 'user';
+var __isStreamer = (__userRole === 'idol' || __userRole === 'blv' || __userRole === 'admin');
 seo = {
   title: (tabTitleMap[tab] || 'Hồ sơ') + ' - ' + brand.name,
   canonical: '/profile?tab=' + tab,
@@ -105,11 +110,16 @@ seo = {
 
     <!-- Menu tabs trong cùng card -->
     <nav class="p-2 space-y-1" role="tablist">
-      <% TABS.forEach(function(t){ var ac = t.key===tab; %>
-        <a href="/profile?tab=<%= t.key %>" class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-bold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/25 to-transparent text-pri-light' : 'text-gray-200 hover:bg-bg-soft hover:text-white' %>" role="tab">
+      <% TABS.forEach(function(t){
+        var ac = t.key===tab;
+        // streamerOnly tabs: chỉ render cho idol/blv/admin
+        if (t.streamerOnly && !__isStreamer) return;
+      %>
+        <a href="/profile?tab=<%= t.key %>" class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-bold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/25 to-transparent text-pri-light' : 'text-gray-200 hover:bg-bg-soft hover:text-white' %> <%= t.streamerOnly ? 'border border-pri/30 bg-pri/5' : '' %>" role="tab">
           <% if (ac) { %><span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-pri rounded-r"></span><% } %>
           <span class="<%= ac ? 'text-pri-light' : 'text-pri' %>"><%- t.icon %></span>
           <span class="flex-1"><%= t.text %></span>
+          <% if (t.streamerOnly) { %><span class="bg-live text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded animate-pulse-live">LIVE</span><% } %>
         </a>
       <% }); %>
     </nav>
@@ -125,7 +135,8 @@ seo = {
 
   <!-- RIGHT: Tab content -->
   <section class="bg-bg-card border border-line rounded-xl p-5 md:p-6 min-h-[500px]">
-    <% if (tab === 'checkin')   { %><%- include('partials/tw-profile-checkin') %>
+    <% if (tab === 'studio')   { %><%- include('partials/tw-profile-studio') %>
+    <% } else if (tab === 'checkin')   { %><%- include('partials/tw-profile-checkin') %>
     <% } else if (tab === 'info'){ %><%- include('partials/tw-profile-info') %>
     <% } else if (tab === 'password'){ %><%- include('partials/tw-profile-password') %>
     <% } else if (tab === 'wallet')  { %><%- include('partials/tw-profile-wallet') %>
