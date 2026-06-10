@@ -139,15 +139,15 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
 
     flvPlayer.on(flvjs.Events.ERROR, function(type, detail){
       console.log('[LIVE] FLV error:', type, detail);
-      // 🔄 NetworkError = OBS có thể bị ngắt tạm thời → hiện overlay reconnect, KHÔNG show "Chưa lên sóng"
-      if (type === 'NetworkError') {
-        hideEl('liveVideo');
-        hideEl('liveLoading');
-        // KHÔNG showPlaceholder() ngay - giữ kênh, hiện reconnect overlay
-        showEl('liveReconnect');
-        isPlaying = false;
-        startReconnectLoop();
-      }
+      // 🔄 BẤT KỲ error nào → coi như stream bị mất → reconnect mode
+      // (FLV.js báo nhiều type: NetworkError, MediaError, OtherError, hoặc qua loader error)
+      hideEl('liveVideo');
+      hideEl('liveLoading');
+      hideEl('liveOffline');  // tắt overlay offline (sẽ chỉ hiện sau khi reconnect hết)
+      showEl('liveReconnect');
+      if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+      isPlaying = false;
+      startReconnectLoop();
     });
     flvPlayer.on(flvjs.Events.MEDIA_INFO, function(info){
       console.log('[LIVE] MEDIA_INFO:', info && info.mimeType);
@@ -178,23 +178,50 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     }, 5000);
   }
 
+  // Đếm lần check fail liên tiếp khi CHƯA từng play (để decide show offline)
+  var __initialFailCount = 0;
+
   function checkStream(){
     fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
       .then(function(r){
-        if (r.ok && !isPlaying) {
-          // Stream sống lại → ẩn cả offline + reconnect overlay
-          hideEl('liveOffline'); hideEl('liveReconnect');
-          showEl('liveLoading');
-          stopReconnectLoop();
-          setTimeout(attachStream, 500);
-        } else if (!r.ok && isPlaying) {
-          if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
-          hideEl('liveVideo'); showEl('liveOffline');
-          showPlaceholder();
-          isPlaying = false;
+        if (r.ok) {
+          __initialFailCount = 0;
+          if (!isPlaying) {
+            // Stream sống lại / hoặc lần đầu thấy có stream → attach
+            hideEl('liveOffline'); hideEl('liveReconnect');
+            showEl('liveLoading');
+            stopReconnectLoop();
+            setTimeout(attachStream, 500);
+          }
+        } else {
+          // !r.ok = stream không có
+          if (isPlaying) {
+            // Đang play mà mất stream → reconnect overlay
+            if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+            hideEl('liveVideo'); hideEl('liveOffline');
+            showEl('liveReconnect');
+            isPlaying = false;
+            startReconnectLoop();
+          } else {
+            // Chưa từng play, stream chưa lên → show offline ngay sau 2 lần fail (16s)
+            __initialFailCount++;
+            if (__initialFailCount >= 2 && __reconnectCount === 0) {
+              hideEl('liveVideo'); hideEl('liveReconnect');
+              showEl('liveOffline');
+              showPlaceholder();
+            }
+          }
         }
       })
-      .catch(function(){});
+      .catch(function(){
+        if (isPlaying) {
+          if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+          hideEl('liveVideo');
+          showEl('liveReconnect');
+          isPlaying = false;
+          startReconnectLoop();
+        }
+      });
   }
 
   // 🔄 RECONNECT LOOP - retry 20 lần × 3s = 60s, sau đó mới giả định offline
