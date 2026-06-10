@@ -293,6 +293,23 @@ function applyCooldownUi(inputId, btnId, hintId){
   }
 }
 
+// ╔════════════════════════════════════════════════════════════╗
+// ║ DETECT ROOM ID từ URL (cho server-side chat sync)          ║
+// ║   /idol/i_yennhi → "i_yennhi"                              ║
+// ║   /live/12345    → "12345"                                 ║
+// ║   /idol-live     → "_idol_live_lobby"                      ║
+// ║   khác          → "_global"                                ║
+// ╚════════════════════════════════════════════════════════════╝
+function detectRoomId(){
+  var p = location.pathname;
+  var m = p.match(/^\/idol\/([\w\-_]+)/);
+  if (m) return m[1];
+  m = p.match(/^\/live\/([\w\-_]+)/);
+  if (m) return 'sport_' + m[1];
+  if (p === '/idol-live') return '_idol_live_lobby';
+  return '_global';
+}
+
 // ===== Public API =====
 window.startChat = function(containerId, opts){
   var c = document.getElementById(containerId);
@@ -300,6 +317,7 @@ window.startChat = function(containerId, opts){
   opts = opts || {};
   var isLive = (opts.isLive !== false);
   var mode = opts.mode || detectChatMode();
+  var roomId = opts.roomId || detectRoomId();
 
   var sys = document.createElement('div');
   sys.style.cssText = 'padding:8px 10px;margin:4px 8px;background:rgba(255,122,24,.08);border:1px dashed rgba(255,122,24,.3);border-radius:6px;color:#ffd9a8;font-size:11px;font-weight:600;text-align:center;';
@@ -325,24 +343,41 @@ window.startChat = function(containerId, opts){
     : '🔔 Chào mừng! Khách giới hạn 1 tin / 5 phút.';
   c.appendChild(sys);
 
-  // Lịch sử tên đã chat (cho reply @)
-  var lastNames = [];
-  function spawnOne(){
-    var msg = genMsg(mode, lastNames);
-    pushMsg(c, msg);
-    lastNames.push(msg.name);
-    if (lastNames.length > 10) lastNames.shift();
+  // ═══════════════════════════════════════════════════════════
+  // SERVER-SIDE CHAT POLLING - tất cả viewer cùng phòng sync
+  // ═══════════════════════════════════════════════════════════
+  var lastMsgId = 0;
+  var pollTimer = null;
+  var renderedIds = {};  // tránh render lại msg đã có
+
+  function fetchMessages(){
+    var url = '/api/chat/' + encodeURIComponent(roomId) + '/recent?since=' + lastMsgId;
+    fetch(url, { credentials: 'same-origin', cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok || !data.messages) return;
+        data.messages.forEach(function(m){
+          if (renderedIds[m.id]) return;
+          renderedIds[m.id] = true;
+          if (m.id > lastMsgId) lastMsgId = m.id;
+          pushMsg(c, m);
+        });
+      })
+      .catch(function(){});
   }
 
-  // Spawn 5 message khởi đầu
-  for (var i=0; i<5; i++) spawnOne();
+  // Poll lần đầu + setup interval mỗi 2s
+  fetchMessages();
+  pollTimer = setInterval(fetchMessages, 2000);
 
-  // Spawn liên tục - tốc độ tự nhiên 1.5-4s
-  function loop(){
-    spawnOne();
-    setTimeout(loop, 1500 + Math.random()*2500);
-  }
-  setTimeout(loop, 1500);
+  // Cleanup khi unload
+  window.addEventListener('beforeunload', function(){
+    if (pollTimer) clearInterval(pollTimer);
+  });
+
+  // Expose để cleanup từ ngoài
+  window.__chatPollTimer = pollTimer;
+  window.__chatRoomId = roomId;
 
   applyCooldownUi('chatInput', 'chatBtn', 'chatHint');
 };
@@ -363,15 +398,29 @@ window.sendChat = function(inputId, containerId){
     return;
   }
 
-  var u = getCurrentUser();
-  var name  = u ? (u.fullname || u.username) : 'Khách' + (Math.random()*9000|0+1000);
-  var lvl   = u ? (u.vip || 1) : 0;
-  var badge = u && u.vip >= 3 ? 'SVIP' : u && u.vip >= 1 ? 'VIP' : '';
+  var roomId = window.__chatRoomId || detectRoomId();
 
-  pushMsg(c, { name: name, lvl: lvl, badge: badge, text: text });
-  input.value = '';
-  markSent();
-  applyCooldownUi(inputId, 'chatBtn', 'chatHint');
+  // POST tin nhắn lên server - tất cả viewer sẽ nhận qua polling
+  fetch('/api/chat/' + encodeURIComponent(roomId) + '/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ text: text })
+  })
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return { ok:false, error:'Network error' }; })
+    .then(function(data){
+      if (!data || !data.ok) {
+        var em = (data && data.error) || 'Gửi thất bại';
+        if (data && data.remain) em = 'Chờ ' + data.remain + 's nữa';
+        if (typeof showToast === 'function') showToast(em, 'error');
+        return;
+      }
+      input.value = '';
+      markSent();
+      applyCooldownUi(inputId, 'chatBtn', 'chatHint');
+      // Không cần render thủ công - polling sẽ tự render
+    });
 };
 
 window.setLoggedInUser = function(user){ try { localStorage.setItem(USER_KEY, JSON.stringify(user || {})); } catch(e){} };

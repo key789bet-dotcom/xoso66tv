@@ -169,8 +169,15 @@ app.post('/api/push/test', function(req, res){
 
 app.use(analytics.track);
 
-// Rate limit all /api/* requests
-app.use('/api/', apiLimiter);
+// Rate limit all /api/* requests - EXCEPT chat polling (GET /api/chat/:roomId/recent)
+// vì polling tần suất cao (mỗi 2s) nhưng không có nguy cơ abuse
+app.use('/api/', function (req, res, next) {
+  // Skip GET /api/chat/.../recent - polling đồng bộ chat, low risk
+  if (req.method === 'GET' && req.path.indexOf('/chat/') === 0 && req.path.indexOf('/recent') > 0) {
+    return next();
+  }
+  return apiLimiter(req, res, next);
+});
 
 // Disable browser cache for HTML to prevent stale broken renders
 app.use(function (req, res, next) {
@@ -729,6 +736,58 @@ app.use(function (req, res) { res.status(404).render('tw-404'); });
 app.use(function (err, req, res, next) {
   console.error(err);
   res.status(500).render('tw-500', { err: err });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CHAT SERVER-SIDE: tất cả viewer trong phòng thấy CÙNG tin nhắn
+// ═══════════════════════════════════════════════════════════════
+const roomChat = require('./lib/room-chat');
+
+// GET /api/chat/:roomId/recent?since=<lastMsgId>
+app.get('/api/chat/:roomId/recent', function (req, res) {
+  const roomId = String(req.params.roomId || '').slice(0, 64);
+  if (!roomId) return res.json({ ok:false, error:'roomId required' });
+  const sinceId = parseInt(req.query.since || '0', 10);
+  const msgs = roomChat.getMessages(roomId, sinceId);
+  res.set('Cache-Control', 'no-store');
+  res.json({ ok:true, messages: msgs, serverTime: Date.now() });
+});
+
+// POST /api/chat/:roomId/send  body {text}
+app.post('/api/chat/:roomId/send', function (req, res) {
+  const roomId = String(req.params.roomId || '').slice(0, 64);
+  if (!roomId) return res.json({ ok:false, error:'roomId required' });
+  const text = String((req.body && req.body.text) || '').trim().slice(0, 200);
+  if (!text) return res.json({ ok:false, error:'text empty' });
+
+  // Detect user từ JWT cookie
+  let user = null;
+  try { user = require('./lib/public-auth').getUser(req); } catch(e){}
+
+  // Rate-limit theo IP+user: 3s cho member, 5p cho guest
+  const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').split(',')[0].trim();
+  const key = (user && user.username) ? ('u:' + user.username) : ('ip:' + ip);
+  const now = Date.now();
+  if (!global.__chatLastSent) global.__chatLastSent = new Map();
+  const last = global.__chatLastSent.get(key) || 0;
+  const cooldown = user ? 3000 : 5 * 60 * 1000;
+  if (now - last < cooldown) {
+    const remain = Math.ceil((cooldown - (now - last)) / 1000);
+    return res.json({ ok:false, error:'Cooldown', remain: remain });
+  }
+  global.__chatLastSent.set(key, now);
+
+  // Build msg
+  const msg = {
+    name: user ? (user.username || 'User') : ('Khách' + (Math.floor(Math.random()*9000) + 1000)),
+    lvl: user ? (user.role === 'admin' ? 99 : user.role === 'idol' ? 50 : user.role === 'blv' ? 50 : 1) : 0,
+    badge: user ? (user.role === 'admin' ? 'SVIP' : user.role === 'idol' ? 'VIP' : user.role === 'blv' ? 'VIP' : '') : '',
+    text: text,
+    isUser: true,
+    by: user ? user.username : null
+  };
+  const saved = roomChat.addMessage(roomId, msg);
+  res.json({ ok:true, message: saved });
 });
 
 const HOST = process.env.HOST || '0.0.0.0';
