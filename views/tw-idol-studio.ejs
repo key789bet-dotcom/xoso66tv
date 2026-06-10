@@ -224,6 +224,79 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     <span><b>HTTPS sẵn sàng</b> — camera điện thoại sẽ hoạt động</span>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- 📅 ĐĂNG KÝ LỊCH LIVE - bắt buộc cho cả Mobile + OBS             -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="bg-gradient-to-br from-pri/15 via-bg-card to-bg-soft border-2 border-pri/40 rounded-xl p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">📅</span>
+        <h3 class="text-white font-extrabold text-base">Đăng ký lịch live</h3>
+      </div>
+      <span id="schActiveStatus" class="text-[11px] font-bold"></span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 bg-bg-deep rounded-lg p-1 mb-3">
+      <button id="schTabMy" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors bg-pri text-white">📋 Lịch của tôi</button>
+      <button id="schTabNew" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors text-gray-200">➕ Đăng ký mới</button>
+    </div>
+
+    <!-- TAB 1: List lịch của tôi -->
+    <div id="schMyPanel">
+      <div id="schMyList" class="space-y-2 min-h-[60px]">
+        <div class="text-center text-muted text-xs py-4">Đang tải...</div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Form đăng ký mới -->
+    <div id="schNewPanel" class="hidden">
+      <div class="flex gap-1.5 mb-3">
+        <button id="schTypeTime" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-pri text-white border-pri" data-type="time">⏰ Theo giờ tự do</button>
+        <button id="schTypeMatch" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-bg-deep text-gray-200 border-line" data-type="match">⚽ Theo trận đấu</button>
+      </div>
+
+      <div id="schFormTime" class="space-y-2.5">
+        <div>
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">Tiêu đề show</label>
+          <input id="schTitle" maxlength="120" placeholder="VD: Live show hát cover tối T7" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Bắt đầu</label>
+            <input id="schStartTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+          </div>
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Kết thúc</label>
+            <input id="schEndTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">Mô tả (tuỳ chọn)</label>
+          <textarea id="schDescription" maxlength="500" rows="2" placeholder="Nội dung show, theme..." class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri resize-none"></textarea>
+        </div>
+      </div>
+
+      <div id="schFormMatch" class="hidden space-y-2.5">
+        <div>
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">Chọn trận đấu</label>
+          <select id="schMatchSelect" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <option value="">Đang tải lịch...</option>
+          </select>
+        </div>
+        <div class="text-[11px] text-muted">⚠️ BLV sẽ được duyệt bình luận trận đã chọn (thời gian tự auto theo trận).</div>
+      </div>
+
+      <button id="schSubmitBtn" class="w-full bg-gradient-to-r from-pri to-live hover:brightness-110 text-white font-bold py-2.5 rounded-lg mt-3 active:scale-95">
+        📤 Gửi cho admin duyệt
+      </button>
+    </div>
+
+    <div class="text-[10.5px] text-muted mt-3 leading-relaxed">
+      💡 <b>Quy tắc:</b> Lịch cần admin duyệt trước. Sau khi duyệt, bạn được lên sóng từ <b>30 phút trước</b> giờ start đến <b>3 giờ sau</b> giờ end (áp dụng cho cả Mobile + OBS).
+    </div>
+  </div>
+
   <!-- Tab nav -->
   <nav class="flex bg-bg-card rounded-xl p-1 mb-4 border border-line">
     <button onclick="stuSwitchTab('mobile')" id="stuTabMobile" class="flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2">
@@ -407,82 +480,6 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   <!-- ============ TAB 2: OBS STREAM ============ -->
   <div id="stuPanelObs" class="hidden space-y-4">
     <!-- OBS info card -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- 📅 ĐĂNG KÝ LỊCH LIVE - bắt buộc trước khi push OBS              -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="bg-gradient-to-br from-pri/15 via-bg-card to-bg-soft border-2 border-pri/40 rounded-xl p-4 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">📅</span>
-          <h3 class="text-white font-extrabold text-base">Đăng ký lịch live</h3>
-        </div>
-        <span id="schActiveStatus" class="text-[11px] font-bold"></span>
-      </div>
-
-      <!-- Tabs -->
-      <div class="flex gap-1 bg-bg-deep rounded-lg p-1 mb-3">
-        <button id="schTabMy" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors bg-pri text-white">📋 Lịch của tôi</button>
-        <button id="schTabNew" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors text-gray-200">➕ Đăng ký mới</button>
-      </div>
-
-      <!-- TAB 1: List lịch của tôi -->
-      <div id="schMyPanel">
-        <div id="schMyList" class="space-y-2 min-h-[60px]">
-          <div class="text-center text-muted text-xs py-4">Đang tải...</div>
-        </div>
-      </div>
-
-      <!-- TAB 2: Form đăng ký mới -->
-      <div id="schNewPanel" class="hidden">
-        <!-- Type selector -->
-        <div class="flex gap-1.5 mb-3">
-          <button id="schTypeTime" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-pri text-white border-pri" data-type="time">⏰ Theo giờ tự do</button>
-          <button id="schTypeMatch" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-bg-deep text-gray-200 border-line" data-type="match">⚽ Theo trận đấu</button>
-        </div>
-
-        <!-- Form theo giờ -->
-        <div id="schFormTime" class="space-y-2.5">
-          <div>
-            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Tiêu đề show</label>
-            <input id="schTitle" maxlength="120" placeholder="VD: Live show hát cover tối T7" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[10px] text-muted uppercase font-bold block mb-1">Bắt đầu</label>
-              <input id="schStartTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
-            </div>
-            <div>
-              <label class="text-[10px] text-muted uppercase font-bold block mb-1">Kết thúc</label>
-              <input id="schEndTime" type="datetime-local" class="w-full bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
-            </div>
-          </div>
-          <div>
-            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Mô tả (tuỳ chọn)</label>
-            <textarea id="schDescription" maxlength="500" rows="2" placeholder="Nội dung show, theme..." class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri resize-none"></textarea>
-          </div>
-        </div>
-
-        <!-- Form theo trận -->
-        <div id="schFormMatch" class="hidden space-y-2.5">
-          <div>
-            <label class="text-[10px] text-muted uppercase font-bold block mb-1">Chọn trận đấu</label>
-            <select id="schMatchSelect" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
-              <option value="">Đang tải lịch...</option>
-            </select>
-          </div>
-          <div class="text-[11px] text-muted">⚠️ BLV sẽ được duyệt bình luận trận đã chọn (thời gian tự auto theo trận).</div>
-        </div>
-
-        <button id="schSubmitBtn" class="w-full bg-gradient-to-r from-pri to-live hover:brightness-110 text-white font-bold py-2.5 rounded-lg mt-3 active:scale-95">
-          📤 Gửi cho admin duyệt
-        </button>
-      </div>
-
-      <div class="text-[10.5px] text-muted mt-3 leading-relaxed">
-        💡 <b>Quy tắc:</b> Mỗi lịch cần admin duyệt trước. Sau khi duyệt, bạn được push OBS từ <b>30 phút trước</b> giờ start đến <b>3 giờ sau</b> giờ end.
-      </div>
-    </div>
-
     <div class="bg-gradient-to-br from-purple-900/40 via-bg-card to-bg-soft border-2 border-purple-500/40 rounded-xl p-4">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-2xl">🎮</span>
