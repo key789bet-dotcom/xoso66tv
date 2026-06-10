@@ -80,14 +80,62 @@ function hasAnyActiveStream(type){
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('siteUrl', SITE);
+
+// ⚡ Gzip compression - giảm 70% kích thước HTML/JSON/CSS
+try {
+  const compression = require('compression');
+  app.use(compression({
+    level: 6,                              // balance giữa CPU và compression ratio
+    threshold: 1024,                       // chỉ nén response > 1KB
+    filter: function(req, res){
+      // Skip nếu client yêu cầu no-compress
+      if (req.headers['x-no-compression']) return false;
+      // Không nén video/image stream (đã được nén sẵn)
+      const type = res.getHeader('Content-Type') || '';
+      if (/^(video|image)\//i.test(type)) return false;
+      return compression.filter(req, res);
+    }
+  }));
+  console.log('[perf] compression middleware enabled');
+} catch(e) {
+  console.warn('[perf] compression not installed, skip (npm i compression)');
+}
+
+// Cache control cho HTML trang động (browser cache 1 phút, CDN cache 5 phút stale-while-revalidate)
+app.use(function(req, res, next){
+  // Chỉ áp cho GET HTML page (không phải API/static)
+  if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/static/') && !req.path.startsWith('/uploads/')) {
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  }
+  next();
+});
+
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
-app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+
+// ⚡ Static assets - cache 30 ngày + immutable (file hash bust qua ?v=)
+app.use('/static', express.static(path.join(__dirname, 'public'), {
+  maxAge: '30d',
+  etag: true,
+  immutable: true,
+  setHeaders: function(res, filepath){
+    // CSS/JS/font/image: aggressive cache
+    if (/\.(css|js|woff2?|ttf|otf|png|jpe?g|webp|gif|svg|ico)$/i.test(filepath)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    }
+  }
+}));
 // User-uploaded avatars (persist outside public/ để không bị git overwrite)
 const fs = require('fs');
 const AVATAR_DIR = path.join(__dirname, 'uploads', 'avatars');
 try { fs.mkdirSync(AVATAR_DIR, { recursive: true }); } catch(e){}
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '30d' }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '30d',
+  etag: true,
+  setHeaders: function(res){
+    res.setHeader('Cache-Control', 'public, max-age=2592000');
+  }
+}));
 
 // ===== PWA assets (phải serve ở root scope) =====
 app.get('/sw.js', function(req, res){

@@ -366,9 +366,18 @@ window.startChat = function(containerId, opts){
       .catch(function(){});
   }
 
-  // Poll lần đầu + setup interval mỗi 2s
+  // ⚡ Poll adaptive: 3s khi tab active, 15s khi tab ẩn → giảm 80% load server khi user chuyển tab
   fetchMessages();
-  pollTimer = setInterval(fetchMessages, 2000);
+  function startPoll(interval){
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(fetchMessages, interval);
+  }
+  startPoll(3000);
+  document.addEventListener('visibilitychange', function(){
+    startPoll(document.hidden ? 15000 : 3000);
+    // Khi quay lại tab active → fetch ngay 1 lần
+    if (!document.hidden) fetchMessages();
+  });
 
   // Cleanup khi unload
   window.addEventListener('beforeunload', function(){

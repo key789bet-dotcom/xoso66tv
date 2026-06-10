@@ -1,0 +1,88 @@
+/**
+ * Perf boost - CSS làm cho UI cảm giác mượt + nhanh hơn
+ * Áp dụng global qua head.ejs
+ */
+
+/* ⚡ Smooth scrolling toàn trang */
+html {
+  scroll-behavior: smooth;
+  /* Tăng touch responsiveness mobile - hint browser scroll bằng compositor */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ⚡ Disable scroll-behavior khi user có preference giảm motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ⚡ GPU compositing cho element thường animate (translate3d trick) */
+.gp-card, .stream-card, .pg-card, button, a, .nt-quick,
+[class*="hover:scale"], [class*="transition"] {
+  /* Hint browser dùng GPU layer riêng → animate mượt không reflow */
+  will-change: auto;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ⚡ Instant click feedback (touch devices) - feedback < 100ms cảm giác instant */
+button, a, [role="button"], [onclick] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;  /* loại bỏ 300ms delay double-tap zoom */
+  cursor: pointer;
+}
+button:active, a:active, [role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease-out;
+}
+
+/* ⚡ Image lazy load luôn có placeholder để tránh layout shift */
+img {
+  /* Tự fade-in mượt khi load xong */
+  transition: opacity 0.25s ease-in;
+}
+img[loading="lazy"]:not([src]) { opacity: 0; }
+
+/* ⚡ Content visibility cho section dài (off-screen không render) */
+/* Apply cho các section nhiều card xa khỏi viewport */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;  /* placeholder height ước lượng */
+}
+
+/* ⚡ Scrollbar mỏng + đẹp + dùng GPU */
+.scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+
+/* ⚡ Preload font fallback ngay - giảm FOUT/FOIT */
+body {
+  font-display: swap;
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed; /* speed > legibility cho UI dày đặc */
+}
+
+/* ⚡ Disable user-select cho UI element (button, nav) - tăng touch response */
+button, nav a, .gp-tab, .pay-tab, .nt-quick {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ⚡ Smooth navigation - prefetch link khi hover */
+/* (script handle - không CSS-only) */
+
+/* ⚡ Optimize video performance */
+video {
+  transform: translateZ(0);
+}

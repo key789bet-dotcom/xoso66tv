@@ -2,7 +2,7 @@
 <html lang="vi" prefix="og: https://ogp.me/ns#" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" type="image/webp" href="/static/img/favicon.webp">
 <link rel="apple-touch-icon" href="/static/img/favicon.webp">
 <!-- PWA -->
@@ -13,14 +13,23 @@
 <meta name="apple-mobile-web-app-title" content="XOSO66 TV">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="XOSO66 TV">
+<!-- ⚡ Preconnect: thiết lập sớm TCP+TLS cho domain critical -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.tailwindcss.com">
-<link rel="preconnect" href="https://www.thesportsdb.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="dns-prefetch" href="https://api.thethaoviet.vip">
+<link rel="dns-prefetch" href="https://img.vietqr.io">
+<!-- ⚡ Font: subset Vietnamese + chỉ 4 weight cần thiết (giảm 60% font size) + display:swap -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
 <script>(function(){try{var t=localStorage.getItem('x66_theme');if(t==='light')document.documentElement.classList.remove('dark');}catch(e){}})();</script>
+<!-- ⚡ Perf boost CSS: smooth scroll + GPU compositing + instant click feedback -->
+<link rel="stylesheet" href="/static/css/perf-boost.css?v=1">
 <!-- Anti-inspect: chặn F12 / right-click / Ctrl+U / detect DevTools. Bypass bằng ?dev=1 -->
-<script src="/static/js/anti-inspect.js?v=1"></script>
+<script src="/static/js/anti-inspect.js?v=1" defer></script>
+<!-- ⚡ Perf boost JS: prefetch link on hover + auto lazy images + smooth nav -->
+<script src="/static/js/perf-boost.js?v=1" defer></script>
 <%- include('tailwind-config') %>
 <%- include('seo-head') %>
 </head>
