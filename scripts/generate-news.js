@@ -5,9 +5,15 @@
  * Chạy:
  *   CLAUDE_API_KEY=sk-... node scripts/generate-news.js
  *
- * Hoặc đã set env qua PM2 ecosystem:
+ * Hoặc đã set env qua .env file / PM2 ecosystem:
  *   node scripts/generate-news.js
  */
+
+// Auto load .env nếu chạy standalone (không qua PM2)
+try {
+  require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+} catch (e) { /* dotenv chưa cài cũng ok nếu env đã set */ }
+
 const ai = require('../lib/claude-ai');
 const newsStore = require('../lib/news-store');
 const api = require('../lib/api');
