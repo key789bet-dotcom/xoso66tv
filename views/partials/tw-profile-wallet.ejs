@@ -24,9 +24,118 @@
 
 <!-- Actions -->
 <div class="flex gap-2 flex-wrap mb-5">
-  <a href="<%= partner.register %>" target="_blank" rel="noopener" class="px-5 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-lg font-bold text-sm">&plus; Nạp tiền</a>
-  <a href="<%= partner.home %>" target="_blank" rel="noopener" class="px-5 py-2.5 bg-bg-soft hover:bg-bg-deep text-white rounded-lg font-bold text-sm border border-line">&minus; Rút tiền</a>
-  <a href="/qua-tang" class="px-5 py-2.5 bg-bg-soft hover:bg-bg-deep text-white rounded-lg font-bold text-sm border border-line">&#127873; Đổi X COIN lấy quà</a>
+  <a href="<%= partner.register %>" target="_blank" rel="noopener" class="px-5 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-lg font-bold text-sm">+ Nạp tiền</a>
+  <button type="button" onclick="wlOpenWithdraw()" class="px-5 py-2.5 bg-gradient-to-br from-red-600 to-rose-700 hover:brightness-110 text-white rounded-lg font-bold text-sm">− Rút tiền</button>
+  <a href="/qua-tang" class="px-5 py-2.5 bg-bg-soft hover:bg-bg-deep text-white rounded-lg font-bold text-sm border border-line">🎁 Đổi X COIN lấy quà</a>
+</div>
+
+<!-- ════════════ MODAL RÚT TIỀN ════════════ -->
+<div id="wlWithdrawModal" class="hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm grid place-items-center p-4" onclick="if(event.target===this)wlCloseWithdraw()">
+  <div class="bg-bg-card border border-pri/40 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl shadow-pri/30">
+    <header class="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-red-900/40 to-bg-card">
+      <h3 class="text-white font-extrabold flex items-center gap-2"><span class="text-xl">💸</span> Yêu cầu rút tiền</h3>
+      <button onclick="wlCloseWithdraw()" class="text-muted hover:text-white text-2xl leading-none px-1">×</button>
+    </header>
+
+    <div class="p-4 space-y-3">
+      <!-- Số dư khả dụng -->
+      <div id="wlWdBalanceBox" class="hidden bg-gradient-to-br from-emerald-900/40 to-bg-deep border border-emerald-500/30 rounded-lg p-2.5">
+        <div class="flex items-center justify-between text-[11px] text-muted">
+          <span>💰 Số dư khả dụng:</span>
+          <button type="button" onclick="wlFillMax()" class="text-emerald-400 hover:underline font-bold">Rút tối đa</button>
+        </div>
+        <div class="text-xl font-black text-emerald-400 tabular-nums mt-0.5" id="wlWdAvail">—</div>
+        <div class="grid grid-cols-3 gap-1 mt-1.5 text-[10px]">
+          <div class="text-muted">Đã nhận: <b class="text-white" id="wlWdEarned">—</b></div>
+          <div class="text-muted">Đang xử lý: <b class="text-yellow-300" id="wlWdHold">—</b></div>
+          <div class="text-muted">Đã rút: <b class="text-gray-300" id="wlWdPaid">—</b></div>
+        </div>
+      </div>
+
+      <!-- Số tiền + phương thức -->
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Số tiền rút (VND)</label>
+        <input id="wlWdAmount" type="number" min="50000" step="50000" placeholder="VD: 500000" class="w-full bg-bg-deep border border-line text-white text-lg font-extrabold tabular-nums px-3 py-2.5 rounded-lg outline-none focus:border-pri">
+        <div class="text-[10px] text-muted mt-1">⚠️ Tối thiểu 50.000 VND</div>
+      </div>
+
+      <!-- Tab phương thức -->
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Phương thức nhận</label>
+        <div class="flex gap-1.5">
+          <button id="wlWdMethodBank" type="button" onclick="wlSwitchMethod('bank')" class="flex-1 py-2.5 rounded-lg border-2 font-bold text-sm bg-pri border-pri text-white">🏦 Ngân hàng</button>
+          <button id="wlWdMethodUSDT" type="button" onclick="wlSwitchMethod('usdt')" class="flex-1 py-2.5 rounded-lg border-2 font-bold text-sm bg-bg-deep border-line text-gray-200">₮ USDT</button>
+        </div>
+      </div>
+
+      <!-- FORM 1: Bank -->
+      <div id="wlWdFormBank" class="space-y-2.5">
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Ngân hàng</label>
+          <select id="wlWdBankName" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <option value="">— Chọn ngân hàng —</option>
+            <option>Vietcombank (VCB)</option>
+            <option>Techcombank (TCB)</option>
+            <option>MB Bank (MBB)</option>
+            <option>BIDV</option>
+            <option>VietinBank (CTG)</option>
+            <option>ACB</option>
+            <option>Agribank</option>
+            <option>VPBank</option>
+            <option>Sacombank (STB)</option>
+            <option>TPBank</option>
+            <option>SHB</option>
+            <option>HDBank</option>
+            <option>SeABank</option>
+            <option>OCB</option>
+            <option>VIB</option>
+            <option>Eximbank (EIB)</option>
+            <option>MSB</option>
+            <option>NamABank</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Số tài khoản (STK)</label>
+          <input id="wlWdBankAccount" type="text" maxlength="20" placeholder="VD: 0123456789" class="w-full bg-bg-deep border border-line text-white text-sm tabular-nums px-3 py-2 rounded-lg outline-none focus:border-pri">
+        </div>
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Tên chủ tài khoản (in hoa, không dấu)</label>
+          <input id="wlWdBankHolder" type="text" maxlength="80" placeholder="VD: NGUYEN VAN A" class="w-full bg-bg-deep border border-line text-white text-sm uppercase px-3 py-2 rounded-lg outline-none focus:border-pri" oninput="this.value=this.value.toUpperCase()">
+        </div>
+      </div>
+
+      <!-- FORM 2: USDT -->
+      <div id="wlWdFormUSDT" class="hidden space-y-2.5">
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Mạng (network)</label>
+          <select id="wlWdUsdtNetwork" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <option value="TRC20">TRC20 (Tron) - khuyên dùng, phí thấp</option>
+            <option value="ERC20">ERC20 (Ethereum) - phí cao</option>
+            <option value="BEP20">BEP20 (BSC) - phí thấp</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Địa chỉ ví USDT</label>
+          <input id="wlWdUsdtAddress" type="text" maxlength="80" placeholder="VD: TXxxxxxxxxxxxxxxxxxxxxxxxxxx" class="w-full bg-bg-deep border border-line text-white text-xs font-mono px-3 py-2 rounded-lg outline-none focus:border-pri">
+          <div class="text-[10px] text-yellow-400 mt-1">⚠️ Kiểm tra kỹ địa chỉ. Sai → mất tiền không hoàn lại.</div>
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Ghi chú (tuỳ chọn)</label>
+        <textarea id="wlWdNote" maxlength="200" rows="2" placeholder="Liên hệ với tôi qua Telegram nếu cần..." class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri resize-none"></textarea>
+      </div>
+
+      <div class="bg-yellow-900/30 border border-yellow-500/40 rounded-lg p-2.5 text-[11px] text-yellow-200">
+        💡 Yêu cầu sẽ được admin xử lý trong <b>24h</b>. Phí rút: <b>0%</b> qua ngân hàng / <b>1 USDT</b> qua crypto.
+      </div>
+
+      <button id="wlWdSubmit" onclick="wlSubmitWithdraw()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:brightness-110 text-white font-extrabold py-3 rounded-lg text-base">
+        💸 Gửi yêu cầu rút tiền
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- History table -->
@@ -70,4 +179,127 @@ try {
   if (typeof u.vnd  === 'number') document.getElementById('wlVnd').textContent  = u.vnd.toLocaleString('vi-VN');
   if (u.vip) document.getElementById('wlVip').textContent = u.vip;
 } catch(e){}
+
+// ═══════════ WITHDRAW MODAL ═══════════
+var __wlMethod = 'bank';
+
+var __wlAvailable = 0;
+function __wlVnd(n){ return (n||0).toLocaleString('vi-VN') + ' VND'; }
+
+window.wlOpenWithdraw = function(){
+  document.getElementById('wlWithdrawModal').classList.remove('hidden');
+  // Auto fill từ saved info nếu có
+  try {
+    var saved = JSON.parse(localStorage.getItem('x66_withdraw_info') || '{}');
+    if (saved.bankName) document.getElementById('wlWdBankName').value = saved.bankName;
+    if (saved.bankAccount) document.getElementById('wlWdBankAccount').value = saved.bankAccount;
+    if (saved.bankHolder) document.getElementById('wlWdBankHolder').value = saved.bankHolder;
+    if (saved.usdtNetwork) document.getElementById('wlWdUsdtNetwork').value = saved.usdtNetwork;
+    if (saved.usdtAddress) document.getElementById('wlWdUsdtAddress').value = saved.usdtAddress;
+  } catch(e){}
+  // Fetch balance (chỉ idol/blv mới có endpoint này)
+  fetch('/api/withdraw/mine', { credentials:'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d && d.ok && d.balance) {
+        __wlAvailable = d.balance.available || 0;
+        document.getElementById('wlWdAvail').textContent   = __wlVnd(d.balance.available);
+        document.getElementById('wlWdEarned').textContent  = __wlVnd(d.balance.earned);
+        document.getElementById('wlWdHold').textContent    = __wlVnd(d.balance.pending);
+        document.getElementById('wlWdPaid').textContent    = __wlVnd(d.balance.paid);
+        document.getElementById('wlWdBalanceBox').classList.remove('hidden');
+      }
+    })
+    .catch(function(){});
+};
+
+window.wlFillMax = function(){
+  document.getElementById('wlWdAmount').value = __wlAvailable;
+};
+
+window.wlCloseWithdraw = function(){
+  document.getElementById('wlWithdrawModal').classList.add('hidden');
+};
+
+window.wlSwitchMethod = function(m){
+  __wlMethod = m;
+  var bBtn = document.getElementById('wlWdMethodBank');
+  var uBtn = document.getElementById('wlWdMethodUSDT');
+  var bForm = document.getElementById('wlWdFormBank');
+  var uForm = document.getElementById('wlWdFormUSDT');
+  if (m === 'bank') {
+    bBtn.classList.add('bg-pri','border-pri','text-white');
+    bBtn.classList.remove('bg-bg-deep','border-line','text-gray-200');
+    uBtn.classList.remove('bg-pri','border-pri','text-white');
+    uBtn.classList.add('bg-bg-deep','border-line','text-gray-200');
+    bForm.classList.remove('hidden'); uForm.classList.add('hidden');
+  } else {
+    uBtn.classList.add('bg-pri','border-pri','text-white');
+    uBtn.classList.remove('bg-bg-deep','border-line','text-gray-200');
+    bBtn.classList.remove('bg-pri','border-pri','text-white');
+    bBtn.classList.add('bg-bg-deep','border-line','text-gray-200');
+    uForm.classList.remove('hidden'); bForm.classList.add('hidden');
+  }
+};
+
+window.wlSubmitWithdraw = function(){
+  var amount = parseInt(document.getElementById('wlWdAmount').value, 10);
+  if (!amount || amount < 50000) return alert('Số tiền tối thiểu 50.000 VND');
+  if (amount > 100000000) return alert('Số tiền tối đa 100.000.000 VND/lần');
+
+  var body = {
+    amount: amount,
+    method: __wlMethod,
+    note: document.getElementById('wlWdNote').value.trim()
+  };
+
+  if (__wlMethod === 'bank') {
+    body.bankName    = document.getElementById('wlWdBankName').value.trim();
+    body.bankAccount = document.getElementById('wlWdBankAccount').value.trim();
+    body.bankHolder  = document.getElementById('wlWdBankHolder').value.trim();
+    if (!body.bankName)    return alert('Cần chọn ngân hàng');
+    if (!body.bankAccount || !/^\d{6,20}$/.test(body.bankAccount)) return alert('STK phải 6-20 chữ số');
+    if (!body.bankHolder || body.bankHolder.length < 3) return alert('Tên chủ TK quá ngắn');
+  } else {
+    body.usdtNetwork = document.getElementById('wlWdUsdtNetwork').value;
+    body.usdtAddress = document.getElementById('wlWdUsdtAddress').value.trim();
+    if (!body.usdtAddress || body.usdtAddress.length < 25) return alert('Địa chỉ USDT không hợp lệ');
+  }
+
+  var btn = document.getElementById('wlWdSubmit');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang gửi...';
+
+  fetch('/api/withdraw/request', {
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      btn.disabled = false;
+      btn.innerHTML = '💸 Gửi yêu cầu rút tiền';
+      if (data.ok) {
+        // Save info cho lần sau
+        try {
+          localStorage.setItem('x66_withdraw_info', JSON.stringify({
+            bankName: body.bankName, bankAccount: body.bankAccount, bankHolder: body.bankHolder,
+            usdtNetwork: body.usdtNetwork, usdtAddress: body.usdtAddress
+          }));
+        } catch(e){}
+        alert('✅ Yêu cầu đã gửi! Admin sẽ xử lý trong 24h. Mã: ' + (data.requestId || data.id || ''));
+        wlCloseWithdraw();
+        // Reset amount + note (giữ STK đã save)
+        document.getElementById('wlWdAmount').value = '';
+        document.getElementById('wlWdNote').value = '';
+      } else {
+        alert('❌ ' + (data.error || 'Có lỗi xảy ra'));
+      }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      btn.innerHTML = '💸 Gửi yêu cầu rút tiền';
+      alert('❌ Lỗi kết nối server');
+    });
+};
 </script>

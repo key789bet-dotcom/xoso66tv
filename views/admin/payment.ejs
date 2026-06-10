@@ -15,6 +15,7 @@
   <button data-tab="sessions" class="pay-tab is-active flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">📊 Phiên Live</button>
   <button data-tab="rates"    class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">💰 Set Tiền Công</button>
   <button data-tab="payable"  class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">💳 Chưa Trả</button>
+  <button data-tab="withdraw" class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap relative">💸 Yêu Cầu Rút Tiền <span id="payWdBadge" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">0</span></button>
 </nav>
 
 <!-- ════════════ TAB 1: PHIÊN LIVE ════════════ -->
@@ -149,6 +150,43 @@
   </div>
 </div>
 
+<!-- ════════════ TAB 4: YÊU CẦU RÚT TIỀN ════════════ -->
+<div id="payPanelWithdraw" class="pay-panel hidden">
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase font-bold">Tổng YC</div><div class="text-xl font-black text-white" id="payWdTotal">—</div></div>
+    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3"><div class="text-[10px] text-yellow-300 uppercase font-bold">Pending</div><div class="text-xl font-black text-yellow-300" id="payWdPending">—</div></div>
+    <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3"><div class="text-[10px] text-blue-300 uppercase font-bold">Đang xử lý</div><div class="text-xl font-black text-blue-300" id="payWdApproved">—</div></div>
+    <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3"><div class="text-[10px] text-emerald-300 uppercase font-bold">Đã trả</div><div class="text-xl font-black text-emerald-300 tabular-nums" id="payWdPaidAmt">—</div></div>
+    <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3"><div class="text-[10px] text-red-300 uppercase font-bold">Từ chối</div><div class="text-xl font-black text-red-300" id="payWdRejected">—</div></div>
+  </div>
+
+  <!-- Filter -->
+  <div class="bg-bg-card border border-line rounded-xl p-3 mb-3 flex flex-wrap items-center gap-2">
+    <select id="payWdFilterStatus" class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded">
+      <option value="">Tất cả status</option>
+      <option value="pending" selected>⏳ Chờ duyệt</option>
+      <option value="approved">🔵 Đang xử lý</option>
+      <option value="paid">✅ Đã trả</option>
+      <option value="rejected">❌ Từ chối</option>
+      <option value="cancelled">⊘ User hủy</option>
+    </select>
+    <select id="payWdFilterMethod" class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded">
+      <option value="">Tất cả phương thức</option>
+      <option value="bank">🏦 Ngân hàng</option>
+      <option value="usdt">₮ USDT</option>
+    </select>
+    <input id="payWdFilterUser" type="text" placeholder="Username..." class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded flex-1 max-w-[200px]">
+    <button onclick="payWdLoad()" class="bg-pri text-white text-xs font-bold px-4 py-1.5 rounded">Lọc</button>
+    <button onclick="payWdLoad()" class="text-pri-light text-xs hover:underline ml-auto">🔄 Refresh</button>
+  </div>
+
+  <!-- List -->
+  <div id="payWdList" class="space-y-2">
+    <div class="text-center text-muted text-sm py-6">Đang tải...</div>
+  </div>
+</div>
+
 <style>
 .pay-tab { background:transparent; color:#cbd5e1; border:none; cursor:pointer; }
 .pay-tab.is-active { background:linear-gradient(135deg,#f97316,#ef4444); color:#fff; }
@@ -178,8 +216,183 @@
       if (panel) panel.classList.remove('hidden');
       if (tab === 'sessions') paySessLoad();
       if (tab === 'payable') payLoadPayable();
+      if (tab === 'withdraw') payWdLoad();
     });
   });
+
+  // ===== WITHDRAW =====
+  var __wdBankMap = {
+    VCB:'Vietcombank', TCB:'Techcombank', MBB:'MB Bank', BIDV:'BIDV',
+    VTB:'VietinBank', ACB:'ACB', VPB:'VPBank', TPB:'TPBank',
+    STB:'Sacombank', SHB:'SHB', HDB:'HDBank', OCB:'OCB',
+    EIB:'Eximbank', NAB:'NamABank', SEAB:'SeABank', MSB:'MSB',
+    VIB:'VIB', AGRI:'Agribank'
+  };
+  function bankLabel(code){ return __wdBankMap[code] || code; }
+
+  function statusBadgeWd(st){
+    var map = {
+      pending:   ['⏳ Chờ duyệt', 'bg-yellow-500/20 text-yellow-300'],
+      approved:  ['🔵 Đang xử lý', 'bg-blue-500/20 text-blue-300'],
+      paid:      ['✅ Đã trả',     'bg-emerald-500/20 text-emerald-300'],
+      rejected:  ['❌ Từ chối',    'bg-red-500/20 text-red-300'],
+      cancelled: ['⊘ User hủy',   'bg-gray-500/20 text-gray-300']
+    };
+    var m = map[st] || ['—','bg-gray-500/20 text-gray-300'];
+    return '<span class="text-[10px] font-bold px-2 py-0.5 rounded ' + m[1] + '">' + m[0] + '</span>';
+  }
+
+  window.payWdLoad = function(){
+    var params = new URLSearchParams();
+    var st = $('payWdFilterStatus').value; if (st) params.set('status', st);
+    var me = $('payWdFilterMethod').value; if (me) params.set('method', me);
+    var us = $('payWdFilterUser').value.trim(); if (us) params.set('username', us);
+    fetch('/api/admin/withdraw/list?' + params.toString(), { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) { $('payWdList').innerHTML = '<div class="text-red-400 text-center py-6">Lỗi tải dữ liệu</div>'; return; }
+        var s = d.stats || {};
+        $('payWdTotal').textContent    = s.total || 0;
+        $('payWdPending').textContent  = s.pending || 0;
+        $('payWdApproved').textContent = s.approved || 0;
+        $('payWdPaidAmt').textContent  = vnd(s.paidAmount || 0);
+        $('payWdRejected').textContent = s.rejected || 0;
+
+        // Badge pending count cho tab
+        var badge = $('payWdBadge');
+        if (s.pending > 0) { badge.textContent = s.pending; badge.classList.remove('hidden'); }
+        else { badge.classList.add('hidden'); }
+
+        var list = d.list || [];
+        if (list.length === 0) {
+          $('payWdList').innerHTML = '<div class="text-center text-muted py-10 bg-bg-card border border-line rounded-xl">Không có yêu cầu nào.</div>';
+          return;
+        }
+        $('payWdList').innerHTML = list.map(function(w){
+          var icon = w.userType === 'blv' ? '🎙️' : (w.userType === 'idol' ? '👑' : '👤');
+          var methodBox = '';
+          if (w.method === 'bank') {
+            methodBox = ''
+              + '<div class="bg-bg-deep border border-line rounded-lg p-2.5 text-[12px]">'
+              +   '<div class="flex items-center gap-1.5 text-blue-300 font-bold mb-1.5">🏦 ' + escHtml(bankLabel(w.bankName)) + '</div>'
+              +   '<div class="grid grid-cols-1 sm:grid-cols-2 gap-1">'
+              +     '<div><span class="text-muted text-[10px]">STK:</span> <button onclick="payWdCopy(this,\''+escHtml(w.bankAccount)+'\')" class="text-white font-mono font-bold hover:text-pri-light">'+escHtml(w.bankAccount)+'</button></div>'
+              +     '<div><span class="text-muted text-[10px]">Chủ TK:</span> <span class="text-white font-bold uppercase">'+escHtml(w.bankHolder)+'</span></div>'
+              +   '</div>'
+              + '</div>';
+          } else {
+            methodBox = ''
+              + '<div class="bg-bg-deep border border-line rounded-lg p-2.5 text-[12px]">'
+              +   '<div class="flex items-center gap-1.5 text-emerald-300 font-bold mb-1.5">₮ USDT - ' + escHtml(w.usdtNetwork) + '</div>'
+              +   '<div><span class="text-muted text-[10px]">Địa chỉ ví:</span> <button onclick="payWdCopy(this,\''+escHtml(w.usdtAddress)+'\')" class="text-white font-mono text-[11px] break-all hover:text-pri-light">'+escHtml(w.usdtAddress)+'</button></div>'
+              + '</div>';
+          }
+          var actions = '';
+          if (w.status === 'pending') {
+            actions = ''
+              + '<button onclick="payWdApprove(\''+w.id+'\')" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">✓ Duyệt</button>'
+              + '<button onclick="payWdPaid(\''+w.id+'\')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">💰 Đã trả</button>'
+              + '<button onclick="payWdReject(\''+w.id+'\')" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">✗ Từ chối</button>';
+          } else if (w.status === 'approved') {
+            actions = ''
+              + '<button onclick="payWdPaid(\''+w.id+'\')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">💰 Đã chuyển tiền</button>'
+              + '<button onclick="payWdReject(\''+w.id+'\')" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">✗ Từ chối</button>';
+          }
+          var meta = '<div class="text-[10px] text-muted">Tạo: ' + fmt(w.createdAt);
+          if (w.reviewedAt) meta += ' • Xử lý: ' + fmt(w.reviewedAt) + (w.reviewedBy ? ' bởi @' + escHtml(w.reviewedBy) : '');
+          if (w.paidAt)     meta += ' • Trả: ' + fmt(w.paidAt);
+          if (w.paidTxId)   meta += ' • TX: ' + escHtml(w.paidTxId);
+          meta += '</div>';
+          var rejectInfo = w.rejectReason ? '<div class="text-[11px] text-red-300 mt-1">Lý do từ chối: '+escHtml(w.rejectReason)+'</div>' : '';
+          var noteInfo   = w.note ? '<div class="text-[11px] text-gray-300 mt-1 italic">📝 '+escHtml(w.note)+'</div>' : '';
+
+          return ''
+            + '<div class="bg-bg-card border border-line rounded-xl p-3.5">'
+            +   '<div class="flex flex-wrap items-start gap-3 mb-2.5">'
+            +     '<div class="flex items-center gap-2 flex-1 min-w-[180px]">'
+            +       '<span class="text-2xl">'+icon+'</span>'
+            +       '<div>'
+            +         '<div class="font-extrabold text-white">@'+escHtml(w.username)+' <span class="text-[10px] text-muted uppercase">'+escHtml(w.userType)+'</span></div>'
+            +         '<div class="text-[10px] text-muted">ID: '+escHtml(w.id)+'</div>'
+            +       '</div>'
+            +     '</div>'
+            +     '<div class="text-right">'
+            +       '<div class="text-2xl font-black text-gold tabular-nums">'+vnd(w.amount)+'</div>'
+            +       statusBadgeWd(w.status)
+            +     '</div>'
+            +   '</div>'
+            +   methodBox
+            +   noteInfo
+            +   rejectInfo
+            +   '<div class="flex items-center justify-between flex-wrap gap-2 mt-2.5 pt-2.5 border-t border-line/40">'
+            +     meta
+            +     '<div class="flex gap-1.5">' + actions + '</div>'
+            +   '</div>'
+            + '</div>';
+        }).join('');
+      });
+  };
+
+  window.payWdCopy = function(btn, txt){
+    try {
+      navigator.clipboard.writeText(txt);
+      var old = btn.textContent;
+      btn.textContent = '✓ Đã copy';
+      setTimeout(function(){ btn.textContent = old; }, 1200);
+    } catch(e){ alert(txt); }
+  };
+
+  window.payWdApprove = function(id){
+    if (!confirm('Xác nhận DUYỆT yêu cầu này?\n(Cần chuyển tiền thủ công sau đó bấm "Đã trả")')) return;
+    fetch('/api/admin/withdraw/'+id+'/approve', { method:'POST', credentials:'same-origin' })
+      .then(function(r){ return r.json(); }).then(function(d){
+        if (d.ok) payWdLoad(); else alert(d.error || 'Lỗi');
+      });
+  };
+
+  window.payWdPaid = function(id){
+    var txId = prompt('Nhập mã GD ngân hàng / Tx hash USDT (tùy chọn):', '');
+    if (txId === null) return;
+    fetch('/api/admin/withdraw/'+id+'/paid', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ txId: txId })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) payWdLoad(); else alert(d.error || 'Lỗi');
+    });
+  };
+
+  window.payWdReject = function(id){
+    var reason = prompt('Lý do từ chối:', 'Thông tin TK không đúng');
+    if (!reason) return;
+    fetch('/api/admin/withdraw/'+id+'/reject', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ reason: reason })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) payWdLoad(); else alert(d.error || 'Lỗi');
+    });
+  };
+
+  // Pre-load withdraw stats để hiện badge ngay khi load page
+  fetch('/api/admin/withdraw/list?status=pending&limit=1', { credentials:'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ok && d.stats && d.stats.pending > 0) {
+        var b = $('payWdBadge');
+        b.textContent = d.stats.pending;
+        b.classList.remove('hidden');
+      }
+    }).catch(function(){});
+
+  // Auto-open tab withdraw nếu URL có ?tab=withdraw
+  try {
+    var qs = new URLSearchParams(location.search);
+    if (qs.get('tab') === 'withdraw') {
+      var t = document.querySelector('.pay-tab[data-tab="withdraw"]');
+      if (t) t.click();
+    }
+  } catch(e){}
 
   // ===== SESSIONS =====
   window.paySessLoad = function(){

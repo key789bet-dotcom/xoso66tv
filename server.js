@@ -770,6 +770,189 @@ app.get('/admin/payment', pubAuth.requireAdmin, function (req, res) {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════
+// 💸 WITHDRAW - Idol/BLV rút tiền công
+// ═══════════════════════════════════════════════════════════════
+const withdrawStore = require('./lib/withdraw-store');
+
+// POST /api/withdraw/request - idol/BLV gửi yêu cầu rút tiền
+app.post('/api/withdraw/request', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const b = req.body || {};
+  const amount = parseInt(b.amount, 10) || 0;
+
+  if (amount < 50000)     return res.json({ ok:false, error:'Số tiền tối thiểu 50.000 VND' });
+  if (amount > 100000000) return res.json({ ok:false, error:'Số tiền tối đa 100.000.000 VND/lần' });
+
+  const method = (b.method === 'usdt') ? 'usdt' : 'bank';
+
+  if (method === 'bank') {
+    if (!b.bankName)    return res.json({ ok:false, error:'Cần chọn ngân hàng' });
+    if (!b.bankAccount || !/^\d{6,20}$/.test(String(b.bankAccount))) {
+      return res.json({ ok:false, error:'STK phải gồm 6-20 chữ số' });
+    }
+    if (!b.bankHolder || String(b.bankHolder).trim().length < 3) {
+      return res.json({ ok:false, error:'Tên chủ TK quá ngắn' });
+    }
+  } else {
+    if (!b.usdtAddress || String(b.usdtAddress).trim().length < 25) {
+      return res.json({ ok:false, error:'Địa chỉ USDT không hợp lệ' });
+    }
+  }
+
+  // Check balance available: sessions earned - paid - pending
+  let earned = 0;
+  try {
+    const stats = sessionStore.stats(user.username);
+    earned = (stats && (stats.totalEarned || stats.earned)) || 0;
+  } catch(e){}
+  const alreadyPaid    = withdrawStore.totalPaidByUser(user.username);
+  const alreadyPending = withdrawStore.totalPendingByUser(user.username);
+  const available = Math.max(0, earned - alreadyPaid - alreadyPending);
+
+  if (amount > available) {
+    return res.json({
+      ok:false,
+      error:'Số dư khả dụng không đủ. Bạn có ' + available.toLocaleString('vi-VN') + ' VND khả dụng.'
+    });
+  }
+
+  // Determine userType
+  let userType = 'user';
+  try {
+    const d = db.load();
+    if ((d.idols || []).some(i => (i.username || '').toLowerCase() === user.username)) userType = 'idol';
+    else if ((d.blvs || []).some(x => (x.username || '').toLowerCase() === user.username)) userType = 'blv';
+  } catch(e){}
+
+  const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').split(',')[0].trim();
+
+  const item = withdrawStore.add({
+    username: user.username,
+    userType: userType,
+    amount: amount,
+    method: method,
+    bankName: b.bankName,
+    bankAccount: b.bankAccount,
+    bankHolder: b.bankHolder,
+    usdtNetwork: b.usdtNetwork,
+    usdtAddress: b.usdtAddress,
+    note: b.note,
+    ip: ip
+  });
+
+  // Notification cho admin (qua schedule-store notification queue dùng chung)
+  try {
+    const scheduleStore = require('./lib/schedule-store');
+    scheduleStore.pushNotification('admin', {
+      title: '💸 Yêu cầu rút tiền mới',
+      body: '@' + user.username + ' rút ' + amount.toLocaleString('vi-VN') + ' VND qua ' + (method === 'bank' ? 'Ngân hàng' : 'USDT'),
+      type: 'withdraw-request',
+      link: '/admin/payment?tab=withdraw'
+    });
+  } catch(e){}
+
+  res.json({ ok:true, requestId: item.id, id: item.id, available: available - amount });
+});
+
+// GET /api/withdraw/mine - idol/blv xem lịch sử rút tiền của mình
+app.get('/api/withdraw/mine', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const list = withdrawStore.listByUser(user.username, { limit: 50 });
+
+  let earned = 0;
+  try {
+    const s = sessionStore.stats(user.username);
+    earned = (s && (s.totalEarned || s.earned)) || 0;
+  } catch(e){}
+  const paid    = withdrawStore.totalPaidByUser(user.username);
+  const pending = withdrawStore.totalPendingByUser(user.username);
+  res.json({
+    ok:true, list: list,
+    balance: {
+      earned: earned,
+      paid: paid,
+      pending: pending,
+      available: Math.max(0, earned - paid - pending)
+    }
+  });
+});
+
+// POST /api/withdraw/cancel/:id - user cancel pending của mình
+app.post('/api/withdraw/cancel/:id', pubAuth.requireStreamer, function (req, res) {
+  const user = res.locals.publicUser || {};
+  const ok = withdrawStore.cancel(req.params.id, user.username);
+  if (!ok) return res.json({ ok:false, error:'Không huỷ được (đã xử lý hoặc không tồn tại)' });
+  res.json({ ok:true });
+});
+
+// ADMIN: GET /api/admin/withdraw/list
+app.get('/api/admin/withdraw/list', pubAuth.requireAdmin, function (req, res) {
+  const opts = {
+    status: req.query.status || null,
+    method: req.query.method || null,
+    username: req.query.username || null,
+    limit: parseInt(req.query.limit, 10) || 200
+  };
+  const list = withdrawStore.listAll(opts);
+  res.json({ ok:true, list: list, stats: withdrawStore.stats() });
+});
+
+// ADMIN: POST /api/admin/withdraw/:id/approve
+app.post('/api/admin/withdraw/:id/approve', pubAuth.requireAdmin, function (req, res) {
+  const adminUser = res.locals.publicUser || {};
+  const w = withdrawStore.approve(req.params.id, adminUser.username || 'admin');
+  if (!w) return res.json({ ok:false, error:'Không duyệt được' });
+  try {
+    const scheduleStore = require('./lib/schedule-store');
+    scheduleStore.pushNotification(w.username, {
+      title: '✅ Yêu cầu rút tiền đã được duyệt',
+      body: 'Rút ' + w.amount.toLocaleString('vi-VN') + ' VND đang được xử lý chuyển khoản.',
+      type: 'withdraw-approved',
+      link: '/profile?tab=wallet'
+    });
+  } catch(e){}
+  res.json({ ok:true, withdraw: w });
+});
+
+// ADMIN: POST /api/admin/withdraw/:id/paid
+// body: { txId }
+app.post('/api/admin/withdraw/:id/paid', pubAuth.requireAdmin, function (req, res) {
+  const adminUser = res.locals.publicUser || {};
+  const b = req.body || {};
+  const w = withdrawStore.markPaid(req.params.id, adminUser.username || 'admin', b.txId);
+  if (!w) return res.json({ ok:false, error:'Không đánh dấu được' });
+  try {
+    const scheduleStore = require('./lib/schedule-store');
+    scheduleStore.pushNotification(w.username, {
+      title: '💰 Đã chuyển tiền thành công',
+      body: 'Bạn đã nhận ' + w.amount.toLocaleString('vi-VN') + ' VND. ' + (w.paidTxId ? 'Mã GD: ' + w.paidTxId : ''),
+      type: 'withdraw-paid',
+      link: '/profile?tab=wallet'
+    });
+  } catch(e){}
+  res.json({ ok:true, withdraw: w });
+});
+
+// ADMIN: POST /api/admin/withdraw/:id/reject
+// body: { reason }
+app.post('/api/admin/withdraw/:id/reject', pubAuth.requireAdmin, function (req, res) {
+  const adminUser = res.locals.publicUser || {};
+  const b = req.body || {};
+  const w = withdrawStore.reject(req.params.id, b.reason, adminUser.username || 'admin');
+  if (!w) return res.json({ ok:false, error:'Không từ chối được' });
+  try {
+    const scheduleStore = require('./lib/schedule-store');
+    scheduleStore.pushNotification(w.username, {
+      title: '❌ Yêu cầu rút tiền bị từ chối',
+      body: (w.rejectReason || 'Vui lòng kiểm tra lại thông tin') + '. Số tiền không bị trừ.',
+      type: 'withdraw-rejected',
+      link: '/profile?tab=wallet'
+    });
+  } catch(e){}
+  res.json({ ok:true, withdraw: w });
+});
+
 app.post('/api/studio/regenerate-key', pubAuth.requireStreamer, function (req, res){
   const idolId = String((req.body && req.body.idolId) || '');
   if (!idolId) return res.json({ ok:false, error:'Missing idolId' });
