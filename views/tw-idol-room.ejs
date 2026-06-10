@@ -1,6 +1,23 @@
 <%
 // Idol full profile (sau lay tu DB)
-var idol = (typeof dbIdol !== 'undefined' && dbIdol) ? dbIdol : { name:'Idol', room:'Phòng', lock:0, color:0, emoji:'👑', age:'-', height:'-', weight:'-', city:'-', job:'-', hobby:'-', bio:'-' };
+// 🛡️ DEFENSIVE: Object.assign default → dbIdol mới đăng ký thiếu field sẽ KHÔNG crash 500
+var __idolDefaults = {
+  name: 'Idol',
+  room: 'Phòng riêng',
+  lock: 0,
+  color: 0,
+  emoji: '👑',
+  age: '-',
+  height: '-',
+  weight: '-',
+  city: '-',
+  job: '-',
+  hobby: '-',
+  bio: 'Idol XOSO66 TV - chào mừng các bạn đến phòng live của mình!'
+};
+var idol = Object.assign({}, __idolDefaults, (typeof dbIdol !== 'undefined' && dbIdol) ? dbIdol : {});
+// Bảo vệ thêm: ép kiểu cho các field text có thể null/empty trong DB
+['name','room','city','job','hobby','bio'].forEach(function(k){ if (idol[k] == null || idol[k] === '') idol[k] = __idolDefaults[k]; });
 var idolId = (typeof idolKey !== 'undefined' && idolKey) ? idolKey : 'i01';
 var viewers = ((idol.name.charCodeAt(0)+idolId.length) * 137) % 9000 + 500;
 var follow  = ((idol.name.charCodeAt(0)+idolId.length) * 53)  % 250000 + 5000;

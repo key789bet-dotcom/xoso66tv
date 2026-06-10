@@ -99,7 +99,18 @@ const db = {
       category: 'idol',          // mặc định Idol Live Show
       quality: '720p',
       totalStreams: 0,
-      registeredAt: now
+      registeredAt: now,
+      // 🆕 Full profile fields - tránh template crash khi render /idol/:id
+      room: 'Phòng riêng Yến Nhi',
+      lock: 0,                   // 0 = FREE, > 0 = X COIN để mở khóa
+      color: 320,                // HSL hue cho gradient avatar
+      emoji: '🌸',
+      height: '1m65',
+      weight: '48kg',
+      city: 'Sài Gòn',
+      job: 'Idol streamer XOSO66',
+      hobby: 'Hát, dance cover, chat tâm sự với fan',
+      bio: 'Xin chào mọi người, mình là Yến Nhi. Mỗi tối live show 8h-11h, đừng quên ghé phòng ủng hộ mình nha! 💕'
     }
   ],
   obs: [],
