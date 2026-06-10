@@ -83,6 +83,11 @@ app.set('siteUrl', SITE);
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+// User-uploaded avatars (persist outside public/ để không bị git overwrite)
+const fs = require('fs');
+const AVATAR_DIR = path.join(__dirname, 'uploads', 'avatars');
+try { fs.mkdirSync(AVATAR_DIR, { recursive: true }); } catch(e){}
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '30d' }));
 
 // ===== PWA assets (phải serve ở root scope) =====
 app.get('/sw.js', function(req, res){
@@ -471,17 +476,140 @@ app.post('/api/auth/logout', function (req, res) {
 app.get('/api/auth/me', function (req, res) {
   const u = pubAuth.getUser(req);
   if (!u) return res.json({ ok:false });
-  // Lookup full user để lấy vnd balance
-  let vnd = 0, coin = 0;
+  // Lookup full user để lấy vnd balance + avatar
+  let vnd = 0, coin = 0, avatar = '', fullname = '';
   try {
     const data = db.load();
     const full = (data.users || []).find(x => (x.username || '').toLowerCase() === u.username);
     if (full) {
-      vnd  = parseInt(full.vnd  || 0, 10);
-      coin = parseInt(full.coin || 0, 10);
+      vnd      = parseInt(full.vnd  || 0, 10);
+      coin     = parseInt(full.coin || 0, 10);
+      avatar   = full.avatar || '';
+      fullname = full.fullname || '';
     }
   } catch(e){}
-  res.json({ ok:true, username: u.username, role: u.role, user: { username: u.username, role: u.role, vnd: vnd, coin: coin } });
+  res.json({
+    ok:true, username: u.username, role: u.role,
+    user: { username: u.username, role: u.role, vnd: vnd, coin: coin, avatar: avatar, fullname: fullname }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 📷 UPLOAD AVATAR — user/idol/BLV
+// ═══════════════════════════════════════════════════════════════
+const multer = require('multer');
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },                 // tối đa 5MB
+  fileFilter: function(req, file, cb){
+    if (!/^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype)) {
+      return cb(new Error('Chỉ chấp nhận file ảnh JPG/PNG/WEBP/GIF'));
+    }
+    cb(null, true);
+  }
+});
+
+// POST /api/upload/avatar - user upload avatar của mình
+// Multipart form-data, field name: "avatar"
+app.post('/api/upload/avatar', pubAuth.requireLogin, avatarUpload.single('avatar'), function (req, res) {
+  const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+  if (!user.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  if (!req.file)       return res.json({ ok:false, error:'Không có file upload' });
+
+  try {
+    const ext = (req.file.mimetype.match(/\/(jpe?g|png|webp|gif)/i) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg');
+    const fname = user.username + '_' + Date.now().toString(36) + '.' + ext;
+    const filepath = path.join(AVATAR_DIR, fname);
+    fs.writeFileSync(filepath, req.file.buffer);
+    const url = '/uploads/avatars/' + fname;
+
+    const data = db.load();
+    // Update user record
+    const uIdx = (data.users || []).findIndex(x => (x.username || '').toLowerCase() === user.username);
+    let oldAvatar = '';
+    if (uIdx !== -1) {
+      oldAvatar = data.users[uIdx].avatar || '';
+      data.users[uIdx].avatar = url;
+    }
+    // Sync sang idol/blv record nếu có
+    const role = user.role;
+    if (role === 'idol' && Array.isArray(data.idols)) {
+      const i = data.idols.findIndex(x => (x.userId || x.username || '').toLowerCase() === user.username);
+      if (i !== -1) data.idols[i].avatar = url;
+    }
+    if (role === 'blv' && Array.isArray(data.blvs)) {
+      const i = data.blvs.findIndex(x => (x.userId || x.username || '').toLowerCase() === user.username);
+      if (i !== -1) data.blvs[i].avatar = url;
+    }
+    db.save(data);
+
+    // Xoá ảnh cũ nếu là file upload (không xóa external URL)
+    if (oldAvatar && oldAvatar.startsWith('/uploads/avatars/')) {
+      try { fs.unlinkSync(path.join(__dirname, oldAvatar)); } catch(e){}
+    }
+
+    res.json({ ok:true, avatar: url, message:'Cập nhật ảnh đại diện thành công' });
+  } catch (err) {
+    console.error('[avatar upload]', err);
+    res.json({ ok:false, error: err.message || 'Lỗi server' });
+  }
+});
+
+// POST /api/upload/avatar/idol/:id - ADMIN upload cho 1 idol cụ thể
+app.post('/api/upload/avatar/idol/:id', pubAuth.requireAdmin, avatarUpload.single('avatar'), function (req, res) {
+  if (!req.file) return res.json({ ok:false, error:'Không có file' });
+  try {
+    const data = db.load();
+    const i = (data.idols || []).findIndex(x => x.id === req.params.id);
+    if (i === -1) return res.json({ ok:false, error:'Idol không tồn tại' });
+    const ext = (req.file.mimetype.match(/\/(jpe?g|png|webp|gif)/i) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg');
+    const fname = 'idol_' + req.params.id + '_' + Date.now().toString(36) + '.' + ext;
+    fs.writeFileSync(path.join(AVATAR_DIR, fname), req.file.buffer);
+    const url = '/uploads/avatars/' + fname;
+    const old = data.idols[i].avatar || '';
+    data.idols[i].avatar = url;
+    // Sync sang user nếu link được
+    const uname = (data.idols[i].userId || data.idols[i].username || '').toLowerCase();
+    if (uname) {
+      const ui = (data.users || []).findIndex(x => (x.username || '').toLowerCase() === uname);
+      if (ui !== -1) data.users[ui].avatar = url;
+    }
+    db.save(data);
+    if (old && old.startsWith('/uploads/avatars/')) { try { fs.unlinkSync(path.join(__dirname, old)); } catch(e){} }
+    res.json({ ok:true, avatar: url });
+  } catch (err) { res.json({ ok:false, error: err.message }); }
+});
+
+// POST /api/upload/avatar/blv/:id - ADMIN upload cho 1 BLV
+app.post('/api/upload/avatar/blv/:id', pubAuth.requireAdmin, avatarUpload.single('avatar'), function (req, res) {
+  if (!req.file) return res.json({ ok:false, error:'Không có file' });
+  try {
+    const data = db.load();
+    const i = (data.blvs || []).findIndex(x => x.id === req.params.id);
+    if (i === -1) return res.json({ ok:false, error:'BLV không tồn tại' });
+    const ext = (req.file.mimetype.match(/\/(jpe?g|png|webp|gif)/i) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg');
+    const fname = 'blv_' + req.params.id + '_' + Date.now().toString(36) + '.' + ext;
+    fs.writeFileSync(path.join(AVATAR_DIR, fname), req.file.buffer);
+    const url = '/uploads/avatars/' + fname;
+    const old = data.blvs[i].avatar || '';
+    data.blvs[i].avatar = url;
+    const uname = (data.blvs[i].userId || data.blvs[i].username || '').toLowerCase();
+    if (uname) {
+      const ui = (data.users || []).findIndex(x => (x.username || '').toLowerCase() === uname);
+      if (ui !== -1) data.users[ui].avatar = url;
+    }
+    db.save(data);
+    if (old && old.startsWith('/uploads/avatars/')) { try { fs.unlinkSync(path.join(__dirname, old)); } catch(e){} }
+    res.json({ ok:true, avatar: url });
+  } catch (err) { res.json({ ok:false, error: err.message }); }
+});
+
+// Error handler cho multer (FileSize too large, etc.)
+app.use(function(err, req, res, next){
+  if (err instanceof multer.MulterError || /Chỉ chấp nhận|File too large/i.test(err.message || '')) {
+    return res.status(400).json({ ok:false, error: err.message });
+  }
+  next(err);
 });
 
 // ===== IDOL STUDIO =====

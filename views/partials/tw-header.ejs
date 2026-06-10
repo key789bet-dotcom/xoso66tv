@@ -122,23 +122,31 @@ window.x66ShowAdminBadge = function(){
         var name = (u.fullname || u.username).toUpperCase();
         var letter = name.charAt(0);
         var id = u.id || (u.username.toUpperCase() + 'X66X66').slice(0,7);
-        document.getElementById('hdrAvatarLetter').textContent = letter;
-        document.getElementById('hdrDropAvatar').textContent  = letter;
+        // Render avatar - ảnh thật nếu có, chữ cái nếu không
+        hdrPaintAvatar(u.avatar, letter);
         document.getElementById('hdrDropName').textContent    = name;
         document.getElementById('hdrDropId').textContent      = id;
         document.getElementById('hdrDropCoin').textContent    = (typeof u.coin==='number'?u.coin:79).toLocaleString('vi-VN');
-        // 🎬 Show "Quản Lý Kênh" cho idol/blv/admin
+        // 🎬 Show "Quản Lý Kênh" + sync avatar mới nhất từ server
         var studioLink = document.getElementById('hdrDropStudio');
-        if (studioLink) {
-          fetch('/api/auth/me', { credentials:'same-origin' })
-            .then(function(r){ return r.json(); })
-            .then(function(d){
-              if (d && d.ok && ['idol','blv','admin'].indexOf(d.role) !== -1) {
-                studioLink.classList.remove('hidden');
-                studioLink.classList.add('flex');
-              }
-            }).catch(function(){});
-        }
+        fetch('/api/auth/me', { credentials:'same-origin' })
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if (!d || !d.ok) return;
+            if (studioLink && ['idol','blv','admin'].indexOf(d.role) !== -1) {
+              studioLink.classList.remove('hidden');
+              studioLink.classList.add('flex');
+            }
+            // Update avatar nếu server có URL mới
+            if (d.user && d.user.avatar) {
+              hdrPaintAvatar(d.user.avatar, letter);
+              try {
+                var cu = JSON.parse(localStorage.getItem('x66_user') || '{}');
+                cu.avatar = d.user.avatar;
+                localStorage.setItem('x66_user', JSON.stringify(cu));
+              } catch(e){}
+            }
+          }).catch(function(){});
         hdrNotifSeedIfEmpty(name);
         hdrNotifRender();
       } else {
@@ -148,8 +156,43 @@ window.x66ShowAdminBadge = function(){
       }
     } catch(e){}
   }
+  // Render avatar: nếu có URL → <img>, không có → chữ cái
+  function hdrPaintAvatar(url, letter){
+    var btn = document.getElementById('hdrAvatarBtn');
+    var drop = document.getElementById('hdrDropAvatar');
+    var letterEl = document.getElementById('hdrAvatarLetter');
+    if (url) {
+      var imgHtml = '<img src="' + url + '?t=' + Date.now() + '" alt="Avatar" class="w-full h-full object-cover rounded-full" style="display:block">';
+      if (btn) {
+        btn.innerHTML = imgHtml;
+        btn.classList.remove('grid','place-items-center');
+      }
+      if (drop) {
+        drop.innerHTML = imgHtml;
+        drop.classList.remove('grid','place-items-center');
+      }
+    } else {
+      if (letterEl) letterEl.textContent = letter;
+      else if (btn) btn.innerHTML = '<span id="hdrAvatarLetter">'+letter+'</span>';
+      if (drop) drop.textContent = letter;
+    }
+  }
+  // Ensure btn/drop có overflow-hidden để image bo tròn
+  (function(){
+    var b = document.getElementById('hdrAvatarBtn');
+    var d = document.getElementById('hdrDropAvatar');
+    if (b) b.style.overflow = 'hidden';
+    if (d) d.style.overflow = 'hidden';
+  })();
+
   paintHeader();
   window.addEventListener('storage', paintHeader);
+  // Khi profile page upload xong → reload header avatar
+  window.addEventListener('x66:avatarChanged', function(e){
+    if (e.detail && e.detail.avatar) {
+      try { var u = JSON.parse(localStorage.getItem('x66_user') || '{}'); var l = (u.fullname || u.username || 'U').charAt(0).toUpperCase(); hdrPaintAvatar(e.detail.avatar, l); } catch(_){}
+    }
+  });
 
   var btn  = document.getElementById('hdrAvatarBtn');
   var drop = document.getElementById('hdrDropdown');

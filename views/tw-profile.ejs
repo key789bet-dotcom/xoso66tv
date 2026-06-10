@@ -67,9 +67,24 @@ seo = {
 
     <!-- Avatar header -->
     <div class="p-5 text-center border-b border-line bg-gradient-to-b from-bg-soft/40 to-transparent">
-      <div class="w-28 h-28 mx-auto rounded-full border-4 border-pri bg-bg-deep grid place-items-center text-5xl font-black text-pri shadow-pri" id="pfAvatar">U</div>
+      <div class="relative w-28 h-28 mx-auto group">
+        <!-- Avatar wrapper (text fallback hoặc ảnh) -->
+        <div class="w-28 h-28 rounded-full border-4 border-pri bg-bg-deep grid place-items-center text-5xl font-black text-pri shadow-pri overflow-hidden" id="pfAvatar">U</div>
+        <!-- Camera button góc dưới phải -->
+        <button onclick="pfTriggerUpload()" type="button"
+                class="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-gradient-to-br from-pri to-live border-2 border-bg-card grid place-items-center shadow-lg hover:scale-110 transition-transform"
+                aria-label="Đổi ảnh đại diện">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </button>
+        <!-- Hidden file input - capture=user trên mobile sẽ mở thẳng camera trước, không capture = thư viện+camera -->
+        <input id="pfAvatarFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" onchange="pfUploadAvatar(this)">
+      </div>
       <h2 class="text-lg font-extrabold text-white mt-3 tracking-wide" id="pfName">USER</h2>
       <div class="text-[10px] text-muted mt-0.5">ID: <span class="text-pri-light font-mono" id="pfId">XX</span></div>
+      <div id="pfAvatarStatus" class="text-[10px] mt-1.5 hidden"></div>
     </div>
 
     <!-- Info compact (4 dòng) -->
@@ -150,22 +165,129 @@ seo = {
 <div id="toast" class="fixed top-20 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
 
 <script>
+function pfRenderAvatar(avatarUrl, displayName){
+  var el = document.getElementById('pfAvatar');
+  if (!el) return;
+  if (avatarUrl) {
+    el.innerHTML = '<img src="' + avatarUrl + '?t=' + Date.now() + '" alt="Avatar" class="w-full h-full object-cover" style="display:block">';
+    el.classList.remove('grid','place-items-center','text-5xl','font-black','text-pri');
+  } else {
+    el.classList.add('grid','place-items-center','text-5xl','font-black','text-pri');
+    el.textContent = String(displayName || 'U').charAt(0).toUpperCase();
+  }
+}
+
 function loadUser(){
+  // 1) Render từ localStorage trước (instant)
   try {
     var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
-    if (!u.username) return;
-    document.getElementById('pfName').textContent = (u.fullname || u.username || 'USER').toUpperCase();
-    document.getElementById('pfAvatar').textContent = (u.fullname || u.username || 'U').charAt(0).toUpperCase();
-    var id = u.id || (u.username.toUpperCase() + Math.floor(Math.random()*1e6).toString(16).toUpperCase().padStart(6,'0'));
-    document.getElementById('pfId').textContent = id;
-    if (u.bio)      document.getElementById('pfBio').textContent = u.bio;
-    if (u.gender)   document.getElementById('pfGender').textContent = u.gender==='male'?'Nam':u.gender==='female'?'Nữ':'Khác';
-    if (u.birthday) document.getElementById('pfBirthday').textContent = u.birthday;
-    if (u.province) document.getElementById('pfProvince').textContent = u.province;
-    if (typeof u.coin==='number') document.getElementById('pfCoin').textContent = u.coin.toLocaleString('vi-VN');
+    if (u.username) {
+      document.getElementById('pfName').textContent = (u.fullname || u.username || 'USER').toUpperCase();
+      pfRenderAvatar(u.avatar || '', u.fullname || u.username);
+      var id = u.id || (u.username.toUpperCase() + Math.floor(Math.random()*1e6).toString(16).toUpperCase().padStart(6,'0'));
+      document.getElementById('pfId').textContent = id;
+      if (u.bio)      document.getElementById('pfBio').textContent = u.bio;
+      if (u.gender)   document.getElementById('pfGender').textContent = u.gender==='male'?'Nam':u.gender==='female'?'Nữ':'Khác';
+      if (u.birthday) document.getElementById('pfBirthday').textContent = u.birthday;
+      if (u.province) document.getElementById('pfProvince').textContent = u.province;
+      if (typeof u.coin==='number') document.getElementById('pfCoin').textContent = u.coin.toLocaleString('vi-VN');
+    }
   } catch(e){}
+
+  // 2) Fetch server để lấy avatar mới nhất + sync localStorage
+  fetch('/api/auth/me', { credentials:'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || !d.ok || !d.user) return;
+      pfRenderAvatar(d.user.avatar || '', d.user.fullname || d.user.username);
+      try {
+        var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+        u.username = d.user.username;
+        u.avatar = d.user.avatar || '';
+        if (d.user.fullname) u.fullname = d.user.fullname;
+        if (typeof d.user.vnd === 'number') u.vnd = d.user.vnd;
+        if (typeof d.user.coin === 'number') u.coin = d.user.coin;
+        localStorage.setItem('x66_user', JSON.stringify(u));
+      } catch(e){}
+    })
+    .catch(function(){});
 }
 loadUser();
+
+// ═══════════ UPLOAD AVATAR ═══════════
+function pfTriggerUpload(){
+  document.getElementById('pfAvatarFile').click();
+}
+
+function pfUploadAvatar(input){
+  var file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Ảnh quá lớn! Tối đa 5MB.');
+    input.value = '';
+    return;
+  }
+  if (!/^image\/(jpeg|jpg|png|webp|gif)$/i.test(file.type)) {
+    alert('Chỉ chấp nhận ảnh JPG/PNG/WEBP/GIF.');
+    input.value = '';
+    return;
+  }
+
+  var status = document.getElementById('pfAvatarStatus');
+  status.classList.remove('hidden', 'text-emerald-400', 'text-red-400');
+  status.classList.add('text-yellow-400');
+  status.textContent = '⏳ Đang tải ảnh lên...';
+
+  // Preview ngay (instant feedback) bằng FileReader
+  var reader = new FileReader();
+  reader.onload = function(e){
+    pfRenderAvatar(e.target.result, 'U');
+  };
+  reader.readAsDataURL(file);
+
+  // Upload thật lên server
+  var fd = new FormData();
+  fd.append('avatar', file);
+
+  fetch('/api/upload/avatar', {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: fd
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      input.value = ''; // reset để upload lại được cùng file
+      if (d.ok) {
+        status.classList.remove('text-yellow-400', 'text-red-400');
+        status.classList.add('text-emerald-400');
+        status.textContent = '✅ ' + (d.message || 'Đã cập nhật ảnh đại diện');
+        // Re-render với URL thật
+        pfRenderAvatar(d.avatar, '');
+        // Sync localStorage
+        try {
+          var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+          u.avatar = d.avatar;
+          localStorage.setItem('x66_user', JSON.stringify(u));
+        } catch(e){}
+        // Broadcast cho header/sidebar
+        try { window.dispatchEvent(new CustomEvent('x66:avatarChanged', { detail:{ avatar: d.avatar } })); } catch(e){}
+        setTimeout(function(){ status.classList.add('hidden'); }, 3000);
+      } else {
+        status.classList.remove('text-yellow-400', 'text-emerald-400');
+        status.classList.add('text-red-400');
+        status.textContent = '❌ ' + (d.error || 'Tải lên thất bại');
+        // Revert preview về avatar cũ
+        loadUser();
+      }
+    })
+    .catch(function(){
+      input.value = '';
+      status.classList.remove('text-yellow-400', 'text-emerald-400');
+      status.classList.add('text-red-400');
+      status.textContent = '❌ Lỗi kết nối server';
+      loadUser();
+    });
+}
 
 function doLogout(){
   if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
