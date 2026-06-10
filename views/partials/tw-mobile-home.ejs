@@ -66,6 +66,8 @@ _allSports.forEach(function(m){
     type:'sports',
     href:'/live/' + (m.slug || m.id),
     home: m.home, away: m.away,
+    homeBadge: m.homeBadge || '',
+    awayBadge: m.awayBadge || '',
     league: m.league || '',
     time: m.time || 'LIVE',
     isLive: m.status === 'live',
@@ -330,9 +332,23 @@ _cnt.all = _cards.length;
           <!-- MIDDLE BODY -->
           <div class="mh-lux-body">
             <% if (c.type === 'sports') { %>
+              <%
+                // Hash màu từ tên đội để gradient fallback ổn định, không random
+                function _hueFromName(n){ var h=0; for(var i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))&0xfff; return h%360; }
+                var _hH = _hueFromName(c.home||'?');
+                var _hA = _hueFromName(c.away||'?');
+                var _initH = (c.home||'?').replace(/[^A-Za-zĐđ\s]/g,'').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+                var _initA = (c.away||'?').replace(/[^A-Za-zĐđ\s]/g,'').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+              %>
               <!-- SPORTS: 2 teams + time -->
               <div class="mh-lux-team">
-                <div class="mh-lux-team-circle"><%= (c.home||'?').slice(0,2).toUpperCase() %></div>
+                <div class="mh-lux-team-circle" style="background:linear-gradient(135deg,hsl(<%= _hH %>,70%,55%),hsl(<%= (_hH+30)%360 %>,70%,40%));padding:3px;">
+                  <% if (c.homeBadge) { %>
+                    <img src="<%= c.homeBadge %>" alt="<%= c.home %>" loading="lazy" class="w-full h-full rounded-full object-contain bg-white p-1" onerror="this.outerHTML='<span class=&quot;mh-lux-team-init&quot;><%= _initH %></span>'">
+                  <% } else { %>
+                    <span class="mh-lux-team-init"><%= _initH %></span>
+                  <% } %>
+                </div>
                 <div class="mh-lux-team-name"><%= c.home %></div>
               </div>
               <div class="mh-lux-mid">
@@ -340,7 +356,13 @@ _cnt.all = _cards.length;
                 <div class="mh-lux-date"><%= new Date().toLocaleDateString('vi-VN') %></div>
               </div>
               <div class="mh-lux-team">
-                <div class="mh-lux-team-circle"><%= (c.away||'?').slice(0,2).toUpperCase() %></div>
+                <div class="mh-lux-team-circle" style="background:linear-gradient(135deg,hsl(<%= _hA %>,70%,55%),hsl(<%= (_hA+30)%360 %>,70%,40%));padding:3px;">
+                  <% if (c.awayBadge) { %>
+                    <img src="<%= c.awayBadge %>" alt="<%= c.away %>" loading="lazy" class="w-full h-full rounded-full object-contain bg-white p-1" onerror="this.outerHTML='<span class=&quot;mh-lux-team-init&quot;><%= _initA %></span>'">
+                  <% } else { %>
+                    <span class="mh-lux-team-init"><%= _initA %></span>
+                  <% } %>
+                </div>
                 <div class="mh-lux-team-name"><%= c.away %></div>
               </div>
             <% } else if (c.type === 'idol') { %>
@@ -497,13 +519,27 @@ _cnt.all = _cards.length;
 }
 .mh-lux-team { text-align:center; flex:0 0 30%; }
 .mh-lux-team-circle {
-  width:36px; height:36px; border-radius:50%;
-  background:linear-gradient(135deg,#fff,#e5e7eb);
-  color:#0f1419; font-weight:900; font-size:13px;
+  width:44px; height:44px; border-radius:50%;
   display:grid; place-items:center;
   margin:0 auto 4px;
-  box-shadow:0 2px 6px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.5);
-  border:1.5px solid rgba(255,122,24,.3);
+  box-shadow:0 4px 12px rgba(0,0,0,.5);
+  border:2px solid rgba(255,122,24,.4);
+  overflow:hidden;
+  position:relative;
+}
+.mh-lux-team-circle img {
+  width:100%; height:100%;
+  border-radius:50%;
+  object-fit:contain;
+  background:#fff;
+  padding:2px;
+}
+.mh-lux-team-init {
+  display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; border-radius:50%;
+  color:#fff; font-weight:900; font-size:14px;
+  letter-spacing:.5px;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
 }
 .mh-lux-team-name {
   color:#cbd5e1; font-size:8px; font-weight:700; line-height:1.1;
