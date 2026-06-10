@@ -8,8 +8,24 @@ seo = {
   canonical: '/lich-phat-song'+(sport?'?mon='+sport:''),
   breadcrumb: [{ name:'Lịch phát sóng', url:'/lich-phat-song' }].concat(sport?[{ name:_catName, url:'/lich-phat-song?mon='+sport }]:[])
 };
+
+// ===== Mobile day picker - sinh 6 ngày liên tiếp =====
+var _vnDays = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
+var _dayPicker = [];
+for (var _di=0; _di<6; _di++) {
+  var _d = new Date(); _d.setDate(_d.getDate() + _di);
+  var _dd = String(_d.getDate()).padStart(2,'0');
+  var _mm = String(_d.getMonth()+1).padStart(2,'0');
+  var _label = _di===0 ? 'Hôm nay' : _di===1 ? 'Ngày mai' : _vnDays[_d.getDay()];
+  _dayPicker.push({ label: _label, date: _dd+'-'+_mm, key: _dd+_mm, iso: _d.toISOString().slice(0,10) });
+}
 %>
 <%- include('partials/tw-layout-start') %>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- DESKTOP layout - giữ nguyên cũ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
 <header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
@@ -45,5 +61,235 @@ seo = {
     { q:'Tại sao có trận không có link xem?', a:'Một số giải nhỏ chưa có bản quyền tại VN. Xem highlight sau trận tại <a href="/video-noi-bat">Video nổi bật</a>.' }
   ]
 }}) %>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- 📱 MOBILE layout - redesign theo style OkwinTV -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="md:hidden px-3" id="mobileLich">
+
+  <!-- Title bar: ‹ Lịch Phát Sóng -->
+  <div class="flex items-center gap-2 mb-3 mt-1">
+    <a href="/" class="text-pri-light text-2xl leading-none" aria-label="Back">‹</a>
+    <h1 class="text-pri-light font-extrabold text-xl">Lịch Phát Sóng</h1>
+  </div>
+
+  <!-- Day picker - horizontal scroll, 6 ngày -->
+  <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1 mb-3 -mx-3 px-3" id="mLichDays">
+    <% _dayPicker.forEach(function(d, i){ %>
+      <button class="m-day-pill shrink-0 flex flex-col items-center justify-center min-w-[68px] px-2 py-2 rounded-lg border <%= i===0 ? 'is-active' : '' %>" data-day="<%= d.iso %>" type="button">
+        <span class="text-[11px] font-semibold opacity-80 truncate w-full text-center"><%= d.label %></span>
+        <span class="text-sm font-extrabold mt-0.5"><%= d.date %></span>
+      </button>
+    <% }); %>
+  </div>
+
+  <!-- Filter chips: Hot toggle + 8 categories grid -->
+  <div class="bg-bg-card border border-line rounded-xl p-2.5 mb-3">
+    <!-- Hot toggle row -->
+    <div class="flex items-center justify-between mb-2 px-1">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🔥</span>
+        <span class="text-white font-bold text-sm">Hot</span>
+      </div>
+      <button id="mLichHotToggle" type="button" class="relative w-11 h-6 rounded-full bg-pri transition-colors" data-on="1">
+        <span class="absolute top-0.5 right-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow"></span>
+      </button>
+    </div>
+    <!-- Categories grid 4x2 -->
+    <div class="grid grid-cols-4 gap-1.5">
+      <button class="m-cat-chip is-active" data-cat="bong-da" type="button">
+        <span class="m-cat-ico">⚽</span><span>Bóng đá</span>
+      </button>
+      <button class="m-cat-chip" data-cat="bong-ro" type="button">
+        <span class="m-cat-ico">🏀</span><span>Bóng rổ</span>
+      </button>
+      <button class="m-cat-chip" data-cat="tennis" type="button">
+        <span class="m-cat-ico">🎾</span><span>Tennis</span>
+      </button>
+      <button class="m-cat-chip" data-cat="bong-chuyen" type="button">
+        <span class="m-cat-ico">🏐</span><span>B.chuyền</span>
+      </button>
+      <button class="m-cat-chip" data-cat="bong-ban" type="button">
+        <span class="m-cat-ico">🏓</span><span>Bóng bàn</span>
+      </button>
+      <button class="m-cat-chip" data-cat="esports" type="button">
+        <span class="m-cat-ico">🎮</span><span>Esports</span>
+      </button>
+      <button class="m-cat-chip" data-cat="giai-tri" type="button">
+        <span class="m-cat-ico">🎤</span><span>Giải trí</span>
+      </button>
+      <button class="m-cat-chip" data-cat="casino" type="button">
+        <span class="m-cat-ico">🎰</span><span>Casino</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Match cards list -->
+  <div class="space-y-3" id="mLichList">
+    <% if (!list || list.length === 0) { %>
+      <div class="p-10 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
+        <div class="text-4xl mb-2 opacity-60">📥</div>
+        <div class="text-sm">Không có trận sắp diễn ra.</div>
+      </div>
+    <% } else { %>
+      <% list.slice(0, 30).forEach(function(m){
+        var _statusBadge = m.status==='live' ? '<span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>'
+                         : m.status==='finished' ? '<span class="bg-black/60 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>'
+                         : '<span class="bg-pri/20 text-pri-light text-[10px] font-extrabold px-2 py-0.5 rounded">SẮP DIỄN RA</span>';
+        var _catSlug = m.sport==='Soccer' ? 'bong-da' : m.sport==='Basketball' ? 'bong-ro' : m.sport==='Tennis' ? 'tennis' : m.sport==='Volleyball' ? 'bong-chuyen' : m.sport==='Esports' ? 'esports' : 'khac';
+        var _leagueIcon = '⚽';
+        var _dateStr=''; try { _dateStr = m.date ? new Date(m.date).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}) : ''; } catch(e){}
+      %>
+        <article class="m-match-card bg-bg-card border border-line rounded-xl overflow-hidden" data-cat="<%= _catSlug %>" data-status="<%= m.status %>">
+          <!-- Header: League + Status -->
+          <header class="flex items-center justify-between px-3 py-2 bg-bg-soft/40 border-b border-line">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="bg-pri/20 text-pri-light w-5 h-5 rounded grid place-items-center text-[11px] shrink-0"><%= _leagueIcon %></span>
+              <span class="text-white text-[12px] font-bold truncate"><%= m.league || m.sport %></span>
+            </div>
+            <%- _statusBadge %>
+          </header>
+          <!-- Body: 2 teams + score -->
+          <a href="/live/<%= m.slug || m.id %>" class="flex items-center px-3 py-3 hover:bg-bg-soft/30 active:scale-[.98] transition-all">
+            <!-- Home team -->
+            <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+              <% if (m.homeBadge) { %>
+                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center">
+                  <img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>⚽</span>'">
+                </div>
+              <% } else { %>
+                <div class="w-12 h-12 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-base"><%= (m.home||'?')[0] %></div>
+              <% } %>
+              <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.home || '?' %></div>
+            </div>
+            <!-- Score / Time -->
+            <div class="px-3 text-center shrink-0">
+              <% if (m.score) { %>
+                <div class="text-xl font-black text-white"><%= m.score[0] %> : <%= m.score[1] %></div>
+              <% } else { %>
+                <div class="text-xl font-black text-white"><%= m.time || 'VS' %></div>
+              <% } %>
+              <% if (_dateStr) { %>
+                <div class="inline-block bg-pri text-white text-[10px] font-bold px-2 py-0.5 rounded mt-1"><%= _dateStr %></div>
+              <% } %>
+            </div>
+            <!-- Away team -->
+            <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+              <% if (m.awayBadge) { %>
+                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center">
+                  <img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>⚽</span>'">
+                </div>
+              <% } else { %>
+                <div class="w-12 h-12 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-base"><%= (m.away||'?')[0] %></div>
+              <% } %>
+              <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.away || '?' %></div>
+            </div>
+          </a>
+          <!-- Footer: BLV strip -->
+          <footer class="flex items-center gap-2 px-3 py-2 border-t border-line bg-bg-deep/40">
+            <button class="text-muted text-lg leading-none px-1" type="button" aria-label="Trước">‹</button>
+            <div class="flex-1 flex items-center gap-3 overflow-hidden">
+              <div class="flex items-center gap-1.5 shrink-0">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center text-white text-[10px] font-bold">B</div>
+                <span class="text-gray-200 text-[11px] font-semibold">BLV Nếp</span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 grid place-items-center text-white text-[10px] font-bold">R</div>
+                <span class="text-gray-200 text-[11px] font-semibold">BLV RICH</span>
+              </div>
+            </div>
+            <button class="text-muted text-lg leading-none px-1" type="button" aria-label="Sau">›</button>
+          </footer>
+        </article>
+      <% }); %>
+    <% } %>
+  </div>
+</div>
+
+<style>
+/* ===== MOBILE LICH PHAT SONG ===== */
+/* Day picker pills */
+.m-day-pill {
+  background: #1a1f29; border-color: #2a3344; color: #94a3b8;
+  transition: all .15s;
+}
+.m-day-pill.is-active {
+  background: linear-gradient(135deg, #ff7a18, #ea580c);
+  border-color: #ff7a18; color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 122, 24, .35);
+}
+.m-day-pill:active { transform: scale(.96); }
+
+/* Cat chip - grid 4 */
+.m-cat-chip {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 8px 6px; border-radius: 8px;
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #cbd5e1; font-size: 11px; font-weight: 700;
+  transition: all .15s; min-height: 38px;
+}
+.m-cat-chip:active { transform: scale(.95); }
+.m-cat-chip.is-active {
+  background: linear-gradient(135deg, #ff7a18, #ea580c);
+  border-color: #ff7a18; color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 122, 24, .35);
+}
+.m-cat-ico { font-size: 13px; line-height: 1; }
+</style>
+
+<script>
+(function(){
+  // Day picker click
+  document.querySelectorAll('#mLichDays .m-day-pill').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#mLichDays .m-day-pill').forEach(function(x){ x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+      applyFilter();
+    });
+  });
+  // Cat chip click - allow multi select OR single? → single để dễ
+  document.querySelectorAll('#mobileLich .m-cat-chip').forEach(function(c){
+    c.addEventListener('click', function(){
+      // Toggle: nếu đang active → bỏ → "tất cả"
+      if (c.classList.contains('is-active')) {
+        document.querySelectorAll('#mobileLich .m-cat-chip').forEach(function(x){ x.classList.remove('is-active'); });
+      } else {
+        document.querySelectorAll('#mobileLich .m-cat-chip').forEach(function(x){ x.classList.remove('is-active'); });
+        c.classList.add('is-active');
+      }
+      applyFilter();
+    });
+  });
+  // Hot toggle
+  var hot = document.getElementById('mLichHotToggle');
+  if (hot) hot.addEventListener('click', function(){
+    var on = hot.getAttribute('data-on') === '1';
+    hot.setAttribute('data-on', on ? '0' : '1');
+    hot.classList.toggle('bg-pri', !on);
+    hot.classList.toggle('bg-bg-deep', on);
+    var dot = hot.querySelector('span');
+    if (dot) dot.style.transform = on ? 'translateX(-20px)' : 'translateX(0)';
+    applyFilter();
+  });
+
+  function applyFilter(){
+    var activeCat = document.querySelector('#mobileLich .m-cat-chip.is-active');
+    var catFilter = activeCat ? activeCat.getAttribute('data-cat') : null;
+    var hotOn = document.getElementById('mLichHotToggle').getAttribute('data-on') === '1';
+
+    var cards = document.querySelectorAll('#mLichList .m-match-card');
+    cards.forEach(function(card){
+      var cat = card.getAttribute('data-cat');
+      var status = card.getAttribute('data-status');
+      var match = true;
+      if (catFilter && cat !== catFilter) match = false;
+      // Hot ON = chỉ show live, OFF = show tất cả
+      // (giữ hot mặc định ON nhưng vẫn show upcoming cũng OK vì list mặc định)
+      card.style.display = match ? '' : 'none';
+    });
+  }
+})();
+</script>
 
 <%- include('partials/tw-footer') %>
