@@ -3,8 +3,9 @@
 // MODAL TẶNG QUÀ THẬT (VND) - PREMIUM GIFTS
 // Required vars: streamerUsername (string) hoặc streamerIdolId
 //                streamerName (display)
+// PREMIUM_GIFTS được expose qua app.locals trong server.js
 // ═══════════════════════════════════════════════════════════
-var PG = require('../../lib/gifts').PREMIUM_GIFTS;
+var PG = (typeof PREMIUM_GIFTS !== 'undefined' && Array.isArray(PREMIUM_GIFTS)) ? PREMIUM_GIFTS : [];
 var _toUser = (typeof streamerUsername !== 'undefined' && streamerUsername) ? streamerUsername : '';
 var _toId   = (typeof streamerIdolId   !== 'undefined' && streamerIdolId)   ? streamerIdolId   : '';
 var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? streamerName     : 'Idol';

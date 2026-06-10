@@ -1153,6 +1153,9 @@ app.get('/nap-tien', pubAuth.requireLogin, function (req, res) {
 const giftsLib   = require('./lib/gifts');
 const giftTxStore= require('./lib/gift-tx-store');
 
+// Expose PREMIUM_GIFTS cho EJS template (modal tặng quà thật) - EJS không có require()
+app.locals.PREMIUM_GIFTS = giftsLib.PREMIUM_GIFTS;
+
 // GET /api/gifts/premium - danh sách quà thật
 app.get('/api/gifts/premium', function (req, res) {
   res.json({ ok:true, list: giftsLib.PREMIUM_GIFTS });
