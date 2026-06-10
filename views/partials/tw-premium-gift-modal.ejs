@@ -37,7 +37,7 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
         <b class="text-emerald-400 tabular-nums text-base" id="pgBalance">—</b>
         <button onclick="pgRefreshBalance()" class="text-pri-light text-[10px] hover:underline">🔄</button>
       </div>
-      <a href="<%= typeof partner!=='undefined' && partner ? partner.register : 'https://qt99.click' %>" target="_blank" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded font-bold">+ Nạp tiền</a>
+      <a href="/nap-tien" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded font-bold">+ Nạp tiền</a>
     </div>
 
     <!-- Premium gifts grid -->
@@ -201,7 +201,7 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
         } else {
           if (d.needTopup) {
             if (confirm(d.error + '\n\nNạp tiền ngay?')) {
-              window.open(<%- JSON.stringify(typeof partner!=='undefined' && partner ? partner.register : 'https://qt99.click') %>, '_blank');
+              window.location.href = '/nap-tien';
             }
           } else {
             alert('❌ ' + (d.error || 'Lỗi không xác định'));

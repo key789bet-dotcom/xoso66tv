@@ -1,0 +1,428 @@
+<%- include('partials/tw-layout-start') %>
+
+<main class="max-w-3xl mx-auto px-3 sm:px-4 py-5 pb-24">
+
+  <!-- Hero -->
+  <div class="bg-gradient-to-br from-emerald-900/40 via-bg-card to-bg border border-emerald-500/30 rounded-2xl p-4 sm:p-5 mb-5">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="text-3xl sm:text-4xl">💰</div>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-extrabold text-white">Nạp tiền vào ví</h1>
+        <p class="text-emerald-300 text-xs sm:text-sm">Nạp VND để tặng quà thật cho Idol/BLV — tiền lưu trong ví của bạn</p>
+      </div>
+    </div>
+    <div class="bg-bg-deep/50 border border-line rounded-lg p-2.5 flex items-center justify-between">
+      <div class="text-[11px] text-muted">Số dư hiện tại của bạn:</div>
+      <div class="text-xl font-black text-emerald-400 tabular-nums" id="ntCurrentBal">— đ</div>
+    </div>
+  </div>
+
+  <!-- Tabs phương thức -->
+  <div class="flex gap-2 mb-4 bg-bg-card border border-line rounded-xl p-2">
+    <button id="ntTabBank" onclick="ntSwitchMethod('bank')" class="flex-1 py-3 rounded-lg font-bold text-sm bg-emerald-600 text-white">
+      🏦 Ngân hàng (VietQR)
+    </button>
+    <button id="ntTabUsdt" onclick="ntSwitchMethod('usdt')" class="flex-1 py-3 rounded-lg font-bold text-sm bg-bg-deep text-gray-300">
+      ₮ USDT (Crypto)
+    </button>
+  </div>
+
+  <!-- ════════════ FORM BANK ════════════ -->
+  <section id="ntFormBank" class="space-y-4">
+    <div class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span class="text-lg">💵</span> Chọn nhanh số tiền</h3>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <% [50000, 100000, 200000, 500000, 1000000, 2000000].forEach(function(v){ %>
+          <button onclick="ntPickAmount(<%= v %>)" class="nt-quick bg-bg-deep border border-line hover:border-emerald-500 text-white py-2.5 rounded-lg font-bold text-xs sm:text-sm transition-colors tabular-nums">
+            <%= v.toLocaleString('vi-VN') %>
+          </button>
+        <% }); %>
+      </div>
+      <div class="mt-3">
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Hoặc nhập số tiền tùy ý (VND)</label>
+        <input id="ntAmountVnd" type="number" min="50000" step="10000" placeholder="VD: 300000" class="w-full bg-bg-deep border border-line text-white text-xl font-extrabold tabular-nums px-3 py-3 rounded-lg outline-none focus:border-emerald-500">
+        <div class="text-[10px] text-muted mt-1">⚠️ Tối thiểu <b id="ntMinDeposit">50.000</b> VND</div>
+      </div>
+    </div>
+
+    <button id="ntBankCreateBtn" onclick="ntCreateBankRequest()" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-700 hover:brightness-110 text-white font-extrabold py-3.5 rounded-xl text-base shadow-lg shadow-emerald-500/30">
+      📨 Tạo yêu cầu nạp tiền
+    </button>
+  </section>
+
+  <!-- ════════════ FORM USDT ════════════ -->
+  <section id="ntFormUsdt" class="space-y-4 hidden">
+    <div class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span class="text-lg">₮</span> Số USDT muốn nạp</h3>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <% [5, 10, 20, 50, 100, 500].forEach(function(v){ %>
+          <button onclick="ntPickUsdt(<%= v %>)" class="nt-quick-u bg-bg-deep border border-line hover:border-amber-500 text-white py-2.5 rounded-lg font-bold text-sm transition-colors tabular-nums">
+            <%= v %> $
+          </button>
+        <% }); %>
+      </div>
+      <div class="mt-3">
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Số USDT</label>
+        <input id="ntUsdtAmount" type="number" min="1" step="1" placeholder="VD: 50" class="w-full bg-bg-deep border border-line text-white text-xl font-extrabold tabular-nums px-3 py-3 rounded-lg outline-none focus:border-amber-500">
+        <div class="text-[10px] text-muted mt-1">≈ <b id="ntUsdtVndPreview" class="text-emerald-400 tabular-nums">0</b> VND (tỉ giá 1 USDT = <span id="ntUsdtRate" class="text-amber-300">26.000</span>đ)</div>
+      </div>
+      <div class="mt-3">
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Mạng (network)</label>
+        <select id="ntUsdtNetwork" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2.5 rounded-lg outline-none focus:border-amber-500">
+          <option value="TRC20">TRC20 (Tron) — khuyên dùng, phí thấp</option>
+          <option value="ERC20">ERC20 (Ethereum) — phí cao</option>
+          <option value="BEP20">BEP20 (Binance Smart Chain)</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="ntUsdtCreateBtn" onclick="ntCreateUsdtRequest()" class="w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:brightness-110 text-white font-extrabold py-3.5 rounded-xl text-base shadow-lg shadow-amber-500/30">
+      ₮ Tạo yêu cầu nạp USDT
+    </button>
+  </section>
+
+  <!-- ════════════ HƯỚNG DẪN CHUYỂN KHOẢN ════════════ -->
+  <section id="ntInstructions" class="hidden mt-5">
+    <div class="bg-gradient-to-br from-emerald-900/30 to-bg-card border-2 border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-xl shadow-emerald-500/20">
+      <div class="flex items-center gap-2 mb-3 pb-3 border-b border-emerald-500/30">
+        <div class="w-10 h-10 rounded-full bg-emerald-500/20 grid place-items-center animate-pulse text-xl">⏳</div>
+        <div>
+          <h3 class="text-white font-extrabold text-base">Yêu cầu đã tạo</h3>
+          <div class="text-emerald-300 text-[11px]">Chuyển khoản theo thông tin bên dưới để admin xác nhận</div>
+        </div>
+      </div>
+
+      <!-- BANK INSTRUCTIONS -->
+      <div id="ntBankInst" class="hidden">
+        <!-- QR + info -->
+        <div class="grid sm:grid-cols-2 gap-4 mb-3">
+          <div class="bg-white rounded-xl p-2 mx-auto sm:mx-0">
+            <img id="ntQrImage" alt="QR Code" class="w-[200px] h-[200px] object-contain" style="display:none;">
+            <div id="ntQrPlaceholder" class="w-[200px] h-[200px] grid place-items-center text-gray-400 text-xs">QR Code...</div>
+          </div>
+          <div class="space-y-2 text-[13px]">
+            <div class="bg-bg-deep border border-line rounded p-2 flex items-center justify-between">
+              <div><div class="text-[10px] text-muted">Ngân hàng</div><b class="text-white" id="ntBankName">—</b></div>
+            </div>
+            <div class="bg-bg-deep border border-line rounded p-2 flex items-center justify-between">
+              <div class="min-w-0 flex-1"><div class="text-[10px] text-muted">Số tài khoản</div><b class="text-white font-mono text-base" id="ntBankAccount">—</b></div>
+              <button onclick="ntCopy(this, document.getElementById('ntBankAccount').textContent)" class="text-emerald-400 hover:underline text-[11px] font-bold ml-2">Copy</button>
+            </div>
+            <div class="bg-bg-deep border border-line rounded p-2">
+              <div class="text-[10px] text-muted">Chủ TK</div><b class="text-white uppercase" id="ntBankHolder">—</b>
+            </div>
+            <div class="bg-emerald-500/10 border border-emerald-500/40 rounded p-2 flex items-center justify-between">
+              <div class="min-w-0 flex-1"><div class="text-[10px] text-emerald-300 font-bold">Số tiền</div><b class="text-emerald-300 font-extrabold text-base tabular-nums" id="ntBankAmount">—</b></div>
+              <button onclick="ntCopy(this, String(parseInt(document.getElementById('ntBankAmount').textContent.replace(/\D/g,''),10)||0))" class="text-emerald-400 hover:underline text-[11px] font-bold ml-2">Copy</button>
+            </div>
+            <div class="bg-yellow-500/10 border-2 border-yellow-500/60 rounded p-2 flex items-center justify-between">
+              <div class="min-w-0 flex-1">
+                <div class="text-[10px] text-yellow-300 font-bold">⚠️ NỘI DUNG CK (bắt buộc)</div>
+                <b class="text-yellow-200 font-mono text-base" id="ntBankContent">—</b>
+              </div>
+              <button onclick="ntCopy(this, document.getElementById('ntBankContent').textContent)" class="text-yellow-400 hover:underline text-[11px] font-bold ml-2">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USDT INSTRUCTIONS -->
+      <div id="ntUsdtInst" class="hidden">
+        <div class="space-y-2 text-[13px]">
+          <div class="bg-bg-deep border border-line rounded p-2">
+            <div class="text-[10px] text-muted">Số USDT cần gửi</div>
+            <b class="text-amber-300 text-xl font-extrabold tabular-nums" id="ntUsdtAmt">—</b>
+          </div>
+          <div class="bg-bg-deep border border-line rounded p-2 flex items-center justify-between">
+            <div><div class="text-[10px] text-muted">Mạng</div><b class="text-white" id="ntUsdtNet">—</b></div>
+          </div>
+          <div class="bg-bg-deep border border-line rounded p-2 flex items-center justify-between">
+            <div class="min-w-0 flex-1"><div class="text-[10px] text-muted">Địa chỉ ví nhận</div><b class="text-white font-mono text-xs break-all" id="ntUsdtAddr">—</b></div>
+            <button onclick="ntCopy(this, document.getElementById('ntUsdtAddr').textContent)" class="text-amber-400 hover:underline text-[11px] font-bold ml-2">Copy</button>
+          </div>
+          <div class="bg-yellow-500/10 border-2 border-yellow-500/60 rounded p-2">
+            <div class="text-[11px] text-yellow-200">
+              ⚠️ Sau khi gửi USDT, paste <b>mã giao dịch (TxHash)</b> bên dưới rồi bấm "Đã chuyển" để admin verify nhanh hơn.
+            </div>
+            <input id="ntUsdtHashInput" type="text" placeholder="0xabc123... hoặc tron hash" class="mt-2 w-full bg-bg-deep border border-line text-white text-xs font-mono px-2 py-1.5 rounded">
+          </div>
+        </div>
+      </div>
+
+      <!-- Common confirm -->
+      <div class="bg-bg-deep border border-line rounded-lg p-2.5 mt-3">
+        <div class="flex justify-between text-[11px]">
+          <span class="text-muted">Mã yêu cầu:</span>
+          <b class="text-emerald-300 font-mono" id="ntReqId">—</b>
+        </div>
+        <div class="flex justify-between text-[11px] mt-1">
+          <span class="text-muted">Trạng thái:</span>
+          <span class="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold">⏳ CHỜ XÁC NHẬN</span>
+        </div>
+      </div>
+
+      <button onclick="ntConfirmSent()" class="w-full mt-3 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white font-extrabold py-3 rounded-xl">
+        ✓ Tôi đã chuyển khoản — Báo admin xác nhận
+      </button>
+      <button onclick="ntCancel()" class="w-full mt-2 text-red-400 hover:underline text-xs py-1">
+        ✗ Huỷ yêu cầu này
+      </button>
+
+      <div class="mt-3 text-[11px] text-muted">
+        💡 Admin sẽ xác nhận trong <b class="text-white">vài phút</b> (giờ hành chính) hoặc <b class="text-white">≤ 30 phút</b> ngoài giờ. Tiền tự cộng vào ví khi duyệt xong.
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ LỊCH SỬ NẠP ════════════ -->
+  <section class="mt-6">
+    <h2 class="text-base font-extrabold text-white mb-3 flex items-center justify-between">
+      <span class="flex items-center gap-2"><span class="w-1 h-4 bg-pri rounded-sm"></span> Lịch sử nạp tiền</span>
+      <button onclick="ntLoadHistory()" class="text-pri-light text-xs hover:underline">🔄 Làm mới</button>
+    </h2>
+    <div id="ntHistoryList" class="space-y-2">
+      <div class="text-center text-muted text-sm py-6 bg-bg-card border border-line rounded-lg">Đang tải...</div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/tw-footer') %>
+
+<script>
+(function(){
+  var __cfg = null;
+  var __method = 'bank';
+  var __currentReq = null;
+
+  function $(id){ return document.getElementById(id); }
+  function vnd(n){ return (n||0).toLocaleString('vi-VN') + ' đ'; }
+  function esc(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+  function fmt(ts){ if(!ts) return '—'; var d=new Date(ts); return d.toLocaleDateString('vi-VN')+' '+d.toTimeString().slice(0,5); }
+
+  // Load config + balance + history
+  function init(){
+    fetch('/api/payment/config').then(function(r){return r.json();}).then(function(d){
+      if (d.ok) {
+        __cfg = d.config;
+        if (__cfg.usdt) $('ntUsdtRate').textContent = (__cfg.usdt.rateVnd || 26000).toLocaleString('vi-VN');
+        if (__cfg.bonus) $('ntMinDeposit').textContent = (__cfg.bonus.minDepositVnd || 50000).toLocaleString('vi-VN');
+        if (!__cfg.enabled || !__cfg.enabled.bank) $('ntTabBank').style.display = 'none';
+        if (!__cfg.enabled || !__cfg.enabled.usdt) $('ntTabUsdt').style.display = 'none';
+      }
+    });
+    fetch('/api/auth/me', { credentials:'same-origin' }).then(function(r){return r.json();}).then(function(d){
+      if (d.ok && d.user) $('ntCurrentBal').textContent = vnd(d.user.vnd);
+    });
+    ntLoadHistory();
+  }
+
+  window.ntSwitchMethod = function(m){
+    __method = m;
+    if (m === 'bank') {
+      $('ntTabBank').className = 'flex-1 py-3 rounded-lg font-bold text-sm bg-emerald-600 text-white';
+      $('ntTabUsdt').className = 'flex-1 py-3 rounded-lg font-bold text-sm bg-bg-deep text-gray-300';
+      $('ntFormBank').classList.remove('hidden');
+      $('ntFormUsdt').classList.add('hidden');
+    } else {
+      $('ntTabUsdt').className = 'flex-1 py-3 rounded-lg font-bold text-sm bg-gradient-to-r from-amber-500 to-rose-600 text-white';
+      $('ntTabBank').className = 'flex-1 py-3 rounded-lg font-bold text-sm bg-bg-deep text-gray-300';
+      $('ntFormUsdt').classList.remove('hidden');
+      $('ntFormBank').classList.add('hidden');
+    }
+    $('ntInstructions').classList.add('hidden');
+  };
+
+  window.ntPickAmount = function(v){
+    $('ntAmountVnd').value = v;
+    document.querySelectorAll('.nt-quick').forEach(function(b){ b.classList.remove('border-emerald-500','bg-emerald-500/10'); });
+    event.target.classList.add('border-emerald-500','bg-emerald-500/10');
+  };
+
+  window.ntPickUsdt = function(v){
+    $('ntUsdtAmount').value = v;
+    ntUpdateUsdtPreview();
+    document.querySelectorAll('.nt-quick-u').forEach(function(b){ b.classList.remove('border-amber-500','bg-amber-500/10'); });
+    event.target.classList.add('border-amber-500','bg-amber-500/10');
+  };
+
+  function ntUpdateUsdtPreview(){
+    var amt = parseFloat($('ntUsdtAmount').value) || 0;
+    var rate = __cfg && __cfg.usdt ? (__cfg.usdt.rateVnd || 26000) : 26000;
+    $('ntUsdtVndPreview').textContent = (amt * rate).toLocaleString('vi-VN');
+  }
+  $('ntUsdtAmount') && $('ntUsdtAmount').addEventListener('input', ntUpdateUsdtPreview);
+
+  window.ntCreateBankRequest = function(){
+    var amount = parseInt($('ntAmountVnd').value, 10) || 0;
+    var min = __cfg && __cfg.bonus ? (__cfg.bonus.minDepositVnd || 50000) : 50000;
+    if (amount < min) return alert('Số tiền tối thiểu ' + min.toLocaleString('vi-VN') + ' VND');
+
+    var btn = $('ntBankCreateBtn');
+    btn.disabled = true; btn.textContent = '⏳ Đang tạo...';
+    fetch('/api/deposit/request', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ method:'bank', amountVnd: amount })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        btn.disabled = false; btn.innerHTML = '📨 Tạo yêu cầu nạp tiền';
+        if (d.ok) {
+          __currentReq = d.deposit;
+          ntShowBankInstructions(d);
+          ntLoadHistory();
+        } else {
+          alert('❌ ' + (d.error || 'Lỗi'));
+        }
+      })
+      .catch(function(){
+        btn.disabled = false; btn.innerHTML = '📨 Tạo yêu cầu nạp tiền';
+        alert('❌ Lỗi kết nối');
+      });
+  };
+
+  window.ntCreateUsdtRequest = function(){
+    var amount = parseFloat($('ntUsdtAmount').value) || 0;
+    if (amount < 1) return alert('Tối thiểu 1 USDT');
+    var btn = $('ntUsdtCreateBtn');
+    btn.disabled = true; btn.textContent = '⏳ Đang tạo...';
+    fetch('/api/deposit/request', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        method:'usdt',
+        usdtAmount: amount,
+        usdtNetwork: $('ntUsdtNetwork').value
+      })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        btn.disabled = false; btn.innerHTML = '₮ Tạo yêu cầu nạp USDT';
+        if (d.ok) {
+          __currentReq = d.deposit;
+          ntShowUsdtInstructions(d);
+          ntLoadHistory();
+        } else {
+          alert('❌ ' + (d.error || 'Lỗi'));
+        }
+      })
+      .catch(function(){
+        btn.disabled = false; btn.innerHTML = '₮ Tạo yêu cầu nạp USDT';
+        alert('❌ Lỗi kết nối');
+      });
+  };
+
+  function ntShowBankInstructions(d){
+    $('ntInstructions').classList.remove('hidden');
+    $('ntBankInst').classList.remove('hidden');
+    $('ntUsdtInst').classList.add('hidden');
+    $('ntBankName').textContent     = (d.bankInfo && d.bankInfo.bankName) || '—';
+    $('ntBankAccount').textContent  = (d.bankInfo && d.bankInfo.accountNo) || '—';
+    $('ntBankHolder').textContent   = (d.bankInfo && d.bankInfo.accountName) || '—';
+    $('ntBankAmount').textContent   = vnd(d.deposit.amountVnd);
+    $('ntBankContent').textContent  = d.transferContent;
+    $('ntReqId').textContent        = d.requestId;
+    if (d.qrUrl) {
+      $('ntQrImage').src = d.qrUrl;
+      $('ntQrImage').style.display = 'block';
+      $('ntQrPlaceholder').style.display = 'none';
+    }
+    setTimeout(function(){
+      $('ntInstructions').scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 100);
+  }
+
+  function ntShowUsdtInstructions(d){
+    $('ntInstructions').classList.remove('hidden');
+    $('ntUsdtInst').classList.remove('hidden');
+    $('ntBankInst').classList.add('hidden');
+    $('ntUsdtAmt').textContent  = (d.deposit.usdtAmount || 0) + ' USDT (≈ ' + vnd(d.deposit.amountVnd) + ')';
+    $('ntUsdtNet').textContent  = d.deposit.usdtNetwork || 'TRC20';
+    $('ntUsdtAddr').textContent = (d.usdtInfo && d.usdtInfo.address) || '—';
+    $('ntReqId').textContent    = d.requestId;
+    setTimeout(function(){
+      $('ntInstructions').scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 100);
+  }
+
+  window.ntCopy = function(btn, txt){
+    try {
+      navigator.clipboard.writeText(txt);
+      var old = btn.textContent;
+      btn.textContent = '✓ Đã copy';
+      setTimeout(function(){ btn.textContent = old; }, 1200);
+    } catch(e){ alert(txt); }
+  };
+
+  window.ntConfirmSent = function(){
+    alert('✅ Đã ghi nhận! Admin sẽ kiểm tra giao dịch trên ngân hàng/blockchain rồi cộng VND vào ví của bạn.\n\nMã yêu cầu: ' + (__currentReq ? __currentReq.id : '—') + '\n\nBạn có thể đóng trang. Tiền sẽ tự cộng & bạn nhận thông báo khi xong.');
+    $('ntInstructions').classList.add('hidden');
+    __currentReq = null;
+    ntLoadHistory();
+  };
+
+  window.ntCancel = function(){
+    if (!__currentReq) return;
+    if (!confirm('Huỷ yêu cầu nạp này?')) return;
+    fetch('/api/deposit/cancel/' + __currentReq.id, { method:'POST', credentials:'same-origin' })
+      .then(function(r){return r.json();}).then(function(d){
+        if (d.ok) {
+          $('ntInstructions').classList.add('hidden');
+          __currentReq = null;
+          ntLoadHistory();
+        } else alert(d.error || 'Lỗi');
+      });
+  };
+
+  function statusBadge(s){
+    var m = {
+      pending:   ['⏳ Chờ admin xác nhận', 'bg-yellow-500/20 text-yellow-300'],
+      credited:  ['✅ Đã cộng tiền',        'bg-emerald-500/20 text-emerald-300'],
+      rejected:  ['❌ Bị từ chối',          'bg-red-500/20 text-red-300'],
+      cancelled: ['⊘ Đã huỷ',              'bg-gray-500/20 text-gray-300']
+    };
+    var x = m[s] || ['—','bg-gray-500/20 text-gray-300'];
+    return '<span class="text-[10px] font-bold px-2 py-0.5 rounded ' + x[1] + '">' + x[0] + '</span>';
+  }
+
+  window.ntLoadHistory = function(){
+    fetch('/api/deposit/mine', { credentials:'same-origin' })
+      .then(function(r){return r.json();}).then(function(d){
+        if (!d.ok) { $('ntHistoryList').innerHTML = '<div class="text-red-400 text-center py-4 text-sm">Lỗi tải</div>'; return; }
+        var list = d.list || [];
+        if (list.length === 0) {
+          $('ntHistoryList').innerHTML = '<div class="text-center text-muted text-sm py-6 bg-bg-card border border-line rounded-lg">Chưa có giao dịch nạp tiền nào.</div>';
+          return;
+        }
+        $('ntHistoryList').innerHTML = list.map(function(x){
+          var amtTxt = x.method === 'bank'
+            ? vnd(x.amountVnd)
+            : ((x.usdtAmount || 0) + ' USDT (≈ ' + vnd(x.amountVnd) + ')');
+          var credited = (x.status === 'credited' && x.creditedVnd)
+            ? '<div class="text-[10px] text-emerald-300 mt-0.5">Đã cộng: +' + vnd(x.creditedVnd) + ' • ' + fmt(x.creditedAt) + '</div>'
+            : '';
+          var rejected = (x.status === 'rejected' && x.rejectReason)
+            ? '<div class="text-[10px] text-red-300 mt-0.5">Lý do: ' + esc(x.rejectReason) + '</div>'
+            : '';
+          return ''
+            + '<div class="bg-bg-card border border-line rounded-lg p-3">'
+            +   '<div class="flex items-start justify-between gap-2">'
+            +     '<div class="flex-1 min-w-0">'
+            +       '<div class="text-white font-extrabold tabular-nums">' + amtTxt + '</div>'
+            +       '<div class="text-[11px] text-muted">' + (x.method === 'bank' ? '🏦 Ngân hàng' : '₮ USDT ' + esc(x.usdtNetwork)) + ' • Mã: <span class="font-mono text-pri-light">' + esc(x.id) + '</span></div>'
+            +       '<div class="text-[10px] text-muted">' + fmt(x.createdAt) + '</div>'
+            +       credited + rejected
+            +     '</div>'
+            +     '<div>' + statusBadge(x.status) + '</div>'
+            +   '</div>'
+            + '</div>';
+        }).join('');
+      });
+  };
+
+  // Auto refresh history mỗi 15s
+  setInterval(ntLoadHistory, 15000);
+
+  init();
+})();
+</script>

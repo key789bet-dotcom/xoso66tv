@@ -16,6 +16,8 @@
   <button data-tab="rates"    class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">💰 Set Tiền Công</button>
   <button data-tab="payable"  class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">💳 Chưa Trả</button>
   <button data-tab="withdraw" class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap relative">💸 Yêu Cầu Rút Tiền <span id="payWdBadge" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">0</span></button>
+  <button data-tab="deposit"  class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap relative">💰 Yêu Cầu Nạp Tiền <span id="payDpBadge" class="hidden bg-emerald-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">0</span></button>
+  <button data-tab="config"   class="pay-tab flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap">⚙️ Cấu hình thanh toán</button>
 </nav>
 
 <!-- ════════════ TAB 1: PHIÊN LIVE ════════════ -->
@@ -187,6 +189,122 @@
   </div>
 </div>
 
+<!-- ════════════ TAB 5: YÊU CẦU NẠP TIỀN ════════════ -->
+<div id="payPanelDeposit" class="pay-panel hidden">
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase font-bold">Tổng YC</div><div class="text-xl font-black text-white" id="payDpTotal">—</div></div>
+    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3"><div class="text-[10px] text-yellow-300 uppercase font-bold">Pending</div><div class="text-xl font-black text-yellow-300" id="payDpPending">—</div></div>
+    <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3"><div class="text-[10px] text-emerald-300 uppercase font-bold">Đã cộng</div><div class="text-xl font-black text-emerald-300 tabular-nums" id="payDpCredited">—</div></div>
+    <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3"><div class="text-[10px] text-red-300 uppercase font-bold">Từ chối</div><div class="text-xl font-black text-red-300" id="payDpRejected">—</div></div>
+    <div class="bg-pri/10 border border-pri/30 rounded-lg p-3"><div class="text-[10px] text-pri-light uppercase font-bold">Tổng VND đã nạp</div><div class="text-sm font-black text-pri-light tabular-nums" id="payDpAmount">—</div></div>
+  </div>
+
+  <div class="bg-bg-card border border-line rounded-xl p-3 mb-3 flex flex-wrap items-center gap-2">
+    <select id="payDpFilterStatus" class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded">
+      <option value="">Tất cả status</option>
+      <option value="pending" selected>⏳ Chờ duyệt</option>
+      <option value="credited">✅ Đã cộng tiền</option>
+      <option value="rejected">❌ Từ chối</option>
+      <option value="cancelled">⊘ User huỷ</option>
+    </select>
+    <select id="payDpFilterMethod" class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded">
+      <option value="">Tất cả phương thức</option>
+      <option value="bank">🏦 Ngân hàng</option>
+      <option value="usdt">₮ USDT</option>
+    </select>
+    <input id="payDpFilterUser" type="text" placeholder="Username..." class="bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded flex-1 max-w-[200px]">
+    <button onclick="payDpLoad()" class="bg-pri text-white text-xs font-bold px-4 py-1.5 rounded">Lọc</button>
+    <button onclick="payDpLoad()" class="text-pri-light text-xs hover:underline ml-auto">🔄 Refresh</button>
+  </div>
+
+  <div id="payDpList" class="space-y-2"><div class="text-center text-muted text-sm py-6">Đang tải...</div></div>
+</div>
+
+<!-- ════════════ TAB 6: CẤU HÌNH THANH TOÁN ════════════ -->
+<div id="payPanelConfig" class="pay-panel hidden">
+  <div class="grid md:grid-cols-2 gap-4">
+    <!-- Bank config -->
+    <div class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span class="text-lg">🏦</span> Tài khoản ngân hàng nhận tiền</h3>
+      <div class="space-y-2.5 text-[13px]">
+        <label class="flex items-center gap-2 text-white"><input id="cfgBankEnabled" type="checkbox" class="w-4 h-4"> Bật phương thức ngân hàng</label>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Tên ngân hàng</label>
+          <input id="cfgBankName" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded" placeholder="Vietcombank">
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Mã ngân hàng (VietQR)</label>
+          <select id="cfgBankCode" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded">
+            <option value="VCB">Vietcombank (VCB)</option>
+            <option value="TCB">Techcombank (TCB)</option>
+            <option value="MB">MB Bank (MB)</option>
+            <option value="BIDV">BIDV</option>
+            <option value="ICB">VietinBank (ICB)</option>
+            <option value="ACB">ACB</option>
+            <option value="VPB">VPBank</option>
+            <option value="TPB">TPBank</option>
+            <option value="STB">Sacombank (STB)</option>
+            <option value="SHB">SHB</option>
+            <option value="HDB">HDBank</option>
+            <option value="OCB">OCB</option>
+            <option value="VIB">VIB</option>
+            <option value="MSB">MSB</option>
+            <option value="EIB">Eximbank (EIB)</option>
+            <option value="VBA">Agribank (VBA)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Số tài khoản</label>
+          <input id="cfgBankAcc" class="w-full bg-bg-deep border border-line text-white font-mono px-3 py-2 rounded" placeholder="0123456789">
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Tên chủ TK (in hoa)</label>
+          <input id="cfgBankHolder" class="w-full bg-bg-deep border border-line text-white uppercase px-3 py-2 rounded" placeholder="NGUYEN VAN A" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Chi nhánh (tùy chọn)</label>
+          <input id="cfgBankBranch" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded" placeholder="Hà Nội">
+        </div>
+      </div>
+    </div>
+
+    <!-- USDT config -->
+    <div class="bg-bg-card border border-line rounded-xl p-4">
+      <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span class="text-lg">₮</span> Ví USDT nhận tiền</h3>
+      <div class="space-y-2.5 text-[13px]">
+        <label class="flex items-center gap-2 text-white"><input id="cfgUsdtEnabled" type="checkbox" class="w-4 h-4"> Bật phương thức USDT</label>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Mạng (network)</label>
+          <select id="cfgUsdtNetwork" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded">
+            <option value="TRC20">TRC20 (Tron)</option>
+            <option value="ERC20">ERC20 (Ethereum)</option>
+            <option value="BEP20">BEP20 (BSC)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Địa chỉ ví</label>
+          <input id="cfgUsdtAddr" class="w-full bg-bg-deep border border-line text-white font-mono text-xs px-3 py-2 rounded" placeholder="TXxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div>
+          <label class="text-[10px] text-muted uppercase block mb-1">Tỉ giá 1 USDT = ? VND</label>
+          <input id="cfgUsdtRate" type="number" min="20000" max="30000" step="100" class="w-full bg-bg-deep border border-line text-white tabular-nums px-3 py-2 rounded" placeholder="26000">
+          <div class="text-[10px] text-muted mt-1">⚠️ Cập nhật khi tỉ giá USD/VND thay đổi (mặc định 26.000)</div>
+        </div>
+      </div>
+
+      <h3 class="text-white font-bold mt-4 mb-3 flex items-center gap-2"><span class="text-lg">⚙️</span> Cài đặt chung</h3>
+      <div>
+        <label class="text-[10px] text-muted uppercase block mb-1">Tối thiểu mỗi lần nạp (VND)</label>
+        <input id="cfgMinDeposit" type="number" min="10000" step="10000" class="w-full bg-bg-deep border border-line text-white tabular-nums px-3 py-2 rounded" placeholder="50000">
+      </div>
+    </div>
+  </div>
+
+  <button id="cfgSaveBtn" onclick="payCfgSave()" class="mt-4 w-full bg-gradient-to-r from-emerald-500 to-emerald-700 hover:brightness-110 text-white font-extrabold py-3 rounded-xl text-base">
+    💾 Lưu cấu hình
+  </button>
+</div>
+
 <style>
 .pay-tab { background:transparent; color:#cbd5e1; border:none; cursor:pointer; }
 .pay-tab.is-active { background:linear-gradient(135deg,#f97316,#ef4444); color:#fff; }
@@ -217,8 +335,197 @@
       if (tab === 'sessions') paySessLoad();
       if (tab === 'payable') payLoadPayable();
       if (tab === 'withdraw') payWdLoad();
+      if (tab === 'deposit') payDpLoad();
+      if (tab === 'config') payCfgLoad();
     });
   });
+
+  // ════════════ DEPOSIT MANAGEMENT ════════════
+  function dpStatusBadge(st){
+    var m = {
+      pending:   ['⏳ Chờ duyệt', 'bg-yellow-500/20 text-yellow-300'],
+      credited:  ['✅ Đã cộng tiền', 'bg-emerald-500/20 text-emerald-300'],
+      rejected:  ['❌ Từ chối', 'bg-red-500/20 text-red-300'],
+      cancelled: ['⊘ User huỷ', 'bg-gray-500/20 text-gray-300']
+    };
+    var x = m[st] || ['—','bg-gray-500/20 text-gray-300'];
+    return '<span class="text-[10px] font-bold px-2 py-0.5 rounded ' + x[1] + '">' + x[0] + '</span>';
+  }
+
+  window.payDpLoad = function(){
+    var params = new URLSearchParams();
+    var st = $('payDpFilterStatus').value; if (st) params.set('status', st);
+    var me = $('payDpFilterMethod').value; if (me) params.set('method', me);
+    var us = $('payDpFilterUser').value.trim(); if (us) params.set('username', us);
+    fetch('/api/admin/deposit/list?' + params.toString(), { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) { $('payDpList').innerHTML = '<div class="text-red-400 text-center py-6">Lỗi</div>'; return; }
+        var s = d.stats || {};
+        $('payDpTotal').textContent    = s.total || 0;
+        $('payDpPending').textContent  = s.pending || 0;
+        $('payDpCredited').textContent = s.credited || 0;
+        $('payDpRejected').textContent = s.rejected || 0;
+        $('payDpAmount').textContent   = vnd(s.creditedVnd || 0);
+        var b = $('payDpBadge');
+        if (s.pending > 0) { b.textContent = s.pending; b.classList.remove('hidden'); }
+        else b.classList.add('hidden');
+
+        var list = d.list || [];
+        if (list.length === 0) {
+          $('payDpList').innerHTML = '<div class="text-center text-muted py-10 bg-bg-card border border-line rounded-xl">Không có yêu cầu nào.</div>';
+          return;
+        }
+        $('payDpList').innerHTML = list.map(function(x){
+          var methodBox = '';
+          if (x.method === 'bank') {
+            methodBox = '<div class="bg-bg-deep border border-line rounded p-2 text-[11px]">'
+                      + '<div class="text-blue-300 font-bold">🏦 Chuyển khoản ngân hàng</div>'
+                      + '<div class="text-muted">Số tiền yêu cầu: <b class="text-white tabular-nums">'+vnd(x.amountVnd)+'</b></div>'
+                      + '<div class="text-muted">Nội dung CK: <b class="text-yellow-300 font-mono">'+escHtml(x.id)+'</b> <button onclick="payDpCopy(this,\''+escHtml(x.id)+'\')" class="text-pri-light hover:underline text-[9px]">Copy</button></div>'
+                      + '</div>';
+          } else {
+            methodBox = '<div class="bg-bg-deep border border-line rounded p-2 text-[11px]">'
+                      + '<div class="text-amber-300 font-bold">₮ USDT '+escHtml(x.usdtNetwork)+'</div>'
+                      + '<div class="text-muted">Số USDT: <b class="text-white tabular-nums">'+(x.usdtAmount||0)+' USDT</b> ≈ <b class="text-emerald-300 tabular-nums">'+vnd(x.amountVnd)+'</b></div>'
+                      + (x.usdtTxHash ? '<div class="text-muted">TxHash: <b class="text-white font-mono text-[10px] break-all">'+escHtml(x.usdtTxHash)+'</b></div>' : '<div class="text-yellow-400">⚠️ User chưa cung cấp TxHash</div>')
+                      + '</div>';
+          }
+          var actions = '';
+          if (x.status === 'pending') {
+            actions = '<button onclick="payDpCredit(\''+x.id+'\','+(x.amountVnd||0)+')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">✓ Duyệt + cộng tiền</button>'
+                    + '<button onclick="payDpReject(\''+x.id+'\')" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded">✗ Từ chối</button>';
+          }
+          var creditedInfo = (x.status === 'credited' && x.creditedVnd)
+            ? '<div class="text-[10px] text-emerald-300">Đã cộng: +'+vnd(x.creditedVnd)+' lúc '+fmt(x.creditedAt)+(x.creditedBy?' bởi @'+escHtml(x.creditedBy):'')+'</div>'
+            : '';
+          var rejectInfo = (x.status === 'rejected' && x.rejectReason)
+            ? '<div class="text-[10px] text-red-300">Lý do: '+escHtml(x.rejectReason)+'</div>'
+            : '';
+
+          return ''
+            + '<div class="bg-bg-card border border-line rounded-xl p-3">'
+            +   '<div class="flex flex-wrap items-start gap-3 mb-2">'
+            +     '<div class="flex-1 min-w-[180px]">'
+            +       '<div class="font-extrabold text-white">@'+escHtml(x.username)+'</div>'
+            +       '<div class="text-[10px] text-muted">'+fmt(x.createdAt)+' • Mã: <span class="font-mono text-pri-light">'+escHtml(x.id)+'</span></div>'
+            +     '</div>'
+            +     '<div>'+dpStatusBadge(x.status)+'</div>'
+            +   '</div>'
+            +   methodBox
+            +   creditedInfo + rejectInfo
+            +   '<div class="flex gap-1.5 mt-2 justify-end">'+actions+'</div>'
+            + '</div>';
+        }).join('');
+      });
+  };
+
+  window.payDpCopy = function(btn, txt){
+    try { navigator.clipboard.writeText(txt); var o = btn.textContent; btn.textContent='✓ Copied'; setTimeout(function(){ btn.textContent=o; },1200); } catch(e){ alert(txt); }
+  };
+
+  window.payDpCredit = function(id, suggested){
+    var v = prompt('Số VND thực tế cộng vào ví user:\n(Mặc định = số tiền user yêu cầu. Có thể chỉnh nếu user chuyển sai/USDT giá đổi)', suggested || 0);
+    if (v === null) return;
+    var amt = parseInt(v, 10) || 0;
+    if (amt <= 0) return alert('Số tiền không hợp lệ');
+    fetch('/api/admin/deposit/'+id+'/credit', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ creditedVnd: amt })
+    }).then(function(r){return r.json();}).then(function(d){
+      if (d.ok) { alert('✅ Đã cộng '+amt.toLocaleString('vi-VN')+'đ. Số dư mới của user: '+(d.newBalance||0).toLocaleString('vi-VN')+'đ'); payDpLoad(); }
+      else alert(d.error || 'Lỗi');
+    });
+  };
+
+  window.payDpReject = function(id){
+    var r = prompt('Lý do từ chối:', 'Không tìm thấy giao dịch chuyển khoản tương ứng');
+    if (!r) return;
+    fetch('/api/admin/deposit/'+id+'/reject', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ reason: r })
+    }).then(function(r){return r.json();}).then(function(d){
+      if (d.ok) payDpLoad(); else alert(d.error || 'Lỗi');
+    });
+  };
+
+  // ════════════ PAYMENT CONFIG ════════════
+  window.payCfgLoad = function(){
+    fetch('/api/admin/payment-config', { credentials:'same-origin' })
+      .then(function(r){return r.json();}).then(function(d){
+        if (!d.ok) return;
+        var c = d.config;
+        $('cfgBankEnabled').checked  = !!(c.enabled && c.enabled.bank);
+        $('cfgUsdtEnabled').checked  = !!(c.enabled && c.enabled.usdt);
+        $('cfgBankName').value       = c.bank.bankName || '';
+        $('cfgBankCode').value       = c.bank.bankCode || 'VCB';
+        $('cfgBankAcc').value        = c.bank.accountNo || '';
+        $('cfgBankHolder').value     = c.bank.accountName || '';
+        $('cfgBankBranch').value     = c.bank.branch || '';
+        $('cfgUsdtNetwork').value    = c.usdt.network || 'TRC20';
+        $('cfgUsdtAddr').value       = c.usdt.address || '';
+        $('cfgUsdtRate').value       = c.usdt.rateVnd || 26000;
+        $('cfgMinDeposit').value     = c.bonus.minDepositVnd || 50000;
+      });
+  };
+
+  window.payCfgSave = function(){
+    var body = {
+      enabled: {
+        bank: $('cfgBankEnabled').checked,
+        usdt: $('cfgUsdtEnabled').checked
+      },
+      bank: {
+        bankName:    $('cfgBankName').value.trim(),
+        bankCode:    $('cfgBankCode').value,
+        accountNo:   $('cfgBankAcc').value.trim(),
+        accountName: $('cfgBankHolder').value.trim(),
+        branch:      $('cfgBankBranch').value.trim()
+      },
+      usdt: {
+        network: $('cfgUsdtNetwork').value,
+        address: $('cfgUsdtAddr').value.trim(),
+        rateVnd: parseInt($('cfgUsdtRate').value, 10) || 26000
+      },
+      bonus: {
+        minDepositVnd: parseInt($('cfgMinDeposit').value, 10) || 50000
+      }
+    };
+    var btn = $('cfgSaveBtn');
+    btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+    fetch('/api/admin/payment-config', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    }).then(function(r){return r.json();}).then(function(d){
+      btn.disabled = false;
+      btn.innerHTML = '💾 Lưu cấu hình';
+      if (d.ok) {
+        btn.textContent = '✅ Đã lưu';
+        setTimeout(function(){ btn.innerHTML = '💾 Lưu cấu hình'; }, 1500);
+      } else alert(d.error || 'Lỗi');
+    });
+  };
+
+  // Pre-load deposit badge
+  fetch('/api/admin/deposit/list?status=pending&limit=1', { credentials:'same-origin' })
+    .then(function(r){return r.json();}).then(function(d){
+      if (d.ok && d.stats && d.stats.pending > 0) {
+        var b = $('payDpBadge'); b.textContent = d.stats.pending; b.classList.remove('hidden');
+      }
+    }).catch(function(){});
+
+  // Auto-open via URL ?tab=deposit/config
+  try {
+    var qs2 = new URLSearchParams(location.search);
+    var t2 = qs2.get('tab');
+    if (t2 === 'deposit' || t2 === 'config') {
+      var tt = document.querySelector('.pay-tab[data-tab="'+t2+'"]');
+      if (tt) tt.click();
+    }
+  } catch(e){}
 
   // ===== WITHDRAW =====
   var __wdBankMap = {

@@ -781,6 +781,197 @@ app.get('/admin/payment', pubAuth.requireAdmin, function (req, res) {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// 💰 NẠP TIỀN (Deposit) — Ngân hàng + USDT
+// ═══════════════════════════════════════════════════════════════
+const depositStore = require('./lib/deposit-store');
+const paymentCfg   = require('./lib/payment-config');
+
+// GET /api/payment/config - lấy thông tin TK ngân hàng/USDT để hiển thị cho user
+app.get('/api/payment/config', function (req, res) {
+  const c = paymentCfg.load();
+  // KHÔNG trả tỉ giá riêng tư, KHÔNG ẩn account info
+  res.json({
+    ok: true,
+    config: {
+      bank: c.enabled.bank ? {
+        bankName: c.bank.bankName,
+        bankCode: c.bank.bankCode,
+        accountNo: c.bank.accountNo,
+        accountName: c.bank.accountName,
+        branch: c.bank.branch
+      } : null,
+      usdt: c.enabled.usdt ? {
+        network: c.usdt.network,
+        address: c.usdt.address,
+        rateVnd: c.usdt.rateVnd
+      } : null,
+      bonus: c.bonus,
+      enabled: c.enabled
+    }
+  });
+});
+
+// POST /api/payment/qr - sinh URL QR VietQR
+app.post('/api/payment/qr', pubAuth.requireLogin, function (req, res) {
+  const b = req.body || {};
+  const amount = parseInt(b.amount, 10) || 0;
+  const addInfo = String(b.addInfo || '').slice(0, 100);
+  res.json({ ok:true, url: paymentCfg.vietQrUrl(amount, addInfo) });
+});
+
+// POST /api/deposit/request - user gửi yêu cầu nạp tiền
+app.post('/api/deposit/request', pubAuth.requireLogin, function (req, res) {
+  const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+  if (!user.username) return res.json({ ok:false, error:'Cần đăng nhập' });
+  const b = req.body || {};
+  const cfg = paymentCfg.load();
+  const method = (b.method === 'usdt') ? 'usdt' : 'bank';
+
+  let amountVnd = parseInt(b.amountVnd, 10) || 0;
+  let usdtAmount = parseFloat(b.usdtAmount) || 0;
+
+  if (method === 'bank') {
+    if (amountVnd < (cfg.bonus.minDepositVnd || 50000)) {
+      return res.json({ ok:false, error:'Tối thiểu nạp ' + (cfg.bonus.minDepositVnd || 50000).toLocaleString('vi-VN') + ' VND' });
+    }
+    if (amountVnd > 500000000) {
+      return res.json({ ok:false, error:'Tối đa 500.000.000 VND/lần. Liên hệ admin nếu cần nạp nhiều hơn.' });
+    }
+  } else {
+    if (usdtAmount < 1) return res.json({ ok:false, error:'Tối thiểu nạp 1 USDT' });
+    if (usdtAmount > 100000) return res.json({ ok:false, error:'Tối đa 100,000 USDT/lần' });
+    // VND tương đương theo tỉ giá hiện tại (admin chỉnh sau khi check)
+    amountVnd = Math.floor(usdtAmount * (cfg.usdt.rateVnd || 26000));
+  }
+
+  const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').split(',')[0].trim();
+  const dep = depositStore.add({
+    username: user.username,
+    method: method,
+    amountVnd: amountVnd,
+    usdtAmount: usdtAmount,
+    usdtNetwork: b.usdtNetwork,
+    usdtTxHash: b.usdtTxHash,
+    proofImage: b.proofImage,
+    note: b.note,
+    ip: ip
+  });
+
+  // Noti admin
+  try {
+    scheduleStore.pushNotification('admin', {
+      title: '💰 Yêu cầu nạp tiền mới',
+      body: '@' + user.username + ' nạp ' + amountVnd.toLocaleString('vi-VN') + ' VND qua ' + (method === 'bank' ? 'Ngân hàng' : 'USDT ' + (b.usdtNetwork || 'TRC20')) + ' • Mã: ' + dep.id,
+      type: 'deposit-request',
+      link: '/admin/payment?tab=deposit'
+    });
+  } catch(e){}
+
+  res.json({
+    ok: true,
+    deposit: dep,
+    requestId: dep.id,
+    transferContent: dep.id,        // user PHẢI ghi mã này vào nội dung CK
+    bankInfo: cfg.enabled.bank ? cfg.bank : null,
+    usdtInfo: cfg.enabled.usdt ? cfg.usdt : null,
+    qrUrl: method === 'bank' ? paymentCfg.vietQrUrl(amountVnd, dep.id) : ''
+  });
+});
+
+// GET /api/deposit/mine - user xem lịch sử nạp
+app.get('/api/deposit/mine', pubAuth.requireLogin, function (req, res) {
+  const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+  if (!user.username) return res.json({ ok:false, error:'Cần đăng nhập' });
+  const list = depositStore.listByUser(user.username, { limit: 50 });
+  res.json({ ok:true, list: list });
+});
+
+// POST /api/deposit/cancel/:id - user huỷ pending
+app.post('/api/deposit/cancel/:id', pubAuth.requireLogin, function (req, res) {
+  const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+  if (!user.username) return res.json({ ok:false, error:'Cần đăng nhập' });
+  const ok = depositStore.cancel(req.params.id, user.username);
+  if (!ok) return res.json({ ok:false, error:'Không huỷ được (đã xử lý hoặc không tồn tại)' });
+  res.json({ ok:true });
+});
+
+// ═══ ADMIN ═══
+// GET /api/admin/payment-config
+app.get('/api/admin/payment-config', pubAuth.requireAdmin, function (req, res) {
+  res.json({ ok:true, config: paymentCfg.load() });
+});
+
+// POST /api/admin/payment-config - save
+app.post('/api/admin/payment-config', pubAuth.requireAdmin, function (req, res) {
+  const cfg = paymentCfg.save(req.body || {});
+  res.json({ ok:true, config: cfg });
+});
+
+// GET /api/admin/deposit/list
+app.get('/api/admin/deposit/list', pubAuth.requireAdmin, function (req, res) {
+  const opts = {
+    status: req.query.status || null,
+    method: req.query.method || null,
+    username: req.query.username || null,
+    limit: parseInt(req.query.limit, 10) || 200
+  };
+  res.json({ ok:true, list: depositStore.listAll(opts), stats: depositStore.stats() });
+});
+
+// POST /api/admin/deposit/:id/credit - admin duyệt + cộng VND
+// body: { creditedVnd }
+app.post('/api/admin/deposit/:id/credit', pubAuth.requireAdmin, function (req, res) {
+  const adminUser = res.locals.publicUser || pubAuth.getUser(req) || {};
+  const b = req.body || {};
+  const dep = depositStore.findById(req.params.id);
+  if (!dep) return res.json({ ok:false, error:'Không tìm thấy yêu cầu' });
+
+  // Default = amountVnd request
+  const credited = parseInt(b.creditedVnd, 10) || dep.amountVnd || 0;
+  const r = depositStore.credit(req.params.id, credited, adminUser.username || 'admin');
+  if (!r) return res.json({ ok:false, error:'Không duyệt được (đã xử lý hoặc user không tồn tại)' });
+
+  // Noti user
+  try {
+    scheduleStore.pushNotification(r.deposit.username, {
+      title: '💰 Nạp tiền thành công!',
+      body: 'Đã cộng ' + credited.toLocaleString('vi-VN') + ' VND vào ví. Số dư: ' + r.newBalance.toLocaleString('vi-VN') + ' VND',
+      type: 'deposit-credited',
+      link: '/profile?tab=wallet'
+    });
+  } catch(e){}
+
+  res.json({ ok:true, deposit: r.deposit, newBalance: r.newBalance });
+});
+
+// POST /api/admin/deposit/:id/reject
+app.post('/api/admin/deposit/:id/reject', pubAuth.requireAdmin, function (req, res) {
+  const adminUser = res.locals.publicUser || pubAuth.getUser(req) || {};
+  const b = req.body || {};
+  const d = depositStore.reject(req.params.id, b.reason, adminUser.username || 'admin');
+  if (!d) return res.json({ ok:false, error:'Không từ chối được' });
+  try {
+    scheduleStore.pushNotification(d.username, {
+      title: '❌ Yêu cầu nạp tiền bị từ chối',
+      body: (d.rejectReason || 'Vui lòng kiểm tra lại thông tin') + '. Mã: ' + d.id,
+      type: 'deposit-rejected',
+      link: '/profile?tab=wallet'
+    });
+  } catch(e){}
+  res.json({ ok:true, deposit: d });
+});
+
+// Render trang nạp tiền riêng (full UI)
+app.get('/nap-tien', pubAuth.requireLogin, function (req, res) {
+  const user = pubAuth.getUser(req);
+  res.render('tw-nap-tien', {
+    active:'profile',
+    publicUser: user,
+    paymentConfig: paymentCfg.load()
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
 // 🎁 PREMIUM GIFTS - Quà THẬT (mua bằng VND nạp) → tính earnings cho streamer
 // ═══════════════════════════════════════════════════════════════
 const giftsLib   = require('./lib/gifts');
