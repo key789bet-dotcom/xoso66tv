@@ -84,45 +84,28 @@ for (var _di=0; _di<6; _di++) {
     <% }); %>
   </div>
 
-  <!-- Filter chips: Hot toggle + 8 categories grid -->
-  <div class="bg-bg-card border border-line rounded-xl p-2.5 mb-3">
-    <!-- Hot toggle row -->
-    <div class="flex items-center justify-between mb-2 px-1">
-      <div class="flex items-center gap-2">
-        <span class="text-base">🔥</span>
-        <span class="text-white font-bold text-sm">Hot</span>
-      </div>
-      <button id="mLichHotToggle" type="button" class="relative w-11 h-6 rounded-full bg-pri transition-colors" data-on="1">
-        <span class="absolute top-0.5 right-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow"></span>
-      </button>
-    </div>
-    <!-- Categories grid 4x2 -->
-    <div class="grid grid-cols-4 gap-1.5">
-      <button class="m-cat-chip is-active" data-cat="bong-da" type="button">
-        <span class="m-cat-ico">⚽</span><span>Bóng đá</span>
-      </button>
-      <button class="m-cat-chip" data-cat="bong-ro" type="button">
-        <span class="m-cat-ico">🏀</span><span>Bóng rổ</span>
-      </button>
-      <button class="m-cat-chip" data-cat="tennis" type="button">
-        <span class="m-cat-ico">🎾</span><span>Tennis</span>
-      </button>
-      <button class="m-cat-chip" data-cat="bong-chuyen" type="button">
-        <span class="m-cat-ico">🏐</span><span>B.chuyền</span>
-      </button>
-      <button class="m-cat-chip" data-cat="bong-ban" type="button">
-        <span class="m-cat-ico">🏓</span><span>Bóng bàn</span>
-      </button>
-      <button class="m-cat-chip" data-cat="esports" type="button">
-        <span class="m-cat-ico">🎮</span><span>Esports</span>
-      </button>
-      <button class="m-cat-chip" data-cat="giai-tri" type="button">
-        <span class="m-cat-ico">🎤</span><span>Giải trí</span>
-      </button>
-      <button class="m-cat-chip" data-cat="casino" type="button">
-        <span class="m-cat-ico">🎰</span><span>Casino</span>
-      </button>
-    </div>
+  <!-- Filter chips: 5 cat giống trang chủ - horizontal scroll -->
+  <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1 mb-3 -mx-3 px-3" id="mLichCats">
+    <button class="m-cat-pill is-active shrink-0" data-cat="all" type="button">
+      <span class="m-cat-ico bg-pri/20 text-pri-light">📊</span>
+      <span>Tất cả</span>
+    </button>
+    <button class="m-cat-pill shrink-0" data-cat="bong-da" type="button">
+      <span class="m-cat-ico bg-emerald-500/20 text-emerald-400">⚽</span>
+      <span>Bóng đá</span>
+    </button>
+    <button class="m-cat-pill shrink-0" data-cat="idol" type="button">
+      <span class="m-cat-ico bg-pink-500/20 text-pink-400">👑</span>
+      <span>Idol</span>
+    </button>
+    <button class="m-cat-pill shrink-0" data-cat="casino" type="button">
+      <span class="m-cat-ico bg-amber-500/20 text-amber-400">🎰</span>
+      <span>Sòng Bài</span>
+    </button>
+    <button class="m-cat-pill shrink-0" data-cat="esports" type="button">
+      <span class="m-cat-ico bg-violet-500/20 text-violet-400">🎮</span>
+      <span>Esport</span>
+    </button>
   </div>
 
   <!-- Match cards list -->
@@ -221,21 +204,29 @@ for (var _di=0; _di<6; _di++) {
 }
 .m-day-pill:active { transform: scale(.96); }
 
-/* Cat chip - grid 4 */
-.m-cat-chip {
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 8px 6px; border-radius: 8px;
+/* Cat pill - horizontal scroll giống trang chủ */
+.m-cat-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px 6px 6px; border-radius: 999px;
   background: #1a1f29; border: 1px solid #2a3344;
-  color: #cbd5e1; font-size: 11px; font-weight: 700;
-  transition: all .15s; min-height: 38px;
+  color: #cbd5e1; font-size: 12px; font-weight: 700;
+  transition: all .15s; white-space: nowrap;
 }
-.m-cat-chip:active { transform: scale(.95); }
-.m-cat-chip.is-active {
+.m-cat-pill:active { transform: scale(.95); }
+.m-cat-pill.is-active {
   background: linear-gradient(135deg, #ff7a18, #ea580c);
   border-color: #ff7a18; color: #fff;
   box-shadow: 0 4px 12px rgba(255, 122, 24, .35);
 }
-.m-cat-ico { font-size: 13px; line-height: 1; }
+.m-cat-pill.is-active .m-cat-ico {
+  background: rgba(255,255,255,.18) !important;
+  color: #fff !important;
+}
+.m-cat-ico {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 13px;
+}
 </style>
 
 <script>
@@ -248,44 +239,26 @@ for (var _di=0; _di<6; _di++) {
       applyFilter();
     });
   });
-  // Cat chip click - allow multi select OR single? → single để dễ
-  document.querySelectorAll('#mobileLich .m-cat-chip').forEach(function(c){
+  // Cat pill click - single select
+  document.querySelectorAll('#mLichCats .m-cat-pill').forEach(function(c){
     c.addEventListener('click', function(){
-      // Toggle: nếu đang active → bỏ → "tất cả"
-      if (c.classList.contains('is-active')) {
-        document.querySelectorAll('#mobileLich .m-cat-chip').forEach(function(x){ x.classList.remove('is-active'); });
-      } else {
-        document.querySelectorAll('#mobileLich .m-cat-chip').forEach(function(x){ x.classList.remove('is-active'); });
-        c.classList.add('is-active');
-      }
+      document.querySelectorAll('#mLichCats .m-cat-pill').forEach(function(x){ x.classList.remove('is-active'); });
+      c.classList.add('is-active');
       applyFilter();
     });
   });
-  // Hot toggle
-  var hot = document.getElementById('mLichHotToggle');
-  if (hot) hot.addEventListener('click', function(){
-    var on = hot.getAttribute('data-on') === '1';
-    hot.setAttribute('data-on', on ? '0' : '1');
-    hot.classList.toggle('bg-pri', !on);
-    hot.classList.toggle('bg-bg-deep', on);
-    var dot = hot.querySelector('span');
-    if (dot) dot.style.transform = on ? 'translateX(-20px)' : 'translateX(0)';
-    applyFilter();
-  });
 
   function applyFilter(){
-    var activeCat = document.querySelector('#mobileLich .m-cat-chip.is-active');
-    var catFilter = activeCat ? activeCat.getAttribute('data-cat') : null;
-    var hotOn = document.getElementById('mLichHotToggle').getAttribute('data-on') === '1';
+    var activeCat = document.querySelector('#mLichCats .m-cat-pill.is-active');
+    var catFilter = activeCat ? activeCat.getAttribute('data-cat') : 'all';
+    // 'all' = hiện hết (không filter)
+    if (catFilter === 'all') catFilter = null;
 
     var cards = document.querySelectorAll('#mLichList .m-match-card');
     cards.forEach(function(card){
       var cat = card.getAttribute('data-cat');
-      var status = card.getAttribute('data-status');
       var match = true;
       if (catFilter && cat !== catFilter) match = false;
-      // Hot ON = chỉ show live, OFF = show tất cả
-      // (giữ hot mặc định ON nhưng vẫn show upcoming cũng OK vì list mặc định)
       card.style.display = match ? '' : 'none';
     });
   }
