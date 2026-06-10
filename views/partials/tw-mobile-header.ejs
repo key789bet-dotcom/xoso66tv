@@ -1,0 +1,67 @@
+<%
+// ╔════════════════════════════════════════════════════════════════════╗
+// ║ MOBILE HEADER - GLOBAL (hiển thị MỌI trang trên mobile)           ║
+// ║ Include từ tw-layout-start.ejs ngay sau sidebar                   ║
+// ║ Fixed top, 52px cao, logo + login/register buttons                ║
+// ╚════════════════════════════════════════════════════════════════════╝
+%>
+<header class="md:hidden fixed top-0 left-0 right-0 z-40 border-b border-line flex items-center gap-2 px-3 h-[52px]" id="globalMobileHeader" style="backdrop-filter:blur(8px);background:rgba(19,23,31,.95);">
+  <button onclick="toggleSidebar()" class="text-white text-2xl px-1 leading-none" aria-label="Menu">☰</button>
+  <a href="/" class="flex items-center gap-1.5 ml-1">
+    <img src="/static/img/logoxoso66tv.webp" alt="<%= typeof brand !== 'undefined' && brand ? brand.name : 'XOSO66 TV' %>" class="h-8 w-auto" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.classList.remove('hidden');">
+    <span class="hidden text-white font-black text-base"><%= typeof brand !== 'undefined' && brand ? (brand.short || 'XOSO66') : 'XOSO66' %><span class="text-pri">TV</span></span>
+  </a>
+  <div class="flex-1"></div>
+  <!-- Guest buttons - tự ẩn nếu logged in (qua JS detect localStorage) -->
+  <div id="gmhGuest" class="flex items-center gap-1.5">
+    <a href="/dang-nhap" class="px-2.5 py-1 rounded text-[11px] font-bold border-2 border-pri text-pri-light whitespace-nowrap">Đăng Nhập</a>
+    <a href="/dang-ky" class="px-2.5 py-1 rounded text-[11px] font-bold bg-gradient-to-br from-pri to-live text-white shadow whitespace-nowrap">Đăng Ký</a>
+  </div>
+  <!-- User logged-in: avatar + bell -->
+  <div id="gmhUser" class="hidden items-center gap-2">
+    <button onclick="document.getElementById('hdrBellBtn') && document.getElementById('hdrBellBtn').click()" class="w-8 h-8 rounded-full bg-bg-soft border border-line grid place-items-center text-white" aria-label="Notif">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+    </button>
+    <a href="/profile" class="w-8 h-8 rounded-full border-2 border-pri bg-bg-deep grid place-items-center text-pri font-extrabold text-sm" id="gmhAvatar">U</a>
+  </div>
+</header>
+
+<style>
+/* Mobile: thêm padding-top cho main content để không bị header fixed che */
+@media (max-width: 767px) {
+  main { padding-top: 60px !important; }
+  /* Header cũ trong tw-mobile-home (bên trong #mobileHome) - ẩn vì đã có global header */
+  #mobileHome > header { display: none !important; }
+  #mobileHome > div[style*="padding-top:60px"],
+  #mobileHome > div[style*="padding-top: 60px"] {
+    padding-top: 0 !important; /* main đã có padding rồi */
+  }
+}
+</style>
+
+<script>
+(function() {
+  // Detect logged-in user (qua localStorage) → swap guest ↔ user buttons
+  function paintMobileHeader() {
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user') || 'null');
+      var guest = document.getElementById('gmhGuest');
+      var user = document.getElementById('gmhUser');
+      var avatar = document.getElementById('gmhAvatar');
+      if (!guest || !user) return;
+      if (u && u.username) {
+        guest.classList.add('hidden');
+        user.classList.remove('hidden');
+        user.classList.add('flex');
+        if (avatar) avatar.textContent = (u.fullname || u.username || 'U').charAt(0).toUpperCase();
+      } else {
+        guest.classList.remove('hidden');
+        user.classList.add('hidden');
+        user.classList.remove('flex');
+      }
+    } catch (e) {}
+  }
+  paintMobileHeader();
+  window.addEventListener('storage', paintMobileHeader);
+})();
+</script>
