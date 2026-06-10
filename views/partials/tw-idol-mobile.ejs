@@ -997,22 +997,45 @@ var quickGifts = [
     }, 8000);
   }
 
-  // Seed welcome messages
+  // Seed welcome message (1 dòng - phần còn lại sync từ server)
   setTimeout(function(){ pushMlrChat('','','','Chào mừng đến phòng <%= idol.name %> 🎉', true); }, 400);
-  setTimeout(function(){ pushMlrChat('VTNT.Com', 41, 'emerald', 'Hoan nghênh đại gia'); }, 1400);
-  setTimeout(function(){ pushMlrChat('Max12', 2, 'pink', 'Đến rồi'); }, 2400);
-  setTimeout(function(){ pushMlrChat('nhtky', 42, 'emerald', 'Hoan nghênh đại gia'); }, 3400);
 
-  // Random bot chat every 4-10s
-  function scheduleChat(){
-    var delay = 4000 + Math.random()*6000;
-    setTimeout(function(){
-      var m = BOT_MSGS[Math.floor(Math.random()*BOT_MSGS.length)];
-      pushMlrChat(m.user, m.lvl, m.c, m.text);
-      scheduleChat();
-    }, delay);
+  // ═══════════════════════════════════════════════════════════════
+  // CHAT SERVER-SIDE POLLING - đồng bộ với desktop, mọi viewer thấy CÙNG tin
+  // Thay vì random local từ BOT_MSGS (mỗi browser khác nhau)
+  // ═══════════════════════════════════════════════════════════════
+  var __mlrRoomId = '<%= idolId %>';
+  var __mlrLastMsgId = 0;
+  var __mlrRendered = {};
+
+  // Map color theo lvl (giữ giao diện cũ)
+  function lvlToColor(lvl){
+    if (lvl >= 50) return 'amber';
+    if (lvl >= 20) return 'emerald';
+    if (lvl >= 10) return 'sky';
+    return 'pink';
   }
-  scheduleChat();
+
+  function fetchMlrMessages(){
+    fetch('/api/chat/' + encodeURIComponent(__mlrRoomId) + '/recent?since=' + __mlrLastMsgId, {
+      credentials: 'same-origin', cache: 'no-store'
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.ok || !data.messages) return;
+        data.messages.forEach(function(m){
+          if (__mlrRendered[m.id]) return;
+          __mlrRendered[m.id] = true;
+          if (m.id > __mlrLastMsgId) __mlrLastMsgId = m.id;
+          pushMlrChat(m.name, m.lvl, lvlToColor(m.lvl), m.text);
+        });
+      })
+      .catch(function(){});
+  }
+
+  // Polling mỗi 2s (đồng bộ với desktop)
+  fetchMlrMessages();
+  setInterval(fetchMlrMessages, 2000);
 
   // ===== TIMER COUNTDOWN =====
   var timerStart = Date.now();

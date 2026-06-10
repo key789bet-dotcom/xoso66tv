@@ -1,8 +1,8 @@
 /**
  * Service Worker - XOSO66 TV PWA
- * v2 - cache static + push notifications
+ * v3 - cache static + push notifications + chat sync support
  */
-const CACHE_VERSION = 'xoso66tv-v2';
+const CACHE_VERSION = 'xoso66tv-v3';
 const STATIC_CACHE = [
   '/',
   '/manifest.json',
@@ -10,7 +10,7 @@ const STATIC_CACHE = [
   '/static/img/favicon.webp',
   '/static/css/style.css',
   '/static/js/app.js',
-  '/static/js/chat-v2.js?v=3'
+  '/static/js/chat-v2.js?v=4-sync'
 ];
 
 // ===== INSTALL: precache static =====
