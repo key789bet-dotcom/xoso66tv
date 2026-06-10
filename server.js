@@ -732,14 +732,9 @@ app.use(linkRoute);
 app.use(auth);
 app.use(seo);
 
-app.use(function (req, res) { res.status(404).render('tw-404'); });
-app.use(function (err, req, res, next) {
-  console.error(err);
-  res.status(500).render('tw-500', { err: err });
-});
-
 // ═══════════════════════════════════════════════════════════════
 // CHAT SERVER-SIDE: tất cả viewer trong phòng thấy CÙNG tin nhắn
+// ⚠️ PHẢI ĐĂNG KÝ TRƯỚC 404 catch-all middleware
 // ═══════════════════════════════════════════════════════════════
 const roomChat = require('./lib/room-chat');
 
@@ -788,6 +783,13 @@ app.post('/api/chat/:roomId/send', function (req, res) {
   };
   const saved = roomChat.addMessage(roomId, msg);
   res.json({ ok:true, message: saved });
+});
+
+// 404 + error handler (đăng ký CUỐI CÙNG - sau mọi route)
+app.use(function (req, res) { res.status(404).render('tw-404'); });
+app.use(function (err, req, res, next) {
+  console.error(err);
+  res.status(500).render('tw-500', { err: err });
 });
 
 const HOST = process.env.HOST || '0.0.0.0';
