@@ -1274,6 +1274,93 @@ app.get('/api/admin/gifts/list', pubAuth.requireAdmin, function (req, res) {
 // ═══════════════════════════════════════════════════════════════
 const withdrawStore = require('./lib/withdraw-store');
 
+// ═══════════════════════════════════════════════════════════════
+// 🏆 LEAGUE BACKGROUND — ảnh nền card cho từng giải đấu
+// ═══════════════════════════════════════════════════════════════
+const leagueBgStore = require('./lib/league-bg-store');
+const LEAGUE_BG_DIR = path.join(__dirname, 'uploads', 'leagues');
+try { fs.mkdirSync(LEAGUE_BG_DIR, { recursive: true }); } catch(e){}
+
+// Expose toàn bộ league bg map cho mọi request (để tw-stream-card đọc được)
+app.use(function(req, res, next){
+  try { res.locals.leagueBgs = leagueBgStore.list(); } catch(e){ res.locals.leagueBgs = {}; }
+  next();
+});
+
+// Multer cho upload league bg (riêng vì size lớn hơn avatar)
+const leagueBgUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 }, // 8MB cho banner ngang
+  fileFilter: function(req, file, cb){
+    if (!/^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype)) {
+      return cb(new Error('Chỉ chấp nhận JPG/PNG/WEBP/GIF'));
+    }
+    cb(null, true);
+  }
+});
+
+// ADMIN: GET danh sách giải đấu đã set ảnh + auto detect từ matches live/upcoming
+app.get('/api/admin/league-bg/list', pubAuth.requireAdmin, async function(req, res) {
+  try {
+    const map = leagueBgStore.list();
+    // Detect tất cả league đang xuất hiện
+    let detected = new Set();
+    try {
+      const [live, upcoming] = await Promise.all([api.getLiveStreams(), api.getUpcomingStreams(null, 50)]);
+      [].concat(live, upcoming).forEach(function(m){
+        if (m && m.league) detected.add(m.league);
+      });
+    } catch(e){}
+    // Merge với những giải đã có ảnh
+    Object.keys(map).forEach(function(k){ detected.add(k); });
+    res.json({
+      ok: true,
+      backgrounds: map,
+      detectedLeagues: Array.from(detected).sort()
+    });
+  } catch(e) { res.json({ ok:false, error:e.message }); }
+});
+
+// ADMIN: POST upload ảnh cho 1 giải
+// form-data: leagueName=string, file=image
+app.post('/api/admin/league-bg/upload', pubAuth.requireAdmin, leagueBgUpload.single('file'), function(req, res) {
+  try {
+    const leagueName = String((req.body && req.body.leagueName) || '').trim();
+    if (!leagueName) return res.json({ ok:false, error:'Thiếu tên giải đấu' });
+    if (!req.file)   return res.json({ ok:false, error:'Thiếu file ảnh' });
+
+    const ext = (req.file.mimetype.match(/\/(jpe?g|png|webp|gif)/i) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg');
+    const slug = leagueName.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
+    const fname = 'league_' + slug + '_' + Date.now().toString(36) + '.' + ext;
+    fs.writeFileSync(path.join(LEAGUE_BG_DIR, fname), req.file.buffer);
+    const url = '/uploads/leagues/' + fname;
+
+    // Xoá ảnh cũ nếu có
+    const old = leagueBgStore.get(leagueName);
+    leagueBgStore.set(leagueName, url);
+    if (old && old.startsWith('/uploads/leagues/')) {
+      try { fs.unlinkSync(path.join(__dirname, old)); } catch(e){}
+    }
+    res.json({ ok:true, leagueName: leagueName, url: url });
+  } catch(e) { res.json({ ok:false, error:e.message }); }
+});
+
+// ADMIN: POST xoá ảnh
+app.post('/api/admin/league-bg/remove', pubAuth.requireAdmin, function(req, res) {
+  const leagueName = String((req.body && req.body.leagueName) || '').trim();
+  if (!leagueName) return res.json({ ok:false, error:'Thiếu tên giải' });
+  const old = leagueBgStore.remove(leagueName);
+  if (old && old.startsWith('/uploads/leagues/')) {
+    try { fs.unlinkSync(path.join(__dirname, old)); } catch(e){}
+  }
+  res.json({ ok:true });
+});
+
+// Trang admin
+app.get('/admin/league-bg', pubAuth.requireAdmin, function(req, res) {
+  res.render('admin/league-bg', { active: 'league-bg' });
+});
+
 // POST /api/withdraw/request - idol/BLV gửi yêu cầu rút tiền
 app.post('/api/withdraw/request', pubAuth.requireStreamer, function (req, res) {
   const user = res.locals.publicUser || {};

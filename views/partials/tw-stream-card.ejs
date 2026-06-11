@@ -2,10 +2,20 @@
   var sportIcon = m.sport==='Soccer'?'&#9917;':m.sport==='Basketball'?'&#127936;':m.sport==='Tennis'?'&#127934;':m.sport==='Volleyball'?'&#127952;':'&#127918;';
   var fmtDate=''; try { fmtDate = m.date ? new Date(m.date).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'}) : ''; } catch(e){}
   var viewers = ((m.id?Number(String(m.id).slice(-3)):100) * 7 + 1200);
+  // 🏆 Ảnh nền giải đấu (admin set qua /admin/league-bg)
+  var _bgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
+  var leagueBg = (m.league && _bgs[m.league]) ? _bgs[m.league] : '';
 %>
 <a href="/live/<%= m.slug || m.id %>" class="group bg-bg-card border border-line rounded-xl overflow-hidden transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri flex flex-col">
   <div class="relative aspect-video bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden flex items-center justify-center">
-    <% if (m.poster) { %><img src="<%= m.poster %>" loading="lazy" alt="" class="absolute inset-0 w-full h-full object-cover opacity-50" onerror="this.style.display='none'"><% } %>
+    <% if (leagueBg) { %>
+      <!-- Ảnh nền giải đấu (admin set) -->
+      <img src="<%= leagueBg %>" loading="lazy" alt="<%= m.league %>" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+      <!-- Lớp phủ tối để text/logo team nổi bật -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/55"></div>
+    <% } else if (m.poster) { %>
+      <img src="<%= m.poster %>" loading="lazy" alt="" class="absolute inset-0 w-full h-full object-cover opacity-50" onerror="this.style.display='none'">
+    <% } %>
     <% if (m.status==='live') { %>
       <span class="absolute top-2 left-2 z-10 bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
     <% } else if (m.status==='finished') { %>

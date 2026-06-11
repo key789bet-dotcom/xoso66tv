@@ -1,0 +1,185 @@
+<%- include('partials/layout-start', { title:'Ảnh nền giải đấu', active:'league-bg', obsPending: 0, adminUser: typeof adminUser !== 'undefined' ? adminUser : {} }) %>
+
+<div class="bg-bg-card border border-line rounded-xl p-5 mb-5">
+  <div class="flex items-start gap-3">
+    <div class="text-3xl">🏆</div>
+    <div class="flex-1">
+      <h2 class="text-base font-extrabold text-white">Ảnh nền theo giải đấu</h2>
+      <p class="text-muted text-xs mt-1">
+        Upload ảnh banner cho từng giải. Tất cả card trận thuộc giải đó (trên trang chủ + lịch phát sóng) sẽ dùng ảnh này làm background.
+        <br>Kích thước khuyên dùng: <b class="text-pri-light">800×450 px (tỉ lệ 16:9)</b>, định dạng JPG/WEBP, tối đa 8 MB.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Form thêm giải mới (manual) -->
+<div class="bg-bg-card border border-line rounded-xl p-4 mb-5">
+  <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span>➕</span> Thêm ảnh cho giải đấu mới</h3>
+  <div class="flex flex-wrap gap-3 items-end">
+    <div class="flex-1 min-w-[200px]">
+      <label class="text-[10px] text-muted uppercase block mb-1">Tên giải đấu (CHÍNH XÁC như hiển thị)</label>
+      <input id="lbgNewName" type="text" placeholder="VD: USL Championship" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded">
+      <div class="text-[10px] text-yellow-400 mt-1">⚠️ Phải KHỚP TUYỆT ĐỐI tên hiển thị trên card (bao gồm chữ hoa thường, dấu)</div>
+    </div>
+    <div>
+      <label class="text-[10px] text-muted uppercase block mb-1">File ảnh</label>
+      <input id="lbgNewFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="text-white text-xs">
+    </div>
+    <button onclick="lbgUploadNew()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded">📤 Upload</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+  <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Giải có ảnh nền</div><div class="text-xl font-black text-emerald-300" id="lbgCountSet">—</div></div>
+  <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Giải đang phát sóng (chưa có ảnh)</div><div class="text-xl font-black text-yellow-300" id="lbgCountMissing">—</div></div>
+  <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Tổng phát hiện</div><div class="text-xl font-black text-white" id="lbgCountTotal">—</div></div>
+</div>
+
+<!-- Tabs filter -->
+<div class="flex gap-2 mb-3 bg-bg-card border border-line rounded-xl p-2">
+  <button onclick="lbgFilter('all')" id="lbgFAll" class="lbg-tab is-active flex-1 py-2 rounded-lg text-sm font-bold">Tất cả</button>
+  <button onclick="lbgFilter('set')" id="lbgFSet" class="lbg-tab flex-1 py-2 rounded-lg text-sm font-bold">✅ Đã có ảnh</button>
+  <button onclick="lbgFilter('missing')" id="lbgFMissing" class="lbg-tab flex-1 py-2 rounded-lg text-sm font-bold">⚠️ Chưa có ảnh</button>
+</div>
+
+<!-- List leagues -->
+<div id="lbgList" class="grid md:grid-cols-2 gap-3">
+  <div class="text-center text-muted py-8">Đang tải...</div>
+</div>
+
+<style>
+.lbg-tab { background:transparent; color:#cbd5e1; border:none; cursor:pointer; }
+.lbg-tab.is-active { background:linear-gradient(135deg,#f97316,#ef4444); color:#fff; }
+</style>
+
+<script>
+(function(){
+  var __data = { backgrounds: {}, detectedLeagues: [] };
+  var __filter = 'all';
+
+  function esc(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
+
+  function load(){
+    fetch('/api/admin/league-bg/list', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) return;
+        __data = d;
+        render();
+      });
+  }
+
+  window.lbgFilter = function(f){
+    __filter = f;
+    document.querySelectorAll('.lbg-tab').forEach(function(b){ b.classList.remove('is-active'); });
+    document.getElementById('lbgF' + (f === 'all' ? 'All' : f === 'set' ? 'Set' : 'Missing')).classList.add('is-active');
+    render();
+  };
+
+  function render(){
+    var bg = __data.backgrounds || {};
+    var detected = __data.detectedLeagues || [];
+    var setCount = Object.keys(bg).length;
+    var totalDetected = detected.length;
+    var missing = detected.filter(function(n){ return !bg[n]; }).length;
+
+    document.getElementById('lbgCountSet').textContent     = setCount;
+    document.getElementById('lbgCountMissing').textContent = missing;
+    document.getElementById('lbgCountTotal').textContent   = totalDetected;
+
+    var leagues = detected.slice();
+    // Filter
+    if (__filter === 'set')     leagues = leagues.filter(function(n){ return bg[n]; });
+    if (__filter === 'missing') leagues = leagues.filter(function(n){ return !bg[n]; });
+
+    var listEl = document.getElementById('lbgList');
+    if (leagues.length === 0) {
+      listEl.innerHTML = '<div class="col-span-2 text-center text-muted py-8">Không có giải nào.</div>';
+      return;
+    }
+
+    listEl.innerHTML = leagues.map(function(name){
+      var has = !!bg[name];
+      var preview = has
+        ? '<img src="' + bg[name] + '?t=' + Date.now() + '" alt="" class="w-full aspect-video object-cover rounded-lg border-2 border-emerald-500/50">'
+        : '<div class="w-full aspect-video bg-bg-deep border-2 border-dashed border-line rounded-lg grid place-items-center text-muted text-sm">Chưa có ảnh</div>';
+      var actions = has
+        ? '<button onclick="lbgUploadFor(\''+esc(name).replace(/\'/g,"\\\'")+'\')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded">🔄 Thay ảnh</button>'
+          + '<button onclick="lbgRemove(\''+esc(name).replace(/\'/g,"\\\'")+'\')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded">🗑️</button>'
+        : '<button onclick="lbgUploadFor(\''+esc(name).replace(/\'/g,"\\\'")+'\')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 rounded">📤 Upload ảnh</button>';
+
+      return ''
+        + '<div class="bg-bg-card border border-line rounded-xl p-3" data-name="'+esc(name)+'">'
+        +   '<div class="mb-2">'
+        +     '<div class="text-white font-bold text-sm truncate mb-2" title="'+esc(name)+'">'+(has ? '✅ ' : '⚠️ ')+esc(name)+'</div>'
+        +     preview
+        +   '</div>'
+        +   '<div class="flex gap-2 mt-3">' + actions + '</div>'
+        +   '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden lbg-file-' + esc(name).replace(/[^a-z0-9]/gi,'_') + '" onchange="lbgDoUpload(this,\''+esc(name).replace(/\'/g,"\\\'")+'\')">'
+        + '</div>';
+    }).join('');
+  }
+
+  window.lbgUploadFor = function(name){
+    var safe = name.replace(/[^a-z0-9]/gi, '_');
+    var input = document.querySelector('.lbg-file-' + safe);
+    if (input) input.click();
+  };
+
+  window.lbgDoUpload = function(input, name){
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (file.size > 8 * 1024 * 1024) { alert('Ảnh quá lớn! Tối đa 8MB'); input.value=''; return; }
+    var fd = new FormData();
+    fd.append('leagueName', name);
+    fd.append('file', file);
+
+    fetch('/api/admin/league-bg/upload', {
+      method:'POST', credentials:'same-origin', body: fd
+    }).then(function(r){ return r.json(); }).then(function(d){
+      input.value = '';
+      if (d.ok) { alert('✅ Đã upload ảnh cho "' + name + '"'); load(); }
+      else alert('❌ ' + (d.error || 'Lỗi'));
+    });
+  };
+
+  window.lbgRemove = function(name){
+    if (!confirm('Xoá ảnh nền của "' + name + '"?')) return;
+    fetch('/api/admin/league-bg/remove', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ leagueName: name })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) load(); else alert(d.error || 'Lỗi');
+    });
+  };
+
+  window.lbgUploadNew = function(){
+    var name = document.getElementById('lbgNewName').value.trim();
+    var file = document.getElementById('lbgNewFile').files[0];
+    if (!name) return alert('Nhập tên giải đấu');
+    if (!file) return alert('Chọn file ảnh');
+    if (file.size > 8 * 1024 * 1024) return alert('Ảnh quá lớn! Tối đa 8MB');
+
+    var fd = new FormData();
+    fd.append('leagueName', name);
+    fd.append('file', file);
+    fetch('/api/admin/league-bg/upload', {
+      method:'POST', credentials:'same-origin', body: fd
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) {
+        document.getElementById('lbgNewName').value = '';
+        document.getElementById('lbgNewFile').value = '';
+        alert('✅ Đã upload ảnh cho "' + name + '"');
+        load();
+      } else alert('❌ ' + (d.error || 'Lỗi'));
+    });
+  };
+
+  load();
+})();
+</script>
+
+<%- include('partials/layout-end') %>
