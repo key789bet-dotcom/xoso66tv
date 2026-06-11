@@ -725,14 +725,28 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
   }
 
   const isAdmin = user && user.role === 'admin';
+
+  // 📅 Check schedule active của user (approved + đang trong khung giờ)
+  let activeSchedule = null;
+  try {
+    if (user && user.username) {
+      const _sched = require('./lib/schedule-store');
+      activeSchedule = _sched.getActiveSchedule(user.username);
+    }
+  } catch(e) {
+    console.warn('[STUDIO] getActiveSchedule fail:', e.message);
+  }
+
   res.render('tw-idol-studio', {
     active:'cat', activeCat:'idol',
     dbIdols: dbIdols,
-    myIdol: myIdol,           // idol/blv record (đã unify shape)
-    myBlv: myBlv,             // raw BLV record nếu user là BLV
+    myIdol: myIdol,
+    myBlv: myBlv,
     isAdmin: isAdmin,
     currentUser: user,
-    publicUser: user          // 🔑 truyền publicUser để view biết role (_isBlv check)
+    publicUser: user,
+    activeSchedule: activeSchedule,                 // 📅 schedule đang active
+    hasActiveSchedule: !!activeSchedule             // boolean shortcut
   });
 });
 

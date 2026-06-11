@@ -17,14 +17,16 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   var _cur = _autoIdol ? (_autoIdol.category || 'idol') : 'idol';
   var _lbl = _cur === 'bongda' ? '⚽ Bóng đá' : _cur === 'casino' ? '🎰 Sòng bài' : _cur === 'esport' ? '🎮 Esports' : '👑 Idol Show';
 
-  // 📡 Stream method config
-  // BLV → luôn OBS (cố định)
-  // Idol → chọn 'mobile' (camera điện thoại) hoặc 'obs' (mặc định 'mobile')
   var _userRole = (typeof publicUser !== 'undefined' && publicUser && publicUser.role) ? publicUser.role : '';
   var _isBlv = (_userRole === 'blv');
   var _streamMethod = _isBlv ? 'obs' : ((_autoIdol && _autoIdol.streamMethod) ? _autoIdol.streamMethod : 'mobile');
-  // _forceObs = true → ẩn tab nav, chỉ hiện panel OBS (BLV hoặc Idol chọn obs)
   var _forceObs = _isBlv || (_streamMethod === 'obs');
+
+  // 📅 Schedule gating - BLV CHỈ thấy OBS config khi có schedule duyệt + active
+  var _activeSchedule = (typeof activeSchedule !== 'undefined') ? activeSchedule : null;
+  var _hasActiveSchedule = !!_activeSchedule;
+  // BLV PHẢI có schedule active mới được lấy stream key (idol thì lỏng hơn)
+  var _blvNeedsApproval = _isBlv && !_hasActiveSchedule && !_isAdmin;
 %>
 <section class="max-w-md md:max-w-4xl mx-auto mb-6">
 
@@ -550,6 +552,40 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   </div>
 
   <!-- ============ TAB 2: OBS STREAM ============ -->
+  <% if (_blvNeedsApproval) { %>
+  <!-- ═══ BLV chưa có schedule duyệt → CTA chọn trận + Yêu cầu duyệt ═══ -->
+  <div class="bg-gradient-to-br from-blue-900/40 via-bg-card to-bg-soft border-2 border-blue-500/50 rounded-2xl p-5 mb-4 text-center">
+    <div class="text-5xl mb-2">🔒</div>
+    <h3 class="text-white font-extrabold text-lg mb-1">Cần admin duyệt trận đấu</h3>
+    <p class="text-blue-200 text-sm mb-4 leading-relaxed">
+      BLV phải <b>gửi yêu cầu duyệt 1 trận đấu cụ thể</b> trước khi nhận RTMP URL + Stream Key.
+      Admin duyệt xong, bạn sẽ thấy thông tin OBS ngay tại đây.
+    </p>
+    <button onclick="document.querySelector('details summary')?.click(); document.getElementById('schTabNew')?.click(); document.getElementById('schTypeMatch')?.click(); window.scrollTo({top:0,behavior:'smooth'});"
+            class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:brightness-110 text-white font-extrabold px-6 py-3 rounded-xl shadow-lg shadow-blue-500/40 active:scale-95 inline-flex items-center gap-2">
+      <span class="text-xl">⚽</span>
+      <span>CHỌN TRẬN ĐẤU → YÊU CẦU DUYỆT</span>
+    </button>
+    <div class="text-[11px] text-muted mt-3">
+      💡 Sau khi gửi yêu cầu, theo dõi trạng thái ở mục <b>"Đăng ký lịch live"</b> phía trên.
+    </div>
+  </div>
+  <% } %>
+
+  <% if (_hasActiveSchedule) { %>
+  <!-- ═══ Schedule đang active → hiện info ═══ -->
+  <div class="bg-emerald-900/30 border border-emerald-500/40 rounded-xl p-3 mb-4 flex items-center gap-3">
+    <div class="text-2xl">✅</div>
+    <div class="flex-1 min-w-0">
+      <div class="text-[10px] text-emerald-300 uppercase font-bold">Đã được duyệt — đang trong khung giờ</div>
+      <div class="text-white font-bold text-sm truncate"><%= _activeSchedule.title || 'Buổi live' %></div>
+      <% if (_activeSchedule.matchTitle) { %>
+        <div class="text-emerald-200 text-[11px] truncate">⚽ <%= _activeSchedule.matchTitle %></div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
   <div id="stuPanelObs" class="hidden space-y-4">
     <!-- OBS info card -->
     <div class="bg-gradient-to-br from-purple-900/40 via-bg-card to-bg-soft border-2 border-purple-500/40 rounded-xl p-4">
@@ -794,18 +830,22 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   var __FORCE_OBS = <%= _forceObs ? 'true' : 'false' %>;
   var __STREAM_METHOD = '<%= _streamMethod %>';
   var __IS_BLV = <%= _isBlv ? 'true' : 'false' %>;
+  var __BLV_NEEDS_APPROVAL = <%= _blvNeedsApproval ? 'true' : 'false' %>;
   var __IS_MOBILE_DEVICE = window.matchMedia('(max-width: 768px)').matches ||
                             /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // Auto-show panel theo cấu hình:
-  // - forceObs (BLV hoặc Idol chọn OBS) → luôn show OBS panel
-  // - Idol chọn Mobile + mobile device → show Mobile panel
-  // - Idol chọn Mobile + desktop → show OBS panel (vì desktop không có camera tiện)
   function applyStreamMethodLayout(){
+    // 🔒 BLV chưa duyệt → KHÔNG show panel nào, để CTA "Yêu cầu duyệt" hiện thay
+    if (__BLV_NEEDS_APPROVAL) {
+      var pm = document.getElementById('stuPanelMobile');
+      var po = document.getElementById('stuPanelObs');
+      if (pm) pm.classList.add('hidden');
+      if (po) po.classList.add('hidden');
+      return;
+    }
     if (__FORCE_OBS) {
       stuSwitchTab('obs');
     } else if (__STREAM_METHOD === 'mobile' && !__IS_MOBILE_DEVICE) {
-      // Idol chọn Mobile nhưng vào bằng Desktop → fallback OBS
       stuSwitchTab('obs');
     } else {
       stuSwitchTab('mobile');
