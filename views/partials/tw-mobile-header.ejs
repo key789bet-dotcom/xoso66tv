@@ -5,10 +5,10 @@
 // ║ Fixed top, 52px cao, logo + login/register buttons                ║
 // ╚════════════════════════════════════════════════════════════════════╝
 %>
-<header class="md:hidden fixed top-0 left-0 right-0 z-40 border-b border-line flex items-center gap-2 px-3 h-[52px]" id="globalMobileHeader" style="backdrop-filter:blur(8px);background:rgba(19,23,31,.95);">
+<header class="md:hidden fixed top-0 left-0 right-0 z-40 border-b border-line flex items-center gap-2 px-3 h-[52px] overflow-visible" id="globalMobileHeader" style="backdrop-filter:blur(8px);background:rgba(19,23,31,.95);">
   <button onclick="toggleSidebar()" class="text-white text-2xl px-1 leading-none" aria-label="Menu">☰</button>
-  <a href="/" class="flex items-center gap-1.5 ml-1">
-    <img src="/static/img/logoxoso66tv.webp" alt="<%= typeof brand !== 'undefined' && brand ? brand.name : 'XOSO66 TV' %>" class="h-8 w-auto" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.classList.remove('hidden');">
+  <a href="/" class="flex items-center gap-1.5 ml-1 h-8 overflow-visible relative">
+    <img src="/static/img/logoxoso66tv.webp" alt="<%= typeof brand !== 'undefined' && brand ? brand.name : 'XOSO66 TV' %>" style="height:64px;width:auto;max-width:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.classList.remove('hidden');">
     <span class="hidden text-white font-black text-base"><%= typeof brand !== 'undefined' && brand ? (brand.short || 'XOSO66') : 'XOSO66' %><span class="text-pri">TV</span></span>
   </a>
   <div class="flex-1"></div>
