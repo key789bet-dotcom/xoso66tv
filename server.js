@@ -427,15 +427,18 @@ app.get('/idol/:id', function (req, res) {
   const idol = data.idols.find(function(i){ return i.id === req.params.id; });
   if (!idol) return res.status(404).render('tw-404');
   // Chi live khi idol nay co OBS approved + streamActive
-  const hasObs = data.obs.some(function(o){
-    return o.status==='approved' && o.streamActive
+  const obsRec = data.obs.find(function(o){
+    return o.status==='approved'
         && (o.requesterId === idol.id || (o.requesterName||'').toLowerCase().indexOf((idol.name||'').toLowerCase()) >= 0);
   });
+  const hasObs = !!(obsRec && obsRec.streamActive);
+  // ⚡ Stream key thật (có random suffix nếu đã regenerate), fallback = idolId
+  const actualStreamKey = (obsRec && obsRec.streamKey) ? obsRec.streamKey : idol.id;
   // Lay danh sach idol active de gesture swipe (vuot len/xuong chuyen phong)
   const allIdols = data.idols.filter(function(i){ return i.status==='active'; }).map(function(i){
     return { id: i.id, name: i.name, emoji: i.emoji || '👑', color: i.color || 0, lock: i.lock || 0 };
   });
-  res.render('tw-idol-room', { active:'cat', activeCat:'idol', idolKey: req.params.id, dbIdol: idol, hasObs: hasObs, allIdols: allIdols, pinRequired: !!idol.pinCode });
+  res.render('tw-idol-room', { active:'cat', activeCat:'idol', idolKey: req.params.id, dbIdol: idol, hasObs: hasObs, allIdols: allIdols, pinRequired: !!idol.pinCode, actualStreamKey: actualStreamKey });
 });
 
 // ===== PUBLIC AUTH (cookie-based for streamer protection) =====
@@ -1592,10 +1595,13 @@ app.post('/api/studio/regenerate-key', pubAuth.requireStreamer, function (req, r
     };
     data.obs.push(obs);
   }
-  // 🆕 Regenerate vẫn dùng idolId cho khớp viewer URL
-  obs.streamKey = idolId;
+  // ⚡ Stream key mới: idolId + random suffix 8 ký tự
+  // Format: i_yennhi_a1b2c3d4 → bảo mật + dễ trace
+  var randomSuffix = Math.random().toString(36).slice(2, 10);
+  obs.streamKey = idolId + '_' + randomSuffix;
   obs.rtmpServer = RTMP_SERVER_URL;
   obs.streamActive = false;
+  obs.regeneratedAt = Date.now();
   db.save(data);
   res.json({ ok:true, streamKey: obs.streamKey, rtmpServer: obs.rtmpServer });
 });

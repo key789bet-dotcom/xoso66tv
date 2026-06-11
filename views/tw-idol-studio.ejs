@@ -553,8 +553,14 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
           </div>
           <div class="text-[10px] text-muted mt-1">⚠ Stream key như mật khẩu - giữ bí mật, đừng chia sẻ với ai</div>
         </div>
-        <!-- Regenerate key -->
-        <button onclick="stuRegenerateKey()" class="text-[11px] text-pri-light hover:text-pri font-semibold underline">🔄 Tạo stream key mới</button>
+        <!-- Regenerate key button - nổi bật -->
+        <button type="button" onclick="stuRegenerateKey()" class="w-full bg-gradient-to-r from-yellow-600 to-amber-700 hover:from-yellow-500 hover:to-amber-600 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 border border-yellow-400/40 shadow-lg shadow-yellow-500/20 active:scale-[0.98] transition-transform">
+          <span class="text-base">🔄</span>
+          <span>TẠO STREAM KEY MỚI (Bảo mật)</span>
+        </button>
+        <div class="text-[10px] text-yellow-300/80 leading-relaxed">
+          💡 Khuyến nghị đổi key sau mỗi phiên live hoặc khi nghi ngờ bị lộ. Sau khi đổi, OBS phải update key mới.
+        </div>
       </div>
     </div>
 
