@@ -1299,6 +1299,50 @@ app.post('/api/idol/:id/coin-rate', pubAuth.requireStreamer, function(req, res) 
   res.json({ ok:true, coinPerMin: newRate });
 });
 
+// ═══════════════════════════════════════════════════════════════
+// 📡 STREAM METHOD — idol chọn 'mobile' (camera điện thoại) hoặc 'obs'
+// BLV mặc định luôn là 'obs' (cố định, không đổi được)
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/idol/:id/stream-method', function(req, res) {
+  try {
+    const data = db.load();
+    const idol = (data.idols || []).find(i => i.id === req.params.id);
+    if (!idol) return res.json({ ok:false, error:'Idol không tồn tại' });
+    const method = idol.streamMethod || 'mobile';
+    res.json({ ok:true, idolId: req.params.id, streamMethod: method });
+  } catch(e) {
+    res.json({ ok:false, error: e.message });
+  }
+});
+
+app.post('/api/idol/:id/stream-method', pubAuth.requireStreamer, function(req, res) {
+  try {
+    const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+    const method = String((req.body && req.body.method) || '').toLowerCase();
+    if (method !== 'mobile' && method !== 'obs') {
+      return res.json({ ok:false, error:'method phải là mobile hoặc obs' });
+    }
+    const data = db.load();
+    const idx = (data.idols || []).findIndex(i => i.id === req.params.id);
+    if (idx === -1) return res.json({ ok:false, error:'Idol không tồn tại' });
+
+    // Permission: chỉ idol owner hoặc admin
+    const idol = data.idols[idx];
+    const owner = String(idol.userId || idol.username || '').toLowerCase();
+    const me = String(user.username || '').toLowerCase();
+    const isAdminUser = (user.role === 'admin');
+    if (owner !== me && !isAdminUser) {
+      return res.json({ ok:false, error:'Không có quyền (chỉ idol đó hoặc admin)' });
+    }
+
+    data.idols[idx].streamMethod = method;
+    db.save(data);
+    res.json({ ok:true, streamMethod: method });
+  } catch(e) {
+    res.json({ ok:false, error: e.message });
+  }
+});
+
 // POST /api/room/:idolId/charge - viewer auto tick mỗi phút
 app.post('/api/room/:idolId/charge', pubAuth.requireLogin, function(req, res) {
   const user = res.locals.publicUser || pubAuth.getUser(req) || {};

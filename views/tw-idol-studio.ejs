@@ -16,6 +16,15 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   var _isAdmin  = (typeof isAdmin !== 'undefined' && isAdmin) ? true : false;
   var _cur = _autoIdol ? (_autoIdol.category || 'idol') : 'idol';
   var _lbl = _cur === 'bongda' ? '⚽ Bóng đá' : _cur === 'casino' ? '🎰 Sòng bài' : _cur === 'esport' ? '🎮 Esports' : '👑 Idol Show';
+
+  // 📡 Stream method config
+  // BLV → luôn OBS (cố định)
+  // Idol → chọn 'mobile' (camera điện thoại) hoặc 'obs' (mặc định 'mobile')
+  var _userRole = (typeof publicUser !== 'undefined' && publicUser && publicUser.role) ? publicUser.role : '';
+  var _isBlv = (_userRole === 'blv');
+  var _streamMethod = _isBlv ? 'obs' : ((_autoIdol && _autoIdol.streamMethod) ? _autoIdol.streamMethod : 'mobile');
+  // _forceObs = true → ẩn tab nav, chỉ hiện panel OBS (BLV hoặc Idol chọn obs)
+  var _forceObs = _isBlv || (_streamMethod === 'obs');
 %>
 <section class="max-w-md md:max-w-4xl mx-auto mb-6">
 
@@ -300,8 +309,25 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     </div>
   </div>
 
-  <!-- Tab nav -->
-  <nav class="flex bg-bg-card rounded-xl p-1 mb-4 border border-line">
+  <% if (!_isBlv && _autoIdol) { %>
+  <!-- 📡 Idol chọn phương thức stream: Mobile vs OBS -->
+  <div class="rounded-xl p-3 mb-4 border" style="background:linear-gradient(135deg, rgba(255,210,63,.10), rgba(38,45,56,1));border-color:rgba(255,210,63,.3);">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex-1">
+        <div class="text-[11px] text-gold font-bold uppercase tracking-wider mb-1">📡 Phương thức stream</div>
+        <div class="text-[10.5px] text-muted">Chọn cách lên sóng. BLV và cấu hình OBS sẽ chỉ hiện 1 panel hướng dẫn OBS.</div>
+      </div>
+      <select id="stuStreamMethodSelect" onchange="stuChangeStreamMethod(this.value)"
+              class="bg-bg-dark text-white text-sm font-bold px-3 py-2 rounded-lg border border-line focus:border-gold focus:outline-none">
+        <option value="mobile" <%= _streamMethod === 'mobile' ? 'selected' : '' %>>📱 Mobile (camera)</option>
+        <option value="obs"    <%= _streamMethod === 'obs'    ? 'selected' : '' %>>🎮 OBS (RTMP)</option>
+      </select>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Tab nav — ẩn khi forceObs (BLV hoặc idol chọn obs) -->
+  <nav id="stuTabNav" class="<%= _forceObs ? 'hidden' : 'flex' %> bg-bg-card rounded-xl p-1 mb-4 border border-line">
     <button onclick="stuSwitchTab('mobile')" id="stuTabMobile" class="flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2">
       📱 <span>Stream Mobile</span>
     </button>
@@ -754,15 +780,76 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     var obs    = document.getElementById('stuPanelObs');
     var tabM   = document.getElementById('stuTabMobile');
     var tabO   = document.getElementById('stuTabObs');
+    if (!mobile || !obs) return;
     if (tab === 'mobile'){
       mobile.classList.remove('hidden'); obs.classList.add('hidden');
-      tabM.className = 'flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2';
-      tabO.className = 'flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2';
+      if (tabM) tabM.className = 'flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2';
+      if (tabO) tabO.className = 'flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2';
     } else {
       mobile.classList.add('hidden'); obs.classList.remove('hidden');
-      tabO.className = 'flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2';
-      tabM.className = 'flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2';
+      if (tabO) tabO.className = 'flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2';
+      if (tabM) tabM.className = 'flex-1 py-2.5 rounded-lg text-gray-300 font-bold text-sm flex items-center justify-center gap-2';
     }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // 📡 STREAM METHOD CONFIG — BLV cố định OBS; Idol chọn Mobile/OBS
+  // ═══════════════════════════════════════════════════════════
+  var __FORCE_OBS = <%= _forceObs ? 'true' : 'false' %>;
+  var __STREAM_METHOD = '<%= _streamMethod %>';
+  var __IS_BLV = <%= _isBlv ? 'true' : 'false' %>;
+  var __IS_MOBILE_DEVICE = window.matchMedia('(max-width: 768px)').matches ||
+                            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // Auto-show panel theo cấu hình:
+  // - forceObs (BLV hoặc Idol chọn OBS) → luôn show OBS panel
+  // - Idol chọn Mobile + mobile device → show Mobile panel
+  // - Idol chọn Mobile + desktop → show OBS panel (vì desktop không có camera tiện)
+  function applyStreamMethodLayout(){
+    if (__FORCE_OBS) {
+      stuSwitchTab('obs');
+    } else if (__STREAM_METHOD === 'mobile' && !__IS_MOBILE_DEVICE) {
+      // Idol chọn Mobile nhưng vào bằng Desktop → fallback OBS
+      stuSwitchTab('obs');
+    } else {
+      stuSwitchTab('mobile');
+    }
+  }
+  // Chạy ngay sau khi DOM sẵn sàng
+  if (document.readyState !== 'loading') applyStreamMethodLayout();
+  else document.addEventListener('DOMContentLoaded', applyStreamMethodLayout);
+
+  // Idol đổi phương thức stream
+  window.stuChangeStreamMethod = function(newMethod){
+    if (__IS_BLV) { alert('BLV chỉ stream được bằng OBS'); return; }
+    if (newMethod !== 'mobile' && newMethod !== 'obs') return;
+    if (!state.identity || !state.identity.id) {
+      alert('Chưa xác định idol. Reload trang thử lại.');
+      return;
+    }
+    fetch('/api/idol/' + state.identity.id + '/stream-method', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ method: newMethod })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j && j.ok) {
+        // Reload để re-render UI theo method mới
+        location.reload();
+      } else {
+        alert('Lỗi: ' + ((j && j.error) || 'Không lưu được'));
+        // Revert dropdown về giá trị cũ
+        var sel = document.getElementById('stuStreamMethodSelect');
+        if (sel) sel.value = __STREAM_METHOD;
+      }
+    })
+    .catch(function(e){
+      alert('Lỗi mạng: ' + e.message);
+      var sel = document.getElementById('stuStreamMethodSelect');
+      if (sel) sel.value = __STREAM_METHOD;
+    });
   };
 
   // ===== IDENTITY =====
