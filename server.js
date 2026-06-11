@@ -1275,6 +1275,36 @@ app.get('/api/admin/gifts/list', pubAuth.requireAdmin, function (req, res) {
 const withdrawStore = require('./lib/withdraw-store');
 
 // ═══════════════════════════════════════════════════════════════
+// 🪙 COIN/PHÚT XEM — Idol set giá, viewer auto trừ mỗi phút
+// ═══════════════════════════════════════════════════════════════
+const coinRateStore = require('./lib/coin-rate-store');
+
+// GET /api/idol/:id/coin-rate - lấy giá phòng (public)
+app.get('/api/idol/:id/coin-rate', function(req, res) {
+  const rate = coinRateStore.getRate(req.params.id);
+  res.json({ ok:true, idolId: req.params.id, coinPerMin: rate });
+});
+
+// POST /api/idol/:id/coin-rate - idol/admin set giá
+// body: { rate }
+app.post('/api/idol/:id/coin-rate', pubAuth.requireStreamer, function(req, res) {
+  const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+  const r = parseInt((req.body && req.body.rate) || 0, 10);
+  const newRate = coinRateStore.setRate(req.params.id, r, user.username);
+  if (newRate === null) return res.json({ ok:false, error:'Idol không tồn tại' });
+  if (newRate === false) return res.json({ ok:false, error:'Không có quyền (chỉ idol đó hoặc admin)' });
+  res.json({ ok:true, coinPerMin: newRate });
+});
+
+// POST /api/room/:idolId/charge - viewer auto tick mỗi phút
+app.post('/api/room/:idolId/charge', pubAuth.requireLogin, function(req, res) {
+  const user = res.locals.publicUser || pubAuth.getUser(req) || {};
+  if (!user.username) return res.json({ ok:false, error:'Cần đăng nhập' });
+  const result = coinRateStore.chargeViewer(user.username, req.params.idolId);
+  res.json(result);
+});
+
+// ═══════════════════════════════════════════════════════════════
 // 🏆 LEAGUE BACKGROUND — ảnh nền card cho từng giải đấu
 // ═══════════════════════════════════════════════════════════════
 const leagueBgStore = require('./lib/league-bg-store');

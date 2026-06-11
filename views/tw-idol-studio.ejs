@@ -437,6 +437,27 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
         <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Mục tiêu quà tặng (X COIN)</label>
         <input id="stuGoal" type="number" placeholder="10000" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none tabular-nums">
       </div>
+      <!-- 🪙 Phí xem theo phút -->
+      <div class="bg-gradient-to-br from-gold/15 to-bg-deep border border-gold/30 rounded-lg p-3">
+        <label class="text-[11px] text-gold uppercase font-bold flex items-center gap-1.5 mb-1.5">
+          <span class="text-base">🪙</span> Phí xem (X COIN/phút)
+          <span class="text-[9px] text-muted uppercase ml-auto">Tự trừ mỗi 60s</span>
+        </label>
+        <div class="flex gap-2 items-center">
+          <input id="stuCoinPerMin" type="number" min="0" max="1000" step="1" placeholder="0 = miễn phí"
+                 class="flex-1 bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-gold outline-none tabular-nums font-bold">
+          <button onclick="stuSaveCoinRate()" class="bg-gold text-bg-deep font-extrabold px-4 py-2 rounded-lg text-xs hover:brightness-110">💾 Lưu</button>
+        </div>
+        <div class="grid grid-cols-4 gap-1 mt-2">
+          <button onclick="document.getElementById('stuCoinPerMin').value=0" class="text-[10px] py-1 bg-bg-soft border border-line text-gray-200 rounded hover:bg-bg-deep">Miễn phí</button>
+          <button onclick="document.getElementById('stuCoinPerMin').value=1" class="text-[10px] py-1 bg-bg-soft border border-line text-gray-200 rounded hover:bg-bg-deep">1/phút</button>
+          <button onclick="document.getElementById('stuCoinPerMin').value=5" class="text-[10px] py-1 bg-bg-soft border border-line text-gray-200 rounded hover:bg-bg-deep">5/phút</button>
+          <button onclick="document.getElementById('stuCoinPerMin').value=10" class="text-[10px] py-1 bg-bg-soft border border-line text-gray-200 rounded hover:bg-bg-deep">10/phút</button>
+        </div>
+        <div class="text-[10px] text-muted mt-2 leading-relaxed">
+          💡 Viewer vào xem phòng sẽ tự bị trừ X COIN mỗi phút. Hết X COIN → bị kick + yêu cầu nạp thêm.
+        </div>
+      </div>
       <div class="grid grid-cols-3 gap-2">
         <button onclick="stuSetCategory('chat')" class="stu-cat px-2 py-1.5 bg-bg-soft border border-line text-gray-200 text-xs font-bold rounded-lg" data-cat="chat">💬 Tâm sự</button>
         <button onclick="stuSetCategory('show')" class="stu-cat px-2 py-1.5 bg-pri text-white text-xs font-bold rounded-lg" data-cat="show">🎵 Show</button>
@@ -916,6 +937,39 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   }
   async function whipUnpublish(){
     if (state.pc) { try { state.pc.close(); } catch(e){} state.pc = null; }
+  }
+
+  // ===== COIN PER MINUTE =====
+  window.stuSaveCoinRate = function(){
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    var rate = parseInt(document.getElementById('stuCoinPerMin').value, 10) || 0;
+    fetch('/api/idol/' + state.identity.id + '/coin-rate', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ rate: rate })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) {
+        alert('✅ Đã lưu! Phí xem mới: ' + d.coinPerMin + ' X COIN/phút' + (d.coinPerMin === 0 ? ' (miễn phí)' : ''));
+      } else {
+        alert('❌ ' + (d.error || 'Lỗi'));
+      }
+    });
+  };
+
+  // Auto-load coin rate khi pick idol
+  function loadCoinRate(idolId){
+    if (!idolId) return;
+    fetch('/api/idol/' + idolId + '/coin-rate').then(function(r){return r.json();}).then(function(d){
+      if (d.ok) document.getElementById('stuCoinPerMin').value = d.coinPerMin || 0;
+    });
+  }
+  // Hook vào stuPickIdentity nếu có
+  var __origPickFn = window.stuPickIdentity;
+  if (typeof __origPickFn === 'function') {
+    window.stuPickIdentity = function(id){
+      __origPickFn(id);
+      loadCoinRate(id);
+    };
   }
 
   // ===== GO LIVE / END LIVE =====

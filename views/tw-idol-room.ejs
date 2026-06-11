@@ -842,4 +842,81 @@ function toggleFollow(b){ b.textContent = b.textContent.indexOf('Đã')>=0 ? '�
   streamerName: idol.name
 }) %>
 
+<!-- 🪙 Coin/phút badge + auto deduct viewer -->
+<div id="cpmBadge" class="hidden fixed top-[60px] right-3 z-40 bg-gradient-to-r from-gold/90 to-yellow-600/90 backdrop-blur text-bg-deep px-3 py-1.5 rounded-full font-extrabold text-xs shadow-lg border border-gold/60 flex items-center gap-1.5">
+  <span class="text-base">🪙</span>
+  <span><b id="cpmRate">0</b> X COIN/phút</span>
+  <span class="text-[10px] opacity-80">• Số dư: <b id="cpmBalance">—</b></span>
+</div>
+
+<div id="cpmKickModal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur grid place-items-center p-4">
+  <div class="bg-bg-card border-2 border-red-500/40 rounded-2xl w-full max-w-sm shadow-2xl shadow-red-500/30 text-center p-6">
+    <div class="text-5xl mb-3">💸</div>
+    <h3 class="text-white font-extrabold text-lg mb-2">Hết X COIN rồi!</h3>
+    <p class="text-gray-300 text-sm mb-4">Phòng <b class="text-pri-light"><%= idol.name %></b> tính phí <b class="text-gold" id="cpmKickRate">0</b> X COIN/phút.<br>Nạp thêm để xem tiếp.</p>
+    <div class="space-y-2">
+      <a href="/nap-tien" class="block w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-3 rounded-lg">💰 Nạp X COIN ngay</a>
+      <a href="/profile?tab=checkin" class="block w-full bg-bg-soft text-gray-200 font-bold py-2.5 rounded-lg text-sm">🎁 Điểm danh miễn phí</a>
+      <button onclick="location.href='/'" class="block w-full text-muted text-xs hover:underline py-1">Quay về trang chủ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var IDOL_ID = '<%= idolId %>';
+  var coinRate = 0;
+  var chargeTimer = null;
+
+  function fetchRate(){
+    fetch('/api/idol/' + IDOL_ID + '/coin-rate').then(function(r){return r.json();}).then(function(d){
+      if (d.ok && d.coinPerMin > 0) {
+        coinRate = d.coinPerMin;
+        var badge = document.getElementById('cpmBadge');
+        if (badge) {
+          document.getElementById('cpmRate').textContent = d.coinPerMin;
+          badge.classList.remove('hidden');
+          startTick();
+        }
+      }
+    });
+  }
+
+  function updateBalance(coin){
+    var el = document.getElementById('cpmBalance');
+    if (el) el.textContent = (coin == null ? '—' : coin.toLocaleString('vi-VN'));
+  }
+
+  function startTick(){
+    if (chargeTimer) return;
+    // Tick đầu sau 60s, không trừ ngay khi vào
+    chargeTimer = setInterval(function(){
+      // Chỉ trừ nếu tab đang active + chưa kicked
+      if (document.hidden) return;
+      fetch('/api/room/' + IDOL_ID + '/charge', { method:'POST', credentials:'same-origin' })
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if (d.ok) {
+            updateBalance(d.newBalance);
+            if (d.free) clearInterval(chargeTimer);
+          } else if (d.kicked) {
+            clearInterval(chargeTimer);
+            document.getElementById('cpmKickRate').textContent = d.needCoin || coinRate;
+            document.getElementById('cpmKickModal').classList.remove('hidden');
+          }
+        })
+        .catch(function(){});
+    }, 60000); // 60s = 1 phút
+  }
+
+  // Lấy initial balance từ localStorage
+  try {
+    var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+    if (typeof u.coin === 'number') updateBalance(u.coin);
+  } catch(e){}
+
+  fetchRate();
+})();
+</script>
+
 <%- include("partials/tw-footer") %>
