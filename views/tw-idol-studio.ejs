@@ -187,12 +187,12 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   </div>
   <div id="stuHttpsOk" class="hidden"></div>
 
-  <!-- ═══ 📅 ĐĂNG KÝ LỊCH LIVE (collapse mặc định để giảm rối) ═══ -->
-  <details class="bg-bg-card border border-pri/30 rounded-xl mb-3 group">
+  <!-- ═══ 📅 ĐĂNG KÝ LỊCH LIVE — BLV chưa duyệt thì mở sẵn ═══ -->
+  <details class="bg-bg-card border border-pri/30 rounded-xl mb-3 group" <%= _blvNeedsApproval ? 'open' : '' %>>
     <summary class="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
       <div class="flex items-center gap-2">
         <span class="text-lg">📅</span>
-        <span class="text-white font-bold text-sm">Đăng ký lịch live</span>
+        <span class="text-white font-bold text-sm"><%= _isBlv ? 'Yêu cầu duyệt trận đấu' : 'Đăng ký lịch live' %></span>
         <span id="schActiveStatus" class="text-[10px] font-bold"></span>
       </div>
       <span class="text-muted group-open:rotate-180 transition-transform">▼</span>
@@ -201,27 +201,39 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     <!-- Wrapper bên trong để JS cũ tìm element vẫn OK -->
     <div>
 
-    <!-- Tabs -->
+    <!-- Tabs - BLV chưa duyệt mặc định focus "Đăng ký mới", others focus "Lịch của tôi" -->
     <div class="flex gap-1 bg-bg-deep rounded-lg p-1 mb-3">
-      <button id="schTabMy" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors bg-pri text-white">📋 Lịch của tôi</button>
-      <button id="schTabNew" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors text-gray-200">➕ Đăng ký mới</button>
+      <button id="schTabMy" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors <%= _blvNeedsApproval ? 'text-gray-200' : 'bg-pri text-white' %>">📋 Lịch của tôi</button>
+      <button id="schTabNew" class="flex-1 py-1.5 text-xs font-bold rounded transition-colors <%= _blvNeedsApproval ? 'bg-pri text-white' : 'text-gray-200' %>">➕ Đăng ký mới</button>
     </div>
 
     <!-- TAB 1: List lịch của tôi -->
-    <div id="schMyPanel">
+    <div id="schMyPanel" class="<%= _blvNeedsApproval ? 'hidden' : '' %>">
       <div id="schMyList" class="space-y-2 min-h-[60px]">
         <div class="text-center text-muted text-xs py-4">Đang tải...</div>
       </div>
     </div>
 
     <!-- TAB 2: Form đăng ký mới -->
-    <div id="schNewPanel" class="hidden">
+    <div id="schNewPanel" class="<%= _blvNeedsApproval ? '' : 'hidden' %>">
+      <% if (!_isBlv) { %>
+      <!-- IDOL: 2 type buttons (BLV cố định "Theo trận đấu", ẩn block này) -->
       <div class="flex gap-1.5 mb-3">
         <button id="schTypeTime" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-pri text-white border-pri" data-type="time">⏰ Theo giờ tự do</button>
         <button id="schTypeMatch" class="sch-type-btn flex-1 py-2 text-xs font-bold rounded-lg border bg-bg-deep text-gray-200 border-line" data-type="match">⚽ Theo trận đấu</button>
       </div>
+      <% } else { %>
+      <!-- BLV: chỉ "Theo trận đấu" — auto -->
+      <div class="bg-blue-900/30 border border-blue-500/30 rounded-lg p-2 mb-3 text-[11px] text-blue-200 flex items-center gap-2">
+        <span>⚽</span>
+        <span>BLV chọn 1 trận đấu để yêu cầu admin duyệt. Sau khi duyệt, bạn sẽ nhận RTMP/Stream Key.</span>
+      </div>
+      <!-- Hidden buttons để JS legacy không lỗi -->
+      <button id="schTypeTime" data-type="time" class="hidden"></button>
+      <button id="schTypeMatch" data-type="match" class="hidden"></button>
+      <% } %>
 
-      <div id="schFormTime" class="space-y-2.5">
+      <div id="schFormTime" class="<%= _isBlv ? 'hidden' : '' %> space-y-2.5">
         <div>
           <label class="text-[10px] text-muted uppercase font-bold block mb-1">Tiêu đề show</label>
           <input id="schTitle" maxlength="120" placeholder="VD: Live show hát cover tối T7" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
@@ -296,14 +308,14 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       })();
       </script>
 
-      <div id="schFormMatch" class="hidden space-y-2.5">
+      <div id="schFormMatch" class="<%= _isBlv ? '' : 'hidden' %> space-y-2.5">
         <div>
-          <label class="text-[10px] text-muted uppercase font-bold block mb-1">Chọn trận đấu</label>
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⚽ Chọn trận đấu cần bình luận</label>
           <select id="schMatchSelect" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
-            <option value="">Đang tải lịch...</option>
+            <option value="">Đang tải lịch trận đấu...</option>
           </select>
         </div>
-        <div class="text-[11px] text-muted">⚠️ BLV sẽ được duyệt bình luận trận đã chọn (thời gian tự auto theo trận).</div>
+        <div class="text-[11px] text-muted">⚠️ Sau khi gửi, admin sẽ duyệt và bạn nhận RTMP/Stream Key tự động.</div>
       </div>
 
       <button id="schSubmitBtn" class="w-full bg-gradient-to-r from-pri to-live hover:brightness-110 text-white font-bold py-2.5 rounded-lg mt-3 active:scale-95">
@@ -1585,7 +1597,9 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
 <!-- ═══════════ SCHEDULE: đăng ký lịch live + admin duyệt ═══════════ -->
 <script>
 (function(){
-  var currentType = 'time';
+  // BLV CHỈ chọn theo trận, Idol mặc định "time"
+  var __SCH_IS_BLV = <%= _isBlv ? 'true' : 'false' %>;
+  var currentType = __SCH_IS_BLV ? 'match' : 'time';
 
   function $(id){ return document.getElementById(id); }
   function escHtml(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
