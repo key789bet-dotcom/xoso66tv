@@ -671,20 +671,52 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
   const data = db.load();
   const user = pubAuth.getUser(req);
   const dbIdols = data.idols.filter(function(i){ return i.status==='active'; });
-  // 🆕 Auto-detect idol record của user đang login
   const uname = user ? String(user.username || '').toLowerCase() : '';
-  const myIdol = uname ? dbIdols.find(function(i){
+
+  // 🆕 Auto-detect idol record của user đang login
+  let myIdol = uname ? dbIdols.find(function(i){
     return (String(i.userId||'').toLowerCase() === uname) ||
            (String(i.username||'').toLowerCase() === uname) ||
            (String(i.name||'').toLowerCase() === uname);
   }) : null;
+
+  // 🆕 Nếu user là BLV → lookup data.blvs và CONVERT thành idol-shape để view dùng chung
+  const isBlv = user && user.role === 'blv';
+  let myBlv = null;
+  if (!myIdol && isBlv && uname) {
+    const blvs = data.blvs || [];
+    const blvRec = blvs.find(function(b){
+      return (String(b.userId||'').toLowerCase() === uname) ||
+             (String(b.username||'').toLowerCase() === uname) ||
+             (String(b.name||'').toLowerCase() === uname);
+    });
+    if (blvRec) {
+      myBlv = blvRec;
+      // Convert BLV record thành idol-shape để view tận dụng cấu trúc cũ
+      myIdol = {
+        id: blvRec.id,
+        name: blvRec.name || user.username,
+        room: blvRec.room || 'Phòng BLV',
+        emoji: blvRec.emoji || '🎙️',
+        color: blvRec.color || 200,
+        category: 'bongda',     // BLV mặc định là bóng đá
+        streamMethod: 'obs',    // BLV luôn OBS
+        userId: blvRec.userId,
+        username: blvRec.username,
+        _isBlvRecord: true       // flag để view biết đây là BLV
+      };
+    }
+  }
+
   const isAdmin = user && user.role === 'admin';
   res.render('tw-idol-studio', {
     active:'cat', activeCat:'idol',
     dbIdols: dbIdols,
-    myIdol: myIdol,           // idol record của user đang đăng nhập
-    isAdmin: isAdmin,         // admin được switch sang idol khác
-    currentUser: user
+    myIdol: myIdol,           // idol/blv record (đã unify shape)
+    myBlv: myBlv,             // raw BLV record nếu user là BLV
+    isAdmin: isAdmin,
+    currentUser: user,
+    publicUser: user          // 🔑 truyền publicUser để view biết role (_isBlv check)
   });
 });
 
