@@ -1645,6 +1645,128 @@ app.post('/api/studio/test-rtmp', pubAuth.requireStreamer, function (req, res){
   });
 });
 
+// ═══════════════════════════════════════════════════════════════
+// 🔐 SRS HTTP CALLBACK HOOKS — verify stream key trước khi cho push
+// ═══════════════════════════════════════════════════════════════
+// SRS sẽ gọi POST endpoint khi có ai push/pull stream.
+// Response body "0" = allowed, anything else = rejected.
+// Config trong srs.conf:
+//   http_hooks {
+//     enabled         on;
+//     on_publish      http://127.0.0.1:4001/api/srs/on-publish;
+//     on_unpublish    http://127.0.0.1:4001/api/srs/on-unpublish;
+//   }
+//
+// SRS request body:
+// { "action":"on_publish", "client_id":"...", "ip":"...", "vhost":"...",
+//   "app":"live", "stream":"i_yennhi_k3f9p2x1", "param":"?..." }
+//
+// Bảo mật: chỉ idol có obs.streamKey khớp + còn lịch active mới được publish.
+
+// POST /api/srs/on-publish - check stream key có hợp lệ không
+app.post('/api/srs/on-publish', function(req, res) {
+  const body = req.body || {};
+  const streamName = String(body.stream || '');
+  const clientIp = String(body.ip || '');
+  console.log('[SRS hook] on_publish:', streamName, 'from', clientIp);
+
+  if (!streamName) {
+    console.warn('[SRS hook] ❌ Reject: no stream name');
+    return res.status(403).send('1');
+  }
+
+  try {
+    const data = db.load();
+    // Tìm OBS record có streamKey khớp
+    const obs = (data.obs || []).find(o => o.streamKey === streamName);
+    if (!obs) {
+      console.warn('[SRS hook] ❌ Reject: stream key không tồn tại trong DB:', streamName);
+      return res.status(403).send('1');
+    }
+    if (obs.status !== 'approved') {
+      console.warn('[SRS hook] ❌ Reject: OBS chưa approved:', streamName);
+      return res.status(403).send('1');
+    }
+    // 🔒 SINGLE PUBLISHER: chặn ai đó push trùng key khi đã có người đang stream
+    // (cho phép cùng IP để OBS auto-reconnect không bị reject)
+    if (obs.streamActive && obs.publisherIp && obs.publisherIp !== clientIp) {
+      // Stream cũ chưa unpublish > 30s → reject để chống hijack
+      const sinceLast = Date.now() - (obs.publishedAt || 0);
+      if (sinceLast < 30000) {
+        console.warn('[SRS hook] ❌ Reject: stream đã active từ IP khác:', obs.publisherIp, '≠', clientIp);
+        return res.status(403).send('1');
+      }
+    }
+    // Verify idol/blv vẫn active
+    const idolId = obs.requesterId;
+    const idol = (data.idols || []).find(i => i.id === idolId);
+    const blv  = (data.blvs  || []).find(b => b.id === idolId);
+    const subject = idol || blv;
+    if (!subject) {
+      console.warn('[SRS hook] ❌ Reject: idol/blv không tồn tại:', idolId);
+      return res.status(403).send('1');
+    }
+    if (subject.status !== 'active' || subject.canLive === false) {
+      console.warn('[SRS hook] ❌ Reject: idol/blv không active hoặc bị ban:', idolId);
+      return res.status(403).send('1');
+    }
+    // Verify có lịch approved active không
+    try {
+      const sched = scheduleStore.getActiveSchedule(subject.userId || subject.username || '');
+      if (!sched) {
+        console.warn('[SRS hook] ❌ Reject: không có lịch approved active:', idolId);
+        return res.status(403).send('1');
+      }
+    } catch(e) {
+      console.warn('[SRS hook] ⚠️ schedule check error, allowing:', e.message);
+    }
+
+    // Mark stream active + record IP
+    obs.streamActive = true;
+    obs.publishedAt = Date.now();
+    obs.publisherIp = clientIp;
+    db.save(data);
+    console.log('[SRS hook] ✅ Accept publish:', streamName, '→ idol:', idolId);
+    return res.status(200).send('0');
+  } catch(e) {
+    console.error('[SRS hook] Error:', e);
+    return res.status(403).send('1');
+  }
+});
+
+// POST /api/srs/on-unpublish - cleanup khi OBS disconnect
+app.post('/api/srs/on-unpublish', function(req, res) {
+  const body = req.body || {};
+  const streamName = String(body.stream || '');
+  console.log('[SRS hook] on_unpublish:', streamName);
+  try {
+    const data = db.load();
+    const obs = (data.obs || []).find(o => o.streamKey === streamName);
+    if (obs) {
+      obs.streamActive = false;
+      obs.unpublishedAt = Date.now();
+      db.save(data);
+    }
+    // Auto-end live session
+    try {
+      const idol = (data.idols || []).find(i => obs && i.id === obs.requesterId);
+      if (idol) {
+        idol.liveNow = false;
+        db.save(data);
+      }
+    } catch(e){}
+  } catch(e) {
+    console.error('[SRS hook] on_unpublish error:', e);
+  }
+  return res.status(200).send('0');
+});
+
+// POST /api/srs/on-play - optional log viewer (không reject)
+app.post('/api/srs/on-play', function(req, res) {
+  // Cho phép tất cả viewer xem (KHÔNG check key vì URL FLV public)
+  return res.status(200).send('0');
+});
+
 app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){
   const idolId   = String((req.body && req.body.idolId) || '');
   const title    = String((req.body && req.body.title) || '');
