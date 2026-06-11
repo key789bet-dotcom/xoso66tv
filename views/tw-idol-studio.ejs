@@ -210,23 +210,50 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
           <label class="text-[10px] text-muted uppercase font-bold block mb-1">Tiêu đề show</label>
           <input id="schTitle" maxlength="120" placeholder="VD: Live show hát cover tối T7" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
         </div>
-        <!-- BẮT ĐẦU: 2 input riêng (date + time 24h) -->
+        <!-- BẮT ĐẦU: date + dropdown HH/MM (24h thuần, không phụ thuộc OS) -->
+        <%
+          var hourOpts = '';
+          for (var hh = 0; hh < 24; hh++) {
+            var hStr = (hh < 10 ? '0' : '') + hh;
+            hourOpts += '<option value="' + hStr + '">' + hStr + 'h</option>';
+          }
+          var minOpts = '';
+          for (var mm = 0; mm < 60; mm += 5) {
+            var mStr = (mm < 10 ? '0' : '') + mm;
+            minOpts += '<option value="' + mStr + '">' + mStr + 'p</option>';
+          }
+        %>
         <div>
-          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⏰ Bắt đầu (giờ 24h)</label>
-          <div class="grid grid-cols-[1fr_100px] gap-2">
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⏰ Bắt đầu (giờ 24h • 0h-23h)</label>
+          <div class="grid grid-cols-[1fr_70px_70px] gap-2">
             <input id="schStartDate" type="date" lang="vi-VN" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
-            <input id="schStartTimeOnly" type="time" lang="vi-VN" step="60" placeholder="HH:MM" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri tabular-nums" style="font-feature-settings:'tnum'">
+            <select id="schStartHour" class="bg-bg-deep border border-line text-white text-sm px-1 py-2 rounded-lg outline-none focus:border-pri tabular-nums" aria-label="Giờ bắt đầu">
+              <option value="">--h</option>
+              <%- hourOpts %>
+            </select>
+            <select id="schStartMin" class="bg-bg-deep border border-line text-white text-sm px-1 py-2 rounded-lg outline-none focus:border-pri tabular-nums" aria-label="Phút bắt đầu">
+              <option value="">--p</option>
+              <%- minOpts %>
+            </select>
           </div>
         </div>
-        <!-- KẾT THÚC: 2 input riêng (date + time 24h) -->
         <div>
-          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⏰ Kết thúc (giờ 24h)</label>
-          <div class="grid grid-cols-[1fr_100px] gap-2">
+          <label class="text-[10px] text-muted uppercase font-bold block mb-1">⏰ Kết thúc (giờ 24h • 0h-23h)</label>
+          <div class="grid grid-cols-[1fr_70px_70px] gap-2">
             <input id="schEndDate" type="date" lang="vi-VN" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri">
-            <input id="schEndTimeOnly" type="time" lang="vi-VN" step="60" placeholder="HH:MM" class="bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri tabular-nums" style="font-feature-settings:'tnum'">
+            <select id="schEndHour" class="bg-bg-deep border border-line text-white text-sm px-1 py-2 rounded-lg outline-none focus:border-pri tabular-nums" aria-label="Giờ kết thúc">
+              <option value="">--h</option>
+              <%- hourOpts %>
+            </select>
+            <select id="schEndMin" class="bg-bg-deep border border-line text-white text-sm px-1 py-2 rounded-lg outline-none focus:border-pri tabular-nums" aria-label="Phút kết thúc">
+              <option value="">--p</option>
+              <%- minOpts %>
+            </select>
           </div>
         </div>
         <!-- Hidden compat inputs (giữ ID cũ để JS submit không lỗi) -->
+        <input id="schStartTimeOnly" type="hidden">
+        <input id="schEndTimeOnly" type="hidden">
         <input id="schStartTime" type="hidden">
         <input id="schEndTime" type="hidden">
         <div>
@@ -235,13 +262,29 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
         </div>
       </div>
 
-      <!-- CSS force 24h hour picker (Chrome/Firefox/Safari) -->
+      <!-- Date picker indicator dark mode -->
       <style>
-        #schStartTimeOnly::-webkit-datetime-edit-ampm-field,
-        #schEndTimeOnly::-webkit-datetime-edit-ampm-field { display: none; }
-        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(.7); cursor: pointer; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); cursor: pointer; }
       </style>
+
+      <!-- Auto sync HH/MM dropdown → hidden schStartTimeOnly/schEndTimeOnly (HH:MM format) -->
+      <script>
+      (function(){
+        function bind(hourId, minId, hiddenId){
+          var h = document.getElementById(hourId);
+          var m = document.getElementById(minId);
+          var t = document.getElementById(hiddenId);
+          if (!h || !m || !t) return;
+          function sync(){
+            t.value = (h.value && m.value) ? (h.value + ':' + m.value) : '';
+          }
+          h.addEventListener('change', sync);
+          m.addEventListener('change', sync);
+        }
+        bind('schStartHour', 'schStartMin', 'schStartTimeOnly');
+        bind('schEndHour',   'schEndMin',   'schEndTimeOnly');
+      })();
+      </script>
 
       <div id="schFormMatch" class="hidden space-y-2.5">
         <div>
