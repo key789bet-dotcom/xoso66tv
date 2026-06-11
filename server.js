@@ -669,11 +669,15 @@ app.use(function(err, req, res, next){
 
 // ===== IDOL STUDIO =====
 app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
-  const data = db.load();
   const user = pubAuth.getUser(req);
+  // 🆕 BLV → redirect sang trang OBS riêng (clone style diendanbongda)
+  if (user && user.role === 'blv') {
+    return res.redirect('/blv-obs');
+  }
+  const data = db.load();
   const dbIdols = data.idols.filter(function(i){ return i.status==='active'; });
   const uname = user ? String(user.username || '').toLowerCase() : '';
-  const isBlv = user && user.role === 'blv';
+  const isBlv = false; // never reach here for BLV (redirect above)
   let myIdol = null;
   let myBlv = null;
 
@@ -745,9 +749,151 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
     isAdmin: isAdmin,
     currentUser: user,
     publicUser: user,
-    activeSchedule: activeSchedule,                 // 📅 schedule đang active
-    hasActiveSchedule: !!activeSchedule             // boolean shortcut
+    activeSchedule: activeSchedule,
+    hasActiveSchedule: !!activeSchedule
   });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 📡 BLV OBS PAGE - giao diện kết nối OBS theo từng trận
+// (BLV-only, clone style diendanbongda admin/obs)
+// ═══════════════════════════════════════════════════════════════
+app.get('/blv-obs', pubAuth.requireStreamer, function (req, res) {
+  const user = pubAuth.getUser(req);
+  if (!user || (user.role !== 'blv' && user.role !== 'admin')) {
+    return res.redirect('/idol-studio');
+  }
+  const data = db.load();
+  const _sched = require('./lib/schedule-store');
+  const uname = String(user.username || '').toLowerCase();
+
+  // BLV record cho header
+  const blvRec = (data.blvs || []).find(b =>
+    String(b.userId || '').toLowerCase() === uname ||
+    String(b.username || '').toLowerCase() === uname ||
+    String(b.name || '').toLowerCase() === uname
+  );
+  const myBlvName = (blvRec && blvRec.name) || user.username;
+
+  // Filter ngày (YYYY-MM-DD)
+  const selectedDate = String(req.query.date || new Date().toISOString().slice(0, 10));
+  const dayStart = new Date(selectedDate + 'T00:00:00').getTime();
+  const dayEnd = dayStart + 24 * 3600 * 1000;
+
+  // Lấy schedules approved của BLV trong ngày
+  let mySchedules = _sched.listAll({ username: uname, status: 'approved', userType: 'blv', limit: 200 });
+  if (user.role === 'admin') {
+    // Admin xem tất cả BLV
+    mySchedules = _sched.listAll({ status: 'approved', userType: 'blv', limit: 200 });
+  }
+  const dayMatches = mySchedules.filter(s => {
+    const ts = s.startTime || 0;
+    return ts >= dayStart && ts < dayEnd;
+  });
+
+  // Convert thành format match card
+  const matches = dayMatches.map(function(s){
+    const ts = s.startTime || 0;
+    const d = new Date(ts);
+    const p = n => String(n).padStart(2, '0');
+    // Parse home/away từ matchTitle nếu có "X vs Y"
+    let home = '', away = '';
+    if (s.matchTitle) {
+      const mv = s.matchTitle.match(/^(.+?)\s+vs\s+(.+?)(?:\s+•|\s+\(|\s+\-|$)/i);
+      if (mv) { home = mv[1].trim(); away = mv[2].trim(); }
+      else { home = s.matchTitle; }
+    }
+    return {
+      scheduleId: s.id,
+      id: s.matchId || s.id,
+      home: home || (s.matchTitle || s.title || 'Match'),
+      away: away,
+      league: s.description || '',
+      time: p(d.getHours()) + ':' + p(d.getMinutes()),
+      dateStr: p(d.getDate()) + '/' + p(d.getMonth()+1) + '/' + d.getFullYear(),
+      streamKey: s.streamKey || null,
+      rtmpUrl: s.streamKey ? (process.env.RTMP_SERVER_URL || 'rtmp://stream.xoso66tv.com:1936/live') : null,
+      hlsUrl: s.streamKey ? ('https://live.xoso66tv.com/live/' + s.streamKey + '.m3u8') : null,
+      isLive: !!s.streamActive,
+      isEnded: !!s.streamEnded || (Date.now() > (s.endTime || 0) + 3 * 3600 * 1000),
+      score: s.score || null
+    };
+  });
+
+  res.render('tw-blv-obs', {
+    active: 'cat', activeCat: 'idol',
+    publicUser: user,
+    myBlvName: myBlvName,
+    selectedDate: selectedDate,
+    matches: matches,
+    maxConcurrent: 3
+  });
+});
+
+// API: BLV tạo stream key cho 1 trận (schedule approved)
+app.post('/api/blv/match/:scheduleId/stream-key', pubAuth.requireStreamer, function(req, res){
+  try {
+    const user = pubAuth.getUser(req);
+    if (!user || (user.role !== 'blv' && user.role !== 'admin')) {
+      return res.json({ ok:false, error:'Chỉ BLV/admin' });
+    }
+    const _sched = require('./lib/schedule-store');
+    const sId = String(req.params.scheduleId || '');
+    const s = _sched.findById(sId);
+    if (!s) return res.json({ ok:false, error:'Schedule không tồn tại' });
+    if (s.status !== 'approved') return res.json({ ok:false, error:'Chưa được duyệt' });
+    if (user.role !== 'admin' && s.username !== String(user.username||'').toLowerCase()) {
+      return res.json({ ok:false, error:'Không phải schedule của bạn' });
+    }
+    // Sinh stream key duy nhất cho schedule này
+    const data = db.load();
+    if (!Array.isArray(data.schedules)) data.schedules = [];
+    const idx = data.schedules.findIndex(x => x.id === sId);
+    if (idx === -1) return res.json({ ok:false, error:'Không tìm thấy trong DB' });
+    if (!data.schedules[idx].streamKey) {
+      data.schedules[idx].streamKey = 'live_' + sId.slice(2) + '_' + Math.random().toString(36).slice(2, 10);
+      db.save(data);
+    }
+    res.json({ ok:true, streamKey: data.schedules[idx].streamKey });
+  } catch(e) { res.json({ ok:false, error: e.message }); }
+});
+
+// API: BLV sinh lại stream key
+app.post('/api/blv/match/:scheduleId/regen-key', pubAuth.requireStreamer, function(req, res){
+  try {
+    const user = pubAuth.getUser(req);
+    const sId = String(req.params.scheduleId || '');
+    const data = db.load();
+    if (!Array.isArray(data.schedules)) data.schedules = [];
+    const idx = data.schedules.findIndex(x => x.id === sId);
+    if (idx === -1) return res.json({ ok:false, error:'Không tìm thấy' });
+    if (user.role !== 'admin' && data.schedules[idx].username !== String(user.username||'').toLowerCase()) {
+      return res.json({ ok:false, error:'Không có quyền' });
+    }
+    data.schedules[idx].streamKey = 'live_' + sId.slice(2) + '_' + Math.random().toString(36).slice(2, 10);
+    db.save(data);
+    res.json({ ok:true, streamKey: data.schedules[idx].streamKey });
+  } catch(e) { res.json({ ok:false, error: e.message }); }
+});
+
+// API: BLV xóa stream
+app.post('/api/blv/match/:scheduleId/delete', pubAuth.requireStreamer, function(req, res){
+  try {
+    const user = pubAuth.getUser(req);
+    const sId = String(req.params.scheduleId || '');
+    const data = db.load();
+    if (!Array.isArray(data.schedules)) data.schedules = [];
+    const idx = data.schedules.findIndex(x => x.id === sId);
+    if (idx === -1) return res.json({ ok:false, error:'Không tìm thấy' });
+    if (user.role !== 'admin' && data.schedules[idx].username !== String(user.username||'').toLowerCase()) {
+      return res.json({ ok:false, error:'Không có quyền' });
+    }
+    delete data.schedules[idx].streamKey;
+    data.schedules[idx].streamActive = false;
+    data.schedules[idx].streamEnded = true;
+    db.save(data);
+    res.json({ ok:true });
+  } catch(e) { res.json({ ok:false, error: e.message }); }
 });
 
 // RTMP server URL (config qua env)
