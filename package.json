@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "build:css": "tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind-built.css --minify",
+    "watch:css": "tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind-built.css --watch",
     "gen-vapid": "node -e \"const k=require('web-push').generateVAPIDKeys();console.log('VAPID_PUBLIC_KEY='+k.publicKey);console.log('VAPID_PRIVATE_KEY='+k.privateKey);console.log('VAPID_SUBJECT=mailto:admin@xoso66tv.com');\""
   },
   "dependencies": {
@@ -21,6 +23,9 @@
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
     "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   },
   "engines": {
     "node": ">=18"

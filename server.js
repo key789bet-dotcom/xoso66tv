@@ -1159,6 +1159,18 @@ const giftTxStore= require('./lib/gift-tx-store');
 // Expose PREMIUM_GIFTS cho EJS template (modal tặng quà thật) - EJS không có require()
 app.locals.PREMIUM_GIFTS = giftsLib.PREMIUM_GIFTS;
 
+// ⚡ Tailwind precompiled detection - check file đã build chưa
+try {
+  const builtCssPath = path.join(__dirname, 'public', 'css', 'tailwind-built.css');
+  app.locals.tailwindBuilt = fs.existsSync(builtCssPath);
+  if (app.locals.tailwindBuilt) {
+    const stat = fs.statSync(builtCssPath);
+    console.log('[perf] tailwind precompiled: ' + (stat.size / 1024).toFixed(1) + 'KB (vs CDN ~270KB)');
+  } else {
+    console.warn('[perf] tailwind FALLBACK CDN - chạy `npm run build:css` để tối ưu');
+  }
+} catch(e) { app.locals.tailwindBuilt = false; }
+
 // GET /api/gifts/premium - danh sách quà thật
 app.get('/api/gifts/premium', function (req, res) {
   res.json({ ok:true, list: giftsLib.PREMIUM_GIFTS });
