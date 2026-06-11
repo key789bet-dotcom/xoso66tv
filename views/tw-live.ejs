@@ -58,15 +58,25 @@ seo = {
       </div>
     </div>
 
+    <%
+      // BLV list THẬT: từ data.schedules approved + matchId trùng + đang trong khung giờ
+      var _liveBlvs = (typeof liveBlvs !== 'undefined' && Array.isArray(liveBlvs)) ? liveBlvs : [];
+    %>
+    <% if (_liveBlvs.length > 0) { %>
     <div class="flex gap-2 mt-3 flex-wrap" role="tablist" aria-label="BLV">
-      <% ['BLV X66','BLV Anh Quân','BLV Tùng Mõm','BLV Quang Huy','BLV Tạ Biên Cương'].forEach(function(b, i){ %>
+      <% _liveBlvs.forEach(function(b, i){ %>
         <div class="flex items-center gap-2 bg-bg-card border border-line px-2.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors <%= i===0 ? 'border-pri text-pri-light' : 'hover:border-pri hover:text-pri-light' %>" role="tab" onclick="document.querySelectorAll('[role=tab]').forEach(function(x){x.className=x.className.replace('border-pri text-pri-light','').trim()});this.classList.add('border-pri','text-pri-light')">
-          <img src="https://i.pravatar.cc/40?img=<%= 10+i %>" alt="" class="w-5.5 h-5.5 rounded-full">
-          <span><%= b %></span>
-          <% if (i===0) { %><span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span><% } %>
+          <% if (b.avatar) { %>
+            <img src="<%= b.avatar %>" alt="" class="w-5.5 h-5.5 rounded-full">
+          <% } else { %>
+            <span class="w-5.5 h-5.5 rounded-full bg-gradient-to-br from-pri to-rose-500 grid place-items-center text-[10px]">🎙️</span>
+          <% } %>
+          <span><%= b.name %></span>
+          <% if (b.isLive) { %><span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span><% } %>
         </div>
       <% }); %>
     </div>
+    <% } %>
 
     <aside class="bg-bg-card border border-line rounded-xl p-4 mt-3.5">
       <h3 class="text-pri-light text-sm font-bold mb-2.5 flex items-center gap-1.5">&#128203; Thông tin trận đấu</h3>

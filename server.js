@@ -327,7 +327,29 @@ app.get('/live/:id', async function (req, res, next) {
     const all = await api.getLiveStreams().catch(function(){ return []; });
     const others = (all || []).filter(function (x) { return x.id !== match.id; }).slice(0, 6);
     const hasObs = hasAnyActiveStream('blv');
-    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs });
+    // 🆕 BLV thật đang stream match này: tìm trong schedules approved có matchId trùng + đang trong khung giờ
+    let liveBlvs = [];
+    try {
+      const _sched = require('./lib/schedule-store');
+      const _now = Date.now();
+      const matchIdStr = String(match.id || req.params.id || '');
+      const allApproved = _sched.listAll({ status: 'approved', userType: 'blv', limit: 500 });
+      const dataLocal = db.load();
+      liveBlvs = allApproved
+        .filter(s => String(s.matchId || '') === matchIdStr || (s.matchTitle && match.title && s.matchTitle.includes(match.title)))
+        .filter(s => _now >= (s.startTime - 30*60*1000) && _now <= (s.endTime + 3*3600*1000))
+        .map(s => {
+          const blv = (dataLocal.blvs || []).find(b => String(b.userId||'').toLowerCase() === s.username || String(b.username||'').toLowerCase() === s.username);
+          return {
+            name: (blv && blv.name) || s.username || 'BLV',
+            avatar: (blv && blv.avatar) || null,
+            isLive: !!s.streamActive,
+            scheduleId: s.id
+          };
+        })
+        .slice(0, 5);
+    } catch(e) { console.warn('[LIVE] liveBlvs fail:', e.message); }
+    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs });
   } catch (e) {
     console.error('[live/:id]', e.message);
     next(e);
