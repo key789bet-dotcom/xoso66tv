@@ -301,6 +301,20 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     </div><!-- /details body -->
   </details>
 
+  <!-- 📝 Thông tin buổi live — DÙNG CHUNG cho cả Mobile + OBS -->
+  <div class="bg-bg-card border border-line rounded-xl p-3 mb-3 space-y-2.5">
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1">Tiêu đề buổi live <span class="text-live">*</span></label>
+      <input id="stuTitle" type="text" maxlength="80" placeholder="VD: Cover bài hát hot tuần này"
+             class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none">
+    </div>
+    <div>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1">Mục tiêu quà tặng (X COIN)</label>
+      <input id="stuGoal" type="number" placeholder="10000"
+             class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none tabular-nums">
+    </div>
+  </div>
+
   <!-- Tab nav — ẩn khi forceObs (BLV hoặc idol chọn obs) -->
   <nav id="stuTabNav" class="<%= _forceObs ? 'hidden' : 'flex' %> bg-bg-card rounded-xl p-1 mb-4 border border-line">
     <button onclick="stuSwitchTab('mobile')" id="stuTabMobile" class="flex-1 py-2.5 rounded-lg bg-pri text-white font-bold text-sm flex items-center justify-center gap-2">
@@ -428,16 +442,8 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       };
     </script>
 
-    <!-- Stream meta inputs -->
+    <!-- Stream meta inputs — title/goal đã move ra ngoài tab nav, ở đây chỉ còn coin/min -->
     <div class="bg-bg-card border border-line rounded-xl p-4 space-y-3">
-      <div>
-        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Tiêu đề buổi live</label>
-        <input id="stuTitle" type="text" maxlength="80" placeholder="VD: Cover bài hát hot tuần này" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none">
-      </div>
-      <div>
-        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Mục tiêu quà tặng (X COIN)</label>
-        <input id="stuGoal" type="number" placeholder="10000" class="w-full bg-bg-deep border border-line text-white px-3 py-2 rounded-lg text-sm focus:border-pri outline-none tabular-nums">
-      </div>
       <!-- 🪙 Phí xem theo phút -->
       <div class="rounded-lg p-3" style="background:linear-gradient(135deg, rgba(255,210,63,.15), rgba(38,45,56,1));border:1px solid rgba(255,210,63,.35);">
         <label class="text-[11px] uppercase font-bold flex items-center gap-1.5 mb-1.5" style="color:#ffd23f;">
