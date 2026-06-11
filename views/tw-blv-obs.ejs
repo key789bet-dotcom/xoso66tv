@@ -282,19 +282,31 @@ var _maxConcurrent = (typeof maxConcurrent !== 'undefined') ? maxConcurrent : 3;
   };
 
   window.blvGoLive = function(scheduleId){
-    var msg = '📡 HƯỚNG DẪN BẮT ĐẦU LIVE:\n\n' +
-              '1️⃣ Mở OBS Studio trên máy tính\n' +
-              '2️⃣ Settings → Stream\n' +
-              '   • Service: Custom\n' +
-              '   • Server: dán RTMP URL ở trên\n' +
-              '   • Stream Key: dán Stream Key ở trên\n' +
-              '3️⃣ OK → Start Streaming (góc dưới phải)\n\n' +
-              '⏳ Hệ thống sẽ TỰ ĐỘNG phát hiện khi OBS publish thành công\n' +
-              '→ Nút "Bắt đầu LIVE" sẽ đổi thành badge "🔴 ĐANG PHÁT TRỰC TIẾP"\n\n' +
-              'Bấm OK rồi mở OBS để Start Streaming';
-    alert(msg);
-    // Bật polling check status (sẽ tự update UI khi OBS connect)
-    startStatusPolling(scheduleId);
+    if (!confirm('Bắt đầu phiên LIVE cho trận này?\n\n' +
+                 '✅ Phòng sẽ hiện trạng thái LIVE trên trang chủ ngay.\n' +
+                 '📡 Sau đó anh mở OBS → paste RTMP + Stream Key → Start Streaming để đẩy video lên.')) return;
+    // Mark active ngay server-side (không đợi OBS)
+    fetch('/api/blv/match/' + encodeURIComponent(scheduleId) + '/go-live', {
+      method: 'POST', credentials: 'include'
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.ok) {
+        updateLiveUI(scheduleId, true);
+        startStatusPolling(scheduleId);
+        // Toast xanh
+        try {
+          var t = document.createElement('div');
+          t.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;padding:14px 20px;border-radius:12px;font-weight:bold;box-shadow:0 10px 40px rgba(220,38,38,.5);';
+          t.innerHTML = '🔴 ĐÃ BẮT ĐẦU LIVE — Hãy mở OBS push stream ngay!';
+          document.body.appendChild(t);
+          setTimeout(function(){ t.style.transition='opacity .5s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); }, 500); }, 5000);
+        } catch(e){}
+      } else {
+        alert('Lỗi: ' + (j.error || 'Không bắt đầu được'));
+      }
+    })
+    .catch(function(e){ alert('Lỗi mạng: ' + e.message); });
   };
 
   window.blvEndLive = function(scheduleId){

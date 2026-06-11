@@ -981,6 +981,29 @@ app.post('/api/blv/match/:scheduleId/regen-key', pubAuth.requireStreamer, functi
   } catch(e) { res.json({ ok:false, error: e.message }); }
 });
 
+// API: BLV manual go-live (mark streamActive=true ngay, không đợi OBS)
+app.post('/api/blv/match/:scheduleId/go-live', pubAuth.requireStreamer, function(req, res){
+  try {
+    const user = pubAuth.getUser(req);
+    const sId = String(req.params.scheduleId || '');
+    const data = db.load();
+    if (!Array.isArray(data.schedules)) data.schedules = [];
+    const idx = data.schedules.findIndex(x => x.id === sId);
+    if (idx === -1) return res.json({ ok:false, error:'Schedule không tồn tại' });
+    if (user.role !== 'admin' && data.schedules[idx].username !== String(user.username||'').toLowerCase()) {
+      return res.json({ ok:false, error:'Không có quyền' });
+    }
+    if (!data.schedules[idx].streamKey) return res.json({ ok:false, error:'Chưa tạo Stream Key' });
+    if (data.schedules[idx].status !== 'approved') return res.json({ ok:false, error:'Schedule chưa được duyệt' });
+
+    data.schedules[idx].streamActive = true;
+    data.schedules[idx].streamEnded = false;
+    data.schedules[idx].publishedAt = Date.now();
+    db.save(data);
+    res.json({ ok:true, schedule: data.schedules[idx] });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
 // API: poll status stream (frontend gọi mỗi 3-5s)
 app.get('/api/blv/match/:scheduleId/status', pubAuth.requireStreamer, function(req, res){
   try {
