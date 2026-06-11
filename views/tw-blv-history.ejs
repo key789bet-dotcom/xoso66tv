@@ -93,7 +93,7 @@ window.filterStatus = function(st){
 };
 window.cancelSch = function(id){
   if (!confirm('Hủy yêu cầu này?')) return;
-  fetch('/api/schedule/cancel/' + encodeURIComponent(id), { method:'POST', credentials:'include' })
+  fetch('/api/schedule/' + encodeURIComponent(id), { method:'DELETE', credentials:'include' })
     .then(function(r){ return r.json(); })
     .then(function(j){ if (j.ok) location.reload(); else alert('Lỗi: ' + (j.error||'fail')); });
 };

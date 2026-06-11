@@ -95,7 +95,7 @@ var _selectedDate = (typeof selectedDate !== 'undefined' && selectedDate) ? sele
   window.blvRegisterMatch = function(matchId, matchTitle, matchTs, league){
     if (!confirm('Đăng ký làm BLV cho trận:\n\n' + matchTitle + '\n\nGửi yêu cầu duyệt cho admin?')) return;
     var endTs = matchTs + 2.5 * 3600 * 1000; // matched + 2h30m
-    fetch('/api/schedule/add', {
+    fetch('/api/schedule/request', {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({

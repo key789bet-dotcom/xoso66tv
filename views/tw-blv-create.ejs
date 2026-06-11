@@ -93,7 +93,7 @@ var _blvName = (typeof myBlvName !== 'undefined') ? myBlvName : 'BLV';
     var endTs = startTs + 2.5 * 3600 * 1000;
     var matchTitle = home + ' vs ' + away;
     var btn = document.getElementById('cSubmit'); btn.disabled = true; btn.textContent = '⏳ Đang gửi...';
-    fetch('/api/schedule/add', {
+    fetch('/api/schedule/request', {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
