@@ -71,7 +71,8 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
 <script>
 (function initLiveStream(){
   var STREAM_KEY = '<%= __sk %>';
-  var STREAM_URL = 'https://xoso66tv.com/live/' + STREAM_KEY + '.flv';
+  // 🚀 Dùng live.xoso66tv.com (DNS-only, bypass Cloudflare 100s timeout)
+  var STREAM_URL = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.flv';
   var POLL_INTERVAL = 8000;
   var video, flvPlayer, isPlaying = false;
 

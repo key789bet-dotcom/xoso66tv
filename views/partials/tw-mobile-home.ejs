@@ -194,7 +194,8 @@ _cnt.all = _cards.length;
       });
 
       function attachStream(cand){
-        var url = 'https://xoso66tv.com/live/' + cand.key + '.flv';
+        // 🚀 Bypass Cloudflare 100s timeout
+        var url = 'https://live.xoso66tv.com/live/' + cand.key + '.flv';
         if (!window.flvjs || !flvjs.isSupported()) return;
         try { if (flvPlayer) flvPlayer.destroy(); } catch(e){}
         flvPlayer = flvjs.createPlayer({
@@ -241,7 +242,7 @@ _cnt.all = _cards.length;
         if (idx >= candidates.length) return; // không stream nào live
         var cand = candidates[idx++];
         // HEAD check trước để khỏi tốn FLV connect
-        fetch('https://xoso66tv.com/live/' + cand.key + '.flv', { method:'HEAD', cache:'no-store' })
+        fetch('https://live.xoso66tv.com/live/' + cand.key + '.flv', { method:'HEAD', cache:'no-store' })
           .then(function(r){
             if (r.ok) attachStream(cand);
             else tryNext();

@@ -46,7 +46,8 @@ var quickGifts = [
   <script>
   (function initMobileStream(){
     var STREAM_KEY = '<%= idolId %>';
-    var STREAM_URL = 'https://xoso66tv.com/live/' + STREAM_KEY + '.flv';
+    // 🚀 Bypass Cloudflare 100s timeout
+    var STREAM_URL = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.flv';
     var player, isLive = false, video, emojiBox, unmuteBtn;
 
     function showVideo(){
