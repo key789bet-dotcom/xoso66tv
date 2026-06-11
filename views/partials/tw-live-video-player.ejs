@@ -49,6 +49,22 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   <div class="w-12 h-12 border-4 border-pri border-t-transparent rounded-full animate-spin"></div>
 </div>
 
+<!-- 📊 DEBUG STATS OVERLAY (mặc định HIỆN — ẩn bằng Shift+S hoặc ?stats=0) -->
+<div id="liveStatsOverlay" class="absolute top-2 left-2 z-[8] text-[11px] font-mono leading-tight text-white pointer-events-none select-none"
+     style="background:rgba(0,0,0,.78);padding:8px 10px;border-radius:6px;min-width:220px;border:1px solid rgba(255,255,255,.15);text-shadow:0 1px 2px rgba(0,0,0,.9);">
+  <div style="font-weight:700;color:#fbbf24;margin-bottom:4px;">📊 Stream Stats</div>
+  <div>Network:&nbsp;<span id="ls_net" style="color:#10b981">—</span></div>
+  <div>Speed:&nbsp;&nbsp;&nbsp;<span id="ls_speed">— Kbps</span></div>
+  <div>Buffer:&nbsp;&nbsp;<span id="ls_buf">— s</span></div>
+  <div>Latency:&nbsp;<span id="ls_lat">— s</span></div>
+  <div>Dropped:&nbsp;<span id="ls_drop">0</span></div>
+  <div>Decoded:&nbsp;<span id="ls_dec">0 fps</span></div>
+  <div>Res:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="ls_res">—</span></div>
+  <div>Codec:&nbsp;&nbsp;&nbsp;<span id="ls_codec">—</span></div>
+  <div>Player:&nbsp;&nbsp;<span id="ls_state">—</span></div>
+  <div style="margin-top:4px;font-size:10px;color:#94a3b8;">Shift+S = ẩn/hiện</div>
+</div>
+
 <!-- FLV.js library + auto-attach to stream -->
 <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
 <script>
@@ -151,12 +167,126 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     });
     flvPlayer.on(flvjs.Events.MEDIA_INFO, function(info){
       console.log('[LIVE] MEDIA_INFO:', info && info.mimeType);
+      try {
+        var _r = document.getElementById('ls_res');
+        var _c = document.getElementById('ls_codec');
+        if (_r && info) _r.textContent = (info.width||'?')+'x'+(info.height||'?')+' @ '+(info.fps||info.frameRate||'?')+'fps';
+        if (_c && info) _c.textContent = (info.videoCodec||info.mimeType||'').replace('video/','');
+      } catch(e){}
       onVideoReady();
+    });
+
+    // 📊 STATISTICS_INFO — cập nhật stats overlay
+    flvPlayer.on(flvjs.Events.STATISTICS_INFO, function(stats){
+      __lastStats = stats || {};
     });
 
     // ⚡ Custom seek-to-live: tránh latency drift sau khi viewer lag
     // FLV.js built-in liveBufferLatencyChasing bị bug remove negative range → tự code thay thế
     startLatencyGuard();
+    startStatsLoop();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 📊 DEBUG STATS LOOP — update mỗi 1s
+  // ═══════════════════════════════════════════════════════════
+  var __lastStats = {};
+  var __lastBytes = 0, __lastBytesTime = 0;
+  var __statsLoopId = null;
+  function startStatsLoop(){
+    if (__statsLoopId) clearInterval(__statsLoopId);
+    var overlay = document.getElementById('liveStatsOverlay');
+    if (!overlay) return;
+    var $ = function(id){ return document.getElementById(id); };
+    __statsLoopId = setInterval(function(){
+      if (!video || !flvPlayer) return;
+      try {
+        var s = __lastStats || {};
+        var now = Date.now();
+
+        // Speed (Kbps)
+        var bytes = s.loaderType ? (s.speed || 0) : 0;
+        // Some FLV.js versions expose speed in KB/s
+        if (s.speed) {
+          $('ls_speed').textContent = (s.speed * 8).toFixed(0) + ' Kbps';
+        } else if (s.currentSegmentIndex !== undefined) {
+          $('ls_speed').textContent = '— Kbps';
+        }
+
+        // Buffer
+        var bufStr = '—';
+        var drift = 0;
+        if (video.buffered && video.buffered.length) {
+          var bEnd = video.buffered.end(video.buffered.length-1);
+          drift = Math.max(0, bEnd - video.currentTime);
+          bufStr = drift.toFixed(2) + ' s';
+        }
+        $('ls_buf').textContent = bufStr;
+
+        // Latency = drift + RTT approx (xấp xỉ buffer = client latency)
+        var latColor = drift < 4 ? '#10b981' : drift < 8 ? '#fbbf24' : '#ef4444';
+        $('ls_lat').innerHTML = '<span style="color:'+latColor+'">'+drift.toFixed(2)+' s</span>';
+
+        // Dropped frames + decoded fps
+        var q = (video.getVideoPlaybackQuality) ? video.getVideoPlaybackQuality() : {};
+        var drop = q.droppedVideoFrames || 0;
+        var total = q.totalVideoFrames || 0;
+        var dropColor = drop === 0 ? '#10b981' : (drop/Math.max(total,1) > 0.05 ? '#ef4444' : '#fbbf24');
+        $('ls_drop').innerHTML = '<span style="color:'+dropColor+'">'+drop+' / '+total+'</span>';
+
+        // Decoded fps (delta trong 1s)
+        if (!window.__lastDecCount) window.__lastDecCount = total;
+        var fps = total - window.__lastDecCount;
+        window.__lastDecCount = total;
+        $('ls_dec').textContent = fps + ' fps';
+
+        // Resolution (đề phòng MEDIA_INFO chưa fire)
+        if (video.videoWidth) {
+          $('ls_res').textContent = video.videoWidth+'x'+video.videoHeight;
+        }
+
+        // Player state
+        var state = '—';
+        if (video.paused) state = '⏸ paused';
+        else if (video.readyState >= 3) state = '▶ playing';
+        else state = '⏳ buffering';
+        $('ls_state').textContent = state;
+
+        // Network type (nếu browser support)
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (conn) {
+          var netStr = (conn.effectiveType || '?').toUpperCase() + ' · ' +
+                       (conn.downlink ? conn.downlink.toFixed(1)+'Mbps' : '?');
+          $('ls_net').textContent = netStr;
+          $('ls_net').style.color = conn.effectiveType === '4g' ? '#10b981' :
+                                    conn.effectiveType === '3g' ? '#fbbf24' : '#ef4444';
+        } else {
+          $('ls_net').textContent = 'unknown';
+        }
+      } catch(e) {
+        console.warn('[LIVE-STATS]', e.message);
+      }
+    }, 1000);
+  }
+
+  // Toggle stats overlay: mặc định HIỆN, ẩn bằng ?stats=0 hoặc Shift+S
+  function initStatsToggle(){
+    var overlay = document.getElementById('liveStatsOverlay');
+    if (!overlay) return;
+    try {
+      var qs = new URLSearchParams(location.search);
+      if (qs.get('stats') === '0') overlay.classList.add('hidden');
+    } catch(e){}
+    document.addEventListener('keydown', function(e){
+      if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
+        overlay.classList.toggle('hidden');
+        try { localStorage.setItem('liveStatsShown', overlay.classList.contains('hidden') ? '0' : '1'); } catch(_) {}
+      }
+    });
+    // Restore previous state
+    try {
+      if (localStorage.getItem('liveStatsShown') === '0') overlay.classList.add('hidden');
+    } catch(_){}
   }
 
   // Stop previous guard interval khi destroy/reload
@@ -279,6 +409,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   function start(){
     if (!window.flvjs) { setTimeout(start, 300); return; }
     bindUnmute();
+    initStatsToggle();
     checkStream();
     setInterval(checkStream, POLL_INTERVAL);
   }
