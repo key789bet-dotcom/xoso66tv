@@ -53,7 +53,7 @@ seo = {
       <% } %>
     </div>
 
-    <div class="bg-bg-card border border-line rounded-xl p-3.5 mt-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3.5 items-center">
+    <div id="liveScoreRow" class="bg-bg-card border border-line rounded-xl p-3.5 mt-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3.5 items-center">
       <div class="flex items-center gap-2.5 font-bold">
         <% if (match.homeBadge) { %><img src="<%= match.homeBadge %>" alt="<%= match.home %>" class="w-8 h-8 bg-white rounded-full p-0.5" onerror="this.style.display='none'"><% } %>
         <span><%= match.home %></span>
@@ -142,17 +142,17 @@ seo = {
   window.__x66HasObs = <%= hasObs ? 'true' : 'false' %>;
   startChat('chatBody', { isLive: window.__x66HasObs });
 
-  // 📱 MOBILE: di chuyển chat lên ngay sau player (để xem chat không cần scroll)
+  // 📱 MOBILE: thứ tự = Video → Score row → Chat → Info → Phòng khác
   (function moveChatMobile(){
     var mql = window.matchMedia('(max-width: 1023px)');
     var chat = document.getElementById('liveChatAside');
-    var player = document.getElementById('livePlayer');
-    if (!chat || !player) return;
+    var scoreRow = document.getElementById('liveScoreRow');
+    if (!chat || !scoreRow) return;
     function apply(){
       if (mql.matches) {
-        // Mobile: chat ngay sau player
-        if (player.nextElementSibling !== chat) {
-          player.parentNode.insertBefore(chat, player.nextElementSibling);
+        // Mobile: chat NGAY SAU score row (video → score → chat → info)
+        if (scoreRow.nextElementSibling !== chat) {
+          scoreRow.parentNode.insertBefore(chat, scoreRow.nextElementSibling);
         }
       } else {
         // Desktop: chat trở về <article> (right column)
