@@ -43,7 +43,8 @@ const sec         = require('./lib/security');
 const privacy     = require('./lib/privacy');
 
 // Rate limiters
-const loginLimiter = sec.createLimiter({ max: 5, windowMs: 5*60*1000, message: 'Quá nhiều lần đăng nhập, đợi 5 phút' });
+// 🔒 Rate limit login: 15 lần / 5 phút (đủ cho user nhớ sai pass vài lần + dev test)
+const loginLimiter = sec.createLimiter({ max: 15, windowMs: 5*60*1000, message: 'Quá nhiều lần đăng nhập, đợi 5 phút' });
 const apiLimiter   = sec.createLimiter({ max: 60, windowMs: 60*1000, message: 'Quá nhiều request, đợi 1 phút' });
 const analytics= require('./lib/analytics');
 
