@@ -81,7 +81,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   function hidePlaceholder(){
     var container = document.getElementById('livePlayer');
     if (!container) return;
-    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading'];
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay'];
     var kids = container.children;
     for (var i=0; i<kids.length; i++){
       var el = kids[i];
@@ -95,7 +95,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   function showPlaceholder(){
     var container = document.getElementById('livePlayer');
     if (!container) return;
-    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading'];
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay'];
     var kids = container.children;
     for (var i=0; i<kids.length; i++){
       var el = kids[i];
