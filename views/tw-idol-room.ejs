@@ -567,21 +567,43 @@ var _obsMode = (idol.streamMethod === 'obs');
 
   <!-- BOTTOM: thông tin idol + tippers + profile + album (full width left col) -->
   <div class="space-y-3.5">
-    <!-- Idol info bar -->
-    <div class="bg-bg-card border border-line rounded-xl p-4 flex items-center gap-4">
-      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-4xl shrink-0 border-2 border-pri"><%= idol.emoji || '👑' %></div>
-      <div class="flex-1 min-w-0">
-        <h1 class="text-xl font-extrabold text-white flex items-center gap-2"><%= idol.name %>
-          <% if (idol.lock === 0) { %>
-            <span class="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-extrabold">FREE</span>
-          <% } else { %>
-            <span class="text-[10px] bg-pri text-white px-1.5 py-0.5 rounded font-extrabold">VIP <%= idol.lock %> 🪙</span>
-          <% } %>
-        </h1>
-        <p class="text-muted text-sm"><%= idol.room %> · 👁 <%= viewers.toLocaleString('vi-VN') %> · ❤ <%= follow.toLocaleString('vi-VN') %> follow</p>
+    <!-- Idol info bar — responsive: mobile stack dọc, desktop ngang -->
+    <div class="bg-bg-card border border-line rounded-xl p-3 md:p-4">
+      <!-- Top row: avatar + name + badge + stats — luôn flex row -->
+      <div class="flex items-center gap-3">
+        <div class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-pink to-purple grid place-items-center text-3xl md:text-4xl shrink-0 border-2 border-pri"><%= idol.emoji || '👑' %></div>
+        <div class="flex-1 min-w-0">
+          <!-- Name + badge inline 1 dòng, ellipsis nếu dài -->
+          <h1 class="text-base md:text-xl font-extrabold text-white flex items-center gap-1.5 leading-tight">
+            <span class="truncate"><%= idol.name %></span>
+            <% if (idol.lock === 0) { %>
+              <span class="shrink-0 text-[9px] md:text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-extrabold">FREE</span>
+            <% } else { %>
+              <span class="shrink-0 text-[9px] md:text-[10px] bg-pri text-white px-1.5 py-0.5 rounded font-extrabold">VIP <%= idol.lock %> 🪙</span>
+            <% } %>
+          </h1>
+          <!-- Stats: room + viewers + follows — 1 dòng, ellipsis -->
+          <p class="text-muted text-[11.5px] md:text-sm truncate mt-0.5">
+            <span class="text-pri-light"><%= idol.room %></span>
+            <span class="opacity-50"> · </span>👁 <span class="text-white font-semibold tabular-nums"><%= viewers.toLocaleString('vi-VN') %></span>
+            <span class="opacity-50"> · </span>❤ <span class="text-white font-semibold tabular-nums"><%= follow.toLocaleString('vi-VN') %></span>
+          </p>
+        </div>
       </div>
-      <button onclick="toggleFollow(this)" class="px-4 py-2 bg-bg-soft border-2 border-pri text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors">❤ Theo dõi</button>
-      <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-pri">🎁 Tặng quà</button>
+      <!-- Action buttons: mobile grid 2 cols full width, desktop ẩn (đã có ở hàng trên) -->
+      <div class="grid grid-cols-2 gap-2 mt-3 md:hidden">
+        <button onclick="toggleFollow(this)" class="py-2 bg-bg-soft border border-pri/60 text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5">
+          <span>❤</span><span>Theo dõi</span>
+        </button>
+        <button onclick="openGiftPanel('<%= idol.name %>')" class="py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-lg shadow-pri/40 flex items-center justify-center gap-1.5">
+          <span>🎁</span><span>Tặng quà</span>
+        </button>
+      </div>
+      <!-- Desktop action buttons (hidden mobile) -->
+      <div class="hidden md:flex items-center gap-2 mt-3 justify-end">
+        <button onclick="toggleFollow(this)" class="px-4 py-2 bg-bg-soft border-2 border-pri text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors">❤ Theo dõi</button>
+        <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-pri">🎁 Tặng quà</button>
+      </div>
     </div>
 
     <!-- Top tippers -->
