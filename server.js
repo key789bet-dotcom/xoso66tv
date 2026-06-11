@@ -673,18 +673,12 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
   const user = pubAuth.getUser(req);
   const dbIdols = data.idols.filter(function(i){ return i.status==='active'; });
   const uname = user ? String(user.username || '').toLowerCase() : '';
-
-  // 🆕 Auto-detect idol record của user đang login
-  let myIdol = uname ? dbIdols.find(function(i){
-    return (String(i.userId||'').toLowerCase() === uname) ||
-           (String(i.username||'').toLowerCase() === uname) ||
-           (String(i.name||'').toLowerCase() === uname);
-  }) : null;
-
-  // 🆕 Nếu user là BLV → lookup data.blvs và CONVERT thành idol-shape để view dùng chung
   const isBlv = user && user.role === 'blv';
+  let myIdol = null;
   let myBlv = null;
-  if (!myIdol && isBlv && uname) {
+
+  if (isBlv) {
+    // 🆕 BLV → CHỈ lookup data.blvs (tránh match nhầm idol có userId trùng)
     const blvs = data.blvs || [];
     const blvRec = blvs.find(function(b){
       return (String(b.userId||'').toLowerCase() === uname) ||
@@ -695,18 +689,39 @@ app.get('/idol-studio', pubAuth.requireStreamer, function (req, res) {
       myBlv = blvRec;
       // Convert BLV record thành idol-shape để view tận dụng cấu trúc cũ
       myIdol = {
-        id: blvRec.id,
+        id: blvRec.id || ('b_' + (blvRec.username || user.username)).toLowerCase(),
         name: blvRec.name || user.username,
-        room: blvRec.room || 'Phòng BLV',
+        room: blvRec.room || ('Phòng BLV - ' + (blvRec.name || user.username)),
         emoji: blvRec.emoji || '🎙️',
         color: blvRec.color || 200,
         category: 'bongda',     // BLV mặc định là bóng đá
         streamMethod: 'obs',    // BLV luôn OBS
         userId: blvRec.userId,
         username: blvRec.username,
-        _isBlvRecord: true       // flag để view biết đây là BLV
+        _isBlvRecord: true
+      };
+    } else {
+      // BLV chưa có profile → tạo idol-shape minimal từ user info
+      myIdol = {
+        id: ('b_' + uname),
+        name: user.username,
+        room: 'Phòng BLV - ' + user.username,
+        emoji: '🎙️',
+        color: 200,
+        category: 'bongda',
+        streamMethod: 'obs',
+        userId: user.username,
+        username: user.username,
+        _isBlvRecord: true
       };
     }
+  } else {
+    // 🆕 IDOL (hoặc admin) → lookup trong dbIdols như cũ
+    myIdol = uname ? dbIdols.find(function(i){
+      return (String(i.userId||'').toLowerCase() === uname) ||
+             (String(i.username||'').toLowerCase() === uname) ||
+             (String(i.name||'').toLowerCase() === uname);
+    }) : null;
   }
 
   const isAdmin = user && user.role === 'admin';
