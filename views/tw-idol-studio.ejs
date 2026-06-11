@@ -565,6 +565,45 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       </div>
     </div>
 
+    <!-- ════════════ NÚT LÊN/KẾT THÚC LIVE riêng cho OBS ════════════ -->
+    <div class="bg-bg-card border border-line rounded-xl p-4 space-y-3">
+      <h3 class="text-white font-extrabold text-sm flex items-center gap-2">
+        <span>🎬</span><span>Điều khiển stream OBS</span>
+      </h3>
+      <div class="text-[11px] text-muted leading-relaxed">
+        Sau khi OBS đã start streaming → bấm "BẮT ĐẦU LIVE" để publish phòng lên trang chủ. Khi xong → bấm "KẾT THÚC LIVE" để dừng + tổng kết phiên.
+      </div>
+
+      <!-- Nút BẮT ĐẦU LIVE (OBS) - không cần camera -->
+      <button onclick="stuGoLiveObs()" id="stuGoLiveObsBtn" type="button"
+              class="w-full bg-gradient-to-r from-red-600 via-pink-600 to-red-600 hover:brightness-110 text-white py-3.5 rounded-xl font-black text-sm shadow-2xl shadow-red-500/40 active:scale-[0.98] transition-transform flex items-center justify-center gap-2 border-2 border-red-300">
+        <span class="text-xl">📡</span>
+        <span class="tracking-wide">BẮT ĐẦU LIVE (OBS)</span>
+      </button>
+
+      <!-- ĐANG PHÁT TRỰC TIẾP indicator (OBS) -->
+      <div id="stuLiveActionsObs" class="hidden">
+        <div class="relative w-full bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white py-3.5 rounded-xl font-black text-sm shadow-2xl shadow-red-500/50 flex items-center justify-center gap-2 border-2 border-red-300 overflow-hidden">
+          <span class="absolute inset-0 stu-live-shine pointer-events-none"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse-live shadow-[0_0_10px_white]"></span>
+          <span class="text-xl">🔴</span>
+          <span class="tracking-widest relative z-[1]">ĐANG PHÁT TRỰC TIẾP</span>
+        </div>
+      </div>
+
+      <!-- Nút KẾT THÚC LIVE (OBS) - LUÔN hiển thị, disabled khi chưa live -->
+      <button onclick="stuEndLiveObs()" id="stuEndLiveObsBtn" type="button"
+              class="w-full bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 hover:from-red-900 hover:via-red-800 hover:to-red-900 text-white py-3 rounded-xl font-black text-xs shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-2 border-gray-500 hover:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-gray-700 disabled:hover:via-gray-800 disabled:hover:to-gray-900 disabled:hover:border-gray-500"
+              disabled>
+        <span class="text-lg">⏹</span>
+        <span class="tracking-wide" id="stuEndLiveObsLabel">KẾT THÚC LIVE (chưa lên sóng)</span>
+      </button>
+
+      <div class="text-[10px] text-emerald-300/80 leading-relaxed bg-emerald-900/20 border border-emerald-500/30 rounded p-2">
+        💡 <b>Lưu ý OBS:</b> Khác Mobile/Camera, OBS tự push stream lên server. Bạn chỉ cần bấm "BẮT ĐẦU LIVE" để hiện phòng trên trang chủ.
+      </div>
+    </div>
+
     <!-- Step-by-step instructions -->
     <div class="bg-bg-card border border-line rounded-xl p-4">
       <h3 class="text-white font-extrabold text-sm mb-3 flex items-center gap-2">
@@ -981,7 +1020,73 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     };
   }
 
-  // ===== GO LIVE / END LIVE =====
+  // ===== GO LIVE / END LIVE - OBS MODE (không cần camera) =====
+  window.stuGoLiveObs = async function(){
+    if (!state.identity) { alert('Chọn idol trước'); return; }
+    var title = document.getElementById('stuTitle').value.trim();
+    if (!title) { alert('Nhập tiêu đề buổi live'); document.getElementById('stuTitle').focus(); return; }
+    if (!confirm('Bắt đầu lên sóng OBS với tư cách ' + state.identity.name + '?\n\n📡 Hãy đảm bảo OBS đã START STREAMING với stream key đúng trước.')) return;
+
+    var _cat = (state.identity && state.identity.category) ||
+               (window.__autoIdol && window.__autoIdol.category) || 'idol';
+    fetch('/api/studio/go-live', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity.id, title: title, category: _cat, source: 'obs', goal: parseInt(document.getElementById('stuGoal').value||0) })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.ok) {
+        state.isLive = true;
+        state.liveStartTime = Date.now();
+        // Ẩn nút bắt đầu OBS, hiện cụm ĐANG LIVE + enable nút Kết thúc
+        document.getElementById('stuGoLiveObsBtn').classList.add('hidden');
+        document.getElementById('stuLiveActionsObs').classList.remove('hidden');
+        var endObsBtn = document.getElementById('stuEndLiveObsBtn');
+        endObsBtn.disabled = false;
+        document.getElementById('stuEndLiveObsLabel').textContent = 'KẾT THÚC LIVE (OBS)';
+        // Cập nhật indicator chung (nếu có)
+        var lb = document.getElementById('stuLiveBadge'); if (lb) lb.classList.remove('hidden');
+        var ls = document.getElementById('stuLiveStats'); if (ls) ls.classList.remove('hidden');
+        var lst = document.getElementById('stuLiveStatus'); if (lst) lst.classList.remove('hidden');
+        var cm = document.getElementById('stuChatMonitor'); if (cm) cm.classList.remove('hidden');
+        var ob = document.getElementById('stuOpenRoomBtn');
+        if (ob) { ob.classList.remove('hidden'); ob.href = '/idol/' + state.identity.id; }
+        if (typeof startDurationTimer === 'function') startDurationTimer();
+        if (typeof startFakeStats === 'function') startFakeStats();
+        if (typeof startChatMonitor === 'function') startChatMonitor();
+        alert('🎉 ĐANG LIVE (OBS)! Viewer có thể vào xem tại /idol/' + state.identity.id);
+      } else {
+        alert('❌ Lỗi: ' + (j.error || 'Không thể lên sóng. Kiểm tra lại lịch live + stream key.'));
+      }
+    }).catch(function(e){
+      alert('❌ Lỗi kết nối: ' + e.message);
+    });
+  };
+
+  window.stuEndLiveObs = async function(){
+    if (!confirm('Kết thúc phiên live OBS?\n\nNhớ STOP STREAMING trên OBS sau khi bấm OK.')) return;
+    fetch('/api/studio/end-live', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ idolId: state.identity ? state.identity.id : '' })
+    }).catch(function(){});
+    state.isLive = false;
+    // Reset UI OBS
+    document.getElementById('stuGoLiveObsBtn').classList.remove('hidden');
+    document.getElementById('stuLiveActionsObs').classList.add('hidden');
+    var endObsBtn2 = document.getElementById('stuEndLiveObsBtn');
+    if (endObsBtn2) endObsBtn2.disabled = true;
+    var endObsLabel2 = document.getElementById('stuEndLiveObsLabel');
+    if (endObsLabel2) endObsLabel2.textContent = 'KẾT THÚC LIVE (chưa lên sóng)';
+    // Reset indicator chung
+    var lb2 = document.getElementById('stuLiveBadge'); if (lb2) lb2.classList.add('hidden');
+    var ls2 = document.getElementById('stuLiveStats'); if (ls2) ls2.classList.add('hidden');
+    var lst2 = document.getElementById('stuLiveStatus'); if (lst2) lst2.classList.add('hidden');
+    var cm2 = document.getElementById('stuChatMonitor'); if (cm2) cm2.classList.add('hidden');
+    var ob2 = document.getElementById('stuOpenRoomBtn'); if (ob2) ob2.classList.add('hidden');
+    if (state.durationTimer) clearInterval(state.durationTimer);
+    if (state.chatTimer) clearInterval(state.chatTimer);
+    alert('✅ Đã kết thúc phiên live. Đừng quên STOP STREAMING trên OBS.');
+  };
+
+  // ===== GO LIVE / END LIVE - MOBILE MODE (cần camera) =====
   window.stuGoLive = async function(){
     if (!state.identity) { alert('Chọn idol trước'); return; }
     if (!state.mediaStream) { alert('Bật camera trước khi lên sóng'); return; }
