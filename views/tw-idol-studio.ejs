@@ -117,21 +117,31 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       </div>
     </div>
   </details>
+  <% } %>
+
+  <!-- 🔑 SCRIPT setup window.__autoIdol — CHẠY cho CẢ BLV và Idol -->
+  <% if (_autoIdol) { %>
   <script>
-    // Auto-set state.identity từ server (không cần user chọn)
-    <% if (_autoIdol) { %>
+    // Auto-set state.identity từ server (cần cho BLV + Idol để loadStreamKey/go-live)
     window.__autoIdol = {
       id: '<%= _autoIdol.id %>',
       name: <%- JSON.stringify(_autoIdol.name) %>,
       emoji: <%- JSON.stringify(_autoIdol.emoji || '👑') %>,
       category: <%- JSON.stringify(_autoIdol.category || 'idol') %>
     };
+
+    // 🔑 BLV/role-aware: nếu user không phải idol thuần → XÓA localStorage cũ
+    // để tránh fallback hiển thị Yến Nhi từ session trước
+    <% if (_isBlv) { %>
+    try { localStorage.removeItem('x66_idol_identity'); } catch(e){}
     <% } %>
 
-    // Highlight category button đã chọn
+    // Highlight category button đã chọn (CHỈ chạy nếu có button — idol mode)
     (function(){
+      var btns = document.querySelectorAll('.stu-cat-btn');
+      if (!btns.length) return;
       var cur = (window.__autoIdol && window.__autoIdol.category) || 'idol';
-      document.querySelectorAll('.stu-cat-btn').forEach(function(b){
+      btns.forEach(function(b){
         if (b.dataset.cat === cur) {
           b.classList.remove('bg-bg-deep','border-line');
           b.classList.add('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
@@ -141,7 +151,7 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
 
     // User click chọn chuyên mục
     window.stuSetCategory = function(cat){
-      // Update UI
+      // Update UI nếu có button (BLV không có)
       document.querySelectorAll('.stu-cat-btn').forEach(function(b){
         b.classList.remove('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
         b.classList.add('bg-bg-deep','border-line');
@@ -152,10 +162,9 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
         btn.classList.add('bg-gradient-to-br','from-pri','to-pri-dark','border-pri','shadow-pri');
       }
       var labels = { idol:'👑 Idol Show', bongda:'⚽ Bóng đá', casino:'🎰 Sòng bài', esport:'🎮 Esports' };
-      document.getElementById('stuCatLabel').textContent = labels[cat] || cat;
-      document.getElementById('stuCatHint').textContent = labels[cat] || cat;
+      var lbl = document.getElementById('stuCatLabel'); if (lbl) lbl.textContent = labels[cat] || cat;
+      var hint = document.getElementById('stuCatHint'); if (hint) hint.textContent = labels[cat] || cat;
       if (window.__autoIdol) window.__autoIdol.category = cat;
-      // Save lên DB ngay
       if (window.state && window.state.identity) {
         window.state.identity.category = cat;
       }
