@@ -114,12 +114,19 @@ var TIER_ICON_DECO = {
               <div class="w-full h-full rounded-full bg-[#0a0d12]"></div>
             </div>
             <!-- Inner glow circle -->
-            <div class="absolute inset-[4px] md:inset-[6px] rounded-full bg-gradient-to-b from-white/10 to-black/30 grid place-items-center">
-              <!-- Emoji with multi-layer drop-shadow (3D effect) -->
-              <span class="gp-icon text-[24px] md:text-[40px] group-hover:scale-110 transition-transform duration-300"
-                    style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.6)) drop-shadow(0 0 8px <%= TIER_GLOW_HEX[g.tier] %>) drop-shadow(0 0 16px <%= TIER_GLOW_HEX[g.tier] %>);">
-                <%= g.icon %>
-              </span>
+            <div class="absolute inset-[4px] md:inset-[6px] rounded-full bg-gradient-to-b from-white/10 to-black/30 grid place-items-center overflow-hidden">
+              <!-- 3D image (Microsoft Fluent Emoji 3D) - fallback emoji nếu CDN lỗi -->
+              <% if (g.img3d) { %>
+                <img src="<%= g.img3d %>" alt="<%= g.name %>" loading="lazy"
+                     class="gp-icon-img w-[72%] md:w-[78%] h-[72%] md:h-[78%] object-contain group-hover:scale-110 transition-transform duration-300"
+                     style="filter:drop-shadow(0 3px 6px rgba(0,0,0,.5)) drop-shadow(0 0 10px <%= TIER_GLOW_HEX[g.tier] %>);"
+                     onerror="this.outerHTML='<span class=&quot;gp-icon text-[24px] md:text-[40px]&quot; style=&quot;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6)) drop-shadow(0 0 8px <%= TIER_GLOW_HEX[g.tier] %>);&quot;><%= g.icon %></span>'">
+              <% } else { %>
+                <span class="gp-icon text-[24px] md:text-[40px] group-hover:scale-110 transition-transform duration-300"
+                      style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.6)) drop-shadow(0 0 8px <%= TIER_GLOW_HEX[g.tier] %>) drop-shadow(0 0 16px <%= TIER_GLOW_HEX[g.tier] %>);">
+                  <%= g.icon %>
+                </span>
+              <% } %>
             </div>
             <!-- Aura halo for epic/legendary -->
             <% if (g.tier === 'epic' || g.tier === 'legendary') { %>
