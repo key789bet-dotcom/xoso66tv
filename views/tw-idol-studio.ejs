@@ -677,18 +677,20 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     durationTimer: null
   };
 
-  // ===== HTTPS / SECURE CONTEXT CHECK =====
-  document.getElementById('stuCurrentUrl').textContent = location.protocol + '//' + location.host;
-  var isSecure = window.isSecureContext || location.protocol === 'https:' 
-              || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  if (!isSecure) {
-    document.getElementById('stuHttpsWarn').classList.remove('hidden');
-  } else {
-    // Only show OK badge if accessed from non-localhost (means user followed tunnel)
-    if (location.protocol === 'https:' && location.hostname !== 'localhost') {
-      document.getElementById('stuHttpsOk').classList.remove('hidden');
+  // ===== HTTPS / SECURE CONTEXT CHECK (defensive - elements có thể bị xoá ở redesign trước) =====
+  try {
+    var _urlEl = document.getElementById('stuCurrentUrl');
+    if (_urlEl) _urlEl.textContent = location.protocol + '//' + location.host;
+    var isSecure = window.isSecureContext || location.protocol === 'https:'
+                || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      var _warn = document.getElementById('stuHttpsWarn');
+      if (_warn) _warn.classList.remove('hidden');
+    } else if (location.protocol === 'https:' && location.hostname !== 'localhost') {
+      var _ok = document.getElementById('stuHttpsOk');
+      if (_ok) _ok.classList.remove('hidden');
     }
-  }
+  } catch(e) { console.warn('[STU] HTTPS check skip:', e.message); }
 
   // ===== AUTH CHECK =====
   try {
