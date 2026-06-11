@@ -258,7 +258,18 @@ var _maxConcurrent = (typeof maxConcurrent !== 'undefined') ? maxConcurrent : 3;
   };
 
   window.blvGoLive = function(scheduleId){
-    alert('Sau khi START STREAMING trong OBS, hệ thống sẽ tự động phát hiện và hiển thị phòng trên trang chủ.');
+    var msg = '📡 HƯỚNG DẪN BẮT ĐẦU LIVE:\n\n' +
+              '1️⃣ Mở OBS Studio trên máy tính\n' +
+              '2️⃣ Settings → Stream\n' +
+              '   • Service: Custom\n' +
+              '   • Server: dán RTMP URL ở trên\n' +
+              '   • Stream Key: dán Stream Key ở trên\n' +
+              '3️⃣ OK → Start Streaming (góc dưới phải)\n\n' +
+              '⚠️ Lưu ý:\n' +
+              '• Server tự động phát hiện khi OBS publish\n' +
+              '• Phòng sẽ hiện trên trang chủ sau ~3 giây\n' +
+              '• Nếu OBS báo "Failed to connect" → kiểm tra Stream Key copy đúng chưa';
+    alert(msg);
   };
 })();
 </script>

@@ -2034,27 +2034,51 @@ app.post('/api/srs/on-publish', function(req, res) {
 
   try {
     const data = db.load();
-    // Tìm OBS record có streamKey khớp
+
+    // ═══ 🆕 Check key trong data.schedules (BLV per-match key) ═══
+    if (streamName.startsWith('live_') && Array.isArray(data.schedules)) {
+      const sIdx = data.schedules.findIndex(s => s.streamKey === streamName);
+      if (sIdx !== -1) {
+        const s = data.schedules[sIdx];
+        if (s.status !== 'approved') {
+          console.warn('[SRS hook BLV] ❌ Reject: schedule chưa approved:', streamName);
+          return res.status(403).send('1');
+        }
+        // Single publisher protect
+        if (s.streamActive && s.publisherIp && s.publisherIp !== clientIp) {
+          const sinceLast = Date.now() - (s.publishedAt || 0);
+          if (sinceLast < 30000) {
+            console.warn('[SRS hook BLV] ❌ Reject: stream đã active từ IP khác');
+            return res.status(403).send('1');
+          }
+        }
+        // Mark active
+        data.schedules[sIdx].streamActive = true;
+        data.schedules[sIdx].publishedAt = Date.now();
+        data.schedules[sIdx].publisherIp = clientIp;
+        db.save(data);
+        console.log('[SRS hook BLV] ✅ Accept publish:', streamName, '→ schedule:', s.id, 'match:', s.matchId);
+        return res.status(200).send('0');
+      }
+    }
+
+    // ═══ Legacy: check data.obs (idol/blv cũ) ═══
     const obs = (data.obs || []).find(o => o.streamKey === streamName);
     if (!obs) {
-      console.warn('[SRS hook] ❌ Reject: stream key không tồn tại trong DB:', streamName);
+      console.warn('[SRS hook] ❌ Reject: stream key không tồn tại trong obs/schedules:', streamName);
       return res.status(403).send('1');
     }
     if (obs.status !== 'approved') {
       console.warn('[SRS hook] ❌ Reject: OBS chưa approved:', streamName);
       return res.status(403).send('1');
     }
-    // 🔒 SINGLE PUBLISHER: chặn ai đó push trùng key khi đã có người đang stream
-    // (cho phép cùng IP để OBS auto-reconnect không bị reject)
     if (obs.streamActive && obs.publisherIp && obs.publisherIp !== clientIp) {
-      // Stream cũ chưa unpublish > 30s → reject để chống hijack
       const sinceLast = Date.now() - (obs.publishedAt || 0);
       if (sinceLast < 30000) {
         console.warn('[SRS hook] ❌ Reject: stream đã active từ IP khác:', obs.publisherIp, '≠', clientIp);
         return res.status(403).send('1');
       }
     }
-    // Verify idol/blv vẫn active
     const idolId = obs.requesterId;
     const idol = (data.idols || []).find(i => i.id === idolId);
     const blv  = (data.blvs  || []).find(b => b.id === idolId);
@@ -2067,7 +2091,6 @@ app.post('/api/srs/on-publish', function(req, res) {
       console.warn('[SRS hook] ❌ Reject: idol/blv không active hoặc bị ban:', idolId);
       return res.status(403).send('1');
     }
-    // Verify có lịch approved active không
     try {
       const sched = scheduleStore.getActiveSchedule(subject.userId || subject.username || '');
       if (!sched) {
@@ -2077,13 +2100,11 @@ app.post('/api/srs/on-publish', function(req, res) {
     } catch(e) {
       console.warn('[SRS hook] ⚠️ schedule check error, allowing:', e.message);
     }
-
-    // Mark stream active + record IP
     obs.streamActive = true;
     obs.publishedAt = Date.now();
     obs.publisherIp = clientIp;
     db.save(data);
-    console.log('[SRS hook] ✅ Accept publish:', streamName, '→ idol:', idolId);
+    console.log('[SRS hook] ✅ Accept publish (obs):', streamName, '→ idol:', idolId);
     return res.status(200).send('0');
   } catch(e) {
     console.error('[SRS hook] Error:', e);
@@ -2098,13 +2119,24 @@ app.post('/api/srs/on-unpublish', function(req, res) {
   console.log('[SRS hook] on_unpublish:', streamName);
   try {
     const data = db.load();
+    // BLV schedule key cleanup
+    if (Array.isArray(data.schedules)) {
+      const sIdx = data.schedules.findIndex(s => s.streamKey === streamName);
+      if (sIdx !== -1) {
+        data.schedules[sIdx].streamActive = false;
+        data.schedules[sIdx].unpublishedAt = Date.now();
+        db.save(data);
+        console.log('[SRS hook BLV] on_unpublish schedule:', streamName);
+        return res.status(200).send('0');
+      }
+    }
+    // Legacy obs
     const obs = (data.obs || []).find(o => o.streamKey === streamName);
     if (obs) {
       obs.streamActive = false;
       obs.unpublishedAt = Date.now();
       db.save(data);
     }
-    // Auto-end live session
     try {
       const idol = (data.idols || []).find(i => obs && i.id === obs.requesterId);
       if (idol) {
