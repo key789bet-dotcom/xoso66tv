@@ -173,12 +173,36 @@ var _maxConcurrent = (typeof maxConcurrent !== 'undefined') ? maxConcurrent : 3;
                   </div>
 
                   <!-- Action buttons -->
-                  <div class="flex flex-wrap gap-2 mt-2">
+                  <div class="flex flex-wrap gap-2 mt-2 blv-actions" data-schedule-id="<%= m.scheduleId %>">
                     <button class="bg-bg-deep border border-line text-gray-200 hover:border-pri text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">📖 Hướng dẫn OBS</button>
-                    <button onclick="blvGoLive('<%= m.scheduleId %>')" class="bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+
+                    <!-- Nút BẮT ĐẦU LIVE (hiện khi chưa active) -->
+                    <button onclick="blvGoLive('<%= m.scheduleId %>')"
+                            id="goLiveBtn_<%= m.scheduleId %>"
+                            class="<%= m.isLive ? 'hidden' : '' %> bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                       <span>🔴</span> Bắt đầu LIVE
                     </button>
-                    <button class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">⚙️ Cấu hình share RIÊNG (BLV)</button>
+
+                    <!-- Badge ĐANG LIVE (hiện khi active) -->
+                    <span id="liveBadge_<%= m.scheduleId %>"
+                          class="<%= m.isLive ? '' : 'hidden' %> bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white text-xs font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
+                      <span class="w-2 h-2 bg-white rounded-full"></span>
+                      <span>🔴 ĐANG PHÁT TRỰC TIẾP</span>
+                    </span>
+
+                    <!-- Nút KẾT THÚC LIVE (chỉ hiện khi active) -->
+                    <button onclick="blvEndLive('<%= m.scheduleId %>')"
+                            id="endLiveBtn_<%= m.scheduleId %>"
+                            class="<%= m.isLive ? '' : 'hidden' %> bg-gray-700 hover:bg-red-900 border border-gray-500 hover:border-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                      <span>⏹</span> Kết thúc LIVE
+                    </button>
+
+                    <!-- Open Room link (chỉ hiện khi active) -->
+                    <a target="_blank" rel="noopener"
+                       id="openRoom_<%= m.scheduleId %>"
+                       href="/live/<%= m.id %>"
+                       class="<%= m.isLive ? '' : 'hidden' %> bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">👁 Xem phòng</a>
+
                     <button onclick="blvRegenKey('<%= m.scheduleId %>')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">🔑 Sinh lại Key</button>
                     <button onclick="blvDeleteStream('<%= m.scheduleId %>')" class="ml-auto bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">🗑 Xóa</button>
                   </div>
@@ -265,11 +289,91 @@ var _maxConcurrent = (typeof maxConcurrent !== 'undefined') ? maxConcurrent : 3;
               '   • Server: dán RTMP URL ở trên\n' +
               '   • Stream Key: dán Stream Key ở trên\n' +
               '3️⃣ OK → Start Streaming (góc dưới phải)\n\n' +
-              '⚠️ Lưu ý:\n' +
-              '• Server tự động phát hiện khi OBS publish\n' +
-              '• Phòng sẽ hiện trên trang chủ sau ~3 giây\n' +
-              '• Nếu OBS báo "Failed to connect" → kiểm tra Stream Key copy đúng chưa';
+              '⏳ Hệ thống sẽ TỰ ĐỘNG phát hiện khi OBS publish thành công\n' +
+              '→ Nút "Bắt đầu LIVE" sẽ đổi thành badge "🔴 ĐANG PHÁT TRỰC TIẾP"\n\n' +
+              'Bấm OK rồi mở OBS để Start Streaming';
     alert(msg);
+    // Bật polling check status (sẽ tự update UI khi OBS connect)
+    startStatusPolling(scheduleId);
   };
+
+  window.blvEndLive = function(scheduleId){
+    if (!confirm('Kết thúc phiên LIVE?\n\nViewer sẽ thấy phòng offline. Có thể bắt đầu lại lần sau.')) return;
+    fetch('/api/blv/match/' + encodeURIComponent(scheduleId) + '/end-live', {
+      method: 'POST', credentials: 'include'
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.ok) {
+        updateLiveUI(scheduleId, false);
+        stopStatusPolling(scheduleId);
+        alert('✅ Đã kết thúc LIVE.\n\n💡 Đừng quên BẤM Stop Streaming trong OBS để tránh phát lại.');
+      } else alert('Lỗi: ' + (j.error || 'fail'));
+    })
+    .catch(function(e){ alert('Lỗi mạng: ' + e.message); });
+  };
+
+  function updateLiveUI(scheduleId, isLive){
+    var goBtn = document.getElementById('goLiveBtn_' + scheduleId);
+    var badge = document.getElementById('liveBadge_' + scheduleId);
+    var endBtn = document.getElementById('endLiveBtn_' + scheduleId);
+    var openRoom = document.getElementById('openRoom_' + scheduleId);
+    if (isLive) {
+      if (goBtn) goBtn.classList.add('hidden');
+      if (badge) badge.classList.remove('hidden');
+      if (endBtn) endBtn.classList.remove('hidden');
+      if (openRoom) openRoom.classList.remove('hidden');
+    } else {
+      if (goBtn) goBtn.classList.remove('hidden');
+      if (badge) badge.classList.add('hidden');
+      if (endBtn) endBtn.classList.add('hidden');
+      if (openRoom) openRoom.classList.add('hidden');
+    }
+  }
+
+  // ═══ POLLING STATUS — phát hiện OBS connect tự động ═══
+  var __pollIntervals = {};
+  function startStatusPolling(scheduleId){
+    if (__pollIntervals[scheduleId]) return; // đã polling
+    var lastStatus = null;
+    __pollIntervals[scheduleId] = setInterval(function(){
+      fetch('/api/blv/match/' + encodeURIComponent(scheduleId) + '/status', { credentials:'include' })
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (!j.ok) return;
+          if (j.streamActive !== lastStatus) {
+            lastStatus = j.streamActive;
+            updateLiveUI(scheduleId, j.streamActive);
+            if (j.streamActive) {
+              // Thông báo connect thành công lần đầu
+              if (window.__notifiedLive_ !== scheduleId) {
+                window.__notifiedLive_ = scheduleId;
+                try {
+                  // Toast nhẹ
+                  var t = document.createElement('div');
+                  t.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 20px;border-radius:12px;font-weight:bold;box-shadow:0 10px 40px rgba(16,185,129,.5);';
+                  t.innerHTML = '✅ OBS đã kết nối — Đang phát LIVE!';
+                  document.body.appendChild(t);
+                  setTimeout(function(){ t.style.transition='opacity .5s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); }, 500); }, 4000);
+                } catch(e){}
+              }
+            }
+          }
+        })
+        .catch(function(){});
+    }, 3000);
+  }
+  function stopStatusPolling(scheduleId){
+    if (__pollIntervals[scheduleId]) {
+      clearInterval(__pollIntervals[scheduleId]);
+      delete __pollIntervals[scheduleId];
+    }
+  }
+
+  // Tự động bật polling cho mọi card có key (để phát hiện status đổi ngay khi load page)
+  document.querySelectorAll('.blv-actions').forEach(function(el){
+    var sId = el.getAttribute('data-schedule-id');
+    if (sId) startStatusPolling(sId);
+  });
 })();
 </script>

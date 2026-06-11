@@ -981,6 +981,44 @@ app.post('/api/blv/match/:scheduleId/regen-key', pubAuth.requireStreamer, functi
   } catch(e) { res.json({ ok:false, error: e.message }); }
 });
 
+// API: poll status stream (frontend gọi mỗi 3-5s)
+app.get('/api/blv/match/:scheduleId/status', pubAuth.requireStreamer, function(req, res){
+  try {
+    const sId = String(req.params.scheduleId || '');
+    const data = db.load();
+    const s = (data.schedules || []).find(x => x.id === sId);
+    if (!s) return res.json({ ok:false, error:'Schedule không tồn tại' });
+    res.json({
+      ok: true,
+      scheduleId: sId,
+      streamActive: !!s.streamActive,
+      hasKey: !!s.streamKey,
+      publishedAt: s.publishedAt || null,
+      unpublishedAt: s.unpublishedAt || null
+    });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
+// API: BLV chủ động end live (kill stream từ phía server)
+app.post('/api/blv/match/:scheduleId/end-live', pubAuth.requireStreamer, function(req, res){
+  try {
+    const user = pubAuth.getUser(req);
+    const sId = String(req.params.scheduleId || '');
+    const data = db.load();
+    if (!Array.isArray(data.schedules)) data.schedules = [];
+    const idx = data.schedules.findIndex(x => x.id === sId);
+    if (idx === -1) return res.json({ ok:false, error:'Không tìm thấy' });
+    if (user.role !== 'admin' && data.schedules[idx].username !== String(user.username||'').toLowerCase()) {
+      return res.json({ ok:false, error:'Không có quyền' });
+    }
+    data.schedules[idx].streamActive = false;
+    data.schedules[idx].streamEnded = true;
+    data.schedules[idx].unpublishedAt = Date.now();
+    db.save(data);
+    res.json({ ok:true });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
 // API: BLV xóa stream
 app.post('/api/blv/match/:scheduleId/delete', pubAuth.requireStreamer, function(req, res){
   try {
