@@ -110,7 +110,7 @@ seo = {
     <% } %>
   </div>
 
-  <aside class="bg-bg-card border border-line rounded-xl flex flex-col h-[640px] overflow-hidden" aria-label="Chat">
+  <aside class="bg-bg-card border border-line rounded-xl flex flex-col h-[420px] lg:h-[640px] overflow-hidden" aria-label="Chat" id="liveChatAside">
     <div class="flex border-b border-line bg-bg-soft" role="tablist">
       <button class="chat-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri" onclick="switchChatTab(this)">&#128172; Chat phòng</button>
       <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128238; Telegram</button>
@@ -135,6 +135,31 @@ seo = {
   // Flag để chat-v2 + gift-panel biết phòng có đang live thật không
   window.__x66HasObs = <%= hasObs ? 'true' : 'false' %>;
   startChat('chatBody', { isLive: window.__x66HasObs });
+
+  // 📱 MOBILE: di chuyển chat lên ngay sau player (để xem chat không cần scroll)
+  (function moveChatMobile(){
+    var mql = window.matchMedia('(max-width: 1023px)');
+    var chat = document.getElementById('liveChatAside');
+    var player = document.getElementById('livePlayer');
+    if (!chat || !player) return;
+    function apply(){
+      if (mql.matches) {
+        // Mobile: chat ngay sau player
+        if (player.nextElementSibling !== chat) {
+          player.parentNode.insertBefore(chat, player.nextElementSibling);
+        }
+      } else {
+        // Desktop: chat trở về <article> (right column)
+        var article = document.querySelector('article.grid');
+        if (article && chat.parentNode !== article) {
+          article.appendChild(chat);
+        }
+      }
+    }
+    apply();
+    if (mql.addEventListener) mql.addEventListener('change', apply);
+    else mql.addListener(apply); // Safari legacy
+  })();
 </script>
 
 <%- include('partials/tw-gift-panel') %>
