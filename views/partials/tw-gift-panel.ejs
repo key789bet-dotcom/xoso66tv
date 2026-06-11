@@ -405,10 +405,18 @@ var TIER_ICON_DECO = {
     if (!document.getElementById('livePlayer')) return;
     var items = document.querySelectorAll('.gp-item');
     if (!items.length) return;
+    // 🚫 BOT chỉ tặng quà GIÁ ≤ 3000 X COIN (không tặng quà cao cấp giả)
+    var BOT_MAX_PRICE = 3000;
+    var affordable = Array.from(items).filter(function(b){
+      var p = parseInt(b.getAttribute('data-price'), 10) || 0;
+      return p > 0 && p <= BOT_MAX_PRICE;
+    });
+    if (!affordable.length) return; // không có quà rẻ → skip lần này
+    // 80% common/rare, 20% bất kỳ trong tầm giá
     var pool = Math.random() < .8
-      ? Array.from(items).filter(function(b){var t=b.getAttribute('data-tier');return t==='common'||t==='rare';})
-      : Array.from(items).filter(function(b){var t=b.getAttribute('data-tier');return t==='epic'||t==='legendary';});
-    if (!pool.length) pool = Array.from(items);
+      ? affordable.filter(function(b){var t=b.getAttribute('data-tier');return t==='common'||t==='rare';})
+      : affordable;
+    if (!pool.length) pool = affordable;
     var b = pool[Math.floor(Math.random()*pool.length)];
     var name = b.getAttribute('data-name'), icon = b.getAttribute('data-icon'), tier = b.getAttribute('data-tier');
     var who = BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)];
