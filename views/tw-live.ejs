@@ -19,8 +19,19 @@ seo = {
 <article class="grid lg:grid-cols-[1fr_340px] gap-4">
   <div>
     <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
-      <% if (typeof hasObs !== 'undefined' && hasObs) { %>
-        <!-- BLV da len song -->
+      <% var _hasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey); %>
+      <% if (_hasBlvStream) { %>
+        <!-- 🆕 BLV CUSTOM STREAM: FLV player thực với key từ schedule -->
+        <%- include('partials/tw-live-video-player', { streamKey: blvStreamKey }) %>
+        <!-- Placeholder visible khi player chưa load -->
+        <div class="text-center text-white p-5 absolute inset-0 grid place-items-center pointer-events-none" id="playerPh" data-title="<%= _matchName %>">
+          <div>
+            <h2 class="font-extrabold text-lg"><%= match.home %> vs <%= match.away %></h2>
+            <div class="text-muted text-[13px] mt-1.5"><%= match.league %></div>
+          </div>
+        </div>
+      <% } else if (typeof hasObs !== 'undefined' && hasObs) { %>
+        <!-- BLV da len song (legacy click-to-play) -->
         <div class="text-center text-white p-5" id="playerPh" data-title="<%= _matchName %>">
           <div class="w-20 h-20 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center mx-auto mb-3.5 text-3xl cursor-pointer shadow-live hover:scale-110 transition-transform" onclick="startStream()" role="button" aria-label="Phát stream">&#9654;</div>
           <h2 class="font-extrabold text-lg"><%= match.home %> vs <%= match.away %></h2>

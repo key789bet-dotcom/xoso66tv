@@ -366,7 +366,22 @@ app.get('/live/:id', async function (req, res, next) {
     if (!match) return res.status(404).render('tw-404');
     const all = await api.getLiveStreams().catch(function(){ return []; });
     const others = (all || []).filter(function (x) { return x.id !== match.id; }).slice(0, 6);
-    const hasObs = hasAnyActiveStream('blv');
+    let hasObs = hasAnyActiveStream('blv');
+
+    // 🆕 Nếu là BLV custom match + schedule streamActive → có stream
+    let blvStreamKey = null;
+    try {
+      const _schedKey = require('./lib/schedule-store');
+      const matchIdFinal = String(match.id || req.params.id || '');
+      const matchApprovedBlv = _schedKey.listAll({ status: 'approved', userType: 'blv', limit: 500 })
+        .find(s => (String(s.matchId||'') === matchIdFinal ||
+                    (s.matchId && String(s.matchId).indexOf(matchIdFinal) >= 0)) &&
+                    s.streamKey);
+      if (matchApprovedBlv) {
+        blvStreamKey = matchApprovedBlv.streamKey;
+        if (matchApprovedBlv.streamActive) hasObs = true;
+      }
+    } catch(e){}
     // 🆕 BLV thật đang stream match này: tìm trong schedules approved có matchId trùng + đang trong khung giờ
     let liveBlvs = [];
     try {
@@ -389,7 +404,7 @@ app.get('/live/:id', async function (req, res, next) {
         })
         .slice(0, 5);
     } catch(e) { console.warn('[LIVE] liveBlvs fail:', e.message); }
-    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs });
+    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey });
   } catch (e) {
     console.error('[live/:id]', e.message);
     next(e);
