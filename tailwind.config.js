@@ -5,21 +5,18 @@ module.exports = {
     './views/**/*.ejs',
     './public/js/**/*.js'
   ],
-  // Safelist các pattern dynamic class có thể được tạo qua template literal
-  // hoặc set bằng JS .className - tailwind không scan thấy
+  // Safelist tối thiểu - chỉ các class CHẮC CHẮN dynamic (set bằng JS .className hoặc template literal)
   safelist: [
-    // Status colors hay được toggle bằng JS (vd badge status)
-    { pattern: /^(bg|text|border)-(red|emerald|yellow|amber|blue|green|sky|indigo|rose|pink|purple|fuchsia|orange|cyan|teal|gray|slate)-(100|200|300|400|500|600|700|800|900)(\/\d+)?$/ },
-    // Tier colors gift panel
-    { pattern: /^(gp-tier|gp-icon)-(common|rare|epic|legendary|vip|royal|legend)$/ },
-    // Status badge backgrounds với alpha
-    { pattern: /^bg-(emerald|yellow|red|blue|amber|orange|pri|live|gold)\/(10|20|30|40|50|60|70)$/ },
-    // hidden/visible toggle classes
-    'hidden', 'block', 'inline-block', 'flex', 'grid', 'inline-flex',
-    // animate classes hay dùng dynamic
-    'animate-pulse', 'animate-spin', 'animate-bounce', 'animate-pulse-live',
-    // is-active, is-scrolling, dark
-    'is-active', 'is-scrolling', 'dark'
+    // Status badge backgrounds với alpha - được tạo dynamic bởi JS modal/status
+    { pattern: /^bg-(emerald|yellow|red|blue|amber|orange|gray)-(400|500|600)\/(10|20|30|40)$/ },
+    { pattern: /^text-(emerald|yellow|red|blue|amber|orange|gray)-(300|400|500)$/ },
+    { pattern: /^border-(emerald|yellow|red|blue|amber|orange)-500\/(30|40|50)$/ },
+    // Toggle classes (JS toggle hidden/show)
+    'hidden', 'block', 'flex', 'grid', 'inline-flex', 'inline-block',
+    // Active state cho tabs/buttons (set bằng JS)
+    'is-active', 'is-scrolling', 'dark',
+    // Animate hay dùng dynamic
+    'animate-pulse', 'animate-spin', 'animate-pulse-live'
   ],
   theme: {
     extend: {
