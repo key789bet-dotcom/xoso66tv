@@ -830,6 +830,89 @@ app.get('/blv-obs', pubAuth.requireStreamer, function (req, res) {
   });
 });
 
+// ═══ Helper: get BLV name + check role ═══
+function _blvCtx(req) {
+  const user = pubAuth.getUser(req);
+  const data = db.load();
+  const uname = user ? String(user.username || '').toLowerCase() : '';
+  const blvRec = (data.blvs || []).find(b =>
+    String(b.userId||'').toLowerCase() === uname ||
+    String(b.username||'').toLowerCase() === uname ||
+    String(b.name||'').toLowerCase() === uname);
+  return {
+    user, data, uname,
+    myBlvName: (blvRec && blvRec.name) || (user && user.username) || 'BLV',
+    blvRec
+  };
+}
+
+// ═══ /blv-register - Đăng Ký BLV (chọn từ lịch thi đấu) ═══
+app.get('/blv-register', pubAuth.requireStreamer, function(req, res){
+  const { user, myBlvName } = _blvCtx(req);
+  if (user.role !== 'blv' && user.role !== 'admin') return res.redirect('/idol-studio');
+  const selectedDate = String(req.query.date || new Date().toISOString().slice(0, 10));
+  res.render('tw-blv-register', { active:'cat', activeCat:'idol', publicUser: user, myBlvName, selectedDate });
+});
+
+// ═══ /blv-history - Lịch sử BLV (mọi status) ═══
+app.get('/blv-history', pubAuth.requireStreamer, function(req, res){
+  const { user, uname, myBlvName } = _blvCtx(req);
+  if (user.role !== 'blv' && user.role !== 'admin') return res.redirect('/idol-studio');
+  const _sched = require('./lib/schedule-store');
+  const schedules = _sched.listAll({ username: uname, limit: 200 });
+  res.render('tw-blv-history', { active:'cat', activeCat:'idol', publicUser: user, myBlvName, schedules });
+});
+
+// ═══ /blv-create - Tạo trận live tự do ═══
+app.get('/blv-create', pubAuth.requireStreamer, function(req, res){
+  const { user, myBlvName } = _blvCtx(req);
+  if (user.role !== 'blv' && user.role !== 'admin') return res.redirect('/idol-studio');
+  res.render('tw-blv-create', { active:'cat', activeCat:'idol', publicUser: user, myBlvName });
+});
+
+// ═══ /blv-matches - Trận đã duyệt ═══
+app.get('/blv-matches', pubAuth.requireStreamer, function(req, res){
+  const { user, uname, myBlvName } = _blvCtx(req);
+  if (user.role !== 'blv' && user.role !== 'admin') return res.redirect('/idol-studio');
+  const _sched = require('./lib/schedule-store');
+  const schedules = _sched.listAll({ username: uname, status: 'approved', limit: 200 });
+  res.render('tw-blv-matches', { active:'cat', activeCat:'idol', publicUser: user, myBlvName, schedules });
+});
+
+// ═══ /blv-share - Cấu hình share buttons ═══
+app.get('/blv-share', pubAuth.requireStreamer, function(req, res){
+  const { user, uname, myBlvName, data, blvRec } = _blvCtx(req);
+  if (user.role !== 'blv' && user.role !== 'admin') return res.redirect('/idol-studio');
+  const shareCfg = (blvRec && blvRec.shareConfig) || {};
+  res.render('tw-blv-share', { active:'cat', activeCat:'idol', publicUser: user, myBlvName, shareCfg });
+});
+
+// API: lưu share config cho BLV
+app.post('/api/blv/share-config', pubAuth.requireStreamer, function(req, res){
+  try {
+    const user = pubAuth.getUser(req);
+    if (!user) return res.json({ ok:false, error:'Chưa đăng nhập' });
+    const data = db.load();
+    if (!Array.isArray(data.blvs)) data.blvs = [];
+    const uname = String(user.username || '').toLowerCase();
+    const idx = data.blvs.findIndex(b =>
+      String(b.userId||'').toLowerCase() === uname ||
+      String(b.username||'').toLowerCase() === uname);
+    if (idx === -1) return res.json({ ok:false, error:'BLV record không tồn tại' });
+    const body = req.body || {};
+    data.blvs[idx].shareConfig = {
+      cskhUrl: String(body.cskhUrl||'').slice(0,300),
+      telegramUrl: String(body.telegramUrl||'').slice(0,300),
+      registerUrl: String(body.registerUrl||'').slice(0,300),
+      zaloUrl: String(body.zaloUrl||'').slice(0,300),
+      pinnedMessage: String(body.pinnedMessage||'').slice(0,200),
+      updatedAt: Date.now()
+    };
+    db.save(data);
+    res.json({ ok:true });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
 // API: BLV tạo stream key cho 1 trận (schedule approved)
 app.post('/api/blv/match/:scheduleId/stream-key', pubAuth.requireStreamer, function(req, res){
   try {

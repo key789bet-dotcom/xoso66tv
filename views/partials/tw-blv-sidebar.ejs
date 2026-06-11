@@ -1,0 +1,29 @@
+<%
+// Partial: BLV sidebar — dùng chung cho 6 trang BLV
+// Param `activeBlv` = 'obs' | 'register' | 'history' | 'create' | 'matches' | 'share'
+var _activeBlv = (typeof activeBlv !== 'undefined') ? activeBlv : '';
+var _blvName2 = (typeof myBlvName !== 'undefined') ? myBlvName : (typeof publicUser !== 'undefined' && publicUser ? publicUser.username : 'BLV');
+function _itemCls(key){
+  return key === _activeBlv
+    ? 'flex items-center gap-2 px-3 py-2 rounded-lg bg-pri text-white text-sm font-bold'
+    : 'flex items-center gap-2 px-3 py-2 rounded-lg text-gray-200 hover:bg-bg-deep hover:text-pri-light text-sm font-bold';
+}
+%>
+<aside class="bg-bg-card border border-line rounded-xl p-3 h-fit md:sticky md:top-4">
+  <div class="text-[10px] text-pri-light uppercase font-bold tracking-wider mb-2 flex items-center gap-1">
+    <span>🛠</span> Quản trị
+  </div>
+  <nav class="space-y-1">
+    <a href="/blv-obs"      class="<%= _itemCls('obs') %>"><span>📡</span> Kết Nối OBS</a>
+    <a href="/blv-register" class="<%= _itemCls('register') %>"><span>📝</span> Đăng Ký BLV</a>
+    <a href="/blv-history"  class="<%= _itemCls('history') %>"><span>📜</span> Lịch Sử BLV</a>
+    <a href="/blv-create"   class="<%= _itemCls('create') %>"><span>🆕</span> Tạo Trận Live</a>
+    <a href="/blv-matches"  class="<%= _itemCls('matches') %>"><span>📋</span> Trận Của Tôi</a>
+    <a href="/blv-share"    class="<%= _itemCls('share') %>"><span>⚙️</span> Cấu Hình Share</a>
+  </nav>
+  <div class="border-t border-line/50 mt-3 pt-3">
+    <a href="/" class="flex items-center gap-2 px-3 py-2 rounded-lg text-muted hover:text-white text-xs">
+      <span>←</span> Về trang chủ
+    </a>
+  </div>
+</aside>

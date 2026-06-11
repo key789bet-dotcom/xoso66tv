@@ -1,0 +1,117 @@
+<%
+seo = { title: 'Đăng Ký BLV theo lịch thi đấu - ' + brand.name, description: 'BLV chọn trận từ lịch thi đấu', canonical: '/blv-register', noindex: true };
+var _blvName = (typeof myBlvName !== 'undefined') ? myBlvName : 'BLV';
+var _selectedDate = (typeof selectedDate !== 'undefined' && selectedDate) ? selectedDate : (new Date().toISOString().slice(0,10));
+%>
+<%- include('partials/tw-layout-start') %>
+
+<section class="max-w-6xl mx-auto mb-6 px-2 md:px-4">
+  <div class="flex items-center gap-3 mb-3 bg-bg-card border border-line rounded-xl p-3">
+    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pri to-rose-500 grid place-items-center text-xl shrink-0">🎙️</div>
+    <div class="flex-1 min-w-0"><div class="text-sm font-bold text-white truncate"><%= _blvName %></div><div class="text-[10.5px] text-muted">Bình luận viên</div></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4">
+    <%- include('partials/tw-blv-sidebar', { activeBlv: 'register', myBlvName: _blvName }) %>
+
+    <main class="space-y-4 min-w-0">
+      <div class="bg-bg-card border border-line rounded-xl p-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
+          <h2 class="text-white font-extrabold text-lg flex items-center gap-2">
+            <span class="text-2xl">📝</span> Đăng Ký BLV — Chọn Trận Từ Lịch
+          </h2>
+          <form action="/blv-register" method="get" class="flex items-center gap-2">
+            <label class="text-xs text-muted font-bold">Ngày:</label>
+            <input type="date" name="date" value="<%= _selectedDate %>" class="bg-bg-deep border border-line text-white text-sm px-2 py-1.5 rounded-lg outline-none focus:border-pri">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">🔍 Lọc</button>
+          </form>
+        </div>
+        <p class="text-[12px] text-muted">Chọn trận từ <b>lịch thi đấu chính thức</b> để đăng ký làm BLV. Admin sẽ duyệt rồi cấp Stream Key.</p>
+      </div>
+
+      <div class="bg-bg-card border border-line rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h3 class="text-white font-bold text-base flex items-center gap-2">⚽ Trận đấu ngày <%= _selectedDate %></h3>
+          <input type="text" id="matchSearch" placeholder="🔍 Tìm đội, giải..." class="flex-1 max-w-xs bg-bg-deep border border-line text-white text-xs px-3 py-1.5 rounded-lg outline-none focus:border-pri">
+        </div>
+
+        <div id="matchList" class="space-y-2.5">
+          <div class="text-center py-10 text-muted">
+            <div class="text-5xl mb-2 opacity-60 animate-pulse">⏳</div>
+            <div class="text-sm">Đang tải lịch trận đấu...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<script>
+(function(){
+  var listEl = document.getElementById('matchList');
+  var searchEl = document.getElementById('matchSearch');
+
+  fetch('/api/upcoming-list', { credentials:'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok || !d.list || !d.list.length) {
+        listEl.innerHTML = '<div class="text-center py-10 text-muted"><div class="text-5xl mb-2 opacity-60">📭</div><div class="text-sm">Không có trận nào</div></div>';
+        return;
+      }
+      listEl.innerHTML = d.list.slice(0, 80).map(function(m){
+        var ts = m.matchTs || (m.date && new Date(m.date).getTime()) || Date.now();
+        var dd = new Date(ts);
+        var time = String(dd.getHours()).padStart(2,'0')+':'+String(dd.getMinutes()).padStart(2,'0');
+        var date = String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0');
+        var label = (m.home||'?') + ' vs ' + (m.away||'?');
+        var safe = function(s){ return String(s||'').replace(/[<>&"]/g, function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); };
+        return '<div class="bg-bg-deep border border-line rounded-xl p-3 hover:border-pri/40 transition-colors match-card" data-search="'+safe(label+' '+(m.league||'')).toLowerCase()+'">'
+          + '<div class="flex items-center justify-between gap-3 flex-wrap">'
+          +   '<div class="flex-1 min-w-0">'
+          +     '<div class="text-sm font-extrabold text-white">'+safe(m.home||'?')+' <span class="text-muted text-xs font-normal">vs</span> '+safe(m.away||'?')+'</div>'
+          +     '<div class="text-[11px] text-muted mt-0.5 flex items-center gap-2 flex-wrap">'
+          +       (m.league ? '<span>🏆 '+safe(m.league)+'</span>' : '')
+          +       '<span>· ⏰ '+time+'</span><span>· 📅 '+date+'</span>'
+          +     '</div>'
+          +   '</div>'
+          +   '<button onclick="blvRegisterMatch(\''+safe(m.id)+'\', \''+safe(label)+'\', '+ts+', \''+safe(m.league||'')+'\')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">'
+          +     '<span>📤</span> Đăng ký làm BLV'
+          +   '</button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){ listEl.innerHTML = '<div class="text-center py-10 text-red-400">Lỗi tải lịch</div>'; });
+
+  if (searchEl) {
+    searchEl.addEventListener('input', function(){
+      var q = this.value.toLowerCase().trim();
+      document.querySelectorAll('.match-card').forEach(function(c){
+        c.style.display = (c.dataset.search||'').indexOf(q) >= 0 ? '' : 'none';
+      });
+    });
+  }
+
+  window.blvRegisterMatch = function(matchId, matchTitle, matchTs, league){
+    if (!confirm('Đăng ký làm BLV cho trận:\n\n' + matchTitle + '\n\nGửi yêu cầu duyệt cho admin?')) return;
+    var endTs = matchTs + 2.5 * 3600 * 1000; // matched + 2h30m
+    fetch('/api/schedule/add', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        type: 'match', matchId: matchId, matchTitle: matchTitle,
+        title: 'BLV: ' + matchTitle, description: league || '',
+        startTime: matchTs, endTime: endTs
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.ok) {
+        alert('✅ Đã gửi yêu cầu duyệt!\nKiểm tra trong "📜 Lịch Sử BLV"');
+        location.href = '/blv-history';
+      } else alert('Lỗi: ' + (j.error || 'Không gửi được'));
+    })
+    .catch(function(e){ alert('Lỗi mạng: ' + e.message); });
+  };
+})();
+</script>

@@ -1,0 +1,114 @@
+<%
+seo = { title: 'Tạo Trận Live - ' + brand.name, description: 'BLV tự tạo trận live không có trong lịch', canonical: '/blv-create', noindex: true };
+var _blvName = (typeof myBlvName !== 'undefined') ? myBlvName : 'BLV';
+%>
+<%- include('partials/tw-layout-start') %>
+
+<section class="max-w-6xl mx-auto mb-6 px-2 md:px-4">
+  <div class="flex items-center gap-3 mb-3 bg-bg-card border border-line rounded-xl p-3">
+    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pri to-rose-500 grid place-items-center text-xl">🎙️</div>
+    <div class="flex-1 min-w-0"><div class="text-sm font-bold text-white truncate"><%= _blvName %></div><div class="text-[10.5px] text-muted">Bình luận viên</div></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4">
+    <%- include('partials/tw-blv-sidebar', { activeBlv: 'create', myBlvName: _blvName }) %>
+
+    <main class="space-y-4 min-w-0">
+      <div class="bg-bg-card border border-line rounded-xl p-4">
+        <h2 class="text-white font-extrabold text-lg flex items-center gap-2 mb-2">
+          <span class="text-2xl">🆕</span> Tạo Trận Live Riêng
+        </h2>
+        <p class="text-[12px] text-muted">Trận không có trong lịch thi đấu chính thức (giao hữu, U18, phong trào, futsal...). Admin sẽ duyệt thủ công.</p>
+      </div>
+
+      <div class="bg-bg-card border border-line rounded-xl p-4">
+        <form id="createForm" class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-muted uppercase font-bold block mb-1">⚽ Đội nhà *</label>
+              <input id="cHome" required maxlength="60" placeholder="VD: Thái Lan U18" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            </div>
+            <div>
+              <label class="text-[11px] text-muted uppercase font-bold block mb-1">⚽ Đội khách *</label>
+              <input id="cAway" required maxlength="60" placeholder="VD: Việt Nam U18" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-muted uppercase font-bold block mb-1">🏆 Giải đấu / mô tả</label>
+            <input id="cLeague" maxlength="120" placeholder="VD: Giao hữu quốc tế U18" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-muted uppercase font-bold block mb-1">📅 Ngày *</label>
+              <input id="cDate" type="date" required class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            </div>
+            <div>
+              <label class="text-[11px] text-muted uppercase font-bold block mb-1">⏰ Giờ kickoff *</label>
+              <div class="flex gap-1">
+                <select id="cHour" required class="flex-1 bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri tabular-nums">
+                  <option value="">--h</option>
+                  <% for (var h=0;h<24;h++){ var hh=(h<10?'0':'')+h; %><option value="<%= hh %>"><%= hh %>h</option><% } %>
+                </select>
+                <select id="cMin" required class="flex-1 bg-bg-deep border border-line text-white text-sm px-2 py-2 rounded-lg outline-none focus:border-pri tabular-nums">
+                  <option value="">--p</option>
+                  <% for (var m=0;m<60;m+=5){ var mm=(m<10?'0':'')+m; %><option value="<%= mm %>"><%= mm %>p</option><% } %>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-muted uppercase font-bold block mb-1">📝 Ghi chú thêm (tuỳ chọn)</label>
+            <textarea id="cNote" maxlength="500" rows="2" placeholder="Lý do tạo trận, link nguồn, hình ảnh..." class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri resize-none"></textarea>
+          </div>
+          <button type="submit" id="cSubmit" class="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 hover:brightness-110 text-white font-bold py-2.5 rounded-lg active:scale-95">
+            📤 Gửi cho admin duyệt
+          </button>
+        </form>
+
+        <div class="mt-3 bg-amber-900/20 border border-amber-500/30 rounded-lg p-2.5 text-[11px] text-amber-200">
+          ⚠️ Admin sẽ kiểm tra trận có hợp lệ không. Đừng tạo trận spam — tài khoản BLV có thể bị khóa.
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<script>
+(function(){
+  // Default: hôm nay
+  var today = new Date(); var p = function(n){return String(n).padStart(2,'0');};
+  document.getElementById('cDate').value = today.getFullYear()+'-'+p(today.getMonth()+1)+'-'+p(today.getDate());
+
+  document.getElementById('createForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var home = document.getElementById('cHome').value.trim();
+    var away = document.getElementById('cAway').value.trim();
+    var league = document.getElementById('cLeague').value.trim();
+    var date = document.getElementById('cDate').value;
+    var h = document.getElementById('cHour').value;
+    var mm = document.getElementById('cMin').value;
+    var note = document.getElementById('cNote').value.trim();
+    if (!home || !away || !date || !h || !mm) { alert('Điền đủ các trường có dấu *'); return; }
+    var startTs = new Date(date + 'T' + h + ':' + mm + ':00').getTime();
+    var endTs = startTs + 2.5 * 3600 * 1000;
+    var matchTitle = home + ' vs ' + away;
+    var btn = document.getElementById('cSubmit'); btn.disabled = true; btn.textContent = '⏳ Đang gửi...';
+    fetch('/api/schedule/add', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        type: 'match', matchId: 'custom_' + Date.now(),
+        matchTitle: matchTitle, title: 'BLV: ' + matchTitle,
+        description: league + (note ? (' | ' + note) : ''),
+        startTime: startTs, endTime: endTs
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.ok) { alert('✅ Đã gửi! Đợi admin duyệt'); location.href = '/blv-history'; }
+      else { alert('Lỗi: ' + (j.error||'fail')); btn.disabled=false; btn.textContent='📤 Gửi cho admin duyệt'; }
+    })
+    .catch(function(e){ alert('Lỗi mạng: ' + e.message); btn.disabled=false; btn.textContent='📤 Gửi cho admin duyệt'; });
+  });
+})();
+</script>

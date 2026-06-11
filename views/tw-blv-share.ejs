@@ -1,0 +1,96 @@
+<%
+seo = { title: 'Cấu Hình Share - BLV - ' + brand.name, description: 'Cài đặt link CSKH/Telegram/Đăng ký trong phòng live', canonical: '/blv-share', noindex: true };
+var _blvName = (typeof myBlvName !== 'undefined') ? myBlvName : 'BLV';
+var _cfg = (typeof shareCfg !== 'undefined' && shareCfg) ? shareCfg : {};
+%>
+<%- include('partials/tw-layout-start') %>
+
+<section class="max-w-6xl mx-auto mb-6 px-2 md:px-4">
+  <div class="flex items-center gap-3 mb-3 bg-bg-card border border-line rounded-xl p-3">
+    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pri to-rose-500 grid place-items-center text-xl">🎙️</div>
+    <div class="flex-1 min-w-0"><div class="text-sm font-bold text-white truncate"><%= _blvName %></div><div class="text-[10.5px] text-muted">Bình luận viên</div></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-4">
+    <%- include('partials/tw-blv-sidebar', { activeBlv: 'share', myBlvName: _blvName }) %>
+
+    <main class="space-y-4 min-w-0">
+      <div class="bg-bg-card border border-line rounded-xl p-4">
+        <h2 class="text-white font-extrabold text-lg flex items-center gap-2 mb-2">
+          <span class="text-2xl">⚙️</span> Cấu Hình Share — Link buttons trong phòng live
+        </h2>
+        <p class="text-[12px] text-muted">Tùy chỉnh các nút "CSKH", "Telegram", "Đăng ký" hiện trong phòng live của bạn. Để trống = dùng link mặc định của hệ thống.</p>
+      </div>
+
+      <div class="bg-bg-card border border-line rounded-xl p-4">
+        <form id="shareForm" class="space-y-4">
+
+          <div>
+            <label class="text-sm text-white font-bold flex items-center gap-2 mb-1"><span class="text-lg">💬</span> Link CSKH (Live Chat)</label>
+            <input id="sCskh" type="url" maxlength="300" placeholder="https://tawk.to/... hoặc https://m.me/..." value="<%= _cfg.cskhUrl || '' %>" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <div class="text-[11px] text-muted mt-1">VD: tawk.to, messenger, zalo OA, livechat...</div>
+          </div>
+
+          <div>
+            <label class="text-sm text-white font-bold flex items-center gap-2 mb-1"><span class="text-lg">✈️</span> Link Telegram (nhóm/channel)</label>
+            <input id="sTele" type="url" maxlength="300" placeholder="https://t.me/your_channel" value="<%= _cfg.telegramUrl || '' %>" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <div class="text-[11px] text-muted mt-1">Channel hoặc group Telegram BLV của bạn</div>
+          </div>
+
+          <div>
+            <label class="text-sm text-white font-bold flex items-center gap-2 mb-1"><span class="text-lg">🎰</span> Link Đăng Ký XOSO66</label>
+            <input id="sReg" type="url" maxlength="300" placeholder="https://qt99.click/?aff=YOUR_CODE" value="<%= _cfg.registerUrl || '' %>" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <div class="text-[11px] text-muted mt-1">Link affiliate riêng của BLV để được hưởng hoa hồng. Để trống = link mặc định.</div>
+          </div>
+
+          <div>
+            <label class="text-sm text-white font-bold flex items-center gap-2 mb-1"><span class="text-lg">📱</span> Link Zalo</label>
+            <input id="sZalo" type="url" maxlength="300" placeholder="https://zalo.me/0123456789" value="<%= _cfg.zaloUrl || '' %>" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+          </div>
+
+          <div>
+            <label class="text-sm text-white font-bold flex items-center gap-2 mb-1"><span class="text-lg">📢</span> Tin nhắn pinned trong chat</label>
+            <input id="sPinMsg" type="text" maxlength="200" placeholder="VD: 🎁 Mã FREE100 nhập tại xoso66 - rút 500K" value="<%= _cfg.pinnedMessage || '' %>" class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg outline-none focus:border-pri">
+            <div class="text-[11px] text-muted mt-1">Tin pin sẽ luôn hiện ở đầu khung chat phòng live của bạn</div>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="submit" id="sSubmit" class="flex-1 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:brightness-110 text-white font-bold py-2.5 rounded-lg active:scale-95">
+              💾 Lưu cấu hình
+            </button>
+            <button type="button" onclick="if(confirm('Xóa hết cấu hình và dùng mặc định?')){document.querySelectorAll('#shareForm input').forEach(function(i){i.value=''});document.getElementById('shareForm').dispatchEvent(new Event('submit'));}" class="bg-bg-deep border border-line hover:border-red-500 text-gray-200 font-bold px-4 rounded-lg">🗑 Reset</button>
+          </div>
+        </form>
+
+        <div class="mt-4 bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-[11.5px] text-blue-200">
+          💡 <b>Lưu ý:</b> Cấu hình áp dụng cho phòng live của BLV. Các nút này sẽ hiện trong khung chat / hover bar / popup phòng live.
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<script>
+document.getElementById('shareForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var btn = document.getElementById('sSubmit'); btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+  fetch('/api/blv/share-config', {
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      cskhUrl: document.getElementById('sCskh').value.trim(),
+      telegramUrl: document.getElementById('sTele').value.trim(),
+      registerUrl: document.getElementById('sReg').value.trim(),
+      zaloUrl: document.getElementById('sZalo').value.trim(),
+      pinnedMessage: document.getElementById('sPinMsg').value.trim()
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    btn.disabled = false; btn.textContent = '💾 Lưu cấu hình';
+    if (j.ok) { alert('✅ Đã lưu!'); }
+    else alert('Lỗi: ' + (j.error||'fail'));
+  })
+  .catch(function(e){ btn.disabled=false; btn.textContent='💾 Lưu cấu hình'; alert('Lỗi mạng: ' + e.message); });
+});
+</script>
