@@ -323,6 +323,46 @@ app.get('/live/:id', async function (req, res, next) {
         };
       }
     }
+    // 🆕 Fallback 3: BLV CUSTOM MATCH — tìm trong data.schedules
+    if (!match) {
+      try {
+        const _schedFb = require('./lib/schedule-store');
+        const allApproved2 = _schedFb.listAll({ status: 'approved', userType: 'blv', limit: 500 });
+        const fullId = String(req.params.id || '');
+        const numId = id;
+        const customMatch = allApproved2.find(s =>
+          String(s.matchId || '') === fullId ||
+          String(s.matchId || '') === numId ||
+          (s.matchId && String(s.matchId).indexOf(numId) >= 0)
+        );
+        if (customMatch && customMatch.matchTitle) {
+          const mv = customMatch.matchTitle.match(/^(.+?)\s+vs\s+(.+?)(?:\s+•|\s+\(|\s+\-|$)/i);
+          const home = mv ? mv[1].trim() : (customMatch.matchTitle.split(' vs ')[0] || 'Đội nhà');
+          const away = mv ? mv[2].trim() : (customMatch.matchTitle.split(' vs ')[1] || 'Đội khách');
+          const dStart = new Date(customMatch.startTime || Date.now());
+          const p = n => String(n).padStart(2,'0');
+          match = {
+            id: customMatch.matchId || req.params.id,
+            sport: 'Soccer',
+            league: customMatch.description || 'Trận BLV',
+            home: home,
+            away: away,
+            homeBadge: '', awayBadge: '',
+            score: null,
+            date: dStart.getFullYear()+'-'+p(dStart.getMonth()+1)+'-'+p(dStart.getDate()),
+            time: p(dStart.getHours())+':'+p(dStart.getMinutes()),
+            matchTs: customMatch.startTime,
+            venue: '',
+            status: customMatch.streamActive ? 'live' : 'upcoming',
+            statusText: customMatch.streamActive ? 'ĐANG LIVE' : 'Sắp diễn ra',
+            poster: '',
+            slug: req.params.id,
+            _isCustomBlv: true,
+            _blvStreamKey: customMatch.streamKey
+          };
+        }
+      } catch(e) { console.warn('[LIVE] custom fallback fail:', e.message); }
+    }
     if (!match) return res.status(404).render('tw-404');
     const all = await api.getLiveStreams().catch(function(){ return []; });
     const others = (all || []).filter(function (x) { return x.id !== match.id; }).slice(0, 6);
