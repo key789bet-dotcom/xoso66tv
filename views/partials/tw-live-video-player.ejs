@@ -51,8 +51,9 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
 
 <!-- 📊 DEBUG STATS OVERLAY (mặc định HIỆN — ẩn bằng Shift+S hoặc ?stats=0) -->
 <div id="liveStatsOverlay" class="absolute top-2 left-2 z-[8] text-[11px] font-mono leading-tight text-white pointer-events-none select-none"
-     style="background:rgba(0,0,0,.78);padding:8px 10px;border-radius:6px;min-width:220px;border:1px solid rgba(255,255,255,.15);text-shadow:0 1px 2px rgba(0,0,0,.9);">
+     style="background:rgba(0,0,0,.85);padding:8px 10px;border-radius:6px;min-width:240px;border:1px solid rgba(255,210,63,.4);text-shadow:0 1px 2px rgba(0,0,0,.9);display:block !important;opacity:1 !important;visibility:visible !important;">
   <div style="font-weight:700;color:#fbbf24;margin-bottom:4px;">📊 Stream Stats</div>
+  <div>URL:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="ls_url" style="color:#fbbf24">⏳ checking…</span></div>
   <div>Network:&nbsp;<span id="ls_net" style="color:#10b981">—</span></div>
   <div>Speed:&nbsp;&nbsp;&nbsp;<span id="ls_speed">— Kbps</span></div>
   <div>Buffer:&nbsp;&nbsp;<span id="ls_buf">— s</span></div>
@@ -61,7 +62,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   <div>Decoded:&nbsp;<span id="ls_dec">0 fps</span></div>
   <div>Res:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="ls_res">—</span></div>
   <div>Codec:&nbsp;&nbsp;&nbsp;<span id="ls_codec">—</span></div>
-  <div>Player:&nbsp;&nbsp;<span id="ls_state">—</span></div>
+  <div>Player:&nbsp;&nbsp;<span id="ls_state">⏳ chưa attach</span></div>
   <div style="margin-top:4px;font-size:10px;color:#94a3b8;">Shift+S = ẩn/hiện</div>
 </div>
 
@@ -188,29 +189,72 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 📊 DEBUG STATS LOOP — update mỗi 1s
+  // 📊 DEBUG STATS LOOP — update mỗi 1s (chạy NGAY từ đầu)
   // ═══════════════════════════════════════════════════════════
   var __lastStats = {};
   var __lastBytes = 0, __lastBytesTime = 0;
   var __statsLoopId = null;
+  var __urlCheckCount = 0;
   function startStatsLoop(){
     if (__statsLoopId) clearInterval(__statsLoopId);
     var overlay = document.getElementById('liveStatsOverlay');
     if (!overlay) return;
     var $ = function(id){ return document.getElementById(id); };
+
+    // Check stream URL status mỗi 3s
+    function checkStreamUrl(){
+      var elU = $('ls_url');
+      if (!elU) return;
+      fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
+        .then(function(r){
+          if (r.ok) {
+            elU.innerHTML = '<span style="color:#10b981">✅ '+r.status+' OK</span>';
+          } else {
+            elU.innerHTML = '<span style="color:#ef4444">❌ HTTP '+r.status+'</span> (OBS chưa push?)';
+          }
+        })
+        .catch(function(e){
+          elU.innerHTML = '<span style="color:#ef4444">❌ network err</span>';
+        });
+    }
+    checkStreamUrl();
+
     __statsLoopId = setInterval(function(){
-      if (!video || !flvPlayer) return;
+      // 🔒 FORCE overlay luôn hiện (chống mọi thứ ẩn nó)
+      overlay.style.setProperty('display','block','important');
+      overlay.style.setProperty('opacity','1','important');
+      overlay.style.setProperty('visibility','visible','important');
+
+      // Update Network info ngay cả khi chưa attach stream
+      try {
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (conn) {
+          var netStr = (conn.effectiveType || '?').toUpperCase() + ' · ' +
+                       (conn.downlink ? conn.downlink.toFixed(1)+'Mbps' : '?');
+          $('ls_net').textContent = netStr;
+          $('ls_net').style.color = conn.effectiveType === '4g' ? '#10b981' :
+                                    conn.effectiveType === '3g' ? '#fbbf24' : '#ef4444';
+        } else {
+          $('ls_net').textContent = 'unknown (browser cũ)';
+        }
+      } catch(e){}
+
+      // Recheck URL mỗi 3s
+      __urlCheckCount++;
+      if (__urlCheckCount % 3 === 0) checkStreamUrl();
+
+      // Nếu chưa attach stream → state = chưa attach, không update phần stream
+      if (!video || !flvPlayer) {
+        $('ls_state').innerHTML = '<span style="color:#fbbf24">⏳ chưa attach (stream offline?)</span>';
+        return;
+      }
+
       try {
         var s = __lastStats || {};
-        var now = Date.now();
 
         // Speed (Kbps)
-        var bytes = s.loaderType ? (s.speed || 0) : 0;
-        // Some FLV.js versions expose speed in KB/s
-        if (s.speed) {
+        if (s.speed !== undefined) {
           $('ls_speed').textContent = (s.speed * 8).toFixed(0) + ' Kbps';
-        } else if (s.currentSegmentIndex !== undefined) {
-          $('ls_speed').textContent = '— Kbps';
         }
 
         // Buffer
@@ -223,7 +267,6 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
         }
         $('ls_buf').textContent = bufStr;
 
-        // Latency = drift + RTT approx (xấp xỉ buffer = client latency)
         var latColor = drift < 4 ? '#10b981' : drift < 8 ? '#fbbf24' : '#ef4444';
         $('ls_lat').innerHTML = '<span style="color:'+latColor+'">'+drift.toFixed(2)+' s</span>';
 
@@ -234,35 +277,20 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
         var dropColor = drop === 0 ? '#10b981' : (drop/Math.max(total,1) > 0.05 ? '#ef4444' : '#fbbf24');
         $('ls_drop').innerHTML = '<span style="color:'+dropColor+'">'+drop+' / '+total+'</span>';
 
-        // Decoded fps (delta trong 1s)
         if (!window.__lastDecCount) window.__lastDecCount = total;
         var fps = total - window.__lastDecCount;
         window.__lastDecCount = total;
         $('ls_dec').textContent = fps + ' fps';
 
-        // Resolution (đề phòng MEDIA_INFO chưa fire)
         if (video.videoWidth) {
           $('ls_res').textContent = video.videoWidth+'x'+video.videoHeight;
         }
 
-        // Player state
         var state = '—';
-        if (video.paused) state = '⏸ paused';
-        else if (video.readyState >= 3) state = '▶ playing';
-        else state = '⏳ buffering';
-        $('ls_state').textContent = state;
-
-        // Network type (nếu browser support)
-        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        if (conn) {
-          var netStr = (conn.effectiveType || '?').toUpperCase() + ' · ' +
-                       (conn.downlink ? conn.downlink.toFixed(1)+'Mbps' : '?');
-          $('ls_net').textContent = netStr;
-          $('ls_net').style.color = conn.effectiveType === '4g' ? '#10b981' :
-                                    conn.effectiveType === '3g' ? '#fbbf24' : '#ef4444';
-        } else {
-          $('ls_net').textContent = 'unknown';
-        }
+        if (video.paused) state = '<span style="color:#fbbf24">⏸ paused</span>';
+        else if (video.readyState >= 3) state = '<span style="color:#10b981">▶ playing</span>';
+        else state = '<span style="color:#fbbf24">⏳ buffering</span>';
+        $('ls_state').innerHTML = state;
       } catch(e) {
         console.warn('[LIVE-STATS]', e.message);
       }
@@ -410,6 +438,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     if (!window.flvjs) { setTimeout(start, 300); return; }
     bindUnmute();
     initStatsToggle();
+    startStatsLoop(); // 🚀 Start stats loop NGAY, không chờ attach
     checkStream();
     setInterval(checkStream, POLL_INTERVAL);
   }
