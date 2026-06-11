@@ -41,32 +41,60 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
       <a href="/nap-tien" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded font-bold">+ Nạp tiền</a>
     </div>
 
-    <!-- Premium gifts grid -->
+    <!-- Premium gifts grid - 3D EDITION -->
     <div class="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin">
-      <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <% PG.forEach(function(g){
           var ring = g.tier==='legend' ? 'from-rose-500 via-amber-400 to-yellow-500'
                    : g.tier==='royal'  ? 'from-amber-400 to-yellow-600'
                    :                     'from-pink-400 to-rose-600';
           var glow = g.tier==='legend' ? '#f43f5e' : g.tier==='royal' ? '#f59e0b' : '#f472b6';
-          var tierLabel = g.tier==='legend' ? 'LEGEND' : g.tier==='royal' ? 'ROYAL' : 'VIP';
+          var glowSoft = g.tier==='legend' ? 'rgba(244,63,94,.5)' : g.tier==='royal' ? 'rgba(245,158,11,.5)' : 'rgba(244,114,182,.5)';
+          var tierLabel = g.tier==='legend' ? '👑 LEGEND' : g.tier==='royal' ? '✨ ROYAL' : '💎 VIP';
+          var tierBgClass = g.tier==='legend' ? 'pg-tier-legend' : g.tier==='royal' ? 'pg-tier-royal' : 'pg-tier-vip';
         %>
           <button onclick="pgPickGift('<%= g.id %>')" data-id="<%= g.id %>" data-price="<%= g.priceVnd %>" data-name="<%= g.name %>" data-icon="<%= g.icon %>"
-                  class="pg-card group relative overflow-hidden bg-gradient-to-b from-bg-soft to-bg-deep border-2 border-white/5 hover:border-amber-400 rounded-xl p-2 sm:p-3 text-center transition-all hover:-translate-y-1">
-            <span class="absolute top-1 right-1 text-[8px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r <%= ring %> text-white shadow"><%= tierLabel %></span>
-            <div class="relative mx-auto w-14 h-14 sm:w-16 sm:h-16 mt-1 mb-1.5">
-              <div class="absolute inset-0 rounded-full p-[2px] bg-gradient-to-br <%= ring %> animate-spin-slow">
-                <div class="w-full h-full rounded-full bg-bg-deep"></div>
+                  class="pg-card-3d <%= tierBgClass %> group relative overflow-hidden rounded-2xl p-2.5 sm:p-3 text-center transition-all duration-300 hover:-translate-y-2"
+                  style="--glow:<%= glow %>;--glow-soft:<%= glowSoft %>;">
+            <!-- Animated background pattern -->
+            <div class="pg-bg-shine absolute inset-0 pointer-events-none"></div>
+            <!-- Rotating conic gradient -->
+            <div class="pg-conic absolute inset-0 opacity-50 pointer-events-none"></div>
+            <!-- Tier badge -->
+            <span class="absolute top-1.5 right-1.5 z-[3] text-[8.5px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r <%= ring %> text-white shadow-lg whitespace-nowrap" style="text-shadow:0 1px 2px rgba(0,0,0,.5);"><%= tierLabel %></span>
+
+            <!-- 3D Gift container -->
+            <div class="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 mt-2 mb-2 pg-gift-container">
+              <!-- Spinning ring outer -->
+              <div class="absolute inset-0 rounded-full pg-ring-spin" style="background:conic-gradient(from 0deg, <%= glow %>, transparent 60deg, <%= glow %> 180deg, transparent 240deg, <%= glow %>); filter: blur(2px);"></div>
+              <!-- Inner glass orb -->
+              <div class="absolute inset-1 rounded-full pg-glass-orb"></div>
+              <!-- Spotlight cone -->
+              <div class="absolute -inset-2 rounded-full pg-spotlight" style="background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.45), transparent 55%);"></div>
+              <!-- 3D Image (Fluent Emoji 3D) -->
+              <img src="<%= g.img3d %>" alt="<%= g.name %>" loading="lazy"
+                   class="absolute inset-[8%] w-[84%] h-[84%] object-contain pg-3d-img"
+                   style="filter:drop-shadow(0 6px 12px rgba(0,0,0,.5)) drop-shadow(0 0 18px <%= glowSoft %>);"
+                   onerror="this.outerHTML='<div class=&quot;absolute inset-0 grid place-items-center text-5xl pg-fallback-emoji&quot;><%= g.icon %></div>'">
+              <!-- Floor reflection -->
+              <div class="absolute -bottom-2 left-[15%] right-[15%] h-2 rounded-full" style="background:radial-gradient(ellipse, rgba(0,0,0,.4), transparent 70%);"></div>
+              <!-- Sparkles particles -->
+              <% if (g.tier !== 'vip') { %>
+              <div class="pg-sparkles absolute inset-0 pointer-events-none">
+                <span></span><span></span><span></span><span></span>
               </div>
-              <div class="absolute inset-[5px] rounded-full grid place-items-center">
-                <span class="text-3xl sm:text-4xl" style="filter:drop-shadow(0 0 8px <%= glow %>) drop-shadow(0 0 16px <%= glow %>);"><%= g.icon %></span>
-              </div>
+              <% } %>
             </div>
-            <div class="text-[10px] sm:text-[11px] font-extrabold text-white truncate"><%= g.name %></div>
-            <div class="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40">
-              <span class="text-[9px]">💵</span>
-              <span class="text-emerald-300 font-black text-[10px] tabular-nums"><%= g.priceVnd.toLocaleString('vi-VN') %></span>
+
+            <!-- Gift name -->
+            <div class="relative z-[2] text-[11px] sm:text-[12.5px] font-extrabold text-white truncate px-1" style="text-shadow:0 2px 4px rgba(0,0,0,.6);"><%= g.name %></div>
+            <!-- Price badge -->
+            <div class="relative z-[2] mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-emerald-500/30 via-emerald-400/40 to-emerald-500/30 border border-emerald-300/50 shadow-inner">
+              <span class="text-[10px]">💎</span>
+              <span class="text-emerald-200 font-black text-[10.5px] sm:text-[11.5px] tabular-nums" style="text-shadow:0 1px 2px rgba(0,0,0,.4);"><%= g.priceVnd.toLocaleString('vi-VN') %></span>
             </div>
+            <!-- Bottom shine bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-80 transition-opacity"></div>
           </button>
         <% }); %>
       </div>
@@ -99,9 +127,153 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
 </div>
 
 <style>
+/* ═══════════════ 3D PREMIUM GIFT CARDS ═══════════════ */
+
+/* Card tier backgrounds (gradient sang trọng) */
+.pg-card-3d {
+  border: 2px solid rgba(255,255,255,.06);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+  transition: transform .4s cubic-bezier(.2,.85,.35,1.2), box-shadow .3s ease, border-color .3s ease;
+}
+.pg-tier-vip {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(244,114,182,.25), transparent 60%),
+    linear-gradient(160deg, #2a1a2e, #1a1325 60%, #14101e);
+}
+.pg-tier-royal {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(245,158,11,.3), transparent 60%),
+    linear-gradient(160deg, #2e2418, #1f1a14 60%, #1a1510);
+}
+.pg-tier-legend {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(244,63,94,.35), transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(245,158,11,.25), transparent 60%),
+    linear-gradient(160deg, #2e1820, #1f1419 60%, #1a1116);
+  animation: pgLegendBreathe 3s ease-in-out infinite;
+}
+@keyframes pgLegendBreathe {
+  0%,100% { box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 18px rgba(244,63,94,.25), inset 0 1px 0 rgba(255,255,255,.08); }
+  50%     { box-shadow: 0 12px 32px rgba(0,0,0,.5), 0 0 36px rgba(244,63,94,.5), 0 0 60px rgba(245,158,11,.25), inset 0 1px 0 rgba(255,255,255,.12); }
+}
+.pg-card-3d:hover {
+  border-color: var(--glow);
+  box-shadow: 0 16px 40px rgba(0,0,0,.55), 0 0 32px var(--glow-soft), inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Background shine sweep (di chuyển chéo) */
+.pg-bg-shine {
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.06) 50%, transparent 65%);
+  background-size: 200% 100%;
+  animation: pgShineMove 5s linear infinite;
+}
+@keyframes pgShineMove {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Conic gradient xoay chậm (lớp nền) */
+.pg-conic {
+  background: conic-gradient(from 0deg at 50% 50%,
+    transparent 0deg, var(--glow-soft) 60deg, transparent 120deg,
+    transparent 240deg, var(--glow-soft) 300deg, transparent 360deg);
+  animation: pgConicRotate 16s linear infinite;
+  mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 80%);
+}
+@keyframes pgConicRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Container 3D gift */
+.pg-gift-container {
+  perspective: 600px;
+}
+
+/* Vòng glow xoay quanh quà */
+.pg-ring-spin {
+  animation: pgRingRotate 6s linear infinite;
+  opacity: .8;
+}
+@keyframes pgRingRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* Glass orb (hiệu ứng thủy tinh phía sau quà) */
+.pg-glass-orb {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,.2), transparent 50%),
+    radial-gradient(circle at 65% 70%, var(--glow-soft), transparent 60%),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,.4), rgba(0,0,0,.6));
+  backdrop-filter: blur(4px);
+  box-shadow:
+    inset 0 2px 8px rgba(255,255,255,.18),
+    inset 0 -4px 12px rgba(0,0,0,.4),
+    0 0 24px var(--glow-soft);
+}
+
+/* Spotlight rotate */
+.pg-spotlight {
+  animation: pgSpotRotate 4s ease-in-out infinite alternate;
+  mix-blend-mode: overlay;
+}
+@keyframes pgSpotRotate {
+  0%   { transform: rotate(0) scale(1); }
+  100% { transform: rotate(30deg) scale(1.1); }
+}
+
+/* 3D image float + tilt khi hover */
+.pg-3d-img {
+  animation: pg3dFloat 3s ease-in-out infinite;
+  transform-style: preserve-3d;
+  transition: transform .4s cubic-bezier(.2,.85,.35,1.2);
+}
+.pg-card-3d:hover .pg-3d-img {
+  animation-play-state: paused;
+  transform: scale(1.18) rotateY(-15deg) rotateX(8deg);
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,.6)) drop-shadow(0 0 30px var(--glow)) !important;
+}
+@keyframes pg3dFloat {
+  0%, 100% { transform: translateY(0) rotateY(0); }
+  50%      { transform: translateY(-4px) rotateY(8deg); }
+}
+
+/* Fallback emoji nếu PNG fail */
+.pg-fallback-emoji {
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)) drop-shadow(0 0 16px var(--glow));
+  animation: pg3dFloat 3s ease-in-out infinite;
+}
+
+/* Sparkles (chỉ royal + legend) */
+.pg-sparkles span {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px #fff, 0 0 12px var(--glow);
+  opacity: 0;
+  animation: pgSparkle 4s ease-in-out infinite;
+}
+.pg-sparkles span:nth-child(1) { top:10%; left:15%; animation-delay: 0s; }
+.pg-sparkles span:nth-child(2) { top:20%; right:10%; animation-delay: 1s; }
+.pg-sparkles span:nth-child(3) { bottom:25%; left:20%; animation-delay: 2s; }
+.pg-sparkles span:nth-child(4) { bottom:15%; right:18%; animation-delay: 3s; }
+@keyframes pgSparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+
+/* Spin slow class cũ giữ compatible */
 @keyframes spin-slow { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-.pg-card:hover { box-shadow: 0 10px 25px rgba(245,158,11,.35); }
+
+/* Mobile: thu nhỏ chút */
+@media (max-width: 640px) {
+  .pg-card-3d { padding: 0.5rem; }
+  .pg-tier-legend { animation-duration: 4s; }
+}
 </style>
 
 <script>
@@ -138,22 +310,30 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
   };
 
   window.pgPickGift = function(id){
-    var btn = document.querySelector('.pg-card[data-id="'+id+'"]');
+    var btn = document.querySelector('.pg-card-3d[data-id="'+id+'"]');
     if (!btn) return;
+    var img3dEl = btn.querySelector('.pg-3d-img');
     __pick = {
       id: id,
       name: btn.getAttribute('data-name'),
       icon: btn.getAttribute('data-icon'),
+      img3d: img3dEl ? img3dEl.src : '',
       price: parseInt(btn.getAttribute('data-price'), 10) || 0
     };
-    $('pgPickIcon').textContent = __pick.icon;
+    // Update preview ở confirm bar: hiện img 3D nếu có
+    var pickIcon = $('pgPickIcon');
+    if (__pick.img3d) {
+      pickIcon.innerHTML = '<img src="'+__pick.img3d+'" style="width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))">';
+    } else {
+      pickIcon.textContent = __pick.icon;
+    }
     $('pgPickName').textContent = __pick.name;
     $('pgPickUnit').textContent = vnd(__pick.price) + ' / cái';
     $('pgQty').value = 1;
     pgUpdateTotal();
     $('pgConfirmBar').classList.remove('hidden');
     // Highlight
-    document.querySelectorAll('.pg-card').forEach(function(c){ c.classList.remove('!border-amber-400','ring-2','ring-amber-400'); });
+    document.querySelectorAll('.pg-card-3d').forEach(function(c){ c.classList.remove('!border-amber-400','ring-2','ring-amber-400'); });
     btn.classList.add('!border-amber-400','ring-2','ring-amber-400');
   };
 
@@ -216,7 +396,7 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
       });
   };
 
-  // Floating gift icon animation
+  // Floating 3D gift animation - dùng PNG 3D nếu có
   function pgFloatAnim(icon, qty){
     var layer = document.getElementById('giftAnimLayer');
     if (!layer) {
@@ -225,20 +405,30 @@ var _toName = (typeof streamerName     !== 'undefined' && streamerName)     ? st
       layer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:200';
       document.body.appendChild(layer);
     }
-    var n = Math.min(qty, 12);
+    var n = Math.min(qty, 15);
+    var img3d = (__pick && __pick.img3d) ? __pick.img3d : '';
     for (var i = 0; i < n; i++) {
       (function(idx){
         setTimeout(function(){
+          var size = 60 + Math.random() * 40;
           var e = document.createElement('div');
-          e.textContent = icon;
-          e.style.cssText = 'position:absolute;bottom:80px;left:'+(20+Math.random()*70)+'%;font-size:'+(40+Math.random()*30)+'px;filter:drop-shadow(0 0 12px gold);transition:transform 2.5s cubic-bezier(.2,.7,.2,1),opacity 2.5s ease-out;';
+          var leftPct = 15 + Math.random() * 70;
+          if (img3d) {
+            e.innerHTML = '<img src="'+img3d+'" style="width:100%;height:100%;object-fit:contain">';
+          } else {
+            e.textContent = icon;
+            e.style.fontSize = size + 'px';
+            e.style.lineHeight = '1';
+          }
+          e.style.cssText += 'position:absolute;bottom:80px;left:'+leftPct+'%;width:'+size+'px;height:'+size+'px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5)) drop-shadow(0 0 16px gold);transition:transform 2.8s cubic-bezier(.2,.7,.2,1),opacity 2.8s ease-out;will-change:transform,opacity;';
           layer.appendChild(e);
           requestAnimationFrame(function(){
-            e.style.transform = 'translateY(-'+(window.innerHeight*0.7)+'px) rotate('+(Math.random()*720-360)+'deg) scale(1.5)';
+            var dx = (Math.random() - 0.5) * 200;
+            e.style.transform = 'translateY(-'+(window.innerHeight*0.75)+'px) translateX('+dx+'px) rotate('+(Math.random()*720-360)+'deg) scale(1.6)';
             e.style.opacity = '0';
           });
-          setTimeout(function(){ e.remove(); }, 2600);
-        }, idx * 100);
+          setTimeout(function(){ e.remove(); }, 2900);
+        }, idx * 90);
       })(i);
     }
   }
