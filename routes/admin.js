@@ -44,6 +44,25 @@ const _cardUpload = multer({
   }
 });
 const analytics = require('../lib/analytics');
+const giftsStore = require('../lib/gifts-store');
+
+// Multer upload for gifts
+const _giftStorage = multer.diskStorage({
+  destination: function(req,file,cb){
+    var dir = path.join(__dirname,'..','public','uploads','gifts');
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req,file,cb){ cb(null, 'gift-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+});
+const _giftUpload = multer({
+  storage: _giftStorage,
+  limits:  { fileSize: 3*1024*1024 },
+  fileFilter: function(req,file,cb){
+    var ok = /^image\/(jpeg|png|webp|gif)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Chi cho phep JPG/PNG/WEBP/GIF'), ok);
+  }
+});
 
 const router = express.Router();
 
@@ -649,5 +668,64 @@ router.get('/links/reset', function (req, res) {
   res.redirect('/admin/links');
 });
 
+
+// ═══════════════ 🎁 GIFTS MANAGEMENT ═══════════════
+router.get('/gifts', function(req, res){
+  if (!auth.isAuthed(req)) return res.redirect('/admin/login');
+  res.render('admin/gifts', { gifts: giftsStore.list() });
+});
+
+// CREATE
+router.post('/api/gifts', _giftUpload.single('imageFile'), function(req, res){
+  if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
+  try {
+    const b = req.body || {};
+    let image = b.image || '';
+    if (req.file) image = '/uploads/gifts/' + req.file.filename;
+    if (!image) return res.json({ ok:false, error:'Cần ảnh (upload hoặc URL)' });
+    const item = giftsStore.add({
+      name: b.name, image: image,
+      price: b.price, tier: b.tier,
+      enabled: b.enabled !== '0' && b.enabled !== false,
+      order: b.order
+    });
+    res.json({ ok:true, gift: item });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
+// UPDATE
+router.put('/api/gifts/:id', _giftUpload.single('imageFile'), function(req, res){
+  if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
+  try {
+    const b = req.body || {};
+    const patch = { name: b.name, price: b.price, tier: b.tier, order: b.order };
+    if (req.file) patch.image = '/uploads/gifts/' + req.file.filename;
+    else if (b.image) patch.image = b.image;
+    if (b.enabled !== undefined) patch.enabled = b.enabled !== '0' && b.enabled !== false;
+    const item = giftsStore.update(req.params.id, patch);
+    if (!item) return res.json({ ok:false, error:'Không tìm thấy' });
+    res.json({ ok:true, gift: item });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
+// TOGGLE enabled
+router.post('/api/gifts/:id/toggle', express.json(), function(req, res){
+  if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
+  const item = giftsStore.update(req.params.id, { enabled: !!(req.body && req.body.enabled) });
+  if (!item) return res.json({ ok:false, error:'Không tìm thấy' });
+  res.json({ ok:true });
+});
+
+// DELETE
+router.delete('/api/gifts/:id', function(req, res){
+  if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
+  const ok = giftsStore.remove(req.params.id);
+  res.json({ ok: ok });
+});
+
+// PUBLIC API: list gifts cho gift panel
+router.get('/api/gifts-public', function(req, res){
+  res.json({ ok:true, gifts: giftsStore.activeGifts() });
+});
 
 module.exports = router;

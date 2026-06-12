@@ -1,0 +1,229 @@
+<%- include('partials/layout-start', { activeMenu: 'gifts', title: 'Quản lý quà tặng' }) %>
+
+<style>
+  .gift-card { transition: all .2s; }
+  .gift-card:hover { transform: translateY(-2px); border-color: #ff7a18; }
+  .tier-common    { background: linear-gradient(135deg, #475569, #334155); }
+  .tier-rare      { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+  .tier-epic      { background: linear-gradient(135deg, #a855f7, #6b21a8); }
+  .tier-legendary { background: linear-gradient(135deg, #f59e0b, #b45309); }
+</style>
+
+<section class="bg-bg-card border border-line rounded-xl p-5 mb-4">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+    <div>
+      <h2 class="text-white font-extrabold text-xl flex items-center gap-2">
+        <span class="text-2xl">🎁</span> Quản Lý Quà Tặng
+      </h2>
+      <p class="text-[12.5px] text-muted mt-1">Upload ảnh quà, đặt tên, giá X COIN, tier. Quà bật <b class="text-emerald-400">enabled</b> sẽ hiện trong phòng live.</p>
+    </div>
+    <button onclick="document.getElementById('giftFormModal').classList.remove('hidden')"
+            class="bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold px-4 py-2 rounded-lg hover:brightness-110">
+      ➕ Thêm quà mới
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Tổng quà</div><div class="text-2xl font-extrabold text-white tabular-nums" id="gStatTotal"><%= gifts.length %></div></div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Đang bật</div><div class="text-2xl font-extrabold text-emerald-400 tabular-nums" id="gStatEnabled"><%= gifts.filter(function(g){return g.enabled !== false;}).length %></div></div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Đắt nhất</div><div class="text-2xl font-extrabold text-gold tabular-nums"><%= gifts.length ? Math.max.apply(null, gifts.map(function(g){return g.price;})) : 0 %> 🪙</div></div>
+    <div class="bg-bg-deep border border-line rounded-lg p-3"><div class="text-[10px] text-muted uppercase">Rẻ nhất</div><div class="text-2xl font-extrabold text-emerald-300 tabular-nums"><%= gifts.length ? Math.min.apply(null, gifts.map(function(g){return g.price;})) : 0 %> 🪙</div></div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="flex gap-2 mb-3 flex-wrap">
+    <button onclick="filterTier('')" class="filter-tier bg-pri text-white text-xs font-bold px-3 py-1.5 rounded-lg" data-t="">Tất cả</button>
+    <button onclick="filterTier('common')" class="filter-tier bg-bg-deep border border-line text-gray-200 text-xs font-bold px-3 py-1.5 rounded-lg" data-t="common">Common</button>
+    <button onclick="filterTier('rare')" class="filter-tier bg-bg-deep border border-line text-gray-200 text-xs font-bold px-3 py-1.5 rounded-lg" data-t="rare">Rare</button>
+    <button onclick="filterTier('epic')" class="filter-tier bg-bg-deep border border-line text-gray-200 text-xs font-bold px-3 py-1.5 rounded-lg" data-t="epic">Epic</button>
+    <button onclick="filterTier('legendary')" class="filter-tier bg-bg-deep border border-line text-gray-200 text-xs font-bold px-3 py-1.5 rounded-lg" data-t="legendary">Legendary</button>
+  </div>
+
+  <!-- List -->
+  <% if (gifts.length === 0) { %>
+    <div class="text-center py-12 text-muted">
+      <div class="text-6xl mb-3 opacity-60">🎁</div>
+      <div class="text-sm font-bold mb-1">Chưa có quà nào</div>
+      <div class="text-xs">Click "➕ Thêm quà mới" để upload quà đầu tiên</div>
+    </div>
+  <% } else { %>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="giftGrid">
+    <% gifts.sort(function(a,b){return (a.order||0)-(b.order||0);}).forEach(function(g){ %>
+      <div class="gift-card bg-bg-deep border border-line rounded-xl p-3 relative flex flex-col items-center text-center" data-tier="<%= g.tier %>">
+        <% if (g.enabled === false) { %>
+          <span class="absolute top-1 left-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">ẨN</span>
+        <% } %>
+        <span class="absolute top-1 right-1 text-[9px] font-bold uppercase text-white px-1.5 py-0.5 rounded tier-<%= g.tier %>"><%= g.tier %></span>
+        <img src="<%= g.image %>" alt="<%= g.name %>" class="w-20 h-20 object-contain mb-2" onerror="this.style.opacity='.3'; this.onerror=null;">
+        <div class="text-white text-xs font-bold truncate w-full mb-1"><%= g.name %></div>
+        <div class="text-gold text-sm font-extrabold tabular-nums"><%= g.price.toLocaleString('vi-VN') %> 🪙</div>
+        <div class="flex gap-1 mt-2 w-full">
+          <button onclick='editGift(<%- JSON.stringify(g) %>)' class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold py-1 rounded">✏️ Sửa</button>
+          <button onclick="toggleGift('<%= g.id %>', <%= g.enabled !== false %>)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold py-1 rounded"><%= g.enabled !== false ? '🚫 Ẩn' : '✅ Bật' %></button>
+          <button onclick="deleteGift('<%= g.id %>', '<%= g.name %>')" class="bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">🗑</button>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+  <% } %>
+</section>
+
+<!-- ═══ MODAL FORM ═══ -->
+<div id="giftFormModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] grid place-items-center p-4">
+  <div class="bg-bg-card border border-line rounded-2xl p-5 max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-white font-extrabold text-lg flex items-center gap-2"><span id="gfTitle">➕ Thêm quà</span></h3>
+      <button onclick="closeGiftModal()" class="text-muted hover:text-white text-2xl">×</button>
+    </div>
+    <form id="giftForm" enctype="multipart/form-data" class="space-y-3">
+      <input type="hidden" id="gfId" name="id" value="">
+
+      <!-- Image preview + upload -->
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Ảnh quà *</label>
+        <div class="flex gap-3 items-center">
+          <div class="w-24 h-24 bg-bg-deep border border-line rounded-lg grid place-items-center overflow-hidden shrink-0">
+            <img id="gfPreview" src="" class="max-w-full max-h-full object-contain" style="display:none">
+            <span id="gfPreviewEmpty" class="text-3xl opacity-40">🎁</span>
+          </div>
+          <div class="flex-1 space-y-1.5">
+            <input type="file" id="gfImageFile" name="imageFile" accept="image/png,image/webp,image/gif,image/jpeg"
+                   class="w-full text-xs text-gray-200 file:bg-pri file:text-white file:border-0 file:px-3 file:py-1.5 file:rounded file:font-bold file:mr-2 file:cursor-pointer">
+            <div class="text-[10px] text-muted">PNG/WebP/GIF/JPG · nền trong suốt · 200x200px+</div>
+            <input type="text" id="gfImageUrl" name="image" placeholder="hoặc dán URL ảnh..."
+                   class="w-full bg-bg-deep border border-line text-white text-xs px-2 py-1.5 rounded focus:border-pri outline-none">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Tên quà *</label>
+        <input id="gfName" name="name" maxlength="60" required placeholder="VD: Ngai Vàng Sư Tử"
+               class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg focus:border-pri outline-none">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Giá (X COIN) *</label>
+          <input id="gfPrice" name="price" type="number" min="0" max="999999" required placeholder="100"
+                 class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg focus:border-pri outline-none tabular-nums">
+        </div>
+        <div>
+          <label class="text-[11px] text-muted uppercase font-bold block mb-1">Tier *</label>
+          <select id="gfTier" name="tier" required class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg focus:border-pri outline-none">
+            <option value="common">Common (rẻ, bot tặng)</option>
+            <option value="rare">Rare</option>
+            <option value="epic">Epic</option>
+            <option value="legendary">Legendary (đắt, ít tặng)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[11px] text-muted uppercase font-bold block mb-1">Thứ tự hiển thị</label>
+        <input id="gfOrder" name="order" type="number" min="0" placeholder="0 = hiện trước"
+               class="w-full bg-bg-deep border border-line text-white text-sm px-3 py-2 rounded-lg focus:border-pri outline-none tabular-nums">
+      </div>
+
+      <label class="flex items-center gap-2 text-sm text-white">
+        <input id="gfEnabled" name="enabled" type="checkbox" checked class="w-4 h-4">
+        <span>Bật quà này (hiện trong phòng live)</span>
+      </label>
+
+      <div class="flex gap-2 pt-2">
+        <button type="submit" id="gfSubmit" class="flex-1 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold py-2.5 rounded-lg hover:brightness-110">💾 Lưu</button>
+        <button type="button" onclick="closeGiftModal()" class="bg-bg-deep border border-line text-gray-200 font-bold px-4 py-2.5 rounded-lg">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function filterTier(t){
+  document.querySelectorAll('.filter-tier').forEach(function(b){
+    if (b.dataset.t === t) { b.classList.remove('bg-bg-deep','border','border-line','text-gray-200'); b.classList.add('bg-pri','text-white'); }
+    else { b.classList.add('bg-bg-deep','border','border-line','text-gray-200'); b.classList.remove('bg-pri','text-white'); }
+  });
+  document.querySelectorAll('.gift-card').forEach(function(c){
+    c.style.display = (!t || c.dataset.tier === t) ? '' : 'none';
+  });
+}
+
+function closeGiftModal(){
+  document.getElementById('giftFormModal').classList.add('hidden');
+  document.getElementById('giftForm').reset();
+  document.getElementById('gfId').value = '';
+  document.getElementById('gfPreview').style.display = 'none';
+  document.getElementById('gfPreviewEmpty').style.display = '';
+  document.getElementById('gfTitle').textContent = '➕ Thêm quà';
+}
+
+function editGift(g){
+  document.getElementById('gfId').value = g.id;
+  document.getElementById('gfName').value = g.name;
+  document.getElementById('gfImageUrl').value = g.image;
+  document.getElementById('gfPrice').value = g.price;
+  document.getElementById('gfTier').value = g.tier;
+  document.getElementById('gfOrder').value = g.order || 0;
+  document.getElementById('gfEnabled').checked = g.enabled !== false;
+  document.getElementById('gfPreview').src = g.image;
+  document.getElementById('gfPreview').style.display = '';
+  document.getElementById('gfPreviewEmpty').style.display = 'none';
+  document.getElementById('gfTitle').textContent = '✏️ Sửa quà: ' + g.name;
+  document.getElementById('giftFormModal').classList.remove('hidden');
+}
+
+// Preview ảnh khi chọn file hoặc paste URL
+document.getElementById('gfImageFile').addEventListener('change', function(e){
+  var f = e.target.files[0]; if (!f) return;
+  var url = URL.createObjectURL(f);
+  document.getElementById('gfPreview').src = url;
+  document.getElementById('gfPreview').style.display = '';
+  document.getElementById('gfPreviewEmpty').style.display = 'none';
+});
+document.getElementById('gfImageUrl').addEventListener('input', function(e){
+  if (e.target.value) {
+    document.getElementById('gfPreview').src = e.target.value;
+    document.getElementById('gfPreview').style.display = '';
+    document.getElementById('gfPreviewEmpty').style.display = 'none';
+  }
+});
+
+// Submit form
+document.getElementById('giftForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var fd = new FormData(this);
+  fd.set('enabled', document.getElementById('gfEnabled').checked ? '1' : '0');
+  var btn = document.getElementById('gfSubmit');
+  btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+  var id = document.getElementById('gfId').value;
+  var url = id ? '/admin/api/gifts/' + encodeURIComponent(id) : '/admin/api/gifts';
+  fetch(url, { method: id ? 'PUT' : 'POST', body: fd, credentials:'include' })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.ok) location.reload();
+      else { alert('Lỗi: ' + (j.error || 'fail')); btn.disabled=false; btn.textContent='💾 Lưu'; }
+    })
+    .catch(function(e){ alert('Lỗi mạng: ' + e.message); btn.disabled=false; btn.textContent='💾 Lưu'; });
+});
+
+function toggleGift(id, currentEnabled){
+  fetch('/admin/api/gifts/' + encodeURIComponent(id) + '/toggle', {
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ enabled: !currentEnabled })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(j){ if (j.ok) location.reload(); else alert('Lỗi'); });
+}
+
+function deleteGift(id, name){
+  if (!confirm('Xóa quà "' + name + '"?')) return;
+  fetch('/admin/api/gifts/' + encodeURIComponent(id), { method:'DELETE', credentials:'include' })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ if (j.ok) location.reload(); else alert('Lỗi'); });
+}
+</script>
+
+<%- include('partials/layout-end') %>
