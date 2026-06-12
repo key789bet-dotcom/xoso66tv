@@ -46,6 +46,29 @@ const _cardUpload = multer({
 const analytics = require('../lib/analytics');
 const giftsStore = require('../lib/gifts-store');
 const chatBannersStore = require('../lib/chat-banners-store');
+const skinStore = require('../lib/skin-store');
+
+// Multer for skin overlay files (PNG/JPG/WebP for player + chat frames)
+const _skinStorage = multer.diskStorage({
+  destination: function(req,file,cb){
+    var dir = path.join(__dirname,'..','public','static','img','skin');
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req,file,cb){
+    // Tên file = slotId-timestamp.ext để cache-bust khi upload mới
+    var slot = (req.params && req.params.id) ? req.params.id : 'unknown';
+    cb(null, 'skin-' + slot + '-' + Date.now() + path.extname(file.originalname).toLowerCase());
+  }
+});
+const _skinUpload = multer({
+  storage: _skinStorage,
+  limits:  { fileSize: 8*1024*1024 }, // 8MB cho file lớn (page-bg 1920x1080)
+  fileFilter: function(req,file,cb){
+    var ok = /^image\/(jpeg|png|webp)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Chi cho phep JPG/PNG/WEBP'), ok);
+  }
+});
 
 // Multer for chat banners
 const _cbStorage = multer.diskStorage({
@@ -770,6 +793,61 @@ router.put('/api/chat-banners/:id', _cbUpload.single('imageFile'), function(req,
 // PUBLIC API
 router.get('/api/chat-banners-public', function(req, res){
   res.json({ ok:true, banners: chatBannersStore.active() });
+});
+
+// ════════════════════════════════════════════════════════
+// SKIN MANAGER — Quản lý 10 file overlay PNG/JPG/WebP cho phòng live
+// ════════════════════════════════════════════════════════
+router.get('/skin', function(req, res){
+  res.render('admin/skin', {
+    active: 'skin',
+    title:  'Skin phòng live',
+    slots:  skinStore.list(),
+    config: skinStore.config()
+  });
+});
+
+// Upload 1 slot
+router.post('/api/skin/upload/:id', _skinUpload.single('imageFile'), function(req, res){
+  try {
+    if (!req.file) return res.status(400).json({ ok:false, error:'Khong co file' });
+    var slotId = req.params.id;
+    var validIds = skinStore.SLOTS.map(function(s){ return s.id; });
+    if (validIds.indexOf(slotId) < 0) {
+      return res.status(400).json({ ok:false, error:'Slot khong hop le' });
+    }
+    var url = '/static/img/skin/' + req.file.filename;
+    var data = skinStore.setFile(slotId, url);
+    res.json({ ok:true, slotId: slotId, url: url, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+// Xóa 1 slot (không xóa file vật lý — chỉ unlink config)
+router.delete('/api/skin/:id', function(req, res){
+  try {
+    var data = skinStore.removeFile(req.params.id);
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+// Master toggle ON/OFF
+router.post('/api/skin/toggle', function(req, res){
+  try {
+    var enabled = !!(req.body && req.body.enabled);
+    var data = skinStore.toggle(enabled);
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+// PUBLIC API — cho client query (KHÔNG dùng cho render server-side, chỉ debug)
+router.get('/api/skin-public', function(req, res){
+  res.json({ ok:true, config: skinStore.activeConfig() });
 });
 
 module.exports = router;

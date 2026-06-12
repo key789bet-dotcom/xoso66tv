@@ -1,0 +1,105 @@
+<%
+// ╔════════════════════════════════════════════════════════════════╗
+// ║ SKIN OVERLAY — render layers PNG/JPG/WebP đã upload qua admin    ║
+// ║ Include partial này TRONG view phòng live (idol-room, live).     ║
+// ║ Nếu skin chưa active → render rỗng → KHÔNG ảnh hưởng layout.    ║
+// ╚════════════════════════════════════════════════════════════════╝
+var _skin = (typeof skinConfig !== 'undefined' && skinConfig) ? skinConfig : null;
+if (_skin && _skin.files) {
+  var f = _skin.files;
+%>
+<style>
+  /* ═══ SKIN OVERLAY LAYERS ═══ */
+  <% if (f['page-bg']) { %>
+  body.has-skin::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url('<%= f['page-bg'] %>');
+    background-size: cover; background-position: center; background-attachment: fixed;
+    opacity: .35;
+  }
+  <% } %>
+
+  /* Top header strip ngay dưới site header */
+  <% if (f['top-header']) { %>
+  .skin-top-header {
+    width: 100%; height: 60px; max-height: 60px;
+    background: url('<%= f['top-header'] %>') center/cover no-repeat;
+    margin-bottom: 8px; border-radius: 8px;
+  }
+  <% } %>
+
+  /* Hero banner */
+  <% if (f['hero-banner']) { %>
+  .skin-hero-banner {
+    width: 100%; aspect-ratio: 10/1;
+    background: url('<%= f['hero-banner'] %>') center/cover no-repeat;
+    border-radius: 12px; margin-bottom: 12px;
+  }
+  <% } %>
+
+  /* Player frame overlay (đè lên video player) */
+  <% if (f['player-frame']) { %>
+  .skin-player-frame {
+    position: absolute; inset: -20px; z-index: 20; pointer-events: none;
+    background: url('<%= f['player-frame'] %>') center/100% 100% no-repeat;
+  }
+  <% } %>
+
+  /* Logo overlay (góc trên trái player) */
+  <% if (f['logo-overlay']) { %>
+  .skin-logo-overlay {
+    position: absolute; top: 12px; left: 12px; z-index: 21; pointer-events: none;
+    width: 100px; height: 30px;
+    background: url('<%= f['logo-overlay'] %>') left center/contain no-repeat;
+  }
+  <% } %>
+
+  /* Bottom strip (thanh dưới player) */
+  <% if (f['bottom-strip']) { %>
+  .skin-bottom-strip {
+    width: 100%; height: 50px;
+    background: url('<%= f['bottom-strip'] %>') center/cover no-repeat;
+    margin-top: 6px; border-radius: 6px;
+  }
+  <% } %>
+
+  /* Chat overlays */
+  <% if (f['chat-header']) { %>
+  .skin-chat-header {
+    width: 100%; height: 50px;
+    background: url('<%= f['chat-header'] %>') center/cover no-repeat;
+    margin-bottom: 4px;
+  }
+  <% } %>
+
+  <% if (f['chat-frame']) { %>
+  .skin-chat-frame {
+    position: absolute; inset: -10px; z-index: 5; pointer-events: none;
+    background: url('<%= f['chat-frame'] %>') center/100% 100% no-repeat;
+  }
+  <% } %>
+
+  <% if (f['chat-input']) { %>
+  .skin-chat-input {
+    width: 100%; height: 60px;
+    background: url('<%= f['chat-input'] %>') center/cover no-repeat;
+    margin-top: 4px;
+  }
+  <% } %>
+
+  /* Sidebar background — chỉ apply khi skin active */
+  <% if (f['sidebar-bg']) { %>
+  body.has-skin aside#sidebar {
+    background-image: url('<%= f['sidebar-bg'] %>') !important;
+    background-size: cover !important;
+    background-position: center !important;
+  }
+  <% } %>
+</style>
+<script>
+(function(){
+  // Mark body có skin để CSS sidebar-bg / page-bg apply
+  document.body.classList.add('has-skin');
+})();
+</script>
+<% } %>

@@ -410,7 +410,13 @@ app.get('/live/:id', async function (req, res, next) {
       const _cbStore = require('./lib/chat-banners-store');
       chatBanners = _cbStore.active();
     } catch(e){}
-    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey, chatBanners: chatBanners });
+    // Skin overlay (10 file PNG/JPG admin upload) — null nếu không active
+    let skinConfig = null;
+    try {
+      const _skinStore = require('./lib/skin-store');
+      skinConfig = _skinStore.activeConfig();
+    } catch(e){}
+    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey, chatBanners: chatBanners, skinConfig: skinConfig });
   } catch (e) {
     console.error('[live/:id]', e.message);
     next(e);
@@ -522,7 +528,13 @@ app.get('/idol/:id', function (req, res) {
   const allIdols = data.idols.filter(function(i){ return i.status==='active'; }).map(function(i){
     return { id: i.id, name: i.name, emoji: i.emoji || '👑', color: i.color || 0, lock: i.lock || 0 };
   });
-  res.render('tw-idol-room', { active:'cat', activeCat:'idol', idolKey: req.params.id, dbIdol: idol, hasObs: hasObs, allIdols: allIdols, pinRequired: !!idol.pinCode, actualStreamKey: actualStreamKey });
+  // Skin overlay (10 file PNG/JPG admin upload) — null nếu không active
+  let skinConfig = null;
+  try {
+    const _skinStore = require('./lib/skin-store');
+    skinConfig = _skinStore.activeConfig();
+  } catch(e){}
+  res.render('tw-idol-room', { active:'cat', activeCat:'idol', idolKey: req.params.id, dbIdol: idol, hasObs: hasObs, allIdols: allIdols, pinRequired: !!idol.pinCode, actualStreamKey: actualStreamKey, skinConfig: skinConfig });
 });
 
 // ===== PUBLIC AUTH (cookie-based for streamer protection) =====

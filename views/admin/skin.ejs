@@ -1,0 +1,161 @@
+<%- include('partials/layout-start') %>
+
+<div class="space-y-5">
+
+  <!-- Master toggle card -->
+  <div class="bg-bg-card border border-line rounded-xl p-5 flex items-center justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-extrabold text-white mb-1">🎨 Skin phòng live</h2>
+      <p class="text-sm text-muted">Khi <b>BẬT</b> và có ít nhất 1 file upload, skin overlay sẽ hiển thị trên <code class="text-pri-light">/idol/:id</code> và <code class="text-pri-light">/live/:id</code>. Nếu <b>TẮT</b> hoặc chưa upload file nào, giao diện mặc định giữ nguyên.</p>
+      <p class="text-xs text-muted mt-1">Cập nhật cuối: <%= config.updatedAt ? new Date(config.updatedAt).toLocaleString('vi-VN') : '(chưa có)' %></p>
+    </div>
+    <label class="inline-flex items-center gap-3 cursor-pointer shrink-0">
+      <span class="text-sm font-bold text-gray-200" id="skinStateLabel"><%= config.enabled ? 'ĐANG BẬT' : 'ĐANG TẮT' %></span>
+      <input type="checkbox" id="skinMasterToggle" <%= config.enabled ? 'checked' : '' %> class="sr-only peer">
+      <div class="w-14 h-7 bg-bg-deep peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-7 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 relative"></div>
+    </label>
+  </div>
+
+  <!-- Grid của 10 slot -->
+  <div class="grid md:grid-cols-2 gap-4">
+    <% slots.forEach(function(s){ %>
+      <div class="bg-bg-card border border-line rounded-xl overflow-hidden" data-slot="<%= s.id %>">
+        <!-- Header -->
+        <div class="px-4 py-3 border-b border-line/60 flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-extrabold text-white truncate"><%= s.name %></div>
+            <div class="text-[11px] text-muted mt-0.5">
+              <code class="text-pri-light">skin-<%= s.id %>.<%= s.format.split('/')[0] %></code>
+              · <%= s.size %> · <%= s.format %>
+            </div>
+          </div>
+          <% if (s.uploaded) { %>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold shrink-0">✓ ĐÃ UPLOAD</span>
+          <% } else { %>
+            <span class="px-2 py-0.5 rounded bg-bg-deep text-muted text-[10px] font-bold shrink-0">CHƯA CÓ</span>
+          <% } %>
+        </div>
+
+        <!-- Preview -->
+        <div class="p-4">
+          <div class="bg-bg-deep rounded-lg overflow-hidden mb-3 grid place-items-center min-h-[120px]" style="background-image:linear-gradient(45deg, #1a1f29 25%, transparent 25%), linear-gradient(-45deg, #1a1f29 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1f29 75%), linear-gradient(-45deg, transparent 75%, #1a1f29 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0;">
+            <% if (s.uploaded) { %>
+              <img src="<%= s.url %>" alt="<%= s.name %>" class="max-w-full max-h-[200px] object-contain" id="preview-<%= s.id %>">
+            <% } else { %>
+              <div class="text-muted text-xs py-8 px-4 text-center">
+                Chưa upload<br><span class="text-[10px]">(Hiển thị mặc định)</span>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Upload + Delete -->
+          <div class="flex gap-2">
+            <label class="flex-1 cursor-pointer">
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden skin-file-input" data-slot="<%= s.id %>">
+              <span class="block w-full text-center px-3 py-2 rounded-lg bg-gradient-to-r from-pri to-pri-dark text-white text-xs font-bold hover:opacity-90 transition-opacity">
+                📤 <%= s.uploaded ? 'Thay ảnh' : 'Upload ảnh' %>
+              </span>
+            </label>
+            <% if (s.uploaded) { %>
+              <button class="skin-delete-btn px-3 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-xs font-bold transition-colors" data-slot="<%= s.id %>" title="Bỏ skin slot này">🗑️</button>
+            <% } %>
+          </div>
+
+          <div class="text-[10px] text-muted mt-2 hidden skin-status" data-slot="<%= s.id %>"></div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+
+  <!-- Hướng dẫn -->
+  <div class="bg-bg-card border border-line rounded-xl p-5">
+    <h3 class="text-sm font-extrabold text-pri-light mb-2">💡 Lưu ý khi upload</h3>
+    <ul class="text-xs text-gray-300 space-y-1.5 list-disc pl-5">
+      <li>File có nhãn <b>⚠ trong suốt giữa</b> phải để vùng giữa PNG trong suốt (alpha=0) để video/chat thật hiện ra</li>
+      <li>Định dạng: <b>PNG</b> (nếu cần transparent) hoặc <b>JPG/WebP</b> (nếu không cần)</li>
+      <li>Dung lượng tối đa <b>8MB</b> mỗi file</li>
+      <li>Khi upload file đầu tiên, skin sẽ <b>tự động BẬT</b>. Có thể tắt qua toggle trên cùng</li>
+      <li>Mỗi lần upload sẽ <b>thay file cũ</b> (tự cache-bust bằng timestamp trong tên file)</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  var statusTimers = {};
+
+  function showStatus(slot, msg, isError){
+    var el = document.querySelector('.skin-status[data-slot="'+slot+'"]');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'text-[10px] mt-2 ' + (isError ? 'text-red-400' : 'text-emerald-400');
+    el.classList.remove('hidden');
+    clearTimeout(statusTimers[slot]);
+    statusTimers[slot] = setTimeout(function(){ el.classList.add('hidden'); }, 3000);
+  }
+
+  // Upload file
+  document.querySelectorAll('.skin-file-input').forEach(function(input){
+    input.addEventListener('change', function(){
+      var file = this.files[0];
+      if (!file) return;
+      var slot = this.dataset.slot;
+      var fd = new FormData();
+      fd.append('imageFile', file);
+      showStatus(slot, '⏳ Đang upload...', false);
+      fetch('/admin/api/skin/upload/' + slot, { method:'POST', body: fd, credentials:'same-origin' })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d.ok) {
+            showStatus(slot, '✓ Upload thành công, reload sau 1s...', false);
+            setTimeout(function(){ location.reload(); }, 1000);
+          } else {
+            showStatus(slot, '❌ Lỗi: ' + (d.error || 'unknown'), true);
+          }
+        })
+        .catch(function(e){
+          showStatus(slot, '❌ Network error: ' + e.message, true);
+        });
+    });
+  });
+
+  // Delete file
+  document.querySelectorAll('.skin-delete-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var slot = this.dataset.slot;
+      if (!confirm('Xóa skin slot này? (Giao diện mặc định sẽ hiện lại)')) return;
+      fetch('/admin/api/skin/' + slot, { method:'DELETE', credentials:'same-origin' })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d.ok) location.reload();
+          else alert('Lỗi xóa: ' + (d.error || 'unknown'));
+        });
+    });
+  });
+
+  // Master toggle
+  var toggle = document.getElementById('skinMasterToggle');
+  var label = document.getElementById('skinStateLabel');
+  if (toggle) {
+    toggle.addEventListener('change', function(){
+      var enabled = this.checked;
+      label.textContent = enabled ? 'ĐANG BẬT' : 'ĐANG TẮT';
+      fetch('/admin/api/skin/toggle', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'same-origin',
+        body: JSON.stringify({ enabled: enabled })
+      }).then(function(r){ return r.json(); })
+        .then(function(d){
+          if (!d.ok) {
+            alert('Lỗi toggle: ' + (d.error || 'unknown'));
+            toggle.checked = !enabled;
+            label.textContent = !enabled ? 'ĐANG BẬT' : 'ĐANG TẮT';
+          }
+        });
+    });
+  }
+})();
+</script>
+
+<%- include('partials/layout-end') %>
