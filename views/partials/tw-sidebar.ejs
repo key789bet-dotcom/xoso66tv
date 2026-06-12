@@ -30,6 +30,22 @@
       min-width: 0;
       overflow-x: hidden;
     }
+    /* ════════════════════════════════════════════════════════════
+       FIX ORPHAN ELEMENTS: footer + modals đôi khi render ngoài
+       flex-col wrapper (do tag balance trong page view), khiến grid
+       auto-place chúng vào col 1 (64px) hoặc col 2 row 2.
+       → Force span TOÀN bộ grid width.
+       ════════════════════════════════════════════════════════════ */
+    #appLayout > footer {
+      grid-column: 1 / -1 !important;
+      width: auto !important;
+    }
+    #appLayout > div:not(.flex):not(#sidebar):not(aside),
+    #appLayout > button {
+      /* Modal / floating elements thường có position:fixed sẵn — không cần xử lý.
+         Nếu lỡ không có, ép chúng span toàn grid để không phá layout */
+      grid-column: 1 / -1;
+    }
     body.sidebar-collapsed aside#sidebar .logo-box { padding: 8px 4px !important; min-height: auto !important; }
     body.sidebar-collapsed aside#sidebar .logo-box img { max-height: 40px !important; max-width: 40px !important; }
     body.sidebar-collapsed aside#sidebar nav a span.flex-1 { display: none !important; }
