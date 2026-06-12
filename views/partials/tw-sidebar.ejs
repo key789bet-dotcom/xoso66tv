@@ -1,34 +1,38 @@
 <aside id="sidebar" class="bg-gradient-to-b from-[#13171f] to-bg border-r border-line overflow-y-auto fixed md:sticky top-0 bottom-0 left-0 h-screen w-72 md:w-auto z-50 -translate-x-full md:translate-x-0 transition-transform scrollbar-thin">
 
   <style>
-    /* ═══ COLLAPSE MODE ═══ */
-    body.sidebar-collapsed #sidebar { width: 64px !important; }
-    body.sidebar-collapsed #sidebar .logo-box { padding: 8px 4px !important; }
-    body.sidebar-collapsed #sidebar .logo-box img { max-height: 40px !important; }
-    body.sidebar-collapsed #sidebar nav > a span:not(.w-6):not(.w-1\.5) { display: none !important; }
-    body.sidebar-collapsed #sidebar nav a span.flex-1 { display: none !important; }
-    body.sidebar-collapsed #sidebar nav > div { display: none !important; }
-    body.sidebar-collapsed #sidebar nav > a:first-of-type { padding: 8px !important; justify-content: center; }
-    body.sidebar-collapsed #sidebar nav > a { padding: 10px 8px !important; justify-content: center; }
-    body.sidebar-collapsed #sidebar #sidebarToggleBtn span.toggle-label { display: none; }
-    /* Tooltip on hover khi collapsed */
-    body.sidebar-collapsed #sidebar nav a { position: relative; }
-    body.sidebar-collapsed #sidebar nav a:hover::after {
+    /* ═══ COLLAPSE MODE — selectors mạnh để override Tailwind ═══ */
+    body.sidebar-collapsed aside#sidebar { width: 64px !important; min-width: 64px !important; max-width: 64px !important; }
+    body.sidebar-collapsed aside#sidebar .logo-box { padding: 8px 4px !important; min-height: auto !important; }
+    body.sidebar-collapsed aside#sidebar .logo-box img { max-height: 40px !important; max-width: 40px !important; }
+    body.sidebar-collapsed aside#sidebar nav a span.flex-1 { display: none !important; }
+    body.sidebar-collapsed aside#sidebar .cskh-card { display: none !important; }
+    body.sidebar-collapsed aside#sidebar nav > div { display: none !important; }
+    body.sidebar-collapsed aside#sidebar nav a { padding: 10px 8px !important; justify-content: center !important; gap: 0 !important; }
+    body.sidebar-collapsed aside#sidebar nav a span:not(.w-6):not(.w-5\.5):not(.w-1\.5):not(.w-2):not(.flex-1) { display: none !important; }
+    body.sidebar-collapsed aside#sidebar #sidebarToggleBtn { padding: 10px 8px !important; }
+    body.sidebar-collapsed aside#sidebar #sidebarToggleBtn .toggle-label { display: none !important; }
+    /* Tooltip on hover */
+    body.sidebar-collapsed aside#sidebar nav a { position: relative; }
+    body.sidebar-collapsed aside#sidebar nav a:hover::after {
       content: attr(data-tooltip);
       position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
-      background: rgba(0,0,0,.9); color: #fff; padding: 4px 10px;
-      border-radius: 6px; font-size: 11px; white-space: nowrap;
-      margin-left: 8px; z-index: 100; pointer-events: none;
+      background: rgba(0,0,0,.92); color: #fff; padding: 5px 10px;
+      border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap;
+      margin-left: 10px; z-index: 1000; pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,.4);
     }
   </style>
 
   <nav class="p-2">
-    <!-- ═══ NÚT THU GỌN / MỞ RỘNG SIDEBAR (desktop only) ═══ -->
-    <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="hidden md:flex items-center gap-2 w-full px-3 py-2 mb-2 rounded-lg bg-bg-soft hover:bg-bg-deep text-gray-200 hover:text-pri-light text-xs font-bold border border-line/60" title="Thu gọn / mở rộng menu">
-      <svg id="sidebarToggleIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-transform">
+    <!-- ═══ NÚT THU GỌN / MỞ RỘNG SIDEBAR — inline JS để chắc chắn fire ═══ -->
+    <button id="sidebarToggleBtn"
+            onclick="(function(b){var col=document.body.classList.toggle('sidebar-collapsed');try{localStorage.setItem('x66_sidebar_collapsed',col?'1':'0');}catch(e){}var lbl=b.querySelector('.toggle-label');if(lbl)lbl.textContent=col?'Mở rộng menu':'Thu gọn menu';var ic=b.querySelector('svg');if(ic)ic.style.transform=col?'rotate(90deg)':'';})(this); return false;"
+            class="hidden md:flex items-center gap-2 w-full px-3 py-2 mb-2 rounded-lg bg-bg-soft hover:bg-bg-deep text-gray-200 hover:text-pri-light text-xs font-bold border border-line/60 cursor-pointer" title="Thu gọn / mở rộng menu">
+      <svg id="sidebarToggleIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-transform" style="transition: transform .2s;">
         <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
       </svg>
-      <span class="toggle-label flex-1 text-left">Thu gọn menu</span>
+      <span class="toggle-label flex-1 text-left pointer-events-none">Thu gọn menu</span>
     </button>
     <!-- Logo to voi hieu ung background dong -->
     <a href="/" class="logo-box relative flex items-center justify-center px-2 py-6 mb-2 rounded-xl overflow-hidden group transition-colors">
