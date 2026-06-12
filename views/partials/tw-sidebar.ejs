@@ -2,13 +2,34 @@
 
   <style>
     /* ═══ COLLAPSE MODE — selectors mạnh để override Tailwind ═══ */
-    /* QUAN TRỌNG: thu cột grid layout về 64px để main expand full */
+    /* QUAN TRỌNG: thu cột grid layout về 64px để main expand full (mọi breakpoint khi có sidebar) */
+    body.sidebar-collapsed #appLayout {
+      display: grid !important;
+      grid-template-columns: 64px 1fr !important;
+    }
+    /* Khi sidebar EXPANDED (chưa collapsed) - giữ nguyên 260px ở md+ */
     @media (min-width: 768px) {
-      body.sidebar-collapsed #appLayout {
-        grid-template-columns: 64px 1fr !important;
+      body:not(.sidebar-collapsed) #appLayout {
+        grid-template-columns: 260px 1fr !important;
       }
     }
-    body.sidebar-collapsed aside#sidebar { width: 64px !important; min-width: 64px !important; max-width: 64px !important; }
+    /* Width override áp dụng mọi breakpoint */
+    body.sidebar-collapsed aside#sidebar {
+      width: 64px !important; min-width: 64px !important; max-width: 64px !important;
+    }
+    /* Position override CHỈ áp dụng md+ để không phá hamburger menu mobile */
+    @media (min-width: 768px) {
+      body.sidebar-collapsed aside#sidebar {
+        position: sticky !important; top: 0 !important; left: auto !important;
+        transform: none !important;
+      }
+    }
+    /* Đảm bảo cột col 2 (flex-col wrapper) không bị hẹp lại do min-w-0 + flex */
+    body.sidebar-collapsed #appLayout > div.flex.flex-col {
+      width: 100% !important;
+      min-width: 0;
+      overflow-x: hidden;
+    }
     body.sidebar-collapsed aside#sidebar .logo-box { padding: 8px 4px !important; min-height: auto !important; }
     body.sidebar-collapsed aside#sidebar .logo-box img { max-height: 40px !important; max-width: 40px !important; }
     body.sidebar-collapsed aside#sidebar nav a span.flex-1 { display: none !important; }
