@@ -45,6 +45,25 @@ const _cardUpload = multer({
 });
 const analytics = require('../lib/analytics');
 const giftsStore = require('../lib/gifts-store');
+const chatBannersStore = require('../lib/chat-banners-store');
+
+// Multer for chat banners
+const _cbStorage = multer.diskStorage({
+  destination: function(req,file,cb){
+    var dir = path.join(__dirname,'..','public','uploads','chat-banners');
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req,file,cb){ cb(null, 'cb-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+});
+const _cbUpload = multer({
+  storage: _cbStorage,
+  limits:  { fileSize: 5*1024*1024 }, // 5MB cho GIF animated
+  fileFilter: function(req,file,cb){
+    var ok = /^image\/(jpeg|png|webp|gif)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Chi cho phep JPG/PNG/WEBP/GIF'), ok);
+  }
+});
 
 // Multer upload for gifts
 const _giftStorage = multer.diskStorage({
@@ -726,6 +745,31 @@ router.delete('/api/gifts/:id', function(req, res){
 // PUBLIC API: list gifts cho gift panel
 router.get('/api/gifts-public', function(req, res){
   res.json({ ok:true, gifts: giftsStore.activeGifts() });
+});
+
+// ═══════════════ 🎀 CHAT BANNERS ═══════════════
+router.get('/chat-banners', function(req, res){
+  if (!auth.isAuthed(req)) return res.redirect('/admin/login');
+  res.render('admin/chat-banners', { banners: chatBannersStore.list() });
+});
+
+router.put('/api/chat-banners/:id', _cbUpload.single('imageFile'), function(req, res){
+  if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
+  try {
+    const b = req.body || {};
+    const patch = { link: b.link || '' };
+    if (req.file) patch.image = '/uploads/chat-banners/' + req.file.filename;
+    else if (b.image !== undefined) patch.image = b.image;
+    patch.enabled = b.enabled === '1' || b.enabled === true || b.enabled === 'true';
+    const item = chatBannersStore.update(req.params.id, patch);
+    if (!item) return res.json({ ok:false, error:'Không tìm thấy banner' });
+    res.json({ ok:true, banner: item });
+  } catch(e){ res.json({ ok:false, error: e.message }); }
+});
+
+// PUBLIC API
+router.get('/api/chat-banners-public', function(req, res){
+  res.json({ ok:true, banners: chatBannersStore.active() });
 });
 
 module.exports = router;

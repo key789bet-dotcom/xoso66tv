@@ -1,0 +1,89 @@
+<%- include('partials/layout-start', { activeMenu: 'chat-banners', title: 'Banner Chat phòng live' }) %>
+
+<section class="bg-bg-card border border-line rounded-xl p-5 mb-4">
+  <h2 class="text-white font-extrabold text-xl flex items-center gap-2 mb-2">
+    <span class="text-2xl">🎀</span> Banner Chat phòng live
+  </h2>
+  <p class="text-[12.5px] text-muted mb-4">3 banner hiển thị ngay trên đầu khung chat (giống OKLive). Hỗ trợ ảnh động GIF/WebP. Click banner → mở link đối tác.</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <% banners.forEach(function(b){ %>
+      <div class="bg-bg-deep border border-line rounded-xl p-3">
+        <div class="text-xs text-pri-light font-bold mb-2 uppercase tracking-wider"><%= b.label %></div>
+
+        <!-- Preview -->
+        <div class="bg-bg-card border border-line rounded-lg aspect-[4/3] grid place-items-center overflow-hidden mb-2 relative">
+          <% if (b.image) { %>
+            <img src="<%= b.image %>" alt="<%= b.label %>" class="max-w-full max-h-full object-contain" id="preview_<%= b.id %>">
+            <% if (!b.enabled) { %><span class="absolute top-1 left-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">TẮT</span><% } %>
+          <% } else { %>
+            <div class="text-center text-muted">
+              <div class="text-4xl mb-1 opacity-50">🖼</div>
+              <div class="text-[10px]">Chưa có ảnh</div>
+            </div>
+          <% } %>
+        </div>
+
+        <form class="space-y-2 cb-form" data-id="<%= b.id %>" enctype="multipart/form-data">
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-0.5">Upload ảnh (GIF/PNG/WebP)</label>
+            <input type="file" name="imageFile" accept="image/gif,image/png,image/webp,image/jpeg"
+                   class="w-full text-[11px] text-gray-200 file:bg-pri file:text-white file:border-0 file:px-2 file:py-1 file:rounded file:font-bold file:mr-2 file:cursor-pointer file:text-[10px]">
+          </div>
+
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-0.5">Hoặc paste URL</label>
+            <input type="url" name="image" maxlength="500" value="<%= b.image %>"
+                   placeholder="https://..."
+                   class="w-full bg-bg-card border border-line text-white text-xs px-2 py-1.5 rounded focus:border-pri outline-none">
+          </div>
+
+          <div>
+            <label class="text-[10px] text-muted uppercase font-bold block mb-0.5">Link click</label>
+            <input type="url" name="link" maxlength="500" value="<%= b.link %>"
+                   placeholder="https://qt99.click/..."
+                   class="w-full bg-bg-card border border-line text-white text-xs px-2 py-1.5 rounded focus:border-pri outline-none">
+          </div>
+
+          <label class="flex items-center gap-1.5 text-xs text-white">
+            <input type="checkbox" name="enabled" <%= b.enabled ? 'checked' : '' %> class="w-3.5 h-3.5">
+            <span>Bật banner này</span>
+          </label>
+
+          <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 text-white text-xs font-bold py-2 rounded hover:brightness-110 cb-submit">
+            💾 Lưu
+          </button>
+        </form>
+      </div>
+    <% }); %>
+  </div>
+
+  <div class="mt-5 bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-[11.5px] text-blue-200">
+    💡 <b>Mẹo:</b> Banner đẹp dùng <b>GIF động</b> hoặc <b>WebP animation</b>, kích thước ~ 300×200 px. Link nên đi qua tracker (qt99.click) để đo conversion. Bot không click banner.
+  </div>
+</section>
+
+<script>
+document.querySelectorAll('.cb-form').forEach(function(f){
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    var id = f.dataset.id;
+    var fd = new FormData(f);
+    fd.set('enabled', f.querySelector('[name=enabled]').checked ? '1' : '0');
+    var btn = f.querySelector('.cb-submit');
+    btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+    fetch('/admin/api/chat-banners/' + encodeURIComponent(id), {
+      method: 'PUT', body: fd, credentials: 'include'
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      btn.disabled = false; btn.textContent = '💾 Lưu';
+      if (j.ok) { location.reload(); }
+      else alert('Lỗi: ' + (j.error || 'fail'));
+    })
+    .catch(function(e){ btn.disabled = false; btn.textContent = '💾 Lưu'; alert('Lỗi: ' + e.message); });
+  });
+});
+</script>
+
+<%- include('partials/layout-end') %>

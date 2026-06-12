@@ -404,7 +404,13 @@ app.get('/live/:id', async function (req, res, next) {
         })
         .slice(0, 5);
     } catch(e) { console.warn('[LIVE] liveBlvs fail:', e.message); }
-    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey });
+    // Chat banners (3 GIF/PNG trên đầu khung chat)
+    let chatBanners = [];
+    try {
+      const _cbStore = require('./lib/chat-banners-store');
+      chatBanners = _cbStore.active();
+    } catch(e){}
+    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey, chatBanners: chatBanners });
   } catch (e) {
     console.error('[live/:id]', e.message);
     next(e);

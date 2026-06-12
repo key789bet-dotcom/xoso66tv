@@ -122,6 +122,17 @@ seo = {
       <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128238; Telegram</button>
       <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128276; Facebook</button>
     </div>
+
+    <!-- 🎀 3 BANNER GIF (admin upload) -->
+    <% var _cb = (typeof chatBanners !== 'undefined' && Array.isArray(chatBanners)) ? chatBanners : []; %>
+    <% if (_cb.length > 0) { %>
+    <div class="grid gap-1.5 p-2 bg-bg-soft border-b border-line" style="grid-template-columns: repeat(<%= _cb.length %>, 1fr);">
+      <% _cb.forEach(function(bn){ %>
+        <a href="<%= bn.link || '#' %>" target="_blank" rel="noopener" class="block rounded-lg overflow-hidden border border-line hover:border-pri transition-colors aspect-[4/3] bg-bg-deep">
+          <img src="<%= bn.image %>" alt="<%= bn.label %>" class="w-full h-full object-cover" loading="lazy">
+        </a>
+      <% }); %></div>
+    <% } %>
     <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between">
       <span class="text-emerald-500 flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-live"></span>2.487 online</span>
       <span>Bình luận: <b class="text-pri-light"><%= (Math.random()*5000|0)+1000 %></b></span>
