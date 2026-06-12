@@ -2,6 +2,12 @@
 
   <style>
     /* ═══ COLLAPSE MODE — selectors mạnh để override Tailwind ═══ */
+    /* QUAN TRỌNG: thu cột grid layout về 64px để main expand full */
+    @media (min-width: 768px) {
+      body.sidebar-collapsed #appLayout {
+        grid-template-columns: 64px 1fr !important;
+      }
+    }
     body.sidebar-collapsed aside#sidebar { width: 64px !important; min-width: 64px !important; max-width: 64px !important; }
     body.sidebar-collapsed aside#sidebar .logo-box { padding: 8px 4px !important; min-height: auto !important; }
     body.sidebar-collapsed aside#sidebar .logo-box img { max-height: 40px !important; max-width: 40px !important; }
