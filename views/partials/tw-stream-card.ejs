@@ -4,7 +4,21 @@
   var viewers = ((m.id?Number(String(m.id).slice(-3)):100) * 7 + 1200);
   // 🏆 Ảnh nền giải đấu (admin set qua /admin/league-bg)
   var _bgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
-  var leagueBg = (m.league && _bgs[m.league]) ? _bgs[m.league] : '';
+  // 🔍 Fuzzy match: lower + trim + bỏ dấu chấm/khoảng thừa để khớp khi
+  //    API trả "1. Lyga" mà admin upload "1 Lyga" (hoặc ngược lại)
+  function _normLg(s){ return String(s||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim(); }
+  var leagueBg = '';
+  if (m.league) {
+    // 1) Exact match (nhanh nhất)
+    if (_bgs[m.league]) leagueBg = _bgs[m.league];
+    else {
+      // 2) Normalized match — duyệt toàn bộ keys của _bgs
+      var _target = _normLg(m.league);
+      for (var _k in _bgs) {
+        if (_normLg(_k) === _target) { leagueBg = _bgs[_k]; break; }
+      }
+    }
+  }
 %>
 <a href="/live/<%= m.slug || m.id %>" class="group bg-bg-card border border-line rounded-xl overflow-hidden transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri flex flex-col">
   <div class="relative aspect-video bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden flex items-center justify-center">

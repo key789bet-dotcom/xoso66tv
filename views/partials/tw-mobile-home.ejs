@@ -59,6 +59,16 @@ _idolList.forEach(function(i){
 });
 
 // SPORTS cards (live + upcoming) - cho category bongda/esport
+// 🏆 Fuzzy match ảnh nền giải đấu (admin upload qua /admin/league-bg)
+var _mhBgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
+function _mhNormLg(s){ return String(s||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim(); }
+function _mhFindBg(name){
+  if (!name) return '';
+  if (_mhBgs[name]) return _mhBgs[name];
+  var t = _mhNormLg(name);
+  for (var k in _mhBgs) if (_mhNormLg(k) === t) return _mhBgs[k];
+  return '';
+}
 var _allSports = (_live.concat(_up)).slice(0, 30);
 _allSports.forEach(function(m){
   _cards.push({
@@ -69,6 +79,7 @@ _allSports.forEach(function(m){
     homeBadge: m.homeBadge || '',
     awayBadge: m.awayBadge || '',
     league: m.league || '',
+    leagueBg: _mhFindBg(m.league), // 🏆 ảnh nền giải đấu
     time: m.time || 'LIVE',
     isLive: m.status === 'live',
     viewers: m.viewers || Math.floor(Math.random()*500)
@@ -305,7 +316,14 @@ _cnt.all = _cards.length;
     <!-- ===== LUXURY CARDS - đồng bộ orange border, dark gradient ===== -->
     <div class="grid grid-cols-2 gap-2.5 mb-3" id="mhCardsGrid">
       <% _cards.forEach(function(c){ %>
-        <a href="<%= c.href %>" class="mh-card-lux block relative" data-cat="<%= c.cat %>">
+        <a href="<%= c.href %>" class="mh-card-lux block relative overflow-hidden" data-cat="<%= c.cat %>">
+
+          <!-- 🏆 Ảnh nền giải đấu (admin set) - phía sau toàn card. z-index âm để text + head/body luôn ở trên -->
+          <% if (c.type === 'sports' && c.leagueBg) { %>
+            <img src="<%= c.leagueBg %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none" onerror="this.style.display='none'" style="z-index:0;">
+            <div class="absolute inset-0 pointer-events-none" style="z-index:0;background:linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.45), rgba(0,0,0,.35));"></div>
+            <style>.mh-card-lux .mh-lux-head, .mh-card-lux .mh-lux-body { position:relative; z-index:2; }</style>
+          <% } %>
 
           <!-- TOP HEADER: League/Category + Status -->
           <div class="mh-lux-head">
