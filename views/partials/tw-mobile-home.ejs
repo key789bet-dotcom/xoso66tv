@@ -63,11 +63,16 @@ _idolList.forEach(function(i){
 var _mhBgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
 function _mhNormLg(s){ return String(s||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim(); }
 function _mhFindBg(name){
-  if (!name) return '';
-  if (_mhBgs[name]) return _mhBgs[name];
-  var t = _mhNormLg(name);
-  for (var k in _mhBgs) if (_mhNormLg(k) === t) return _mhBgs[k];
-  return '';
+  if (name) {
+    if (_mhBgs[name]) return _mhBgs[name];
+    var t = _mhNormLg(name);
+    for (var k in _mhBgs) {
+      if (k === '__default__') continue;
+      if (_mhNormLg(k) === t) return _mhBgs[k];
+    }
+  }
+  // Fallback ảnh mặc định
+  return _mhBgs['__default__'] || '';
 }
 var _allSports = (_live.concat(_up)).slice(0, 30);
 _allSports.forEach(function(m){

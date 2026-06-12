@@ -13,6 +13,35 @@
   </div>
 </div>
 
+<!-- ⭐ ẢNH MẶC ĐỊNH - apply cho mọi giải đấu KHÔNG có ảnh riêng -->
+<div class="bg-gradient-to-br from-amber-500/15 to-orange-500/10 border-2 border-amber-400/40 rounded-xl p-5 mb-5">
+  <div class="flex items-start gap-3 mb-4">
+    <div class="text-3xl">⭐</div>
+    <div class="flex-1">
+      <h3 class="text-base font-extrabold text-amber-300">Ảnh nền MẶC ĐỊNH (Fallback)</h3>
+      <p class="text-gray-200 text-xs mt-1">
+        Áp dụng cho <b>TẤT CẢ giải đấu KHÔNG có ảnh riêng</b>. Khi anh upload ở đây, mọi card trận sẽ hiển thị ảnh này nếu chưa upload riêng cho giải đó.
+        <br><span class="text-amber-300">Hữu ích nhất khi muốn brand đồng bộ (vd: 1 ảnh XOSO66TV phủ toàn bộ).</span>
+      </p>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-[300px_1fr] gap-4 items-start">
+    <!-- Preview ảnh default -->
+    <div class="bg-bg-deep rounded-lg overflow-hidden aspect-video grid place-items-center border border-line" id="lbgDefaultPreview">
+      <div class="text-muted text-xs py-4 text-center px-3">(Chưa upload ảnh mặc định)</div>
+    </div>
+    <div>
+      <label class="text-[11px] text-amber-200 uppercase font-bold block mb-1.5">Upload ảnh mặc định</label>
+      <input id="lbgDefaultFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="w-full text-white text-xs bg-bg-deep border border-line p-2 rounded mb-2">
+      <div class="flex gap-2">
+        <button onclick="lbgUploadDefault()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110 text-white font-bold px-4 py-2 rounded text-sm">⭐ Lưu ảnh mặc định</button>
+        <button onclick="lbgRemoveDefault()" id="lbgDefaultRemoveBtn" class="hidden px-3 py-2 rounded bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-xs font-bold">🗑️ Bỏ ảnh mặc định</button>
+      </div>
+      <div id="lbgDefaultStatus" class="text-[11px] mt-2 hidden"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Form thêm giải mới (manual) -->
 <div class="bg-bg-card border border-line rounded-xl p-4 mb-5">
   <h3 class="text-white font-bold mb-3 flex items-center gap-2"><span>➕</span> Thêm ảnh cho giải đấu mới</h3>
@@ -176,6 +205,73 @@
         load();
       } else alert('❌ ' + (d.error || 'Lỗi'));
     });
+  };
+
+  // ═══ ẢNH MẶC ĐỊNH ═══
+  window.lbgUploadDefault = function(){
+    var file = document.getElementById('lbgDefaultFile').files[0];
+    if (!file) return alert('Chọn file ảnh trước');
+    if (file.size > 8 * 1024 * 1024) return alert('Ảnh quá lớn! Tối đa 8MB');
+    var fd = new FormData();
+    fd.append('leagueName', '__default__');
+    fd.append('file', file);
+    var status = document.getElementById('lbgDefaultStatus');
+    status.className = 'text-[11px] mt-2 text-amber-300'; status.textContent = '⏳ Đang upload...';
+    status.classList.remove('hidden');
+    fetch('/api/admin/league-bg/upload', { method:'POST', credentials:'same-origin', body: fd })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.ok) {
+          status.className = 'text-[11px] mt-2 text-emerald-400';
+          status.textContent = '✅ Đã lưu ảnh mặc định! Reload sau 1s...';
+          setTimeout(function(){ location.reload(); }, 1000);
+        } else {
+          status.className = 'text-[11px] mt-2 text-red-400';
+          status.textContent = '❌ ' + (d.error || 'Lỗi');
+        }
+      });
+  };
+
+  window.lbgRemoveDefault = function(){
+    if (!confirm('Xoá ảnh mặc định? (Các giải không có ảnh riêng sẽ hiện nền gradient cũ)')) return;
+    fetch('/api/admin/league-bg/remove', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ leagueName: '__default__' })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) location.reload(); else alert(d.error || 'Lỗi');
+    });
+  };
+
+  // Sync preview của default sau khi load
+  function _syncDefaultPreview(){
+    var bg = (__data.backgrounds || {})['__default__'];
+    var prev = document.getElementById('lbgDefaultPreview');
+    var rmBtn = document.getElementById('lbgDefaultRemoveBtn');
+    if (bg) {
+      prev.innerHTML = '<img src="' + bg + '?t=' + Date.now() + '" alt="" class="w-full h-full object-cover">';
+      if (rmBtn) rmBtn.classList.remove('hidden');
+    } else {
+      prev.innerHTML = '<div class="text-muted text-xs py-4 text-center px-3">(Chưa upload ảnh mặc định)</div>';
+      if (rmBtn) rmBtn.classList.add('hidden');
+    }
+  }
+
+  // Override load để thêm sync preview default + filter detected list bỏ __default__
+  var _origLoad = load;
+  load = function(){
+    fetch('/api/admin/league-bg/list', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) return;
+        __data = d;
+        _syncDefaultPreview();
+        // Loại __default__ khỏi danh sách giải detected (nếu có)
+        if (Array.isArray(__data.detectedLeagues)) {
+          __data.detectedLeagues = __data.detectedLeagues.filter(function(n){ return n !== '__default__'; });
+        }
+        render();
+      });
   };
 
   load();

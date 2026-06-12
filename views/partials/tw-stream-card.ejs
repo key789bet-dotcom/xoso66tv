@@ -12,13 +12,16 @@
     // 1) Exact match (nhanh nhất)
     if (_bgs[m.league]) leagueBg = _bgs[m.league];
     else {
-      // 2) Normalized match — duyệt toàn bộ keys của _bgs
+      // 2) Normalized match — duyệt toàn bộ keys của _bgs (bỏ qua __default__)
       var _target = _normLg(m.league);
       for (var _k in _bgs) {
+        if (_k === '__default__') continue;
         if (_normLg(_k) === _target) { leagueBg = _bgs[_k]; break; }
       }
     }
   }
+  // 3) Fallback về ảnh mặc định nếu không match giải nào
+  if (!leagueBg && _bgs['__default__']) leagueBg = _bgs['__default__'];
 %>
 <a href="/live/<%= m.slug || m.id %>" class="group bg-bg-card border border-line rounded-xl overflow-hidden transition-all hover:-translate-y-1 hover:border-pri hover:shadow-pri flex flex-col">
   <div class="relative aspect-video bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden flex items-center justify-center">
