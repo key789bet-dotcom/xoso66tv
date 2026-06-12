@@ -5,6 +5,7 @@
 const express   = require('express');
 const db        = require('../lib/db');
 const auth      = require('../lib/admin-auth');
+const adminGuard = require('../lib/admin-guard'); // 🔒 Unified admin guard (cookie + JWT role)
 const banners   = require('../lib/banners');
 const promos    = require('../lib/promos');
 const partnerSync = require('../lib/partner-sync');
@@ -148,8 +149,14 @@ router.get('/logout', function (req, res) {
   res.redirect('/admin/login');
 });
 
-// ===== All routes below require auth =====
-router.use(auth.requireAuth);
+// ╔══════════════════════════════════════════════════════════════╗
+// ║ 🔒 KHÓA TOÀN BỘ ROUTES BÊN DƯỚI                              ║
+// ║ Chỉ cho phép user có (1 trong 2):                              ║
+// ║   - Cookie x66_admin (login qua /admin/login)                  ║
+// ║   - Cookie x66_jwt với role='admin' trong DB                   ║
+// ║ Mọi truy cập khác → redirect /admin/login hoặc 401             ║
+// ╚══════════════════════════════════════════════════════════════╝
+router.use(adminGuard);
 
 function adminCtx() {
   const data = db.load();
