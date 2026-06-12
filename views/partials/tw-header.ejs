@@ -127,15 +127,24 @@ window.x66ShowAdminBadge = function(){
         document.getElementById('hdrDropName').textContent    = name;
         document.getElementById('hdrDropId').textContent      = id;
         document.getElementById('hdrDropCoin').textContent    = (typeof u.coin==='number'?u.coin:79).toLocaleString('vi-VN');
-        // 🎬 Show "Quản Lý Kênh" + sync avatar mới nhất từ server
+        // 🎬 Show shortcut tuỳ role: admin → Trang QL Admin, idol/blv → Quản Lý Kênh
         var studioLink = document.getElementById('hdrDropStudio');
         fetch('/api/auth/me', { credentials:'same-origin' })
           .then(function(r){ return r.json(); })
           .then(function(d){
             if (!d || !d.ok) return;
-            if (studioLink && ['idol','blv','admin'].indexOf(d.role) !== -1) {
-              studioLink.classList.remove('hidden');
-              studioLink.classList.add('flex');
+            if (studioLink) {
+              if (d.role === 'admin') {
+                // Admin: đổi link sang /admin + đổi text + đổi icon
+                studioLink.setAttribute('href', '/admin');
+                studioLink.innerHTML = '<span class="text-pri">🛠️</span> Trang Quản Lý Admin <span class="ml-auto bg-pri text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">ADMIN</span>';
+                studioLink.classList.remove('hidden');
+                studioLink.classList.add('flex');
+              } else if (['idol','blv'].indexOf(d.role) !== -1) {
+                // Idol/BLV: giữ nguyên "Quản Lý Kênh"
+                studioLink.classList.remove('hidden');
+                studioLink.classList.add('flex');
+              }
             }
             // Update avatar nếu server có URL mới
             if (d.user && d.user.avatar) {
