@@ -1,0 +1,162 @@
+name: 🚀 Deploy to xoso66tv VPS
+
+on:
+  push:
+    branches: [main]
+    # Skip deploy nếu chỉ thay đổi file docs / readme
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+  workflow_dispatch:
+    inputs:
+      skip_health_check:
+        description: 'Skip health check after deploy?'
+        type: boolean
+        default: false
+
+# Chỉ chạy 1 deploy tại 1 thời điểm (cancel duplicate runs)
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # ─── 1. Checkout code (cần để show commit info trong notify) ───
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ─── 2. Lấy commit metadata ───
+      - name: Extract commit info
+        id: commit
+        run: |
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+          echo "author=$(git log -1 --pretty=%an)" >> $GITHUB_OUTPUT
+
+      # ─── 3. Deploy qua SSH ───
+      - name: 🚀 Deploy to VPS
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 8m
+          script: |
+            set -euo pipefail
+
+            cd /var/www/xoso66tv
+
+            echo "╔═══════════════════════════════════════╗"
+            echo "║ 🚀 XOSO66 TV Deploy                   ║"
+            echo "╚═══════════════════════════════════════╝"
+
+            # ── Save current commit cho rollback ──
+            CURRENT=$(git rev-parse HEAD)
+            echo "📌 Current commit: $CURRENT"
+
+            # ── Pull latest từ main (force, không pha rebase) ──
+            echo "📥 Pulling latest code..."
+            git fetch origin main --quiet
+            git reset --hard origin/main
+            NEW=$(git rev-parse HEAD)
+            echo "📌 New commit: $NEW"
+
+            if [ "$CURRENT" = "$NEW" ]; then
+              echo "ℹ️  No new commits — skipping deploy"
+              exit 0
+            fi
+
+            # ── Show changed files ──
+            echo ""
+            echo "📝 Changed files:"
+            git diff --name-only "$CURRENT" "$NEW" | head -20
+
+            # ── Install dependencies (chỉ nếu package.json thay đổi) ──
+            if git diff --name-only "$CURRENT" "$NEW" | grep -qE "package(-lock)?\.json"; then
+              echo ""
+              echo "📦 package.json changed → npm install..."
+              npm ci --omit=dev --no-audit --no-fund 2>&1 | tail -10 || npm install --no-audit --no-fund 2>&1 | tail -10
+            else
+              echo ""
+              echo "ℹ️  No package changes — skip npm install"
+            fi
+
+            # ── Rebuild Tailwind CSS (nếu input thay đổi) ──
+            if git diff --name-only "$CURRENT" "$NEW" | grep -q "tailwind-input.css\|tailwind.config"; then
+              echo ""
+              echo "🎨 Tailwind input changed → rebuild CSS..."
+              npm run build:css 2>&1 | tail -5 || echo "⚠️  Build CSS warn (non-blocking)"
+            fi
+
+            # ── Reload PM2 (zero-downtime) ──
+            echo ""
+            echo "🔄 Reloading PM2..."
+            pm2 reload xoso66tv --update-env 2>&1 | tail -5
+            sleep 3
+
+            # ── Health check ──
+            echo ""
+            echo "🩺 Health check..."
+            HTTP_CODE=$(curl -s -o /tmp/health.json -w "%{http_code}" https://xoso66tv.com/api/health || echo "000")
+
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "❌ Health check FAILED (HTTP $HTTP_CODE)"
+              echo "📥 Rolling back to $CURRENT..."
+              git reset --hard "$CURRENT"
+              pm2 reload xoso66tv --update-env
+              sleep 3
+              echo "↩️  Rollback completed"
+              exit 1
+            fi
+
+            echo "✅ Health check OK (HTTP 200)"
+            cat /tmp/health.json | head -c 200
+            echo ""
+            echo ""
+            echo "╔═══════════════════════════════════════╗"
+            echo "║ ✅ Deploy SUCCESS                      ║"
+            echo "╚═══════════════════════════════════════╝"
+
+      # ─── 4. Telegram notification (optional - chỉ chạy nếu set secret) ───
+      - name: 📨 Notify Telegram (success)
+        if: success() && env.TELEGRAM_BOT != ''
+        env:
+          TELEGRAM_BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG="✅ <b>XOSO66 TV Deploy SUCCESS</b>%0A"
+          MSG="${MSG}📦 Commit: <code>${{ steps.commit.outputs.sha }}</code>%0A"
+          MSG="${MSG}💬 ${{ steps.commit.outputs.msg }}%0A"
+          MSG="${MSG}👤 ${{ steps.commit.outputs.author }}%0A"
+          MSG="${MSG}🔗 https://xoso66tv.com"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT}" \
+            -d "text=${MSG}" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" > /dev/null
+
+      - name: 📨 Notify Telegram (failure)
+        if: failure() && env.TELEGRAM_BOT != ''
+        env:
+          TELEGRAM_BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG="🚨 <b>XOSO66 TV Deploy FAILED</b>%0A"
+          MSG="${MSG}📦 Commit: <code>${{ steps.commit.outputs.sha }}</code>%0A"
+          MSG="${MSG}💬 ${{ steps.commit.outputs.msg }}%0A"
+          MSG="${MSG}🔗 Logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT}" \
+            -d "text=${MSG}" \
+            -d "parse_mode=HTML" > /dev/null
