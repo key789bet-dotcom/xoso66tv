@@ -97,16 +97,16 @@
   }
   function _poll() {
     if (!currentRoom) return;
-    fetch('/api/chat/poll?room=' + encodeURIComponent(currentRoom) +
-          '&sinceId=' + lastSeenId, { credentials: 'same-origin' })
+    // Endpoint thật: /api/chat/:roomId/recent?since=<lastMsgId>
+    fetch('/api/chat/' + encodeURIComponent(currentRoom) + '/recent?since=' + lastSeenId,
+          { credentials: 'same-origin' })
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if (d && d.msgs) {
-          d.msgs.forEach(function(m){
-            if (m && m.id) lastSeenId = Math.max(lastSeenId, m.id);
-            _emit(currentRoom, m);
-          });
-        }
+        var msgs = (d && (d.msgs || d.messages)) || [];
+        msgs.forEach(function(m){
+          if (m && m.id) lastSeenId = Math.max(lastSeenId, m.id);
+          _emit(currentRoom, m);
+        });
       }).catch(function(){});
   }
 

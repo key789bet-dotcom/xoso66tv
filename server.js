@@ -75,6 +75,12 @@ app.use(function(req, res, next){
   next();
 });
 
+// 📊 Mục 9: Prometheus metrics
+const metrics = require('./lib/metrics');
+metrics.init();
+app.use(metrics.middleware());
+app.get('/metrics', metrics.metricsEndpoint);
+
 // 🛡️ Mục 20: Turnstile CAPTCHA — expose site key cho EJS templates
 const turnstile = require('./lib/turnstile');
 app.use(function(req, res, next){

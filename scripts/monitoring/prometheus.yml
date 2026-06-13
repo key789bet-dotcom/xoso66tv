@@ -1,0 +1,24 @@
+# Prometheus scrape config cho XOSO66 TV
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'x66-monitor'
+
+scrape_configs:
+  # XOSO66 TV app (qua host network)
+  - job_name: 'x66-app'
+    static_configs:
+      - targets: ['host.docker.internal:4001']
+    metrics_path: '/metrics'
+    scheme: http
+
+  # Node exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Prometheus self
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

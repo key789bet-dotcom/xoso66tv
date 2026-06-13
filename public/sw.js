@@ -1,132 +1,158 @@
 /**
- * Service Worker - XOSO66 TV PWA
- * v4 - cache static + push notifications + chat sync + mobile bottom nav
- */
-const CACHE_VERSION = 'xoso66tv-v6-mobile-pages';
-const STATIC_CACHE = [
+ * ╔══════════════════════════════════════════════════════════════════╗
+ * ║ 🚀 SERVICE WORKER v7 — Mục 11: Advanced cache strategy           ║
+ * ║                                                                    ║
+ * ║ Strategies:                                                        ║
+ * ║   - Cache-first:        /static/*, fonts, images (immutable)     ║
+ * ║   - Stale-while-revalidate: HTML pages, /api/* GET                ║
+ * ║   - Network-only:       /api/auth/*, POST/PUT/DELETE              ║
+ * ║   - Network-first w/ offline fallback: navigation                 ║
+ * ║                                                                    ║
+ * ║ Push notification handlers included.                              ║
+ * ╚══════════════════════════════════════════════════════════════════*/
+
+const VERSION = 'v7-2026-06-14';
+const STATIC_CACHE = 'x66-static-' + VERSION;
+const HTML_CACHE   = 'x66-html-'   + VERSION;
+const API_CACHE    = 'x66-api-'    + VERSION;
+
+const PRECACHE = [
   '/',
-  '/manifest.json',
+  '/static/css/skeleton.css',
+  '/static/css/bottom-sheet.css',
+  '/static/js/app.js',
   '/static/img/logoxoso66tv.webp',
   '/static/img/favicon.webp',
-  '/static/css/style.css',
-  '/static/js/app.js',
-  '/static/js/chat-v2.js?v=4-sync'
+  '/manifest.json'
 ];
 
-// ===== INSTALL: precache static =====
+// ─── Install ───
 self.addEventListener('install', function(event) {
-  console.log('[SW] Install v', CACHE_VERSION);
   event.waitUntil(
-    caches.open(CACHE_VERSION).then(function(cache) {
-      return cache.addAll(STATIC_CACHE).catch(function(e){ console.log('[SW] precache fail:', e); });
-    }).then(function(){ return self.skipWaiting(); })
+    caches.open(STATIC_CACHE).then(function(cache) {
+      return cache.addAll(PRECACHE).catch(function(){});
+    }).then(function() { return self.skipWaiting(); })
   );
 });
 
-// ===== ACTIVATE: clear old caches =====
+// ─── Activate: cleanup old versions ───
 self.addEventListener('activate', function(event) {
-  console.log('[SW] Activate v', CACHE_VERSION);
   event.waitUntil(
-    caches.keys().then(function(names) {
-      return Promise.all(names.filter(function(n){ return n !== CACHE_VERSION; }).map(function(n){ return caches.delete(n); }));
-    }).then(function(){ return self.clients.claim(); })
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(k) {
+        if (k !== STATIC_CACHE && k !== HTML_CACHE && k !== API_CACHE && k.startsWith('x66')) {
+          return caches.delete(k);
+        }
+      }));
+    }).then(function() { return self.clients.claim(); })
   );
 });
 
-// ===== FETCH: network-first cho HTML, cache-first cho static =====
-self.addEventListener('fetch', function(event) {
-  var url = new URL(event.request.url);
-  // Bỏ qua các request không phải GET
-  if (event.request.method !== 'GET') return;
-  // Bỏ qua các API + admin + WebRTC + FLV
-  if (url.pathname.startsWith('/admin') ||
-      url.pathname.startsWith('/api/') ||
-      url.pathname.startsWith('/rtc/') ||
-      url.pathname.endsWith('.flv') ||
-      url.pathname.endsWith('.m3u8') ||
-      url.pathname.endsWith('.ts')) return;
+// ─── Helpers ───
+function isStaticAsset(url) {
+  return /\.(css|js|woff2?|ttf|otf|png|jpe?g|webp|gif|svg|ico|mp4|webm)$/i.test(url.pathname) ||
+         url.pathname.startsWith('/static/');
+}
+function isHtmlNavigation(req) {
+  return req.mode === 'navigate' ||
+         (req.headers.get('accept') || '').includes('text/html');
+}
+function isApiGet(req, url) {
+  return req.method === 'GET' && url.pathname.startsWith('/api/') &&
+         !url.pathname.startsWith('/api/auth/') &&
+         !url.pathname.startsWith('/api/chat/');
+}
 
-  // Static assets → cache-first
-  if (url.pathname.startsWith('/static/')) {
-    event.respondWith(
-      caches.match(event.request).then(function(cached) {
-        if (cached) return cached;
-        return fetch(event.request).then(function(response) {
-          if (response.ok) {
-            var clone = response.clone();
-            caches.open(CACHE_VERSION).then(function(cache){ cache.put(event.request, clone); });
-          }
-          return response;
-        });
-      })
+async function cacheFirst(req) {
+  const cache = await caches.open(STATIC_CACHE);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  try {
+    const fresh = await fetch(req);
+    if (fresh.ok) cache.put(req, fresh.clone());
+    return fresh;
+  } catch (e) { return cached || new Response('', { status: 503 }); }
+}
+
+async function staleWhileRevalidate(req, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(req);
+  const fetchPromise = fetch(req).then(function(res) {
+    if (res && res.ok && req.method === 'GET') {
+      cache.put(req, res.clone()).catch(function(){});
+    }
+    return res;
+  }).catch(function() { return null; });
+  return cached || fetchPromise || new Response('Offline', { status: 503 });
+}
+
+async function networkFirstNav(req) {
+  try {
+    const fresh = await fetch(req);
+    if (fresh.ok) {
+      const cache = await caches.open(HTML_CACHE);
+      cache.put(req, fresh.clone()).catch(function(){});
+    }
+    return fresh;
+  } catch (e) {
+    const cached = await caches.match(req);
+    if (cached) return cached;
+    return caches.match('/') || new Response(
+      '<h1>📵 Offline</h1><p>Vui lòng kết nối mạng.</p><a href="/">← Thử lại</a>',
+      { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
-    return;
   }
+}
 
-  // HTML/EJS pages → network-first với fallback cache
-  if (event.request.headers.get('accept') && event.request.headers.get('accept').indexOf('text/html') !== -1) {
-    event.respondWith(
-      fetch(event.request).then(function(response) {
-        if (response.ok) {
-          var clone = response.clone();
-          caches.open(CACHE_VERSION).then(function(cache){ cache.put(event.request, clone); });
-        }
-        return response;
-      }).catch(function() {
-        return caches.match(event.request) || caches.match('/');
-      })
-    );
+// ─── Main fetch handler ───
+self.addEventListener('fetch', function(event) {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  // Skip streaming + admin + socket.io
+  if (url.pathname.startsWith('/socket.io/') ||
+      url.pathname.startsWith('/admin') ||
+      /\.flv$|\.m3u8$|\.ts$/.test(url.pathname)) return;
+
+  if (isStaticAsset(url)) {
+    event.respondWith(cacheFirst(req));
+  } else if (isApiGet(req, url)) {
+    event.respondWith(staleWhileRevalidate(req, API_CACHE));
+  } else if (isHtmlNavigation(req)) {
+    event.respondWith(networkFirstNav(req));
   }
 });
 
-// ===== PUSH NOTIFICATION =====
+// ═══ PUSH NOTIFICATION ═══
 self.addEventListener('push', function(event) {
-  console.log('[SW] Push received');
-  var data = {};
-  try { data = event.data.json(); } catch(e) { data = { title: 'XOSO66 TV', body: event.data ? event.data.text() : '' }; }
-
-  var options = {
-    body: data.body || 'Có thông báo mới',
+  if (!event.data) return;
+  let data = {};
+  try { data = event.data.json(); }
+  catch(e) { data = { title: 'XOSO66 TV', body: event.data.text() }; }
+  const options = {
+    body: data.body || '',
     icon: data.icon || '/static/img/logoxoso66tv.webp',
     badge: '/static/img/favicon.webp',
-    image: data.image || undefined,
-    tag: data.tag || 'xoso66tv-' + Date.now(),
-    renotify: true,
-    requireInteraction: data.requireInteraction || false,
+    tag: data.tag || 'x66-notif',
+    data: { url: data.url || '/', ts: Date.now() },
+    requireInteraction: !!data.requireInteraction,
     vibrate: data.vibrate || [200, 100, 200],
-    data: { url: data.url || '/', timestamp: Date.now() },
-    actions: data.actions || [
-      { action: 'open', title: '🎬 Xem ngay' },
-      { action: 'close', title: '✕ Đóng' }
-    ]
+    actions: data.actions || []
   };
-
   event.waitUntil(self.registration.showNotification(data.title || 'XOSO66 TV', options));
 });
 
-// ===== NOTIFICATION CLICK =====
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   if (event.action === 'close') return;
-
-  var targetUrl = (event.notification.data && event.notification.data.url) || '/';
-
+  const url = (event.notification.data && event.notification.data.url) || '/';
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clients) {
-      // Nếu đã có tab mở → focus
-      for (var i = 0; i < clients.length; i++) {
-        var c = clients[i];
-        if (c.url.indexOf(targetUrl) !== -1 && 'focus' in c) return c.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+      for (let i = 0; i < list.length; i++) {
+        if (list[i].url.indexOf(url) > -1 && 'focus' in list[i]) return list[i].focus();
       }
-      // Nếu chưa có → mở mới
-      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
-});
-
-// ===== BACKGROUND SYNC (cho gửi tin nhắn khi offline) =====
-self.addEventListener('sync', function(event) {
-  if (event.tag === 'sync-pending-actions') {
-    console.log('[SW] Background sync');
-  }
 });
