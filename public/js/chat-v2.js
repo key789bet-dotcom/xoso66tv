@@ -409,10 +409,17 @@ window.sendChat = function(inputId, containerId){
 
   var roomId = window.__chatRoomId || detectRoomId();
 
+  // 🛡️ CSRF token: đọc từ <meta name="csrf-token"> (set bởi server) — cookie x66_csrf cũng tự gửi kèm
+  var __csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var __csrfToken = __csrfMeta ? __csrfMeta.getAttribute('content') : '';
+
   // POST tin nhắn lên server - tất cả viewer sẽ nhận qua polling
   fetch('/api/chat/' + encodeURIComponent(roomId) + '/send', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': __csrfToken
+    },
     credentials: 'same-origin',
     body: JSON.stringify({ text: text })
   })
