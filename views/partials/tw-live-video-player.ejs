@@ -18,8 +18,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
 </span>
 <% } %>
 
-<!-- Nút bật tiếng (cần user click vì muted autoplay) -->
-<button id="liveUnmute" class="hidden absolute bottom-20 left-4 z-[6] bg-pri text-white px-4 py-2 rounded-lg shadow-2xl font-bold text-sm hover:scale-110 transition animate-pulse" type="button">🔊 BẬT TIẾNG</button>
+<!-- Nút BẬT TIẾNG đã bỏ theo yêu cầu — user dùng nút loa trong native video controls để unmute -->
 
 <!-- 🎬 Mục 16: Picture-in-Picture button (ẩn nếu browser không support) -->
 <button id="livePipBtn" class="hidden absolute top-3 right-3 z-[7] bg-black/70 hover:bg-black border border-white/20 text-white w-9 h-9 rounded-lg grid place-items-center transition-all hover:scale-110 backdrop-blur" type="button" title="Picture-in-Picture (mở video ra cửa sổ nổi)" aria-label="Picture-in-Picture">
