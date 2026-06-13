@@ -26,6 +26,8 @@
 <script src="/static/js/anti-inspect.js?v=1" defer></script>
 <%- include('tailwind-config') %>
 <%- include('seo-head') %>
+<%# 🎨 Mục 13: skeleton loader CSS — load early để FOUC không ảnh hưởng %>
+<link rel="stylesheet" href="/static/css/skeleton.css">
 </head>
 <body class="bg-bg text-gray-100 font-sans text-sm leading-normal antialiased">
 <div class="fixed inset-0 bg-black/60 z-40 hidden md:hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
