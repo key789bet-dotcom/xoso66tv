@@ -9,22 +9,30 @@
     <h3 class="text-pri-light text-base font-bold mt-4 mb-2"><%= s.h3 %></h3>
     <p class="mb-3 [&_strong]:text-white [&_a]:text-pri-light [&_a]:underline hover:[&_a]:text-pri"><%- s.p %></p>
   <% }); %>
-  <% if (_content.faqs && _content.faqs.length) { %>
-    <h3 class="text-pri-light text-base font-bold mt-4 mb-2">FAQ - Cau hoi thuong gap</h3>
-    <div class="space-y-2" itemscope itemtype="https://schema.org/FAQPage">
-      <% _content.faqs.forEach(function(f){ %>
-        <details class="bg-bg-soft border border-line rounded-lg overflow-hidden transition-colors open:border-pri group" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="px-4 py-3 cursor-pointer font-bold text-white flex items-center gap-2 select-none list-none" itemprop="name">
+  <%
+     /* Filter FAQs hợp lệ (q + a phải có text). Google flag invalid nếu thiếu. */
+     var _validFaqs = (_content.faqs || []).filter(function(f){
+       return f && typeof f.q === 'string' && f.q.trim() && typeof f.a === 'string' && f.a.trim();
+     });
+  %>
+  <% if (_validFaqs.length) { %>
+    <h3 class="text-pri-light text-base font-bold mt-4 mb-2">FAQ - Câu hỏi thường gặp</h3>
+    <%# Bỏ microdata (itemscope/itemprop) để KHÔNG duplicate với JSON-LD bên dưới %>
+    <div class="space-y-2">
+      <% _validFaqs.forEach(function(f){ %>
+        <details class="bg-bg-soft border border-line rounded-lg overflow-hidden transition-colors open:border-pri group">
+          <summary class="px-4 py-3 cursor-pointer font-bold text-white flex items-center gap-2 select-none list-none">
             <span class="w-6 h-6 bg-bg-deep rounded-full grid place-items-center font-extrabold shrink-0 group-open:bg-pri transition-all">+</span>
             <%= f.q %>
           </summary>
-          <div class="px-4 pb-4 text-muted text-[13.5px] leading-relaxed [&_a]:text-pri-light [&_a]:underline" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <p itemprop="text"><%- f.a %></p>
+          <div class="px-4 pb-4 text-muted text-[13.5px] leading-relaxed [&_a]:text-pri-light [&_a]:underline">
+            <p><%- f.a %></p>
           </div>
         </details>
       <% }); %>
     </div>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[<% _content.faqs.forEach(function(f, i){ %>{"@type":"Question","name":<%- JSON.stringify(f.q) %>,"acceptedAnswer":{"@type":"Answer","text":<%- JSON.stringify(f.a) %>}}<%= i<_content.faqs.length-1?',':'' %><% }); %>]}</script>
+    <%# Single source of truth: JSON-LD. Strip HTML khỏi answer text để clean. %>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[<% _validFaqs.forEach(function(f, i){ %>{"@type":"Question","name":<%- JSON.stringify(f.q.trim()) %>,"acceptedAnswer":{"@type":"Answer","text":<%- JSON.stringify(f.a.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()) %>}}<%= i<_validFaqs.length-1?',':'' %><% }); %>]}</script>
   <% } %>
 </section>
 <% } %>
