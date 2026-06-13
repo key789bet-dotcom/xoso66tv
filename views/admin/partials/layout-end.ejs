@@ -3,13 +3,15 @@
 </div>
 <div id="toast" class="fixed bottom-5 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
 <script>
-/* 🛡️ CSRF auto-inject cho tất cả fetch trong admin (giống app.js cho public) */
+/* 🛡️ CSRF auto-inject cho TẤT CẢ fetch + HTML form trong admin */
 (function(){
   function getCsrfToken(){
     var m = document.querySelector('meta[name="csrf-token"]');
     return m ? m.getAttribute('content') : '';
   }
   window.__csrf = getCsrfToken;
+
+  /* === 1. Wrap fetch — auto X-CSRF-Token header === */
   var _origFetch = window.fetch;
   if (_origFetch) {
     window.fetch = function(input, init){
@@ -29,6 +31,33 @@
       } catch(e){}
       return _origFetch.call(this, input, init);
     };
+  }
+
+  /* === 2. Auto-inject hidden <input name="_csrf"> vào MỌI form POST/PUT/DELETE === */
+  function injectCsrfIntoForms(){
+    var tok = getCsrfToken();
+    if (!tok) return;
+    var forms = document.querySelectorAll('form');
+    forms.forEach(function(form){
+      var method = (form.getAttribute('method') || 'GET').toUpperCase();
+      if (method === 'GET' || method === 'HEAD') return;
+      // Bỏ qua nếu form đã có input _csrf
+      if (form.querySelector('input[name="_csrf"]')) return;
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = '_csrf';
+      input.value = tok;
+      form.appendChild(input);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectCsrfIntoForms);
+  } else {
+    injectCsrfIntoForms();
+  }
+  /* Re-run khi DOM thay đổi (form thêm động qua JS) */
+  if (window.MutationObserver) {
+    new MutationObserver(injectCsrfIntoForms).observe(document.body, { childList: true, subtree: true });
   }
 })();
 

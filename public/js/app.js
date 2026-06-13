@@ -63,6 +63,33 @@
     } catch(e){}
     return _origSend.apply(this, arguments);
   };
+
+  /* === Auto-inject hidden <input name="_csrf"> vào MỌI form POST/PUT/DELETE === */
+  function _injectCsrfForms(){
+    var m = document.querySelector('meta[name="csrf-token"]');
+    var tok = m ? m.getAttribute('content') : '';
+    if (!tok) return;
+    var forms = document.querySelectorAll('form');
+    for (var i=0; i<forms.length; i++){
+      var form = forms[i];
+      var method = (form.getAttribute('method') || 'GET').toUpperCase();
+      if (method === 'GET' || method === 'HEAD') continue;
+      if (form.querySelector('input[name="_csrf"]')) continue;
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = '_csrf';
+      input.value = tok;
+      form.appendChild(input);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _injectCsrfForms);
+  } else {
+    _injectCsrfForms();
+  }
+  if (window.MutationObserver) {
+    new MutationObserver(_injectCsrfForms).observe(document.documentElement, { childList: true, subtree: true });
+  }
 })();
 
 /* ===== Sidebar mobile toggle (Tailwind version) ===== */
