@@ -32,22 +32,64 @@ seo = {
           </div>
         </div>
       <% } else if (typeof hasObs !== 'undefined' && hasObs) { %>
+        <%
+          // 🏆 Ảnh nền giải đấu (admin set) cho placeholder "click để play"
+          var _phBgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
+          function _phNormLg(s){ return String(s||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim(); }
+          var _phBg = '';
+          if (match.league) {
+            if (_phBgs[match.league]) _phBg = _phBgs[match.league];
+            else {
+              var _pht = _phNormLg(match.league);
+              for (var _phk in _phBgs) {
+                if (_phk === '__default__') continue;
+                if (_phNormLg(_phk) === _pht) { _phBg = _phBgs[_phk]; break; }
+              }
+            }
+          }
+          if (!_phBg && _phBgs['__default__']) _phBg = _phBgs['__default__'];
+        %>
+        <% if (_phBg) { %>
+          <img src="<%= _phBg %>" alt="" class="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none" onerror="this.style.display='none'">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/55 pointer-events-none"></div>
+        <% } %>
         <!-- BLV da len song (legacy click-to-play) -->
-        <div class="text-center text-white p-5" id="playerPh" data-title="<%= _matchName %>">
+        <div class="text-center text-white p-5 relative z-[2]" id="playerPh" data-title="<%= _matchName %>">
           <div class="w-20 h-20 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center mx-auto mb-3.5 text-3xl cursor-pointer shadow-live hover:scale-110 transition-transform" onclick="startStream()" role="button" aria-label="Phát stream">&#9654;</div>
           <h2 class="font-extrabold text-lg"><%= match.home %> vs <%= match.away %></h2>
           <div class="text-muted text-[13px] mt-1.5"><%= match.league %> &middot; <time datetime="<%= match.date %>"><%= match.date %></time> <%= match.time %></div>
           <div class="mt-3.5 text-pri-light text-xs">Click &#9654; để vào phòng xem HD</div>
         </div>
       <% } else { %>
+        <%
+          // 🏆 Ảnh nền giải đấu (admin set) cho block "BLV chưa lên sóng"
+          var _offBgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
+          function _offNormLg(s){ return String(s||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim(); }
+          var _offBg = '';
+          if (match.league) {
+            if (_offBgs[match.league]) _offBg = _offBgs[match.league];
+            else {
+              var _offt = _offNormLg(match.league);
+              for (var _offk in _offBgs) {
+                if (_offk === '__default__') continue;
+                if (_offNormLg(_offk) === _offt) { _offBg = _offBgs[_offk]; break; }
+              }
+            }
+          }
+          if (!_offBg && _offBgs['__default__']) _offBg = _offBgs['__default__'];
+        %>
+        <% if (_offBg) { %>
+          <img src="<%= _offBg %>" alt="" class="absolute inset-0 w-full h-full object-cover opacity-45 pointer-events-none" onerror="this.style.display='none'">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/65 pointer-events-none"></div>
+        <% } %>
         <!-- BLV chua len song -->
-        <div class="text-center text-white p-5 max-w-md">
-          <div class="text-7xl mb-3 opacity-60">📡</div>
-          <h2 class="font-extrabold text-xl mb-2"><%= match.home %> vs <%= match.away %></h2>
-          <div class="text-muted text-[13px] mb-4"><%= match.league %> &middot; <%= match.date %> <%= match.time %></div>
-          <div class="bg-live/15 border border-live/40 rounded-lg p-4 inline-block">
+        <div class="text-center text-white p-5 max-w-md relative z-[2]">
+          <div class="text-7xl mb-3 opacity-70 drop-shadow-lg">📡</div>
+          <h2 class="font-extrabold text-xl mb-2 drop-shadow-lg"><%= match.home %> vs <%= match.away %></h2>
+          <div class="text-gray-300 text-[13px] mb-4 drop-shadow"><%= match.league %> &middot; <%= match.date %> <%= match.time %></div>
+          <div class="bg-live/25 backdrop-blur border border-live/50 rounded-lg p-4 inline-block shadow-xl">
             <div class="text-live font-extrabold text-base mb-1">🔴 BLV chưa lên sóng</div>
-            <div class="text-muted text-xs mb-2.5">Trận này đang chờ BLV kết nối OBS<br>Vui lòng quay lại sau hoặc xem trận khác</div>
+            <div class="text-gray-200 text-xs mb-2.5">Trận này đang chờ BLV kết nối OBS<br>Vui lòng quay lại sau hoặc xem trận khác</div>
             <a href="/lich-phat-song" class="inline-block bg-pri hover:bg-pri-dark text-white text-xs font-bold px-4 py-2 rounded">→ Xem lịch phát sóng</a>
           </div>
         </div>
