@@ -158,15 +158,22 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   function showEl(id){ var e=document.getElementById(id); if(e)e.classList.remove('hidden'); }
   function hideEl(id){ var e=document.getElementById(id); if(e)e.classList.add('hidden'); }
 
+  // Helper: element có giữ lại không (theo id whitelist hoặc class skin-*)
+  function _keepEl(el){
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay'];
+    if (keepIds.indexOf(el.id) !== -1) return true;
+    // 🎨 SKIN OVERLAY: giữ mọi element class skin-* (player-frame, logo-overlay, ...)
+    if (el.className && typeof el.className === 'string' && /\bskin-/.test(el.className)) return true;
+    return false;
+  }
   // Ẩn TẤT CẢ placeholder con (butterfly/avatar/gradient) trong #livePlayer
   function hidePlaceholder(){
     var container = document.getElementById('livePlayer');
     if (!container) return;
-    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay'];
     var kids = container.children;
     for (var i=0; i<kids.length; i++){
       var el = kids[i];
-      if (keepIds.indexOf(el.id) === -1) {
+      if (!_keepEl(el)) {
         el.style.transition = 'opacity .3s';
         el.style.opacity = '0';
         setTimeout((function(e){ return function(){ e.style.display='none'; }; })(el), 350);
@@ -176,11 +183,10 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   function showPlaceholder(){
     var container = document.getElementById('livePlayer');
     if (!container) return;
-    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay'];
     var kids = container.children;
     for (var i=0; i<kids.length; i++){
       var el = kids[i];
-      if (keepIds.indexOf(el.id) === -1) {
+      if (!_keepEl(el)) {
         el.style.display = '';
         el.style.opacity = '1';
       }
