@@ -131,19 +131,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   }
 }));
 
-// 🌐 CDN HINT — set explicit no-cache cho HTML/API để Cloudflare KHÔNG cache nhầm
-//   Static (/static/*, /uploads/*) đã được static middleware ở trên set max-age 30d
-//   Mọi request khác (HTML render, JSON API) → no-cache
-//   Cloudflare sẽ respect Cache-Control header này.
-app.use(function(req, res, next){
-  // Skip cho static paths (đã có header riêng)
-  if (req.path.startsWith('/static/') || req.path.startsWith('/uploads/')) return next();
-  // Set default no-cache cho dynamic content
-  res.setHeader('Cache-Control', 'private, no-cache, must-revalidate, max-age=0');
-  res.setHeader('Vary', 'Accept-Encoding, Cookie');
-  next();
-});
-
 // ===== PWA assets (phải serve ở root scope) =====
 app.get('/sw.js', function(req, res){
   res.setHeader('Content-Type', 'application/javascript');
