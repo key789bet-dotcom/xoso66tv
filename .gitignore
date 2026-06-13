@@ -9,7 +9,11 @@ node_modules/
 # ⚠️ DB runtime - KHÔNG BAO GIỜ commit (mỗi VPS giữ data riêng)
 data/db.json
 data/db.json.bak
+data/db.json.bak.migrated-*
 data/db.json.before-init-*
+data/db.sqlite
+data/db.sqlite-shm
+data/db.sqlite-wal
 data/*.backup.json
 data/chat-history.json
 data/chat-bans.json
