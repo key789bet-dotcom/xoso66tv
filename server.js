@@ -267,6 +267,27 @@ app.use(async function (req, res, next) {
   next();
 });
 
+// ═══ HEALTH CHECK — monitor SQLite + Redis ═══
+app.get('/api/health', async function (req, res) {
+  const redis = require('./lib/redis');
+  let dbOk = false, dbUsers = 0;
+  try {
+    const data = require('./lib/db').load();
+    dbOk = true;
+    dbUsers = (data.users || []).length;
+  } catch (_) {}
+  res.json({
+    ok: true,
+    service: 'xoso66tv',
+    time: new Date().toISOString(),
+    uptime: Math.round(process.uptime()),
+    db: { ok: dbOk, users: dbUsers },
+    redis: { ready: redis.isReady() },
+    pid: process.pid,
+    memMB: Math.round(process.memoryUsage().rss / 1024 / 1024)
+  });
+});
+
 app.get('/', async function (req, res, next) {
   try {
     // Luon fetch tu API de site co noi dung; chi /live/:id can OBS
