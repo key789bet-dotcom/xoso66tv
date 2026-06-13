@@ -48,6 +48,7 @@ const analytics = require('../lib/analytics');
 const giftsStore = require('../lib/gifts-store');
 const chatBannersStore = require('../lib/chat-banners-store');
 const skinStore = require('../lib/skin-store');
+const imgProcessor = require('../lib/image-processor'); // 🖼️ auto-optimize uploads
 
 // Multer for skin overlay files (PNG/JPG/WebP for player + chat frames)
 const _skinStorage = multer.diskStorage({
@@ -428,7 +429,7 @@ router.post('/api/idol/:id/toggle-live', idolActions.toggleLive);
 router.post('/api/idol/:id/set-category', idolActions.setCategory);
 router.post('/api/idol/:id/set-card-image', idolActions.setCardImage);
 // Upload file ảnh card (multipart)
-router.post('/api/idol/:id/upload-card-image', _cardUpload.single('image'), function(req, res){
+router.post('/api/idol/:id/upload-card-image', _cardUpload.single('image'), imgProcessor.afterUploadOptimize({ maxWidth: 1200 }), function(req, res){
   if (!req.file) return res.json({ ok:false, message:'Không có file upload' });
   const url = '/uploads/cards/' + req.file.filename;
   const data = db.load();
@@ -439,7 +440,7 @@ router.post('/api/idol/:id/upload-card-image', _cardUpload.single('image'), func
   db.save(data);
   res.json({ ok:true, url:url, cardImage:url, message:'✅ Upload ảnh nền thành công cho ' + item.name });
 });
-router.post('/api/blv/:id/upload-card-image', _cardUpload.single('image'), function(req, res){
+router.post('/api/blv/:id/upload-card-image', _cardUpload.single('image'), imgProcessor.afterUploadOptimize({ maxWidth: 1200 }), function(req, res){
   if (!req.file) return res.json({ ok:false, message:'Không có file upload' });
   const url = '/uploads/cards/' + req.file.filename;
   const data = db.load();
@@ -592,7 +593,7 @@ router.get('/banners', function (req, res) {
   });
 });
 
-router.post('/banners', _bnUpload.single('image'), function (req, res) {
+router.post('/banners', _bnUpload.single('image'), imgProcessor.afterUploadOptimize({ maxWidth: 1920 }), function (req, res) {
   const b = req.body || {};
   const data = {
     title:  (b.title || '').trim().slice(0, 80),
@@ -608,7 +609,7 @@ router.post('/banners', _bnUpload.single('image'), function (req, res) {
   res.redirect('/admin/banners');
 });
 
-router.post('/banners/:id', _bnUpload.single('image'), function (req, res) {
+router.post('/banners/:id', _bnUpload.single('image'), imgProcessor.afterUploadOptimize({ maxWidth: 1920 }), function (req, res) {
   const b = req.body || {};
   const patch = {
     title:  (b.title || '').trim().slice(0, 80),
@@ -636,7 +637,7 @@ router.get('/promos', function (req, res) {
   res.render('admin/promos', { promos: promos.load(), obsPending: ctx.obsPending, adminUser: res.locals.adminUser });
 });
 
-router.post('/promos', _bnUpload.single('image'), function (req, res) {
+router.post('/promos', _bnUpload.single('image'), imgProcessor.afterUploadOptimize({ maxWidth: 1920 }), function (req, res) {
   const b = req.body || {};
   const data = {
     title:  (b.title || '').trim().slice(0, 80),
@@ -652,7 +653,7 @@ router.post('/promos', _bnUpload.single('image'), function (req, res) {
   res.redirect('/admin/promos');
 });
 
-router.post('/promos/:id', _bnUpload.single('image'), function (req, res) {
+router.post('/promos/:id', _bnUpload.single('image'), imgProcessor.afterUploadOptimize({ maxWidth: 1920 }), function (req, res) {
   const b = req.body || {};
   const patch = {
     title:  (b.title || '').trim().slice(0, 80),
@@ -725,7 +726,7 @@ router.get('/gifts', function(req, res){
 });
 
 // CREATE
-router.post('/api/gifts', _giftUpload.single('imageFile'), function(req, res){
+router.post('/api/gifts', _giftUpload.single('imageFile'), imgProcessor.afterUploadOptimize({ maxWidth: 600 }), function(req, res){
   if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
   try {
     const b = req.body || {};
@@ -743,7 +744,7 @@ router.post('/api/gifts', _giftUpload.single('imageFile'), function(req, res){
 });
 
 // UPDATE
-router.put('/api/gifts/:id', _giftUpload.single('imageFile'), function(req, res){
+router.put('/api/gifts/:id', _giftUpload.single('imageFile'), imgProcessor.afterUploadOptimize({ maxWidth: 600 }), function(req, res){
   if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
   try {
     const b = req.body || {};
@@ -783,7 +784,7 @@ router.get('/chat-banners', function(req, res){
   res.render('admin/chat-banners', { banners: chatBannersStore.list() });
 });
 
-router.put('/api/chat-banners/:id', _cbUpload.single('imageFile'), function(req, res){
+router.put('/api/chat-banners/:id', _cbUpload.single('imageFile'), imgProcessor.afterUploadOptimize({ maxWidth: 800 }), function(req, res){
   if (!auth.isAuthed(req)) return res.status(401).json({ ok:false, error:'Cần đăng nhập admin' });
   try {
     const b = req.body || {};
@@ -815,7 +816,7 @@ router.get('/skin', function(req, res){
 });
 
 // Upload 1 slot
-router.post('/api/skin/upload/:id', _skinUpload.single('imageFile'), function(req, res){
+router.post('/api/skin/upload/:id', _skinUpload.single('imageFile'), imgProcessor.afterUploadOptimize({ maxWidth: 1920 }), function(req, res){
   try {
     if (!req.file) return res.status(400).json({ ok:false, error:'Khong co file' });
     var slotId = req.params.id;
