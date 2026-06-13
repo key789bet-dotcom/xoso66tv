@@ -856,6 +856,77 @@ router.post('/api/skin/toggle', function(req, res){
   }
 });
 
+// ════════════════════════════════════════════════════════
+// HEADER BANNER — banner ảnh dải trên cùng header (thay text hardcode)
+// ════════════════════════════════════════════════════════
+const headerBannerStore = require('../lib/header-banner-store');
+const _hbStorage = multer.diskStorage({
+  destination: function(req, file, cb){
+    var dir = path.join(__dirname, '..', 'public', 'img', 'header-banner');
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req, file, cb){
+    cb(null, 'header-banner-' + Date.now() + path.extname(file.originalname).toLowerCase());
+  }
+});
+const _hbUpload = multer({
+  storage: _hbStorage,
+  limits: { fileSize: 8*1024*1024 },
+  fileFilter: function(req, file, cb){
+    var ok = /^image\/(jpeg|png|webp)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Chỉ chấp nhận JPG/PNG/WebP'), ok);
+  }
+});
+
+router.get('/header-banner', function(req, res){
+  res.render('admin/header-banner', {
+    active: 'header-banner',
+    title:  'Banner header',
+    cfg:    headerBannerStore.get()
+  });
+});
+
+router.post('/api/header-banner/upload', _hbUpload.single('imageFile'), imgProcessor.afterUploadOptimize({ maxWidth: 1400 }), function(req, res){
+  try {
+    if (!req.file) return res.status(400).json({ ok:false, error:'Không có file' });
+    var url = '/static/img/header-banner/' + req.file.filename;
+    var data = headerBannerStore.setImage(url);
+    res.json({ ok:true, url: url, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+router.post('/api/header-banner/update', function(req, res){
+  try {
+    var b = req.body || {};
+    var data = headerBannerStore.update({ link: b.link, alt: b.alt });
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+router.post('/api/header-banner/toggle', function(req, res){
+  try {
+    var enabled = !!(req.body && req.body.enabled);
+    var data = headerBannerStore.toggle(enabled);
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+router.post('/api/header-banner/remove', function(req, res){
+  try {
+    var data = headerBannerStore.removeImage();
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
 // PUBLIC API — cho client query (KHÔNG dùng cho render server-side, chỉ debug)
 router.get('/api/skin-public', function(req, res){
   res.json({ ok:true, config: skinStore.activeConfig() });

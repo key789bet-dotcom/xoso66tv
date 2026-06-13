@@ -291,6 +291,11 @@ app.use(async function (req, res, next) {
   res.locals.brand     = partners.brand;
   res.locals.partner   = partnerLinks.load();
   res.locals.banners   = bannersStore.listActive().length ? bannersStore.listActive() : partners.banners;
+  // 🎁 Header banner (admin upload qua /admin/header-banner) — luôn pass vào template
+  try {
+    const _hbStore = require('./lib/header-banner-store');
+    res.locals.headerBanner = _hbStore.get();
+  } catch(e) { res.locals.headerBanner = { enabled: false, image: '', link: '', alt: '' }; }
   res.locals.cats      = api.CATEGORIES;
   res.locals.leagues   = api.FEATURED_LEAGUES;
   res.locals.active    = '';

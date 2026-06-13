@@ -1,10 +1,18 @@
 <header class="area-header bg-gradient-to-b from-[#1a1f29] to-[#13171f] border-b border-line flex items-center gap-3.5 px-5 sticky top-0 z-40 h-16">
   <button class="md:hidden bg-transparent border-0 text-white text-2xl px-1.5" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-  <div class="flex-1 hidden sm:flex items-center gap-3.5 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 px-4 rounded-lg text-white font-bold text-[13px] overflow-hidden relative h-11">
-    <span class="text-xl">🎁</span>
-    <span class="flex-1 drop-shadow">VÉ CƯỢC THUA THỂ THAO ĐẦU TIÊN - HOÀN 100%</span>
-    <a href="<%= partner.promo %>" target="_blank" rel="noopener" class="bg-black/30 px-3.5 py-1.5 rounded-md text-xs backdrop-blur whitespace-nowrap">Nhận ngay →</a>
-  </div>
+  <%# 🎁 Header banner — Render ẢNH nếu admin upload + bật, fallback text mặc định %>
+  <% if (typeof headerBanner !== 'undefined' && headerBanner && headerBanner.enabled && headerBanner.image) {
+       var _hbLink = headerBanner.link || (partner && partner.promo) || '#'; %>
+    <a href="<%= _hbLink %>" target="_blank" rel="noopener" class="flex-1 hidden sm:block overflow-hidden rounded-lg h-11" aria-label="<%= headerBanner.alt || 'Khuyến mãi' %>">
+      <img src="<%= headerBanner.image %>" alt="<%= headerBanner.alt || 'Khuyến mãi' %>" class="w-full h-full object-cover" loading="eager">
+    </a>
+  <% } else { %>
+    <div class="flex-1 hidden sm:flex items-center gap-3.5 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 px-4 rounded-lg text-white font-bold text-[13px] overflow-hidden relative h-11">
+      <span class="text-xl">🎁</span>
+      <span class="flex-1 drop-shadow">VÉ CƯỢC THUA THỂ THAO ĐẦU TIÊN - HOÀN 100%</span>
+      <a href="<%= partner.promo %>" target="_blank" rel="noopener" class="bg-black/30 px-3.5 py-1.5 rounded-md text-xs backdrop-blur whitespace-nowrap">Nhận ngay →</a>
+    </div>
+  <% } %>
   <a href="/dang-nhap" class="px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap border-2 border-pri text-pri-light hover:bg-pri/10 transition-colors">👤 Đăng Nhập</a>
   <a href="/dang-ky" class="px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap bg-gradient-to-br from-pri to-live text-white shadow-live hover:-translate-y-0.5 transition-transform">🚀 Đăng Ký</a>
 </header>
