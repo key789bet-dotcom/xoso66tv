@@ -1,0 +1,253 @@
+<%# ═══ Mục 31: Điểm danh + Nhiệm vụ widget — include vào profile tab ═══ %>
+<div id="checkinMissionWidget" class="space-y-5">
+
+  <!-- ── ĐIỂM DANH 7 ngày ── -->
+  <section class="bg-bg-card border border-line rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-white font-extrabold text-base flex items-center gap-2">
+        <span class="text-pri">📅</span>
+        Điểm danh hằng ngày
+      </h3>
+      <div class="text-[11px] text-muted">
+        Chuỗi: <span class="text-pri-light font-bold" id="ckStreak">0</span> ngày
+        · Tổng: <span class="text-pri-light font-bold" id="ckTotal">0</span>
+      </div>
+    </div>
+
+    <!-- Grid 7 ngày -->
+    <div class="grid grid-cols-7 gap-1.5 md:gap-2 mb-3" id="ckGrid">
+      <!-- JS render -->
+      <% for (let i = 1; i <= 7; i++) { %>
+        <div class="aspect-square bg-bg-soft border border-line rounded-lg flex flex-col items-center justify-center text-center px-1 opacity-40">
+          <div class="text-[9px] md:text-[10px] text-muted font-bold">Ngày <%= i %></div>
+          <div class="text-pri-light font-extrabold text-xs md:text-sm">...</div>
+        </div>
+      <% } %>
+    </div>
+
+    <button id="ckClaimBtn" class="w-full bg-gradient-to-br from-pri to-live text-white font-extrabold py-3 rounded-xl text-sm hover:brightness-110 transition-all active:scale-95 shadow-pri disabled:from-bg-soft disabled:to-bg-deep disabled:text-muted disabled:cursor-not-allowed">
+      Đang tải...
+    </button>
+    <div id="ckHint" class="text-center text-[11px] text-muted mt-2">Đăng nhập để điểm danh</div>
+  </section>
+
+  <!-- ── NHIỆM VỤ DAILY ── -->
+  <section class="bg-bg-card border border-line rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-white font-extrabold text-base flex items-center gap-2">
+        <span class="text-pri">🎯</span>
+        Nhiệm vụ hôm nay
+      </h3>
+      <div class="text-[11px] text-muted">
+        <span class="text-pri-light font-bold" id="mvDone">0</span>/5 hoàn thành
+      </div>
+    </div>
+    <div id="mvList" class="space-y-2">
+      <div class="text-center text-muted text-xs py-6">Đang tải nhiệm vụ...</div>
+    </div>
+    <div class="text-[11px] text-muted mt-3 text-center">
+      ⏰ Nhiệm vụ reset 00:00 mỗi ngày (giờ Việt Nam)
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  // ─── State ───
+  var status = null;
+
+  // ─── Helpers ───
+  function fmtCoin(n){ return (n || 0).toLocaleString('vi-VN'); }
+  function $(id){ return document.getElementById(id); }
+  function isLoggedIn() {
+    try { return !!JSON.parse(localStorage.getItem('x66_user') || 'null'); } catch(e) { return false; }
+  }
+  function updateLocalCoin(newCoin) {
+    if (newCoin == null) return;
+    try {
+      var u = JSON.parse(localStorage.getItem('x66_user') || '{}');
+      u.coin = newCoin;
+      localStorage.setItem('x66_user', JSON.stringify(u));
+      // Trigger storage event để header refresh
+      window.dispatchEvent(new StorageEvent('storage', { key: 'x66_user', newValue: JSON.stringify(u) }));
+    } catch(e){}
+  }
+
+  // ─── ĐIỂM DANH ───
+  function renderCheckin(d) {
+    var grid = $('ckGrid');
+    var btn  = $('ckClaimBtn');
+    var hint = $('ckHint');
+    $('ckStreak').textContent = d.streak || 0;
+    $('ckTotal').textContent  = d.totalDays || 0;
+
+    grid.innerHTML = d.grid.map(function(g){
+      var cls = 'aspect-square border rounded-lg flex flex-col items-center justify-center text-center px-1 transition-all';
+      if (g.claimed) {
+        cls += ' bg-pri/20 border-pri text-pri-light';
+      } else if (g.isToday) {
+        cls += ' bg-gradient-to-br from-pri to-live border-pri text-white animate-pulse-live shadow-pri scale-105';
+      } else {
+        cls += ' bg-bg-soft border-line text-muted opacity-50';
+      }
+      var crown = g.day === 7 ? ' ⭐' : '';
+      var icon  = g.claimed ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="mb-0.5"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+      return '<div class="' + cls + '">' +
+             icon +
+             '<div class="text-[9px] md:text-[10px] font-bold">Ngày ' + g.day + crown + '</div>' +
+             '<div class="font-extrabold text-xs md:text-sm">+' + g.reward + '</div>' +
+             '</div>';
+    }).join('');
+
+    if (d.claimedToday) {
+      btn.textContent = '✓ Đã điểm danh hôm nay';
+      btn.disabled = true;
+      hint.textContent = 'Quay lại ngày mai để duy trì chuỗi ngày liên tiếp 🔥';
+    } else {
+      btn.textContent = '🎁 Điểm danh nhận +' + d.todayReward + ' X COIN';
+      btn.disabled = false;
+      hint.textContent = 'Hôm nay là ngày ' + d.nextDayInStreak + ' của chuỗi liên tiếp';
+    }
+  }
+
+  function loadCheckin() {
+    if (!isLoggedIn()) {
+      $('ckClaimBtn').textContent = 'Đăng nhập để điểm danh';
+      $('ckClaimBtn').disabled = true;
+      $('ckHint').innerHTML = '<a href="/dang-nhap" class="text-pri-light underline">Đăng nhập</a> để bắt đầu điểm danh hằng ngày';
+      return;
+    }
+    fetch('/api/checkin/status', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d || !d.ok) {
+          $('ckHint').textContent = d && d.error || 'Lỗi tải dữ liệu';
+          return;
+        }
+        renderCheckin(d);
+      })
+      .catch(function(e){
+        $('ckHint').textContent = 'Lỗi: ' + e.message;
+      });
+  }
+
+  function claimCheckin() {
+    var btn = $('ckClaimBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang xử lý...';
+    fetch('/api/checkin/claim', { method:'POST', credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) {
+          alert(d.error || 'Lỗi điểm danh');
+          loadCheckin();
+          return;
+        }
+        // Success animation
+        btn.textContent = '🎉 +' + d.reward + ' X COIN!';
+        btn.classList.add('animate-pulse');
+        if (d.newCoin != null) updateLocalCoin(d.newCoin);
+        setTimeout(function(){
+          btn.classList.remove('animate-pulse');
+          loadCheckin();
+        }, 1500);
+      })
+      .catch(function(e){
+        alert('Lỗi: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = '🎁 Điểm danh';
+      });
+  }
+
+  // ─── NHIỆM VỤ ───
+  function renderMissions(d) {
+    var list = $('mvList');
+    if (!d.missions || !d.missions.length) {
+      list.innerHTML = '<div class="text-center text-muted py-6">Chưa có nhiệm vụ</div>';
+      return;
+    }
+    $('mvDone').textContent = d.completedCount || 0;
+    list.innerHTML = d.missions.map(function(m){
+      var barClass = m.completed
+        ? 'bg-gradient-to-r from-pri to-live'
+        : 'bg-pri/40';
+      var btnHtml = '';
+      if (m.claimed) {
+        btnHtml = '<span class="text-pri-light text-[11px] font-bold">✓ Đã nhận</span>';
+      } else if (m.canClaim) {
+        btnHtml = '<button data-claim="' + m.id + '" class="mv-claim bg-gradient-to-br from-pri to-live text-white font-extrabold text-[11px] px-3 py-1.5 rounded-lg hover:brightness-110 active:scale-95">Nhận +' + m.reward + '</button>';
+      } else {
+        btnHtml = '<div class="text-muted text-[11px] font-bold">+' + m.reward + ' X COIN</div>';
+      }
+      return '<div class="bg-bg-soft border border-line rounded-xl p-3 ' + (m.claimed ? 'opacity-60' : '') + '">' +
+             '<div class="flex items-center gap-3 mb-2">' +
+             '<div class="text-2xl shrink-0">' + m.icon + '</div>' +
+             '<div class="flex-1 min-w-0">' +
+             '<div class="text-white font-bold text-[13px]">' + m.name + '</div>' +
+             '<div class="text-[10.5px] text-muted">Tiến độ: ' + m.progress + '/' + m.target + '</div>' +
+             '</div>' +
+             '<div class="shrink-0">' + btnHtml + '</div>' +
+             '</div>' +
+             '<div class="h-2 bg-bg-deep rounded-full overflow-hidden">' +
+             '<div class="h-full ' + barClass + ' transition-all duration-300" style="width:' + m.progressPct + '%"></div>' +
+             '</div>' +
+             '</div>';
+    }).join('');
+
+    // Bind claim buttons
+    list.querySelectorAll('.mv-claim').forEach(function(b){
+      b.addEventListener('click', function(){ claimMission(b.getAttribute('data-claim'), b); });
+    });
+  }
+
+  function loadMissions() {
+    if (!isLoggedIn()) {
+      $('mvList').innerHTML = '<div class="text-center text-muted py-6"><a href="/dang-nhap" class="text-pri-light underline">Đăng nhập</a> để xem nhiệm vụ</div>';
+      return;
+    }
+    fetch('/api/missions/status', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d || !d.ok) {
+          $('mvList').innerHTML = '<div class="text-center text-live py-6">' + (d && d.error || 'Lỗi') + '</div>';
+          return;
+        }
+        renderMissions(d);
+      })
+      .catch(function(e){
+        $('mvList').innerHTML = '<div class="text-center text-live py-6">' + e.message + '</div>';
+      });
+  }
+
+  function claimMission(missionId, btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳';
+    fetch('/api/missions/claim/' + encodeURIComponent(missionId), {
+      method:'POST', credentials:'same-origin'
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) {
+          alert(d.error || 'Lỗi');
+          loadMissions();
+          return;
+        }
+        if (d.newCoin != null) updateLocalCoin(d.newCoin);
+        loadMissions();
+      })
+      .catch(function(e){
+        alert('Lỗi: ' + e.message);
+        loadMissions();
+      });
+  }
+
+  // ─── Init ───
+  $('ckClaimBtn').addEventListener('click', claimCheckin);
+  loadCheckin();
+  loadMissions();
+
+  // Expose for external retrigger (vd: sau khi user chơi mini game)
+  window.x66ReloadMissions = loadMissions;
+})();
+</script>

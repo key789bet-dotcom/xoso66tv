@@ -293,6 +293,62 @@ app.use(async function (req, res, next) {
   next();
 });
 
+// ═══ Mục 31: ĐIỂM DANH + NHIỆM VỤ DAILY ═══
+const checkinStore = require('./lib/checkin-store');
+const missionStore = require('./lib/mission-store');
+
+app.get('/api/checkin/status', function(req, res) {
+  const u = pubAuth.getUser(req);
+  if (!u || !u.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  res.json(checkinStore.getStatus(u.username));
+});
+
+app.post('/api/checkin/claim', function(req, res) {
+  const u = pubAuth.getUser(req);
+  if (!u || !u.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  res.json(checkinStore.claim(u.username));
+});
+
+app.get('/api/missions/status', function(req, res) {
+  const u = pubAuth.getUser(req);
+  if (!u || !u.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  res.json(missionStore.getStatus(u.username));
+});
+
+app.post('/api/missions/claim/:id', function(req, res) {
+  const u = pubAuth.getUser(req);
+  if (!u || !u.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  res.json(missionStore.claim(u.username, req.params.id));
+});
+
+// Endpoint chung để client track manually (chat send, gift, game, spin)
+app.post('/api/missions/track/:id', function(req, res) {
+  const u = pubAuth.getUser(req);
+  if (!u || !u.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+  const allowedIds = ['send_chat_5','send_gift_1','play_game_1','spin_wheel_1'];
+  if (allowedIds.indexOf(req.params.id) === -1) return res.json({ ok:false, error:'invalid mission' });
+  const progress = missionStore.track(u.username, req.params.id);
+  res.json({ ok:true, progress });
+});
+
+// 👀 Auto-track "watch_2_rooms" khi user vào /idol/:id hoặc /live/:id
+app.use(function(req, res, next) {
+  const p = req.path;
+  if (req.method === 'GET' && (p.indexOf('/idol/') === 0 || p.indexOf('/live/') === 0)) {
+    try {
+      const u = pubAuth.getUser(req);
+      if (u && u.username) missionStore.track(u.username, 'watch_2_rooms', 1);
+    } catch (_) {}
+  }
+  next();
+});
+
+// Cleanup missions older than 7 days (run on boot + daily)
+try { missionStore.cleanup(); } catch (_) {}
+setInterval(function(){
+  try { missionStore.cleanup(); } catch(_){}
+}, 24 * 60 * 60 * 1000);
+
 // ═══ Mục 24: SITEMAP + robots.txt ═══
 app.get('/sitemap.xml', async function (req, res) {
   try {
