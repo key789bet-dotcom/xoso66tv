@@ -2789,6 +2789,12 @@ app.post('/api/chat/:roomId/send', function (req, res) {
   }
   global.__chatLastSent.set(key, now);
 
+  // 📊 Mục 9: Track chat message metric cho Prometheus
+  try {
+    const roomType = (roomId && (roomId.startsWith('i') || roomId.startsWith('u_'))) ? 'idol' : 'sports';
+    metrics.trackChatMessage(roomType);
+  } catch (_) {}
+
   // Build msg
   const msg = {
     name: user ? (user.username || 'User') : ('Khách' + (Math.floor(Math.random()*9000) + 1000)),

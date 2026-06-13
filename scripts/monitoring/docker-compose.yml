@@ -22,7 +22,7 @@ services:
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
     ports:
-      - "127.0.0.1:9090:9090"
+      - "127.0.0.1:9091:9090"   # port 9091 trên host (9090 trên VPS đã có app khác)
     networks:
       - monitoring
 
