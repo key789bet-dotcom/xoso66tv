@@ -260,6 +260,10 @@ app.use(async function (req, res, next) {
   res.locals.seo       = null;
   try { res.locals.catCounts = await api.getCategoryCounts(); }
   catch (e) { res.locals.catCounts = {}; }
+  // 🏆 League background map (admin set qua /admin/league-bg) — cần ở đây để mọi
+  //    route render view (kể cả GET /) đều thấy. Lazy require tránh cycle.
+  try { res.locals.leagueBgs = require('./lib/league-bg-store').list(); }
+  catch (e) { res.locals.leagueBgs = {}; }
   next();
 });
 
