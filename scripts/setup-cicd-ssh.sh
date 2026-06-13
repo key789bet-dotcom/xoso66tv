@@ -2,14 +2,8 @@
 # ═══════════════════════════════════════════════════════════════════
 # 🔐 XOSO66 TV — Setup CI/CD SSH key (Mục 30)
 #
-# Tạo SSH key DEDICATED cho GitHub Actions (KHÔNG dùng SSH key cá nhân).
-# Run trên VPS với quyền root.
-#
-# Usage:
-#   ssh root@VPS_IP
-#   curl -s https://raw.githubusercontent.com/key789bet-dotcom/xoso66tv/main/scripts/setup-cicd-ssh.sh | bash
-# OR sau khi pull code:
-#   bash /var/www/xoso66tv/scripts/setup-cicd-ssh.sh
+# AN TOÀN: Script KHÔNG in private key ra terminal.
+# Private key chỉ lưu vào file /root/.ssh/ — anh tự đọc file đó để paste vào GitHub.
 # ═══════════════════════════════════════════════════════════════════
 set -e
 
@@ -23,67 +17,70 @@ if [ ! -d "$KEY_DIR" ]; then
   chmod 700 "$KEY_DIR"
 fi
 
-# Generate Ed25519 key (modern, smaller, faster than RSA)
+# Xóa key cũ nếu tồn tại (force re-generate cho an toàn)
 if [ -f "$KEY_FILE" ]; then
-  echo "⚠️  Key đã tồn tại: $KEY_FILE"
-  echo "    Xoá nếu muốn tạo mới: rm -f $KEY_FILE $KEY_FILE.pub"
-  echo "    Đang tiếp tục với key hiện có..."
-else
-  echo "🔑 Generating Ed25519 SSH key..."
-  ssh-keygen -t ed25519 -f "$KEY_FILE" -N "" -C "github-actions@xoso66tv-$(date +%Y%m%d)"
-  chmod 600 "$KEY_FILE"
-  chmod 644 "${KEY_FILE}.pub"
-  echo "✅ Key created: $KEY_FILE"
+  echo "⚠️  Key cũ tồn tại — xóa để tạo mới sạch..."
+  rm -f "$KEY_FILE" "${KEY_FILE}.pub"
 fi
 
-# Add public key to authorized_keys (deploy-only restrictions)
-PUB_KEY=$(cat "${KEY_FILE}.pub")
-if grep -qF "$PUB_KEY" "$AUTH_KEYS" 2>/dev/null; then
-  echo "✅ Public key đã có trong authorized_keys"
-else
-  # Restricted entry — chỉ cho phép chạy deploy command
-  # (Có thể siết hơn bằng command="...", forced commands)
-  echo "" >> "$AUTH_KEYS"
-  echo "# GitHub Actions deploy key (xoso66tv)" >> "$AUTH_KEYS"
-  echo "$PUB_KEY" >> "$AUTH_KEYS"
+# Xóa public key cũ khỏi authorized_keys
+if grep -q "github-actions@xoso66tv" "$AUTH_KEYS" 2>/dev/null; then
+  echo "🧹 Xóa public key cũ khỏi authorized_keys..."
+  grep -v "github-actions@xoso66tv" "$AUTH_KEYS" > "${AUTH_KEYS}.tmp"
+  mv "${AUTH_KEYS}.tmp" "$AUTH_KEYS"
   chmod 600 "$AUTH_KEYS"
-  echo "✅ Public key added to $AUTH_KEYS"
 fi
+
+# Generate Ed25519 key MỚI
+echo "🔑 Generating Ed25519 SSH key mới..."
+ssh-keygen -t ed25519 -f "$KEY_FILE" -N "" -C "github-actions@xoso66tv-$(date +%Y%m%d-%H%M%S)" > /dev/null
+chmod 600 "$KEY_FILE"
+chmod 644 "${KEY_FILE}.pub"
+echo "✅ Key mới: $KEY_FILE"
+
+# Add public key vào authorized_keys
+PUB_KEY=$(cat "${KEY_FILE}.pub")
+echo "" >> "$AUTH_KEYS"
+echo "# GitHub Actions deploy key (xoso66tv) - $(date)" >> "$AUTH_KEYS"
+echo "$PUB_KEY" >> "$AUTH_KEYS"
+chmod 600 "$AUTH_KEYS"
+echo "✅ Public key đã add vào authorized_keys"
+
+# VPS IP
+VPS_IP=$(curl -s -4 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
-echo "🎉 SSH key sẵn sàng cho CI/CD!"
+echo "🎉 SSH key sẵn sàng — BÂY GIỜ CONFIG GITHUB SECRETS"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
-echo "📋 BƯỚC TIẾP THEO (làm trên máy local browser):"
-echo ""
-echo "1. Vào GitHub repo Settings → Secrets and variables → Actions"
+echo "📋 4 secrets cần tạo trên GitHub:"
 echo "   https://github.com/key789bet-dotcom/xoso66tv/settings/secrets/actions"
 echo ""
-echo "2. Click 'New repository secret' tạo 4 secrets sau:"
-echo ""
-echo "   ┌─────────────────────────────────────────────────────────┐"
-echo "   │ Secret name      │ Value                                 │"
-echo "   ├─────────────────────────────────────────────────────────┤"
-echo "   │ VPS_HOST         │ $(curl -s -4 ifconfig.me 2>/dev/null || echo 'YOUR_VPS_IP')"
-echo "   │ VPS_USER         │ root"
-echo "   │ VPS_PORT         │ 22"
-echo "   │ VPS_SSH_KEY      │ (private key — xem bên dưới)"
-echo "   └─────────────────────────────────────────────────────────┘"
+echo "   ┌──────────────┬───────────────────────────────────────────┐"
+echo "   │ Secret name  │ Value                                      │"
+echo "   ├──────────────┼───────────────────────────────────────────┤"
+echo "   │ VPS_HOST     │ $VPS_IP"
+echo "   │ VPS_USER     │ root"
+echo "   │ VPS_PORT     │ 22"
+echo "   │ VPS_SSH_KEY  │ (đọc file bên dưới)                       │"
+echo "   └──────────────┴───────────────────────────────────────────┘"
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
-echo "🔐 PRIVATE KEY (copy NGUYÊN PHẦN bên dưới — bao gồm BEGIN/END):"
-echo "═══════════════════════════════════════════════════════════════"
-cat "$KEY_FILE"
+echo "🔐 Đọc private key (CHỈ paste vào GitHub Secrets, KHÔNG vào chat):"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
-echo "⚠️  CỰC KỲ QUAN TRỌNG:"
-echo "   - KHÔNG SHARE key này với ai"
-echo "   - Sau khi paste vào GitHub Secrets → xoá lịch sử terminal: history -c"
-echo "   - Nếu nghi key lộ → chạy lại script này để tạo mới"
+echo "   cat $KEY_FILE"
 echo ""
-echo "📨 BONUS (optional): Telegram notification"
-echo "   Thêm 2 secrets nữa nếu muốn nhận thông báo deploy qua Telegram bot:"
-echo "   - TELEGRAM_BOT_TOKEN: token bot từ @BotFather"
-echo "   - TELEGRAM_CHAT_ID:   ID chat/user của anh"
+echo "   → Bôi đen TỪ '-----BEGIN OPENSSH PRIVATE KEY-----'"
+echo "     ĐẾN     '-----END OPENSSH PRIVATE KEY-----'"
+echo "     (bao gồm cả 2 dòng BEGIN/END)"
+echo "   → Paste TRỰC TIẾP vào GitHub web → VPS_SSH_KEY secret"
+echo ""
+echo "⚠️  TUYỆT ĐỐI KHÔNG paste private key vào chat, Discord, email"
+echo "    hay bất kỳ đâu KHÔNG PHẢI GitHub Secrets web UI"
+echo ""
+echo "📊 Sau khi paste xong, xóa terminal history:"
+echo "   history -c && history -w"
+echo ""
 echo "═══════════════════════════════════════════════════════════════"
