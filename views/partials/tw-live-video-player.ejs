@@ -56,9 +56,9 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   <div class="w-12 h-12 border-4 border-pri border-t-transparent rounded-full animate-spin"></div>
 </div>
 
-<!-- 📊 DEBUG STATS OVERLAY (mặc định HIỆN — ẩn bằng Shift+S hoặc ?stats=0) -->
-<div id="liveStatsOverlay" class="absolute top-2 left-2 z-[8] text-[11px] font-mono leading-tight text-white pointer-events-none select-none"
-     style="background:rgba(0,0,0,.85);padding:8px 10px;border-radius:6px;min-width:240px;border:1px solid rgba(255,210,63,.4);text-shadow:0 1px 2px rgba(0,0,0,.9);display:block !important;opacity:1 !important;visibility:visible !important;">
+<!-- 📊 DEBUG STATS OVERLAY (mặc định ẨN — bật bằng Shift+S hoặc ?stats=1) -->
+<div id="liveStatsOverlay" class="hidden absolute top-2 left-2 z-[8] text-[11px] font-mono leading-tight text-white pointer-events-none select-none"
+     style="background:rgba(0,0,0,.85);padding:8px 10px;border-radius:6px;min-width:240px;border:1px solid rgba(255,210,63,.4);text-shadow:0 1px 2px rgba(0,0,0,.9);">
   <div style="font-weight:700;color:#fbbf24;margin-bottom:4px;">📊 Stream Stats</div>
   <div>URL:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="ls_url" style="color:#fbbf24">⏳ checking…</span></div>
   <div>Network:&nbsp;<span id="ls_net" style="color:#10b981">—</span></div>
@@ -371,10 +371,8 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     checkStreamUrl();
 
     __statsLoopId = setInterval(function(){
-      // 🔒 FORCE overlay luôn hiện (chống mọi thứ ẩn nó)
-      overlay.style.setProperty('display','block','important');
-      overlay.style.setProperty('opacity','1','important');
-      overlay.style.setProperty('visibility','visible','important');
+      // ⏭️ Mặc định ẨN cho production — chỉ update DOM khi overlay đang hiện
+      if (overlay.classList.contains('hidden')) return;
 
       // Update Network info ngay cả khi chưa attach stream
       try {
@@ -448,24 +446,26 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     }, 1000);
   }
 
-  // Toggle stats overlay: mặc định HIỆN, ẩn bằng ?stats=0 hoặc Shift+S
+  // Toggle stats overlay: mặc định ẨN (production) — bật bằng ?stats=1 hoặc Shift+S
   function initStatsToggle(){
     var overlay = document.getElementById('liveStatsOverlay');
     if (!overlay) return;
+    // Mặc định ẨN cho user thường — chỉ bật khi dev cần debug
     try {
       var qs = new URLSearchParams(location.search);
-      if (qs.get('stats') === '0') overlay.classList.add('hidden');
+      if (qs.get('stats') === '1') overlay.classList.remove('hidden');
     } catch(e){}
+    // Restore previous state (admin/dev đã bật trước đó)
+    try {
+      if (localStorage.getItem('liveStatsShown') === '1') overlay.classList.remove('hidden');
+    } catch(_){}
+    // Shift+S = toggle (giữ cho admin/dev)
     document.addEventListener('keydown', function(e){
       if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
         overlay.classList.toggle('hidden');
         try { localStorage.setItem('liveStatsShown', overlay.classList.contains('hidden') ? '0' : '1'); } catch(_) {}
       }
     });
-    // Restore previous state
-    try {
-      if (localStorage.getItem('liveStatsShown') === '0') overlay.classList.add('hidden');
-    } catch(_){}
   }
 
   // Stop previous guard interval khi destroy/reload
