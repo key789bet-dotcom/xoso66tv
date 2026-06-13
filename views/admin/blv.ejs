@@ -71,6 +71,37 @@
             </select>
           </div>
 
+          <!-- 🖼️ ẢNH NỀN CARD BLV (upload hoặc paste URL) -->
+          <div class="mt-2 bg-bg-soft border border-line rounded p-2">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-white">🖼️ Ảnh nền card:</span>
+              <% if (b.cardImage) { %>
+                <button onclick="adminAction('/admin/api/blv/<%= b.id %>/set-card-image', { imageUrl: '' }, function(r){ if(r.ok){ showToast(r.message,'success'); setTimeout(function(){location.reload();}, 800); } })" class="text-[10px] text-live hover:text-red-500 font-bold">✕ Xóa</button>
+              <% } %>
+            </div>
+            <% if (b.cardImage) { %>
+              <img src="<%= b.cardImage %>" class="w-full h-20 object-cover rounded mb-1.5 border border-line" onerror="this.style.display='none'">
+            <% } %>
+            <!-- Tab Upload File / Paste URL -->
+            <div class="flex gap-1 mb-1.5">
+              <button type="button" onclick="document.getElementById('bvCiUp<%= b.id %>').classList.remove('hidden');document.getElementById('bvCiUrl<%= b.id %>').classList.add('hidden');this.classList.add('bg-pri','text-white');this.nextElementSibling.classList.remove('bg-pri','text-white');" class="flex-1 text-[10px] px-1.5 py-1 rounded bg-pri text-white font-bold">📁 Upload</button>
+              <button type="button" onclick="document.getElementById('bvCiUrl<%= b.id %>').classList.remove('hidden');document.getElementById('bvCiUp<%= b.id %>').classList.add('hidden');this.classList.add('bg-pri','text-white');this.previousElementSibling.classList.remove('bg-pri','text-white');" class="flex-1 text-[10px] px-1.5 py-1 rounded bg-bg-deep text-muted font-bold">🔗 URL</button>
+            </div>
+            <!-- Upload form -->
+            <form id="bvCiUp<%= b.id %>" onsubmit="event.preventDefault(); uploadCardImage(this, '/admin/api/blv/<%= b.id %>/upload-card-image');" class="flex gap-1">
+              <input type="file" name="image" accept="image/*" required class="flex-1 text-[10px] text-white bg-bg-deep border border-line rounded px-1.5 py-0.5">
+              <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">↑</button>
+            </form>
+            <!-- URL form (ẩn ban đầu) -->
+            <div id="bvCiUrl<%= b.id %>" class="hidden">
+              <div class="flex gap-1">
+                <input type="text" id="bvCiInp<%= b.id %>" value="<%= b.cardImage || '' %>" placeholder="https://..." class="flex-1 text-[10px] text-white bg-bg-deep border border-line rounded px-1.5 py-1 outline-none focus:border-pri">
+                <button onclick="adminAction('/admin/api/blv/<%= b.id %>/set-card-image', { imageUrl: document.getElementById('bvCiInp<%= b.id %>').value }, function(r){ if(r.ok){ showToast(r.message,'success'); setTimeout(function(){location.reload();}, 800); } else showToast(r.message,'error'); })" class="bg-pri hover:bg-pri-dark text-white px-2 py-1 rounded text-[10px] font-bold">↓</button>
+              </div>
+              <div class="text-[9px] text-muted mt-1">💡 Mẹo: tải ảnh lên <a href="https://imgbb.com" target="_blank" class="text-pri-light underline">imgbb.com</a> rồi copy link Direct</div>
+            </div>
+          </div>
+
           <div class="mt-3 flex flex-wrap gap-2">
             <% if (b.status==='pending') { %>
               <button onclick="confirmAction('Duyet BLV <%= b.name %>?', function(){ adminAction('/admin/api/blv/<%= b.id %>/approve') })" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold">&check; Duyet</button>
