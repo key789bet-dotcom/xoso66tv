@@ -52,9 +52,11 @@ const skinStore = require('../lib/skin-store');
 const imgProcessor = require('../lib/image-processor'); // 🖼️ auto-optimize uploads
 
 // Multer for skin overlay files (PNG/JPG/WebP for player + chat frames)
+// ⚠️ Path: public/img/skin/ (KHÔNG phải public/static/img/skin)
+//    vì server mount: app.use('/static', express.static('public')) → /static/* maps to public/*
 const _skinStorage = multer.diskStorage({
   destination: function(req,file,cb){
-    var dir = path.join(__dirname,'..','public','static','img','skin');
+    var dir = path.join(__dirname,'..','public','img','skin');
     require('fs').mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
