@@ -3,6 +3,35 @@
 </div>
 <div id="toast" class="fixed bottom-5 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
 <script>
+/* 🛡️ CSRF auto-inject cho tất cả fetch trong admin (giống app.js cho public) */
+(function(){
+  function getCsrfToken(){
+    var m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute('content') : '';
+  }
+  window.__csrf = getCsrfToken;
+  var _origFetch = window.fetch;
+  if (_origFetch) {
+    window.fetch = function(input, init){
+      try {
+        var url = (input && input.url) ? input.url : input;
+        var method = (init && init.method) ? init.method.toUpperCase() : 'GET';
+        if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+          init = init || {};
+          init.headers = init.headers || {};
+          var tok = getCsrfToken();
+          if (tok) {
+            if (init.headers instanceof Headers) init.headers.set('X-CSRF-Token', tok);
+            else init.headers['X-CSRF-Token'] = tok;
+          }
+          if (!init.credentials) init.credentials = 'same-origin';
+        }
+      } catch(e){}
+      return _origFetch.call(this, input, init);
+    };
+  }
+})();
+
 function showToast(msg, kind){
   var t=document.getElementById('toast');
   var c=kind==='success'?'!border-l-emerald-500':kind==='error'?'!border-l-live':'!border-l-pri';

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><%= typeof title!=='undefined'?title:'Admin' %> &middot; XOSO66 TV</title>
 <meta name="robots" content="noindex, nofollow">
+<%# 🛡️ CSRF token (Mục 21) — JS auto-inject vào fetch qua wrapper trong layout-end.ejs %>
+<% if (typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
 <link rel="icon" type="image/webp" href="/static/img/favicon.webp">
 <%- include('../../partials/tailwind-config') %>
 </head>
