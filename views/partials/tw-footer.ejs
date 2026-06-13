@@ -122,6 +122,60 @@
   }).observe(document.body, { childList: true, subtree: true });
 })();
 </script>
+<!-- 🛡️ Sentry browser SDK — lazy loader (chỉ load khi có error xảy ra) -->
+<script
+  src="https://js.sentry-cdn.com/bbaaccc636dbd85ef5e06e11f60a9727.min.js"
+  crossorigin="anonymous"
+  async
+></script>
+<script>
+  // Sentry config — chạy KHI loader đã load
+  window.sentryOnLoad = function() {
+    if (!window.Sentry) return;
+    Sentry.init({
+      environment: location.hostname === 'xoso66tv.com' ? 'production' : 'staging',
+      release: 'xoso66tv-client@1.0.0',
+      // Quota safe: chỉ capture errors, KHÔNG capture session/traces
+      sampleRate: 1.0,           // 100% errors
+      tracesSampleRate: 0,        // 0% performance traces
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 0,
+      // Filter noise
+      ignoreErrors: [
+        // Browser extensions / quirks
+        'top.GLOBALS', 'ResizeObserver loop limit exceeded',
+        'ResizeObserver loop completed with undelivered notifications',
+        'Non-Error promise rejection captured',
+        // Network errors (user mất WiFi)
+        'NetworkError', 'Failed to fetch', 'Load failed',
+        'The Internet connection appears to be offline',
+        // Cancel / abort
+        'AbortError', 'The operation was aborted',
+        // Tampermonkey / Greasemonkey / Ad-blockers
+        'TypeError: undefined is not an object (evaluating \'window.webkit',
+        'Script error.', // CORS-blocked external script errors (không actionable)
+        // FLV.js noise đã handle reconnect
+        'pendingSeekTime', 'FLV codec invalid'
+      ],
+      denyUrls: [
+        // Extensions
+        /^chrome:\/\//i, /^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i,
+        // 3rd party (Cloudflare insights, etc.)
+        /static\.cloudflareinsights\.com/i,
+        /googletagmanager\.com/i,
+        /google-analytics\.com/i
+      ],
+      beforeSend: function(event) {
+        // Skip nếu error không có stack (thường là crap từ extension)
+        if (!event.exception || !event.exception.values || !event.exception.values[0].stacktrace) {
+          // Vẫn cho qua các error có message rõ ràng
+          if (!event.message) return null;
+        }
+        return event;
+      }
+    });
+  };
+</script>
 <script src="/static/js/app.js"></script>
 <!-- Chat v2 - phải load SAU app.js để override startChat/pushMsg cũ -->
 <script src="/static/js/chat-v2.js?v=4-sync"></script>

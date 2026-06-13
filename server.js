@@ -2,6 +2,11 @@
  * XOSO66 TV - Express server, Tailwind CSS, clean URL, SEO chuẩn
  */
 require('dotenv').config();
+
+// 🛡️ SENTRY phải init TRƯỚC khi require Express/routes để patch http module
+const sentry = require('./lib/sentry');
+sentry.init();
+
 const path     = require('path');
 const express  = require('express');
 const api      = require('./lib/api');
@@ -2586,8 +2591,11 @@ app.get('/api/admin/chat/bans', requireAdmin, function (req, res) {
 
 // 404 + error handler (đăng ký CUỐI CÙNG - sau mọi route)
 app.use(function (req, res) { res.status(404).render('tw-404'); });
+// 🛡️ Sentry error handler — phải chạy TRƯỚC error handler của Express
+sentry.attachExpressAfter(app);
 app.use(function (err, req, res, next) {
   console.error(err);
+  // Sentry đã capture qua middleware ở trên, không cần manual
   res.status(500).render('tw-500', { err: err });
 });
 
