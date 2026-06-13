@@ -2915,7 +2915,11 @@ async function syncLiveStatusFromSRS() {
     const scheduleStore = require('./lib/schedule-store');
 
     (dbData.idols || []).forEach(function(idol){
-      const shouldLive = activeStreamNames.indexOf(idol.id) !== -1;
+      // 🔧 FIX: stream key có thể có suffix random (vd i_yennhi_vagsxf8a)
+      //    → match prefix thay vì exact để cover cả 2 case (key gốc + key + suffix)
+      const shouldLive = activeStreamNames.some(function(name){
+        return name === idol.id || name.indexOf(idol.id + '_') === 0;
+      });
       if (!!idol.liveNow !== shouldLive) {
         const wasOff = !idol.liveNow;
         idol.liveNow = shouldLive;
@@ -2967,7 +2971,10 @@ async function syncLiveStatusFromSRS() {
     });
 
     (dbData.blvs || []).forEach(function(blv){
-      const shouldLive = activeStreamNames.indexOf(blv.id) !== -1;
+      // 🔧 FIX: match prefix để cover stream key có suffix random
+      const shouldLive = activeStreamNames.some(function(name){
+        return name === blv.id || name.indexOf(blv.id + '_') === 0;
+      });
       if (!!blv.liveNow !== shouldLive) {
         const wasOff = !blv.liveNow;
         blv.liveNow = shouldLive;
