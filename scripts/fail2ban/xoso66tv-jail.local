@@ -1,0 +1,39 @@
+# /etc/fail2ban/jail.d/xoso66tv.local
+#
+# Jail config cho XOSO66 TV:
+#   - Sau 5 lần rate-limit-blocked trong 10 phút → ban IP 1 giờ
+#   - Admin attempts ăn theo cùng jail (vì cùng tag [FAIL2BAN] trong log)
+#   - Whitelist Cloudflare IPs + IP nội bộ
+#
+# Reload:
+#   fail2ban-client reload xoso66tv
+#   fail2ban-client status xoso66tv
+
+[xoso66tv]
+enabled  = true
+filter   = xoso66tv
+port     = http,https
+logpath  = /root/.pm2/logs/xoso66tv-out.log
+           /root/.pm2/logs/xoso66tv-error.log
+maxretry = 5
+findtime = 600
+bantime  = 3600
+
+# Whitelist IPs (Cloudflare ranges + local) — không bao giờ ban
+# Cloudflare IPv4 ranges: https://www.cloudflare.com/ips-v4/
+ignoreip = 127.0.0.1/8 ::1
+           103.21.244.0/22 103.22.200.0/22 103.31.4.0/22
+           104.16.0.0/13 104.24.0.0/14
+           108.162.192.0/18
+           131.0.72.0/22
+           141.101.64.0/18
+           162.158.0.0/15
+           172.64.0.0/13
+           173.245.48.0/20
+           188.114.96.0/20
+           190.93.240.0/20
+           197.234.240.0/22
+           198.41.128.0/17
+
+# Action: iptables drop + email notify (nếu muốn)
+action = iptables-multiport[name=xoso66tv, port="http,https", protocol=tcp]

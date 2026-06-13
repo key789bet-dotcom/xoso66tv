@@ -58,6 +58,14 @@ const app  = express();
 // (nhưng app sẽ KHÔNG log/expose IP này — chỉ dùng nội bộ cho rate limit + hash)
 app.set('trust proxy', true);
 
+// 🛡️ Mục 18: Helmet + CSP — phải attach SỚM, trước mọi route
+try {
+  const secHeaders = require('./lib/security-headers');
+  secHeaders.attachSecurityHeaders(app);
+} catch (e) {
+  console.warn('[BOOT] ⚠️  Helmet not loaded:', e.message);
+}
+
 // Middleware: gán IP đã mask + hash vào req để dùng toàn site
 app.use(function(req, res, next){
   req.maskedIp = privacy.getMaskedIp(req);
@@ -587,7 +595,7 @@ app.get('/idol/:id', function (req, res) {
 });
 
 // ===== PUBLIC AUTH (cookie-based for streamer protection) =====
-app.post('/api/auth/login', loginLimiter, async function (req, res) {
+app.post('/api/auth/login', sec.loginStrictLimiter, async function (req, res) {
   const b = req.body || {};
   try {
     const result = await pubAuth.login(b.username || '', b.password || '', res, { otp: b.otp });
@@ -612,7 +620,7 @@ app.post('/api/auth/2fa/setup', requireAnyAdmin, async function (req, res){
   res.json({ ok:true, secret: secret.base32, qrCode: qr, otpauthUrl: secret.otpauthUrl });
 });
 
-app.post('/api/auth/2fa/verify-setup', requireAnyAdmin, function (req, res){
+app.post('/api/auth/2fa/verify-setup', sec.twoFaLimiter, requireAnyAdmin, function (req, res){
   const data = db.load();
   const pending = data.admin2faPending;
   if (!pending || !pending.secret) return res.json({ ok:false, error:'Chưa setup 2FA' });
@@ -639,7 +647,7 @@ app.get('/api/auth/2fa/status', requireAnyAdmin, function (req, res){
 });
 
 // ===== USER REGISTRATION với bcrypt =====
-app.post('/api/auth/register', loginLimiter, async function (req, res){
+app.post('/api/auth/register', sec.registerStrictLimiter, async function (req, res){
   const b = req.body || {};
   if (!b.username || b.username.length < 3) return res.status(400).json({ ok:false, error:'Username tối thiểu 3 ký tự' });
   if (!b.password || b.password.length < 8) return res.status(400).json({ ok:false, error:'Mật khẩu tối thiểu 8 ký tự' });

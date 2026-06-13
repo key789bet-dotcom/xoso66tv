@@ -5,6 +5,7 @@
 const express   = require('express');
 const db        = require('../lib/db');
 const auth      = require('../lib/admin-auth');
+const sec       = require('../lib/security'); // 🛡️ Mục 19+22: rate limit + fail2ban log
 const adminGuard = require('../lib/admin-guard'); // 🔒 Unified admin guard (cookie + JWT role)
 const banners   = require('../lib/banners');
 const promos    = require('../lib/promos');
@@ -124,7 +125,7 @@ router.get('/login', function (req, res) {
     savedPassword: '' 
   });
 });
-router.post('/login', function (req, res) {
+router.post('/login', sec.adminLoginLimiter, function (req, res) {
   const { username, password, otp, next } = req.body || {};
   const result = auth.login(username, password, res, otp);
   if (result && result.ok) return res.redirect(next || '/admin');
