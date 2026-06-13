@@ -66,15 +66,27 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   <div style="margin-top:4px;font-size:10px;color:#94a3b8;">Shift+S = ẩn/hiện</div>
 </div>
 
-<!-- FLV.js library + auto-attach to stream -->
+<!-- 🎬 HLS + FLV libraries -->
+<!-- HLS first (iOS Safari native + hls.js for Chromium) -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+<!-- FLV.js fallback (Chromium browsers, low-latency) -->
 <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
 <script>
 (function initLiveStream(){
   var STREAM_KEY = '<%= __sk %>';
   // 🚀 Dùng live.xoso66tv.com (DNS-only, bypass Cloudflare 100s timeout)
-  var STREAM_URL = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.flv';
+  var STREAM_URL     = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.flv';
+  var STREAM_URL_HLS = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.m3u8';
+  // 🍎 Detect iOS Safari/macOS Safari (native HLS only, không có MSE)
+  var _v = document.createElement('video');
+  var HAS_NATIVE_HLS = _v.canPlayType('application/vnd.apple.mpegurl') !== '';
+  var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // iOS BUỘC dùng HLS (FLV.js không chạy). Khác → ưu tiên FLV (low-latency hơn HLS)
+  var USE_HLS = IS_IOS || HAS_NATIVE_HLS;
+  var CHECK_URL = USE_HLS ? STREAM_URL_HLS : STREAM_URL;
   var POLL_INTERVAL = 8000;
-  var video, flvPlayer, isPlaying = false;
+  var video, flvPlayer, hlsPlayer, isPlaying = false;
+  console.log('[LIVE] mode=' + (USE_HLS ? 'HLS' : 'FLV') + ', native HLS=' + HAS_NATIVE_HLS + ', iOS=' + IS_IOS);
 
   function showEl(id){ var e=document.getElementById(id); if(e)e.classList.remove('hidden'); }
   function hideEl(id){ var e=document.getElementById(id); if(e)e.classList.add('hidden'); }
@@ -119,7 +131,78 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     if (video.muted) showEl('liveUnmute');
   }
 
+  // ═══════════════════════════════════════════════════════
+  // 🍎 HLS ATTACH — iOS Safari native + hls.js fallback
+  // ═══════════════════════════════════════════════════════
+  function attachStreamHls(){
+    video = document.getElementById('liveVideo');
+    if (!video) return;
+    if (hlsPlayer) try{ hlsPlayer.destroy(); hlsPlayer=null; }catch(e){}
+    if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+
+    var onErr = function(){
+      console.log('[LIVE] HLS error → reconnect');
+      hideEl('liveVideo'); hideEl('liveLoading'); hideEl('liveOffline');
+      showEl('liveReconnect');
+      isPlaying = false;
+      startReconnectLoop();
+    };
+
+    if (HAS_NATIVE_HLS) {
+      // 🍎 iOS Safari / macOS Safari — set src trực tiếp, browser tự handle
+      video.src = STREAM_URL_HLS;
+      video.addEventListener('loadedmetadata', onVideoReady, { once: true });
+      video.addEventListener('playing',        onVideoReady, { once: true });
+      video.addEventListener('error', onErr);
+      var p = video.play();
+      if (p && p.catch) p.catch(function(e){
+        console.log('[LIVE] Native HLS autoplay blocked:', e.message);
+        showEl('liveVideo'); hidePlaceholder(); showEl('liveUnmute');
+      });
+      startLatencyGuard();
+      startStatsLoop();
+      return;
+    }
+
+    // Other browsers — dùng hls.js (Chromium, Firefox, Android)
+    if (!window.Hls || !Hls.isSupported()) {
+      console.warn('[LIVE] hls.js not supported, fallback FLV');
+      return attachStreamFlv();
+    }
+    hlsPlayer = new Hls({
+      lowLatencyMode: true,
+      backBufferLength: 4,
+      maxBufferLength: 8,
+      maxMaxBufferLength: 12,
+      liveSyncDuration: 3,
+      liveMaxLatencyDuration: 8
+    });
+    hlsPlayer.loadSource(STREAM_URL_HLS);
+    hlsPlayer.attachMedia(video);
+    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function(){
+      var p = video.play();
+      if (p && p.catch) p.catch(function(){ showEl('liveUnmute'); });
+    });
+    hlsPlayer.on(Hls.Events.ERROR, function(_, data){
+      if (data && data.fatal) onErr();
+    });
+    video.addEventListener('loadedmetadata', onVideoReady, { once: true });
+    video.addEventListener('playing',        onVideoReady, { once: true });
+    startLatencyGuard();
+    startStatsLoop();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ⚡ ROUTER — chọn player phù hợp theo platform
+  // ═══════════════════════════════════════════════════════
   function attachStream(){
+    return USE_HLS ? attachStreamHls() : attachStreamFlv();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // 🎞️ FLV ATTACH (Chromium - giữ nguyên logic cũ low-latency)
+  // ═══════════════════════════════════════════════════════
+  function attachStreamFlv(){
     if (!window.flvjs || !flvjs.isSupported()) { console.log('[LIVE] FLV.js not supported'); return; }
     video = document.getElementById('liveVideo');
     if (!video) return;
@@ -206,7 +289,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
     function checkStreamUrl(){
       var elU = $('ls_url');
       if (!elU) return;
-      fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
+      fetch(CHECK_URL, { method:'HEAD', cache:'no-store' })
         .then(function(r){
           if (r.ok) {
             elU.innerHTML = '<span style="color:#10b981">✅ '+r.status+' OK</span>';
@@ -394,7 +477,7 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
       __reconnectCount++;
       if (countEl) countEl.textContent = __reconnectCount;
       // Check stream còn sống không
-      fetch(STREAM_URL, { method:'HEAD', cache:'no-store' })
+      fetch(CHECK_URL, { method:'HEAD', cache:'no-store' })
         .then(function(r){
           if (r.ok) {
             console.log('[LIVE] ✅ Stream hồi phục sau', __reconnectCount, 'lần thử');
@@ -436,7 +519,12 @@ var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== '
   }
 
   function start(){
-    if (!window.flvjs) { setTimeout(start, 300); return; }
+    // Đợi library phù hợp load xong (HLS cho iOS, hls.js/FLV cho khác)
+    if (USE_HLS) {
+      if (!HAS_NATIVE_HLS && !window.Hls) { setTimeout(start, 300); return; }
+    } else {
+      if (!window.flvjs) { setTimeout(start, 300); return; }
+    }
     bindUnmute();
     initStatsToggle();
     startStatsLoop(); // 🚀 Start stats loop NGAY, không chờ attach
