@@ -349,6 +349,81 @@ setInterval(function(){
   try { missionStore.cleanup(); } catch(_){}
 }, 24 * 60 * 60 * 1000);
 
+// ═══ Mục 26: PUSH NOTIFICATION CRONS ═══
+// (Chỉ chạy ở worker 0 để tránh duplicate)
+if (process.env.NODE_APP_INSTANCE === '0' || !process.env.NODE_APP_INSTANCE) {
+  const push = require('./lib/push');
+
+  // 📅 Daily digest 8:00 AM VN (UTC+7) → 1:00 AM UTC
+  function scheduleDailyDigest() {
+    function nextDigestTime() {
+      const now = new Date();
+      const vn = new Date(now.getTime() + 7 * 3600 * 1000);
+      vn.setUTCHours(8, 0, 0, 0); // 8:00 VN
+      const target = new Date(vn.getTime() - 7 * 3600 * 1000);
+      if (target <= now) target.setUTCDate(target.getUTCDate() + 1);
+      return target - now;
+    }
+    setTimeout(function loop(){
+      push.notifyDailyDigest().catch(function(e){ console.warn('[push] digest fail:', e.message); });
+      console.log('[push] 📅 Sent daily digest');
+      setTimeout(loop, 24 * 60 * 60 * 1000); // 24h
+    }, nextDigestTime());
+  }
+  scheduleDailyDigest();
+
+  // ⏰ Schedule stream reminder check mỗi 5 phút
+  setInterval(function() {
+    try {
+      const scheduleStore = require('./lib/schedule-store');
+      if (!scheduleStore || typeof scheduleStore.list !== 'function') return;
+      const data = db.load();
+      const schedules = scheduleStore.list ? scheduleStore.list() : (data.schedules || []);
+      const now = Date.now();
+      schedules.forEach(function(s){
+        if (s.status !== 'approved') return;
+        if (s._notifiedReminder) return;
+        const startTs = new Date(s.startTime || s.startAt || 0).getTime();
+        const minutesAway = (startTs - now) / 60000;
+        // Notify if starting in 10-15 minutes
+        if (minutesAway >= 10 && minutesAway <= 15) {
+          const idol = (data.idols || []).find(function(i){ return i.id === s.idolId; });
+          push.notifyScheduledStream({
+            id: s.id,
+            idolId: s.idolId,
+            idolName: idol ? idol.name : s.idolId,
+            startTime: new Date(startTs).toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' }),
+            avatar: idol ? idol.avatar : null
+          }).catch(function(){});
+          s._notifiedReminder = true;
+          db.save(data);
+        }
+      });
+    } catch (_) {}
+  }, 5 * 60 * 1000);
+}
+
+// ═══ Mục 26: PUSH PREFERENCES API ═══
+app.get('/api/push/topics', function(req, res){
+  try {
+    const push = require('./lib/push');
+    const u = pubAuth.getUser(req);
+    const topics = u && u.username ? push.getUserTopics(u.username) : [];
+    res.json({ ok:true, all: push.ALL_TOPICS, subscribed: topics });
+  } catch(e){ res.status(500).json({ ok:false, error: e.message }); }
+});
+
+app.post('/api/push/topics', function(req, res){
+  try {
+    const push = require('./lib/push');
+    const u = pubAuth.getUser(req);
+    if (!u || !u.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
+    const topics = Array.isArray(req.body && req.body.topics) ? req.body.topics : [];
+    push.updateUserTopics(u.username, topics);
+    res.json({ ok:true, topics });
+  } catch(e){ res.status(500).json({ ok:false, error: e.message }); }
+});
+
 // ═══ Mục 24: SITEMAP + robots.txt ═══
 app.get('/sitemap.xml', async function (req, res) {
   try {
