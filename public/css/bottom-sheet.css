@@ -1,0 +1,179 @@
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ 📱 BOTTOM SHEET — Mục 15                                       ║
+   ║                                                                ║
+   ║ Slide-up modal cho mobile (TikTok/Instagram style).           ║
+   ║ Auto-fallback sang center modal trên desktop (md+).           ║
+   ║                                                                ║
+   ║ Usage:                                                         ║
+   ║   <div class="x-bs" id="myModal">                              ║
+   ║     <div class="x-bs-handle"></div>     ← drag bar             ║
+   ║     <div class="x-bs-content">...</div>                       ║
+   ║   </div>                                                       ║
+   ║   x66BottomSheet.open('myModal')                              ║
+   ║   x66BottomSheet.close('myModal')                             ║
+   ╚══════════════════════════════════════════════════════════════*/
+
+/* ─── Backdrop ─── */
+.x-bs-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.x-bs-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── Sheet ─── */
+.x-bs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 61;
+  background: var(--bg-card, #1a1f29);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px 20px 0 0;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+  /* Safe area bottom (iPhone notch) */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.x-bs.is-open {
+  transform: translateY(0);
+}
+.x-bs.is-dragging {
+  transition: none;
+}
+
+/* ─── Drag handle ─── */
+.x-bs-handle {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.x-bs-handle::before {
+  content: '';
+  width: 40px;
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.x-bs-handle:active::before {
+  background: rgba(255,255,255,0.5);
+  cursor: grabbing;
+}
+
+/* ─── Header (optional) ─── */
+.x-bs-header {
+  padding: 0 20px 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.x-bs-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+.x-bs-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 1;
+  transition: background 0.15s, transform 0.15s;
+}
+.x-bs-close:hover {
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.05);
+}
+
+/* ─── Content (scrollable) ─── */
+.x-bs-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Snap points (half / full) ─── */
+.x-bs[data-snap="half"] {
+  max-height: 50vh;
+}
+.x-bs[data-snap="auto"] {
+  max-height: 85vh;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📱 MOBILE ONLY: bottom sheet style
+   💻 DESKTOP (md+): convert sang center modal
+   ═══════════════════════════════════════════════════════════════*/
+@media (min-width: 768px) {
+  .x-bs {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    width: min(540px, calc(100vw - 40px));
+    max-height: 80vh;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+    transition: transform 0.25s ease-out, opacity 0.2s;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+  }
+  .x-bs.is-open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  .x-bs-handle {
+    display: none; /* không cần drag handle trên desktop */
+  }
+  .x-bs-content {
+    padding: 20px 24px;
+  }
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .x-bs, .x-bs-backdrop {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Body lock khi sheet mở ─── */
+body.x-bs-lock {
+  overflow: hidden;
+  /* Prevent iOS rubber-band scroll */
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
