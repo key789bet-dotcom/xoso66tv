@@ -2857,7 +2857,20 @@ app.use(function (err, req, res, next) {
 });
 
 const HOST = process.env.HOST || '0.0.0.0';
-app.listen(PORT, HOST, function () {
+
+// 🚀 Mục 10: Tạo HTTP server explicit để Socket.io attach được
+const http = require('http');
+const httpServer = http.createServer(app);
+
+// Attach Socket.io
+try {
+  const socketServer = require('./lib/socket-server');
+  socketServer.attach(httpServer);
+} catch (e) {
+  console.warn('[SOCKET] attach fail (fallback polling):', e.message);
+}
+
+httpServer.listen(PORT, HOST, function () {
   console.log('XOSO66 TV (Tailwind) chạy tại ' + SITE);
   console.log('  Local:    http://localhost:' + PORT);
   console.log('  Network:  http://<YOUR-IP>:' + PORT + ' (truy cập từ điện thoại cùng WiFi)');
