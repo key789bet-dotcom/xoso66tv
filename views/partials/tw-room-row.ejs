@@ -3,6 +3,23 @@
    var _lock   = _isIdol ? (m.lock||0) : 0;
    var _href   = _isIdol ? 'javascript:void(0)' : ('/live/' + (m.slug || m.id));
    var _onclick= _isIdol ? ('tryEnterIdolRow(this,event)') : '';
+   // 🏆 Ảnh nền giải đấu (chỉ áp cho sports rows, không phải idol)
+   var _rrBgs = (typeof leagueBgs !== 'undefined' && leagueBgs) ? leagueBgs : {};
+   function _rrNormLg(s){ return String(s||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim(); }
+   var _rowBg = '';
+   if (!_isIdol && m.league) {
+     if (_rrBgs[m.league]) _rowBg = _rrBgs[m.league];
+     else {
+       var _rt = _rrNormLg(m.league);
+       for (var _rk in _rrBgs) {
+         if (_rk === '__default__') continue;
+         if (_rrNormLg(_rk) === _rt) { _rowBg = _rrBgs[_rk]; break; }
+       }
+     }
+   }
+   if (!_rowBg && !_isIdol && _rrBgs['__default__']) _rowBg = _rrBgs['__default__'];
+   // Fallback cuối: poster gốc của trận
+   if (!_rowBg && m.poster) _rowBg = m.poster;
 %>
 <a href="<%= _href %>"
    <% if (_isIdol) { %>onclick="<%= _onclick %>"
@@ -10,8 +27,8 @@
    class="flex items-center gap-2.5 px-3 py-2.5 border-b border-line/40 hover:bg-bg-soft transition-colors group">
   <!-- Thumb -->
   <div class="relative w-[68px] h-[44px] rounded-md overflow-hidden bg-gradient-to-br <%= _isIdol ? 'from-purple to-pink' : 'from-[#1a2030] to-bg' %> shrink-0 border border-line/40">
-    <% if (m.poster) { %>
-      <img src="<%= m.poster %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+    <% if (_rowBg) { %>
+      <img src="<%= _rowBg %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
     <% } else if (_isIdol) { %>
       <div class="absolute inset-0 grid place-items-center text-2xl text-white"><%= m.emoji || '👑' %></div>
     <% } %>
