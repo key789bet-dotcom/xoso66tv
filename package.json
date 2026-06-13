@@ -8,7 +8,12 @@
     "dev": "node --watch server.js",
     "build:css": "tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind-built.css --minify",
     "watch:css": "tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind-built.css --watch",
-    "gen-vapid": "node -e \"const k=require('web-push').generateVAPIDKeys();console.log('VAPID_PUBLIC_KEY='+k.publicKey);console.log('VAPID_PRIVATE_KEY='+k.privateKey);console.log('VAPID_SUBJECT=mailto:admin@xoso66tv.com');\""
+    "gen-vapid": "node -e \"const k=require('web-push').generateVAPIDKeys();console.log('VAPID_PUBLIC_KEY='+k.publicKey);console.log('VAPID_PRIVATE_KEY='+k.privateKey);console.log('VAPID_SUBJECT=mailto:admin@xoso66tv.com');\"",
+    "backup": "node scripts/backup.js",
+    "backup:upload": "node scripts/backup.js --upload",
+    "backup:dry": "node scripts/backup.js --dry",
+    "backup:list": "node scripts/restore.js list",
+    "backup:restore": "node scripts/restore.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

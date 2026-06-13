@@ -272,7 +272,7 @@ app.use(async function (req, res, next) {
   next();
 });
 
-// ═══ HEALTH CHECK — monitor SQLite + Redis ═══
+// ═══ HEALTH CHECK — monitor SQLite + Redis + Backup ═══
 app.get('/api/health', async function (req, res) {
   const redis = require('./lib/redis');
   let dbOk = false, dbUsers = 0;
@@ -281,6 +281,24 @@ app.get('/api/health', async function (req, res) {
     dbOk = true;
     dbUsers = (data.users || []).length;
   } catch (_) {}
+  // Mục 28: backup health
+  let backup = null;
+  try { backup = require('./lib/backup-status').getBackupHealth(); }
+  catch (_) { backup = { ok: false, reason: 'status_module_error' }; }
+  // Nếu backup stale → tự alert Sentry 1 lần/giờ (idempotent qua module cache)
+  if (backup && !backup.ok && backup.reason === 'stale') {
+    try {
+      const sentry = require('./lib/sentry');
+      if (sentry.isReady() && !global.__bk_alerted) {
+        sentry.captureMessage(
+          '🚨 Backup STALE: ' + (backup.hours || '?') + 'h since last backup',
+          'warning'
+        );
+        global.__bk_alerted = true;
+        setTimeout(function(){ global.__bk_alerted = false; }, 3600000); // 1h cooldown
+      }
+    } catch (_) {}
+  }
   res.json({
     ok: true,
     service: 'xoso66tv',
@@ -288,6 +306,7 @@ app.get('/api/health', async function (req, res) {
     uptime: Math.round(process.uptime()),
     db: { ok: dbOk, users: dbUsers },
     redis: { ready: redis.isReady() },
+    backup: backup,
     pid: process.pid,
     memMB: Math.round(process.memoryUsage().rss / 1024 / 1024)
   });
