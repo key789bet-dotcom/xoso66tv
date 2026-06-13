@@ -280,6 +280,47 @@ app.use(async function (req, res, next) {
   next();
 });
 
+// ═══ Mục 24: SITEMAP + robots.txt ═══
+app.get('/sitemap.xml', async function (req, res) {
+  try {
+    const sg = require('./lib/sitemap-gen');
+    const { xml, fromCache } = await sg.getSitemap();
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('X-Cache', fromCache);
+    res.setHeader('Cache-Control', 'public, max-age=21600, stale-while-revalidate=86400');
+    res.send(xml);
+  } catch (e) {
+    console.error('[SITEMAP] error:', e.message);
+    res.status(500).send('Sitemap generation error');
+  }
+});
+
+app.get('/robots.txt', function (req, res) {
+  try {
+    const sg = require('./lib/sitemap-gen');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(sg.getRobotsTxt());
+  } catch (e) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.send('User-agent: *\nAllow: /\n');
+  }
+});
+
+// Sitemap auto-regenerate mỗi 6 giờ (chỉ worker 0 để tránh duplicate)
+if (process.env.NODE_APP_INSTANCE === '0' || !process.env.NODE_APP_INSTANCE) {
+  setInterval(function() {
+    try {
+      const sg = require('./lib/sitemap-gen');
+      sg.regenerate().then(function(r){
+        console.log('[SITEMAP] 🔄 Scheduled regenerate done (' + (r.xml.length/1024).toFixed(1) + ' KB)');
+      }).catch(function(e){
+        console.warn('[SITEMAP] scheduled regen fail:', e.message);
+      });
+    } catch (_) {}
+  }, 6 * 60 * 60 * 1000); // 6 giờ
+}
+
 // ═══ HEALTH CHECK — monitor SQLite + Redis + Backup ═══
 app.get('/api/health', async function (req, res) {
   const redis = require('./lib/redis');

@@ -1,3 +1,17 @@
+<%
+/* ═══ Schema.org JSON-LD — Mục 25 ═══
+   Outputs:
+     1. Organization (toàn site)
+     2. WebSite + SearchAction (toàn site)
+     3. BreadcrumbList (nếu _crumbs[])
+     4. VideoObject + BroadcastEvent (nếu _videoSchema = {title, thumbnail, isLiveNow, ...})
+     5. SportsEvent (nếu _sportsEvent = {home, away, league, startDate})
+     6. NewsArticle (nếu _newsArticle = {title, publishedAt, body, image})
+*/
+const _logo = (typeof brand !== 'undefined' && brand.logo) ? brand.logo : '/static/img/logoxoso66tv.webp';
+const _absLogo = _logo.startsWith('http') ? _logo : (_site + _logo);
+const _name = (typeof brand !== 'undefined' && brand.name) ? brand.name : 'XOSO66 TV';
+%>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -5,32 +19,98 @@
     {
       "@type": "Organization",
       "@id": "<%= _site %>#org",
-      "name": "<%= brand.name %>",
+      "name": "<%= _name %>",
+      "alternateName": "XOSO66",
       "url": "<%= _site %>",
-      "logo": "<%= _site %>/static/img/logo.png",
-      "sameAs": ["<%= partner.home %>", "<%= partner.telegram %>"]
+      "logo": {
+        "@type": "ImageObject",
+        "url": "<%= _absLogo %>",
+        "width": 512,
+        "height": 512
+      },
+      "sameAs": [
+        "https://facebook.com/xoso66tv",
+        "https://youtube.com/@xoso66tv",
+        "https://tiktok.com/@xoso66tv"
+      ]
     },
     {
       "@type": "WebSite",
       "@id": "<%= _site %>#site",
       "url": "<%= _site %>",
-      "name": "<%= brand.name %>",
+      "name": "<%= _name %>",
       "inLanguage": "vi-VN",
       "publisher": { "@id": "<%= _site %>#org" },
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "<%= _site %>/lich-phat-song?q={search_term_string}",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "<%= _site %>/lich-phat-song?q={search_term_string}"
+        },
         "query-input": "required name=search_term_string"
       }
-    }<% if (_crumbs.length) { %>,
+    }<% if (_crumbs && _crumbs.length) { %>,
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type":"ListItem","position":1,"name":"Trang chu","item":"<%= _site %>/"}
+        { "@type":"ListItem","position":1,"name":"Trang chủ","item":"<%= _site %>/"}
         <% _crumbs.forEach(function (c, i) { %>,
         { "@type":"ListItem","position":<%= i+2 %>,"name":<%- JSON.stringify(c.name) %>,"item":"<%= _site + c.url %>"}
         <% }); %>
       ]
+    }<% } %><% if (typeof _videoSchema !== 'undefined' && _videoSchema) { %>,
+    {
+      "@type": "VideoObject",
+      "name": <%- JSON.stringify(_videoSchema.title || '') %>,
+      "description": <%- JSON.stringify(_videoSchema.description || _videoSchema.title || '') %>,
+      "thumbnailUrl": "<%= _videoSchema.thumbnail || _absLogo %>",
+      "uploadDate": "<%= _videoSchema.uploadDate || new Date().toISOString() %>",
+      "contentUrl": "<%= _videoSchema.url || _site %>",
+      "embedUrl": "<%= _videoSchema.url || _site %>",
+      "publisher": { "@id": "<%= _site %>#org" },
+      "inLanguage": "vi-VN"<% if (_videoSchema.isLiveNow) { %>,
+      "publication": {
+        "@type": "BroadcastEvent",
+        "isLiveBroadcast": true,
+        "startDate": "<%= _videoSchema.startTime || new Date().toISOString() %>"<% if (_videoSchema.endTime) { %>,
+        "endDate": "<%= _videoSchema.endTime %>"<% } %>
+      }<% } %>
+    }<% } %><% if (typeof _sportsEvent !== 'undefined' && _sportsEvent) { %>,
+    {
+      "@type": "SportsEvent",
+      "name": <%- JSON.stringify(_sportsEvent.name || '') %>,
+      "sport": <%- JSON.stringify(_sportsEvent.sport || 'Football') %>,
+      "startDate": "<%= _sportsEvent.startDate || new Date().toISOString() %>",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+      "location": {
+        "@type": "VirtualLocation",
+        "url": "<%= _sportsEvent.url || _site %>"
+      }<% if (_sportsEvent.home || _sportsEvent.away) { %>,
+      "competitor": [
+        <% if (_sportsEvent.home) { %>{ "@type": "SportsTeam", "name": <%- JSON.stringify(_sportsEvent.home) %> }<% } %>
+        <% if (_sportsEvent.home && _sportsEvent.away) { %>,<% } %>
+        <% if (_sportsEvent.away) { %>{ "@type": "SportsTeam", "name": <%- JSON.stringify(_sportsEvent.away) %> }<% } %>
+      ]<% } %><% if (_sportsEvent.league) { %>,
+      "superEvent": { "@type": "SportsEvent", "name": <%- JSON.stringify(_sportsEvent.league) %> }<% } %>
+    }<% } %><% if (typeof _newsArticle !== 'undefined' && _newsArticle) { %>,
+    {
+      "@type": "NewsArticle",
+      "headline": <%- JSON.stringify(_newsArticle.title || '') %>,
+      "description": <%- JSON.stringify(_newsArticle.description || _newsArticle.title || '') %>,
+      "image": "<%= _newsArticle.image || _absLogo %>",
+      "datePublished": "<%= _newsArticle.publishedAt || new Date().toISOString() %>",
+      "dateModified": "<%= _newsArticle.modifiedAt || _newsArticle.publishedAt || new Date().toISOString() %>",
+      "author": {
+        "@type": "Organization",
+        "name": <%- JSON.stringify(_newsArticle.author || _name) %>
+      },
+      "publisher": { "@id": "<%= _site %>#org" },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "<%= _newsArticle.url || _site %>"
+      },
+      "inLanguage": "vi-VN"
     }<% } %>
   ]
 }
