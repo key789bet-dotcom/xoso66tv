@@ -1,3 +1,5 @@
+[![Deploy](https://github.com/key789bet-dotcom/xoso66tv/actions/workflows/deploy.yml/badge.svg)](https://github.com/key789bet-dotcom/xoso66tv/actions/workflows/deploy.yml)
+
 # XOSO66 TV — Web phát sóng trực tiếp đa môn (style OkwinTV)
 
 Trang phát sóng trực tiếp đa môn thể thao + casino + idol live, **dữ liệu thật** từ TheSportsDB API (miễn phí), **URL sạch không `.html`**, liên kết affiliate đầy đủ tới **xoso66tv.com**.
