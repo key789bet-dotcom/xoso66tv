@@ -75,6 +75,14 @@ app.use(function(req, res, next){
   next();
 });
 
+// 🛡️ Mục 20: Turnstile CAPTCHA — expose site key cho EJS templates
+const turnstile = require('./lib/turnstile');
+app.use(function(req, res, next){
+  res.locals.turnstileSiteKey = turnstile.getSiteKey() || '';
+  res.locals.turnstileEnabled = turnstile.isConfigured();
+  next();
+});
+
 // 🛡️ Mục 21: CSRF protection — ensure token cho mọi request + verify trên POST/PUT/DELETE
 const csrf = require('./lib/csrf');
 app.use(csrf.ensureToken);
@@ -832,7 +840,7 @@ app.get('/api/auth/2fa/status', requireAnyAdmin, function (req, res){
 });
 
 // ===== USER REGISTRATION với bcrypt =====
-app.post('/api/auth/register', sec.registerStrictLimiter, async function (req, res){
+app.post('/api/auth/register', sec.registerStrictLimiter, turnstile.middleware(), async function (req, res){
   const b = req.body || {};
   if (!b.username || b.username.length < 3) return res.status(400).json({ ok:false, error:'Username tối thiểu 3 ký tự' });
   if (!b.password || b.password.length < 8) return res.status(400).json({ ok:false, error:'Mật khẩu tối thiểu 8 ký tự' });

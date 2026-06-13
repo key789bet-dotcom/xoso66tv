@@ -1,0 +1,52 @@
+<%# 🛡️ Mục 20: Cloudflare Turnstile widget
+    Usage: <%- include('partials/tw-turnstile-widget') %>
+
+    Auto-hide nếu chưa cấu hình ENV (developer mode).
+    Token sẽ tự render vào input name="cf_token" trong form bao quanh widget. %>
+
+<% if (typeof turnstileEnabled !== 'undefined' && turnstileEnabled && turnstileSiteKey) { %>
+  <div class="my-3">
+    <!-- Hidden input để gửi token kèm form submit -->
+    <input type="hidden" name="cf_token" id="cf_token_input">
+    <!-- Widget container -->
+    <div class="cf-turnstile inline-block mx-auto"
+         data-sitekey="<%= turnstileSiteKey %>"
+         data-theme="dark"
+         data-language="vi"
+         data-callback="x66TurnstileSuccess"
+         data-error-callback="x66TurnstileError"
+         data-expired-callback="x66TurnstileExpired"></div>
+    <div id="cf_turnstile_status" class="text-[11px] text-muted mt-1 text-center">
+      Vui lòng hoàn thành xác minh
+    </div>
+  </div>
+
+  <%# Load script một lần (idempotent) %>
+  <script>
+    if (!window.x66TurnstileLoaded) {
+      window.x66TurnstileLoaded = true;
+      var s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__cfOnLoad';
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    }
+    window.__cfOnLoad = window.__cfOnLoad || function(){};
+
+    window.x66TurnstileSuccess = function(token) {
+      var i = document.getElementById('cf_token_input');
+      if (i) i.value = token;
+      var s = document.getElementById('cf_turnstile_status');
+      if (s) { s.textContent = '✅ Đã xác minh'; s.classList.add('text-green-400'); s.classList.remove('text-muted'); }
+    };
+    window.x66TurnstileError = function() {
+      var s = document.getElementById('cf_turnstile_status');
+      if (s) { s.textContent = '❌ Lỗi xác minh. Vui lòng tải lại trang.'; s.classList.add('text-live'); }
+    };
+    window.x66TurnstileExpired = function() {
+      var i = document.getElementById('cf_token_input');
+      if (i) i.value = '';
+      var s = document.getElementById('cf_turnstile_status');
+      if (s) { s.textContent = '⏱️ Hết hạn. Vui lòng xác minh lại.'; s.classList.add('text-pri-light'); }
+    };
+  </script>
+<% } %>
