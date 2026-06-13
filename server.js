@@ -432,6 +432,43 @@ app.post('/api/push/topics', function(req, res){
   } catch(e){ res.status(500).json({ ok:false, error: e.message }); }
 });
 
+// ═══ Mục 23: SSR OG IMAGE dynamic ═══
+const ogImage = require('./lib/og-image');
+
+function sendOgImage(res, bufferPromise) {
+  bufferPromise.then(function(buf){
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    res.send(buf);
+  }).catch(function(e){
+    console.warn('[OG] generate fail:', e.message);
+    res.status(500).send('OG generation error');
+  });
+}
+
+app.get('/og/home.png',         function(req, res){ sendOgImage(res, ogImage.getHome()); });
+app.get('/og/default.png',      function(req, res){ sendOgImage(res, ogImage.getDefault()); });
+app.get('/og/idol/:id.png',     function(req, res){ sendOgImage(res, ogImage.getIdol(req.params.id)); });
+app.get('/og/match/:slug.png',  function(req, res){
+  // Try resolve match from API/DB
+  api.getLiveStreams().then(function(live){
+    const m = (live || []).find(function(x){ return (x.slug || x.id) === req.params.slug; });
+    if (m) {
+      sendOgImage(res, ogImage.getMatch({
+        slug: req.params.slug,
+        home: m.home, away: m.away,
+        league: m.league || m.competition,
+        time: m.time,
+        isLive: true
+      }));
+    } else {
+      sendOgImage(res, ogImage.getMatch({ slug: req.params.slug, home: 'TBD', away: 'TBD' }));
+    }
+  }).catch(function(){
+    sendOgImage(res, ogImage.getMatch({ slug: req.params.slug, home: 'TBD', away: 'TBD' }));
+  });
+});
+
 // ═══ Mục 24: SITEMAP + robots.txt ═══
 app.get('/sitemap.xml', async function (req, res) {
   try {

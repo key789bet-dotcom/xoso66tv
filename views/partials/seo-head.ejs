@@ -6,7 +6,21 @@ var _K2 = _S2.keywords || ('xem bóng đá trực tiếp, livescore, casino tr�
 var _U2 = (typeof siteUrl !== 'undefined' && siteUrl) ? siteUrl : ('https://www.' + brand.domain);
 var _P2 = (typeof path !== 'undefined' ? path : '/');
 var _C2 = _S2.canonical ? (_U2 + _S2.canonical) : (_U2 + _P2);
-var _I2 = _S2.ogImage || (_U2 + '/static/img/logoxoso66tv.webp');
+// 🎨 Mục 23: Dynamic OG image — auto detect type từ path
+function _detectOgImage(seoImg, url, p) {
+  if (seoImg) return seoImg;
+  // Idol/BLV page
+  var m = (p || '').match(/^\/idol\/([^\/?]+)/);
+  if (m) return url + '/og/idol/' + encodeURIComponent(m[1]) + '.png';
+  // Match page
+  m = (p || '').match(/^\/live\/([^\/?]+)/);
+  if (m) return url + '/og/match/' + encodeURIComponent(m[1]) + '.png';
+  // Home
+  if (p === '/' || p === '') return url + '/og/home.png';
+  // Default
+  return url + '/og/default.png';
+}
+var _I2 = _detectOgImage(_S2.ogImage, _U2, _P2);
 var _OT2 = _S2.ogType || 'website';
 var _NX2 = _S2.noindex ? true : false;
 var _CB2 = _S2.breadcrumb || [];
