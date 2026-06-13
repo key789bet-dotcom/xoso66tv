@@ -1,0 +1,148 @@
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ 🎨 SKELETON LOADER + OPTIMISTIC UI — Mục 13+14               ║
+   ║                                                                ║
+   ║ Use cases:                                                     ║
+   ║   <div class="x-skel x-skel-card"></div>      — card placeholder
+   ║   <div class="x-skel x-skel-text"></div>      — text placeholder
+   ║   <div class="x-skel x-skel-avatar"></div>    — circular avatar
+   ║   <div class="x-skel x-skel-thumbnail"></div> — 16:9 video thumb
+   ║                                                                ║
+   ║ Optimistic UI:                                                 ║
+   ║   .x-optimistic        — pending state (50% opacity)          ║
+   ║   .x-optimistic-error  — flash red khi rollback               ║
+   ╚══════════════════════════════════════════════════════════════*/
+
+@keyframes x-skel-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.x-skel {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: x-skel-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+  display: block;
+  /* GPU layer cho mượt */
+  will-change: background-position;
+  transform: translateZ(0);
+}
+
+/* Light mode */
+:root:not(.dark) .x-skel {
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.04) 0%,
+    rgba(0,0,0,0.10) 50%,
+    rgba(0,0,0,0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* ─── Variants ─── */
+.x-skel-text {
+  height: 12px;
+  margin: 4px 0;
+}
+.x-skel-text-lg {
+  height: 18px;
+}
+.x-skel-text-sm {
+  height: 8px;
+}
+.x-skel-line-50  { width: 50%; }
+.x-skel-line-75  { width: 75%; }
+.x-skel-line-90  { width: 90%; }
+.x-skel-line-100 { width: 100%; }
+
+.x-skel-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.x-skel-avatar-sm {
+  width: 28px; height: 28px;
+}
+.x-skel-avatar-lg {
+  width: 56px; height: 56px;
+}
+
+.x-skel-thumbnail {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.x-skel-card {
+  /* Wrapper: tạo card với thumbnail + 2 lines text */
+  padding: 0;
+  background: transparent !important;
+  animation: none;
+}
+.x-skel-card .x-skel-body {
+  padding: 12px 4px 0;
+}
+
+.x-skel-circle {
+  border-radius: 50%;
+}
+
+.x-skel-pill {
+  height: 28px;
+  border-radius: 999px;
+}
+
+.x-skel-button {
+  height: 36px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* ─── Optimistic UI states ─── */
+.x-optimistic {
+  opacity: 0.55;
+  filter: saturate(0.7);
+  position: relative;
+  pointer-events: none;
+  transition: opacity 0.2s, filter 0.2s;
+}
+.x-optimistic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 50%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: x-skel-shimmer 1s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.x-optimistic-success {
+  opacity: 1;
+  filter: none;
+  animation: x-flash-success 0.5s ease-out;
+}
+.x-optimistic-error {
+  animation: x-flash-error 0.4s ease-out;
+}
+@keyframes x-flash-success {
+  0%   { background-color: rgba(16, 185, 129, 0.25); }
+  100% { background-color: transparent; }
+}
+@keyframes x-flash-error {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); background-color: rgba(239, 68, 68, 0.18); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+/* ─── Reduced motion: tắt shimmer ─── */
+@media (prefers-reduced-motion: reduce) {
+  .x-skel, .x-optimistic::after { animation: none !important; }
+}

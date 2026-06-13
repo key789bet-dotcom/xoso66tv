@@ -1,0 +1,26 @@
+<%
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ SKELETON CARD partial — Mục 13                                ║
+   ║                                                                ║
+   ║ Use: <%- include('partials/tw-skeleton-card', { count: 8 }) %>║
+   ║                                                                ║
+   ║ Render N stream-card placeholders với shimmer animation       ║
+   ╚══════════════════════════════════════════════════════════════*/
+const _n = (typeof count !== 'undefined' && +count > 0) ? +count : 6;
+%>
+<% for (let i = 0; i < _n; i++) { %>
+  <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+    <div class="x-skel x-skel-thumbnail"></div>
+    <div class="p-3">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="x-skel x-skel-avatar x-skel-avatar-sm"></div>
+        <div class="flex-1">
+          <div class="x-skel x-skel-text x-skel-line-75"></div>
+          <div class="x-skel x-skel-text x-skel-text-sm x-skel-line-50"></div>
+        </div>
+      </div>
+      <div class="x-skel x-skel-text x-skel-line-90"></div>
+      <div class="x-skel x-skel-text x-skel-line-50"></div>
+    </div>
+  </div>
+<% } %>
