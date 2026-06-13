@@ -327,27 +327,53 @@ window.x66ShowAdminBadge = function(){
   };
 })();
 
+/* 🎨 Mục 17: 3-mode theme — cycle Auto → Light → Dark → Auto.
+   Apply ngay đã được thực hiện trong head.ejs script — đây chỉ là user toggle. */
 function toggleTheme(){
   var html = document.documentElement;
-  var isDark = html.classList.contains('dark');
-  if (isDark) { html.classList.remove('dark'); try { localStorage.setItem('x66_theme','light'); } catch(e){} }
-  else        { html.classList.add('dark');    try { localStorage.setItem('x66_theme','dark');  } catch(e){} }
+  var cur;
+  try { cur = localStorage.getItem('x66_theme') || 'auto'; } catch(e){ cur = 'auto'; }
+  var next;
+  if (cur === 'auto')       next = 'light';
+  else if (cur === 'light') next = 'dark';
+  else                      next = 'auto';
+  try { localStorage.setItem('x66_theme', next); } catch(e){}
+  // Apply ngay
+  if (next === 'light') {
+    html.classList.remove('dark');
+  } else if (next === 'dark') {
+    html.classList.add('dark');
+  } else { /* auto → follow OS */
+    var osLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    if (osLight) html.classList.remove('dark');
+    else         html.classList.add('dark');
+  }
   updateThemeIcon();
 }
 function updateThemeIcon(){
-  var isDark = document.documentElement.classList.contains('dark');
+  var html = document.documentElement;
+  var isDark = html.classList.contains('dark');
   var d = document.getElementById('themeIconDark');
   var l = document.getElementById('themeIconLight');
   if (d && l) { d.classList.toggle('hidden', !isDark); l.classList.toggle('hidden', isDark); }
+  // Update tooltip để user biết mode hiện tại
+  var btn = document.getElementById('themeToggle');
+  if (btn) {
+    var cur = 'auto';
+    try { cur = localStorage.getItem('x66_theme') || 'auto'; } catch(e){}
+    var label = cur === 'auto' ? 'Tự động (theo hệ điều hành)'
+              : cur === 'light' ? 'Chế độ Sáng'
+              : 'Chế độ Tối';
+    btn.setAttribute('title', label + ' — Click để đổi');
+    btn.setAttribute('aria-label', label);
+  }
 }
 (function(){
-  try {
-    var saved = localStorage.getItem('x66_theme');
-    if (saved === 'light') document.documentElement.classList.remove('dark');
-    else if (saved === 'dark') document.documentElement.classList.add('dark');
-  } catch(e){}
+  // Update icon khi page load (head.ejs đã apply class rồi)
   if (document.readyState !== 'loading') updateThemeIcon();
   else document.addEventListener('DOMContentLoaded', updateThemeIcon);
+  // Listen OS change qua custom event từ head.ejs script
+  window.addEventListener('x66:themechange', updateThemeIcon);
 })();
 function hdrLogout(){
   if (!confirm('Ban co chac muon dang xuat?')) return;

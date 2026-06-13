@@ -21,7 +21,36 @@
 <link rel="preconnect" href="https://cdn.tailwindcss.com">
 <link rel="dns-prefetch" href="https://api.thethaoviet.vip">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script>(function(){try{var t=localStorage.getItem('x66_theme');if(t==='light')document.documentElement.classList.remove('dark');}catch(e){}})();</script>
+<%# 🎨 Mục 17: Theme respect system preference — apply NGAY để tránh FOUC.
+    Logic:
+      - localStorage.x66_theme = 'dark'  → force dark
+      - localStorage.x66_theme = 'light' → force light
+      - localStorage.x66_theme = 'auto' OR null → follow OS prefers-color-scheme
+    Default class trên <html> = "dark" (set ở dòng 2). Script này chỉ xử lý 2 trường hợp khác. %>
+<script>(function(){try{
+  var t = localStorage.getItem('x66_theme');
+  var html = document.documentElement;
+  var osLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  if (t === 'light')      html.classList.remove('dark');
+  else if (t === 'dark')  html.classList.add('dark');
+  else { /* auto or null */
+    if (osLight) html.classList.remove('dark');
+    else         html.classList.add('dark');
+  }
+  // Live listener: khi user đổi OS theme + đang chế độ AUTO → site tự switch
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function(e){
+        var cur = localStorage.getItem('x66_theme');
+        if (cur && cur !== 'auto') return; // user đã override manual → KHÔNG auto-switch
+        if (e.matches) html.classList.remove('dark');
+        else           html.classList.add('dark');
+        // Notify other JS (header icon update) qua custom event
+        try { window.dispatchEvent(new CustomEvent('x66:themechange', { detail:{ mode:'auto', isDark:!e.matches } })); } catch(_){}
+      });
+    } catch(e2){}
+  }
+}catch(e){}})();</script>
 <!-- Anti-inspect: chặn F12 / right-click / Ctrl+U / detect DevTools. Bypass bằng ?dev=1 -->
 <script src="/static/js/anti-inspect.js?v=1" defer></script>
 <%- include('tailwind-config') %>
