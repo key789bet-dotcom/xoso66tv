@@ -23,6 +23,7 @@
     <span class="ml-auto text-[11px] text-muted">Click de mo / dong form</span>
   </summary>
   <form action="/admin/users/create" method="POST" class="p-5 border-t border-line space-y-3">
+    <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><input type="hidden" name="_csrf" value="<%= csrfToken %>"><% } %>
     <div class="grid md:grid-cols-2 gap-3">
       <label class="block">
         <span class="block text-xs font-bold text-muted mb-1.5 uppercase tracking-wide">Username *</span>

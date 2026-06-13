@@ -11,6 +11,7 @@
 </section>
 
 <form action="/admin/links" method="POST" class="space-y-5">
+  <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><input type="hidden" name="_csrf" value="<%= csrfToken %>"><% } %>
 
   <% Object.keys(grouped).forEach(function(group){ %>
     <section class="bg-bg-card border border-line rounded-xl overflow-hidden">

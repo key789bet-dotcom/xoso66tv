@@ -41,6 +41,7 @@
     Thêm promo mới
   </summary>
   <form action="/admin/promos" method="POST" enctype="multipart/form-data" class="p-5 border-t border-line space-y-3">
+    <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><input type="hidden" name="_csrf" value="<%= csrfToken %>"><% } %>
     <div class="grid md:grid-cols-2 gap-3">
       <label class="block">
         <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Tiêu đề *</span>
@@ -102,6 +103,7 @@
 
         <!-- Edit form -->
         <form action="/admin/promos/<%= p.id %>" method="POST" enctype="multipart/form-data" class="flex-1 grid md:grid-cols-2 gap-2 text-sm">
+          <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><input type="hidden" name="_csrf" value="<%= csrfToken %>"><% } %>
           <label class="md:col-span-2">
             <span class="block text-[10px] font-bold text-muted uppercase mb-1">Tiêu đề</span>
             <input name="title" value="<%= p.title %>" maxlength="80" class="w-full bg-bg-deep border border-line text-white px-2.5 py-2 rounded outline-none focus:border-pri text-xs">

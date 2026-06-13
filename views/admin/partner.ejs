@@ -21,6 +21,7 @@
 <section class="bg-bg-card border border-line rounded-xl p-5 mb-5">
   <h2 class="text-white font-extrabold text-base mb-4 flex items-center gap-2">⚙ Cấu hình</h2>
   <form action="/admin/partner" method="POST" class="space-y-4">
+    <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><input type="hidden" name="_csrf" value="<%= csrfToken %>"><% } %>
     <div class="grid md:grid-cols-2 gap-3">
       <label class="block">
         <span class="block text-xs font-bold text-muted mb-1.5 uppercase">Webhook Secret (HMAC key)</span>
