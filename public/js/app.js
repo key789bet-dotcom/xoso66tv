@@ -1,3 +1,70 @@
+/* ═══════════════════════════════════════════════════════════════
+   🛡️ Mục 21: CSRF — auto-inject X-CSRF-Token vào TẤT CẢ fetch() / XHR
+   ═══════════════════════════════════════════════════════════════
+   Strategy: wrap native fetch + XMLHttpRequest để mọi request POST/PUT/DELETE
+   tự động kèm header X-CSRF-Token từ meta tag <meta name="csrf-token">.
+   Skip cross-origin requests (chỉ inject same-origin). */
+(function(){
+  function getCsrfToken() {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute('content') : '';
+  }
+  function isSameOrigin(url) {
+    if (!url) return true;
+    if (typeof url !== 'string') url = String(url);
+    // Relative URL hoặc cùng origin
+    if (/^\//.test(url) || url.indexOf('://') === -1) return true;
+    try {
+      var u = new URL(url, location.href);
+      return u.origin === location.origin;
+    } catch(e){ return false; }
+  }
+  // ─── Wrap fetch ───
+  var _origFetch = window.fetch;
+  if (_origFetch) {
+    window.fetch = function(input, init) {
+      try {
+        var url = (input && input.url) ? input.url : input;
+        var method = (init && init.method) ? init.method.toUpperCase() : 'GET';
+        if (isSameOrigin(url) && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+          init = init || {};
+          init.headers = init.headers || {};
+          var tok = getCsrfToken();
+          if (tok) {
+            // Headers can be Headers obj hoặc plain object
+            if (init.headers instanceof Headers) {
+              init.headers.set('X-CSRF-Token', tok);
+            } else {
+              init.headers['X-CSRF-Token'] = tok;
+            }
+          }
+          // Đảm bảo gửi cookie cùng origin
+          if (!init.credentials) init.credentials = 'same-origin';
+        }
+      } catch(e){}
+      return _origFetch.call(this, input, init);
+    };
+  }
+  // ─── Wrap XMLHttpRequest ───
+  var _origOpen = XMLHttpRequest.prototype.open;
+  var _origSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function(method, url) {
+    this._csrfMethod = String(method || '').toUpperCase();
+    this._csrfUrl = url;
+    return _origOpen.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function(body) {
+    try {
+      var m = this._csrfMethod;
+      if (m && m !== 'GET' && m !== 'HEAD' && m !== 'OPTIONS' && isSameOrigin(this._csrfUrl)) {
+        var tok = getCsrfToken();
+        if (tok) this.setRequestHeader('X-CSRF-Token', tok);
+      }
+    } catch(e){}
+    return _origSend.apply(this, arguments);
+  };
+})();
+
 /* ===== Sidebar mobile toggle (Tailwind version) ===== */
 function toggleSidebar(){
   var sb = document.getElementById('sidebar');

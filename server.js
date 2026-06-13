@@ -75,6 +75,12 @@ app.use(function(req, res, next){
   next();
 });
 
+// 🛡️ Mục 21: CSRF protection — ensure token cho mọi request + verify trên POST/PUT/DELETE
+const csrf = require('./lib/csrf');
+app.use(csrf.ensureToken);
+// Verify CSRF cho POST/PUT/DELETE — PHẢI sau body-parser
+// (sẽ attach sau khi express.json/urlencoded middleware đã chạy → xem dưới)
+
 const PORT = process.env.PORT || 4000;
 const SITE = process.env.SITE_URL || ('http://localhost:' + PORT);
 
@@ -119,6 +125,13 @@ try {
 
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+// 🛡️ Mục 21: CSRF verify — phải SAU body-parser để đọc được req.body._csrf
+//    Skip GET/HEAD/OPTIONS + webhook + health (config trong lib/csrf.js)
+//    Có thể disable tạm bằng ENV CSRF_DISABLED=1 cho debug
+if (process.env.CSRF_DISABLED !== '1') {
+  app.use(csrf.verify);
+}
 
 // ⚡ Static assets - cache 30 ngày + immutable (file hash bust qua ?v=)
 app.use('/static', express.static(path.join(__dirname, 'public'), {

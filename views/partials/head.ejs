@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<%# 🛡️ Mục 21: CSRF token — JS đọc qua document.querySelector('meta[name=csrf-token]').content %>
+<% if (typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
 <link rel="icon" type="image/webp" href="/static/img/favicon.webp">
 <link rel="apple-touch-icon" href="/static/img/favicon.webp">
 <!-- PWA -->
