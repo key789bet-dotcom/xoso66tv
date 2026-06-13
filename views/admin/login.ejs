@@ -21,6 +21,8 @@
   <% } %>
 
   <form method="POST" action="/admin/login">
+    <%# 🛡️ CSRF token (Mục 21) — phải có trong mọi form POST %>
+    <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><input type="hidden" name="_csrf" value="<%= csrfToken %>"><% } %>
     <input type="hidden" name="next" value="<%= typeof nextUrl!=='undefined'?nextUrl:'/admin' %>">
     <div class="mb-4">
       <label class="block text-gray-100 text-[13px] font-semibold mb-1.5">Tai khoan</label>
