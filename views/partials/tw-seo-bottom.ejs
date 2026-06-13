@@ -31,8 +31,10 @@
         </details>
       <% }); %>
     </div>
-    <%# Single source of truth: JSON-LD. Strip HTML khỏi answer text để clean. %>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[<% _validFaqs.forEach(function(f, i){ %>{"@type":"Question","name":<%- JSON.stringify(f.q.trim()) %>,"acceptedAnswer":{"@type":"Answer","text":<%- JSON.stringify(f.a.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()) %>}}<%= i<_validFaqs.length-1?',':'' %><% }); %>]}</script>
+    <%# Note: Google 2023 update đã restrict FAQ rich result chỉ cho .gov/.edu sites.
+        Trang giải trí KHÔNG được hiển thị FAQ rich result dù schema đúng.
+        → Bỏ JSON-LD FAQPage để Google Rich Results Test KHÔNG báo lỗi spam.
+        Giữ details/summary HTML cho UX (vẫn collapse/expand được). %>
   <% } %>
 </section>
 <% } %>
