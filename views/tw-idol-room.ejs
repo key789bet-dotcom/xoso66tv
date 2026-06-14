@@ -498,12 +498,32 @@ var _obsMode = (idol.streamMethod === 'obs');
 
     <!-- CHAT: cùng row grid với player, auto stretch theo aspect-video -->
     <aside class="<%= _obsMode ? 'idol-room-chat' : 'h-full' %> bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden" aria-label="Chat" id="chatPanelTop">
+      <%
+        // 🎨 Render tab idol chat/gift: ảnh nếu admin upload, fallback emoji+text
+        var _iti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};
+      %>
       <div class="flex border-b border-line bg-bg-soft">
-        <button class="cp-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri" data-tab="chat" onclick="switchChatTab('chat')">💬 Chat phòng</button>
-        <button class="cp-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent relative" data-tab="gift" onclick="switchChatTab('gift')">
-          🎁 Quà
-          <span id="cpGiftBadge" class="hidden absolute top-1.5 right-2 bg-live text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 grid place-items-center px-1 animate-pulse">0</span>
-        </button>
+        <!-- TAB CHAT PHÒNG -->
+        <% if (_iti.idol_chat) { %>
+          <button class="cp-tab flex-1 flex items-center justify-center bg-bg-card border-b-2 border-pri p-1 h-12" data-tab="chat" onclick="switchChatTab('chat')" aria-label="Chat phòng">
+            <img src="<%= _iti.idol_chat %>" alt="Chat phòng" class="max-h-full w-auto object-contain">
+          </button>
+        <% } else { %>
+          <button class="cp-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri" data-tab="chat" onclick="switchChatTab('chat')">💬 Chat phòng</button>
+        <% } %>
+
+        <!-- TAB QUÀ (giữ badge counter) -->
+        <% if (_iti.idol_gift) { %>
+          <button class="cp-tab flex-1 flex items-center justify-center bg-transparent border-b-2 border-transparent p-1 h-12 relative" data-tab="gift" onclick="switchChatTab('gift')" aria-label="Quà">
+            <img src="<%= _iti.idol_gift %>" alt="Quà" class="max-h-full w-auto object-contain">
+            <span id="cpGiftBadge" class="hidden absolute top-1 right-2 bg-live text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 grid place-items-center px-1 animate-pulse">0</span>
+          </button>
+        <% } else { %>
+          <button class="cp-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent relative" data-tab="gift" onclick="switchChatTab('gift')">
+            🎁 Quà
+            <span id="cpGiftBadge" class="hidden absolute top-1.5 right-2 bg-live text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 grid place-items-center px-1 animate-pulse">0</span>
+          </button>
+        <% } %>
       </div>
       <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between">
         <span class="text-emerald-500 flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-live"></span><%= Math.floor(viewers/10).toLocaleString('vi-VN') %> online</span>
@@ -550,15 +570,21 @@ var _obsMode = (idol.streamMethod === 'obs');
           </button>
         </div>
       </div>
-      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="x66-cta-reg group relative mx-2 mt-2 mb-1 px-2 py-2.5 rounded-lg overflow-hidden flex items-center justify-center gap-1.5 text-white text-[11px] font-extrabold text-center cursor-pointer">
-        <span class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400"></span>
-        <span class="absolute inset-0 x66-cta-shine"></span>
-        <span class="relative flex items-center gap-1.5 drop-shadow-md">
-          <span class="text-base">🎰</span>
-          <span class="tracking-wide">ĐĂNG KÝ TÀI KHOẢN XOSO66</span>
-          <span class="text-sm group-hover:translate-x-0.5 transition-transform">→</span>
-        </span>
-      </a>
+      <% if (_iti.cta_register_xoso66) { %>
+        <a href="<%= partner.register %>" target="_blank" rel="noopener" class="block mx-2 mt-2 mb-1 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+          <img src="<%= _iti.cta_register_xoso66 %>" alt="Đăng ký tài khoản XOSO66" class="w-full h-auto object-cover">
+        </a>
+      <% } else { %>
+        <a href="<%= partner.register %>" target="_blank" rel="noopener" class="x66-cta-reg group relative mx-2 mt-2 mb-1 px-2 py-2.5 rounded-lg overflow-hidden flex items-center justify-center gap-1.5 text-white text-[11px] font-extrabold text-center cursor-pointer">
+          <span class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400"></span>
+          <span class="absolute inset-0 x66-cta-shine"></span>
+          <span class="relative flex items-center gap-1.5 drop-shadow-md">
+            <span class="text-base">🎰</span>
+            <span class="tracking-wide">ĐĂNG KÝ TÀI KHOẢN XOSO66</span>
+            <span class="text-sm group-hover:translate-x-0.5 transition-transform">→</span>
+          </span>
+        </a>
+      <% } %>
       <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft">
         <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
         <button onclick="sendChat('chatInput','chatBody')" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-md font-bold text-xs">Gửi</button>
