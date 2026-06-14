@@ -98,7 +98,7 @@
             </div>
             <% if (!p.active) { %><div class="absolute inset-0 bg-black/70 grid place-items-center text-white font-bold text-xs">ĐÃ TẮT</div><% } %>
           </div>
-          <div class="text-[10px] text-muted text-center mt-1">Promo #<%= i+1 %> · <%= p.active?'<span class="text-emerald-400">▶ Đang hiển thị</span>':'<span class="text-muted">⏸ Đã tắt</span>' %></div>
+          <div class="text-[10px] text-muted text-center mt-1">Promo #<%= i+1 %> · <%- p.active?'<span class="text-emerald-400">▶ Đang hiển thị</span>':'<span class="text-muted">⏸ Đã tắt</span>' %></div>
         </div>
 
         <!-- Edit form -->
