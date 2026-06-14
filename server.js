@@ -888,16 +888,37 @@ app.get('/api/auth/2fa/status', requireAnyAdmin, function (req, res){
 });
 
 // ===== USER REGISTRATION với bcrypt =====
+// 🚀 Phase 2.4.A: dùng API db.users.* (relational, scale 100k) — fallback db.load() nếu adapter cũ
 app.post('/api/auth/register', sec.registerStrictLimiter, turnstile.middleware(), async function (req, res){
   const b = req.body || {};
   if (!b.username || b.username.length < 3) return res.status(400).json({ ok:false, error:'Username tối thiểu 3 ký tự' });
   if (!b.password || b.password.length < 8) return res.status(400).json({ ok:false, error:'Mật khẩu tối thiểu 8 ký tự' });
   try {
+    const hash = await sec.hashPassword(b.password);
+
+    // Check duplicate + create — dùng API mới nếu có
+    if (db.users && typeof db.users.findByUsername === 'function') {
+      const exists = await db.users.findByUsername(b.username);
+      if (exists) return res.status(409).json({ ok:false, error:'Username đã tồn tại' });
+      const id = await db.users.create({
+        username: b.username,
+        fullname: b.fullname || b.username,
+        phone:    b.phone || null,
+        email:    b.email || null,
+        passwordHash: hash,
+        role:    'user',
+        vip:     0,
+        xCoin:   0,
+        status:  'active'
+      });
+      return res.json({ ok:true, username: b.username, id: id });
+    }
+
+    // Fallback API cũ (KV pattern)
     const data = db.load();
     if (!data.users) data.users = [];
     const exists = data.users.find(u => (u.username||'').toLowerCase() === b.username.toLowerCase());
     if (exists) return res.status(409).json({ ok:false, error:'Username đã tồn tại' });
-    const hash = await sec.hashPassword(b.password);
     const newUser = {
       id: 'u_' + Date.now(),
       username: b.username,
@@ -921,19 +942,24 @@ app.post('/api/auth/logout', function (req, res) {
   pubAuth.logout(req, res);
   res.json({ ok:true });
 });
-app.get('/api/auth/me', function (req, res) {
+app.get('/api/auth/me', async function (req, res) {
   const u = pubAuth.getUser(req);
   if (!u) return res.json({ ok:false });
-  // Lookup full user để lấy vnd balance + avatar
+  // Lookup full user để lấy balance + avatar
   let vnd = 0, coin = 0, avatar = '', fullname = '';
   try {
-    const data = db.load();
-    const full = (data.users || []).find(x => (x.username || '').toLowerCase() === u.username);
+    let full = null;
+    if (db.users && typeof db.users.findByUsername === 'function') {
+      full = await db.users.findByUsername(u.username);
+    } else {
+      const data = db.load();
+      full = (data.users || []).find(x => (x.username || '').toLowerCase() === (u.username||'').toLowerCase());
+    }
     if (full) {
-      vnd      = parseInt(full.vnd  || 0, 10);
-      coin     = parseInt(full.coin || 0, 10);
+      vnd      = parseInt(full.vnd || 0, 10);
+      coin     = parseInt(full.xCoin || full.coin || full.balance || 0, 10);
       avatar   = full.avatar || '';
-      fullname = full.fullname || '';
+      fullname = full.fullname || full.displayName || '';
     }
   } catch(e){}
   res.json({
