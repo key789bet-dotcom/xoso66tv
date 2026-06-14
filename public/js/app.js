@@ -64,7 +64,10 @@
     return _origSend.apply(this, arguments);
   };
 
-  /* === Auto-inject hidden <input name="_csrf"> vào MỌI form POST/PUT/DELETE === */
+  /* === Auto-inject CSRF vào form ===
+   * Multipart → ?_csrf= vào action URL
+   * Form thường → hidden <input name="_csrf">
+   */
   function _injectCsrfForms(){
     var m = document.querySelector('meta[name="csrf-token"]');
     var tok = m ? m.getAttribute('content') : '';
@@ -74,12 +77,21 @@
       var form = forms[i];
       var method = (form.getAttribute('method') || 'GET').toUpperCase();
       if (method === 'GET' || method === 'HEAD') continue;
-      if (form.querySelector('input[name="_csrf"]')) continue;
-      var input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = '_csrf';
-      input.value = tok;
-      form.appendChild(input);
+      var enctype = (form.getAttribute('enctype') || '').toLowerCase();
+      var isMultipart = enctype.indexOf('multipart') !== -1;
+      if (isMultipart) {
+        var action = form.getAttribute('action') || '';
+        if (action.indexOf('_csrf=') === -1) {
+          form.setAttribute('action', action + (action.indexOf('?') === -1 ? '?' : '&') + '_csrf=' + encodeURIComponent(tok));
+        }
+      } else {
+        if (form.querySelector('input[name="_csrf"]')) continue;
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_csrf';
+        input.value = tok;
+        form.appendChild(input);
+      }
     }
   }
   if (document.readyState === 'loading') {

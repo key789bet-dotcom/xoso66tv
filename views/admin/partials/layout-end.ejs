@@ -33,7 +33,11 @@
     };
   }
 
-  /* === 2. Auto-inject hidden <input name="_csrf"> vào MỌI form POST/PUT/DELETE === */
+  /* === 2. Auto-inject CSRF vào form ===
+   * - Multipart form (enctype="multipart/form-data"): inject ?_csrf= vào ACTION URL
+   *   (vì body multipart chưa parse khi CSRF middleware chạy)
+   * - Form thường: inject hidden <input name="_csrf">
+   */
   function injectCsrfIntoForms(){
     var tok = getCsrfToken();
     if (!tok) return;
@@ -41,13 +45,24 @@
     forms.forEach(function(form){
       var method = (form.getAttribute('method') || 'GET').toUpperCase();
       if (method === 'GET' || method === 'HEAD') return;
-      // Bỏ qua nếu form đã có input _csrf
-      if (form.querySelector('input[name="_csrf"]')) return;
-      var input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = '_csrf';
-      input.value = tok;
-      form.appendChild(input);
+      var enctype = (form.getAttribute('enctype') || '').toLowerCase();
+      var isMultipart = enctype.indexOf('multipart') !== -1;
+
+      if (isMultipart) {
+        // Inject vào action URL (query string)
+        var action = form.getAttribute('action') || '';
+        if (action.indexOf('_csrf=') === -1) {
+          form.setAttribute('action', action + (action.indexOf('?') === -1 ? '?' : '&') + '_csrf=' + encodeURIComponent(tok));
+        }
+      } else {
+        // Inject hidden input (chỉ cho form không phải multipart)
+        if (form.querySelector('input[name="_csrf"]')) return;
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_csrf';
+        input.value = tok;
+        form.appendChild(input);
+      }
     });
   }
   if (document.readyState === 'loading') {
