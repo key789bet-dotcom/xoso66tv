@@ -17,23 +17,8 @@ module.exports = {
     name: 'xoso66tv',
     script: 'server.js',
     cwd: '/var/www/xoso66tv',
-    // ⚠️ 1 INSTANCE — FIX DỨT ĐIỂM lỗi save admin "hiện 1 lúc rồi quay về cũ"
-    // ─────────────────────────────────────────────────────────────────────
-    // TRƯỚC: instances: 2 → mỗi worker có RAM cache riêng (db-relational.js
-    //   cache full data vào _cache local). Khi admin save:
-    //   • Request đi vào Worker A → save file + update cache A
-    //   • Worker B cache CŨ — không biết gì
-    //   • Refresh round-robin trúng B → hiện data CŨ (đến khi periodic
-    //     reload 5 phút sau workers mới đồng bộ qua MySQL)
-    //
-    // SAU: instances: 1 → 1 worker = 1 cache → KHÔNG bao giờ desync.
-    //   VPS KV8 có 8 vCPU, 1 Node worker handle 1000+ concurrent req/s
-    //   vẫn dư công suất cho traffic hiện tại.
-    //
-    // Khi nào cần scale lên nhiều worker → implement Redis pub/sub trong
-    // db-relational.js để invalidate cache giữa workers (PHẢI làm trước
-    // khi tăng instances, nếu không lỗi này quay lại).
-    instances: 1,
+    // 🚀 CLUSTER MODE - dùng nhiều CPU cores (cần thiết cho target 100k users)
+    instances: 2,
     exec_mode: 'cluster',
     max_memory_restart: '500M',           // restart worker nếu memory > 500MB
     autorestart: true,
