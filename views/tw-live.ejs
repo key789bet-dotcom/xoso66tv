@@ -160,10 +160,27 @@ seo = {
         #liveChatAside { height: 640px !important; max-height: none !important; }
       }
     </style>
+    <%
+      // 🎨 Render 1 chat tab: ảnh nếu admin đã upload, fallback emoji+text
+      var _cti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};
+      function _renderChatTab(key, emoji, label, isActive) {
+        var base = 'chat-tab flex-1 flex items-center justify-center border-b-2 transition-all';
+        var active = isActive
+          ? 'bg-bg-card text-pri-light font-bold border-pri'
+          : 'bg-transparent text-muted hover:text-white font-bold border-transparent';
+        if (_cti[key]) {
+          // Ảnh chiếm nguyên tab, height ~40px (matched py-3)
+          return '<button class="' + base + ' ' + active + ' p-1 h-10" onclick="switchChatTab(this)" aria-label="' + label + '">' +
+                   '<img src="' + _cti[key] + '" alt="' + label + '" class="max-h-full w-auto object-contain">' +
+                 '</button>';
+        }
+        return '<button class="' + base + ' ' + active + ' py-3 text-xs" onclick="switchChatTab(this)">' + emoji + ' ' + label + '</button>';
+      }
+    %>
     <div class="flex border-b border-line bg-bg-soft" role="tablist">
-      <button class="chat-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri" onclick="switchChatTab(this)">&#128172; Chat phòng</button>
-      <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128238; Telegram</button>
-      <button class="chat-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent" onclick="switchChatTab(this)">&#128276; Facebook</button>
+      <%- _renderChatTab('chat_room',     '&#128172;', 'Chat phòng', true)  %>
+      <%- _renderChatTab('chat_telegram', '&#128238;', 'Telegram',   false) %>
+      <%- _renderChatTab('chat_facebook', '&#128276;', 'Facebook',   false) %>
     </div>
 
     <!-- 🎀 3 BANNER GIF (admin upload) -->
@@ -181,7 +198,13 @@ seo = {
       <span>Bình luận: <b class="text-pri-light"><%= (Math.random()*5000|0)+1000 %></b></span>
     </div>
     <div class="flex-1 overflow-y-auto py-1 scrollbar-thin" id="chatBody"></div>
-    <div class="mx-2 mt-2 mb-1 p-2 bg-gradient-to-r from-purple to-pink rounded-lg text-white text-[11px] font-bold text-center cursor-pointer" onclick="window.open('<%= partner.register %>','_blank')">&#127873; ĐĂNG KÝ NHẬN 100% TIỀN THƯỞNG</div>
+    <% if (_cti.cta_register) { %>
+      <a href="<%= partner.register %>" target="_blank" rel="noopener" class="block mx-2 mt-2 mb-1 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+        <img src="<%= _cti.cta_register %>" alt="Đăng ký nhận 100% tiền thưởng" class="w-full h-auto object-cover">
+      </a>
+    <% } else { %>
+      <div class="mx-2 mt-2 mb-1 p-2 bg-gradient-to-r from-purple to-pink rounded-lg text-white text-[11px] font-bold text-center cursor-pointer" onclick="window.open('<%= partner.register %>','_blank')">&#127873; ĐĂNG KÝ NHẬN 100% TIỀN THƯỞNG</div>
+    <% } %>
     <div class="px-2.5 pt-1 text-[10px] text-dim italic flex items-center gap-1" id="chatHint">&#128274; Khách giới hạn 1 tin mỗi 5 phút</div>
     <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft">
       <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">

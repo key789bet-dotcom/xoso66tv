@@ -1,67 +1,94 @@
 <%- include('partials/layout-start', { active: 'tab-icons' }) %>
 
-<div class="space-y-5">
+<div class="space-y-6">
   <header class="bg-bg-card border border-line rounded-xl p-5">
-    <h2 class="text-lg font-extrabold text-white mb-1">🎨 Ảnh 4 tab trang chủ</h2>
+    <h2 class="text-lg font-extrabold text-white mb-1">🎨 Ảnh tab + nút CTA</h2>
     <p class="text-sm text-muted leading-relaxed">
-      Upload ảnh riêng cho 4 tab <b>Hot · Thể thao · Idol Live · Casino</b> trên trang chủ.
-      Ảnh sẽ <b>thay toàn bộ button</b> (icon + chữ trong ảnh), không hiện text label nữa.
-      Nếu không upload → fallback dùng emoji + text mặc định.
-    </p>
-    <p class="text-xs text-yellow-300 mt-2">
-      💡 Khuyến nghị: ảnh <b>tỉ lệ ~3:1 (chữ nhật ngang)</b>, ví dụ <b>240×80px</b> hoặc <b>300×100px</b>. Hỗ trợ: <b>PNG / WEBP / JPG / GIF (animated OK)</b>. Nền trong suốt, dung lượng &lt;2MB. Ảnh nên có sẵn cả icon + chữ "Hot/Thể thao/..." bên trong.
+      Upload ảnh thay <b>emoji + text</b> cho các tab và nút trên site. Ảnh có sẵn cả icon + chữ, thay toàn bộ button. Không upload → fallback emoji mặc định.
     </p>
   </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-    <% var cats = [
-      { key:'hot',     name:'🔥 Hot',         emoji:'🔥' },
-      { key:'thethao', name:'⚽ Thể thao',    emoji:'⚽' },
-      { key:'idol',    name:'👑 Idol Live',   emoji:'👑' },
-      { key:'casino',  name:'🎰 Casino',      emoji:'🎰' },
-      { key:'esport',  name:'🎮 Esports',     emoji:'🎮' }
-    ]; %>
+  <%
+    function _section(title, hint, items) {
+      return { title: title, hint: hint, items: items };
+    }
+    var sections = [
+      {
+        title: '🏠 Tab trang chủ',
+        hint: 'Khuyến nghị tỉ lệ ~3:1, vd 240×80px. Hiển thị nhỏ (max-width 140px).',
+        items: [
+          { key:'hot',     name:'🔥 Hot',         emoji:'🔥' },
+          { key:'thethao', name:'⚽ Thể thao',    emoji:'⚽' },
+          { key:'idol',    name:'👑 Idol Live',   emoji:'👑' },
+          { key:'casino',  name:'🎰 Casino',      emoji:'🎰' },
+          { key:'esport',  name:'🎮 Esports',     emoji:'🎮' }
+        ]
+      },
+      {
+        title: '💬 Tab chat phòng live (BLV/Idol)',
+        hint: 'Khuyến nghị tỉ lệ ~3:1, vd 240×80px. Hiển thị chiếm 1/3 width chat panel.',
+        items: [
+          { key:'chat_room',     name:'💬 Chat phòng', emoji:'💬' },
+          { key:'chat_telegram', name:'📨 Telegram',   emoji:'📨' },
+          { key:'chat_facebook', name:'🔔 Facebook',   emoji:'🔔' }
+        ]
+      },
+      {
+        title: '🎁 Nút CTA "ĐĂNG KÝ NHẬN 100% TIỀN THƯỞNG"',
+        hint: 'Banner gradient dưới chat panel. Khuyến nghị tỉ lệ ~10:1, vd 600×60px hoặc 800×80px.',
+        items: [
+          { key:'cta_register', name:'🎁 ĐĂNG KÝ NHẬN 100%', emoji:'🎁' }
+        ]
+      }
+    ];
+  %>
 
-    <% cats.forEach(function(c){
-         var url = (icons && icons[c.key]) || ''; %>
-      <div class="bg-bg-card border border-line rounded-xl p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-white font-extrabold text-sm"><%= c.name %></h3>
-          <span class="text-[10px] uppercase font-bold <%= url ? 'text-emerald-400' : 'text-muted' %>">
-            <%= url ? '✓ Có ảnh' : 'Dùng emoji' %>
-          </span>
-        </div>
+  <% sections.forEach(function(sec){ %>
+    <section class="bg-bg-card border border-line rounded-xl p-5">
+      <h3 class="text-base font-extrabold text-pri-light mb-1"><%= sec.title %></h3>
+      <p class="text-xs text-yellow-300 mb-4">💡 <%= sec.hint %></p>
 
-        <!-- Preview - tỉ lệ ~3:1 cho ảnh chữ nhật -->
-        <div class="aspect-[3/1] bg-bg-deep border border-line rounded-lg grid place-items-center mb-3 overflow-hidden p-2">
-          <% if (url) { %>
-            <img src="<%= url %>?v=<%= Date.now() %>" alt="<%= c.key %>" class="max-w-full max-h-full object-contain">
-          <% } else { %>
-            <div class="text-center">
-              <div class="text-3xl"><%= c.emoji %></div>
-              <div class="text-[10px] text-muted mt-1">(emoji mặc định)</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <% sec.items.forEach(function(c){
+             var url = (icons && icons[c.key]) || ''; %>
+          <div class="bg-bg-deep border border-line rounded-lg p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-white font-bold text-sm truncate"><%= c.name %></h4>
+              <span class="text-[10px] uppercase font-bold shrink-0 ml-1 <%= url ? 'text-emerald-400' : 'text-muted' %>">
+                <%= url ? '✓' : 'emoji' %>
+              </span>
             </div>
-          <% } %>
-        </div>
 
-        <!-- Upload form -->
-        <input type="file" id="file_<%= c.key %>" accept="image/png,image/webp,image/jpeg,image/gif" class="block w-full text-xs text-gray-300 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-pri file:text-white file:font-bold file:cursor-pointer">
+            <div class="aspect-[3/1] bg-bg-card border border-line rounded grid place-items-center mb-2 overflow-hidden p-1">
+              <% if (url) { %>
+                <img src="<%= url %>?v=<%= Date.now() %>" alt="<%= c.key %>" class="max-w-full max-h-full object-contain">
+              <% } else { %>
+                <div class="text-center">
+                  <div class="text-2xl"><%= c.emoji %></div>
+                  <div class="text-[9px] text-muted">(mặc định)</div>
+                </div>
+              <% } %>
+            </div>
 
-        <div class="flex gap-2 mt-3">
-          <button type="button" data-key="<%= c.key %>" class="ti-upload-btn flex-1 px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">
-            💾 Upload
-          </button>
-          <% if (url) { %>
-            <button type="button" data-key="<%= c.key %>" class="ti-remove-btn px-3 py-1.5 rounded bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold">
-              🗑
-            </button>
-          <% } %>
-        </div>
+            <input type="file" id="file_<%= c.key %>" accept="image/png,image/webp,image/jpeg,image/gif" class="block w-full text-[11px] text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-pri file:text-white file:font-bold file:cursor-pointer">
+
+            <div class="flex gap-1 mt-2">
+              <button type="button" data-key="<%= c.key %>" class="ti-upload-btn flex-1 px-2 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold">
+                💾 Upload
+              </button>
+              <% if (url) { %>
+                <button type="button" data-key="<%= c.key %>" class="ti-remove-btn px-2 py-1.5 rounded bg-red-600/80 hover:bg-red-600 text-white text-[11px] font-bold">
+                  🗑
+                </button>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
       </div>
-    <% }); %>
-  </div>
+    </section>
+  <% }); %>
 
-  <div id="tiStatus" class="hidden p-3 rounded text-sm"></div>
+  <div id="tiStatus" class="hidden p-3 rounded text-sm sticky bottom-4"></div>
 </div>
 
 <script>
@@ -72,7 +99,7 @@
   }
   function showStatus(msg, ok){
     var box = document.getElementById('tiStatus');
-    box.className = 'p-3 rounded text-sm ' + (ok ? 'bg-emerald-500/10 border border-emerald-500 text-emerald-300' : 'bg-red-500/10 border border-red-500 text-red-300');
+    box.className = 'p-3 rounded text-sm sticky bottom-4 ' + (ok ? 'bg-emerald-500/10 border border-emerald-500 text-emerald-300' : 'bg-red-500/10 border border-red-500 text-red-300');
     box.textContent = msg;
     box.classList.remove('hidden');
     setTimeout(function(){ box.classList.add('hidden'); }, 4000);
@@ -97,7 +124,6 @@
         headers: { 'X-CSRF-Token': _csrf() },
         body: fd
       }).then(function(r){
-        // Catch HTTP error (403 CSRF, 413 too large, 500 server) trước khi parse JSON
         if (!r.ok) {
           return r.text().then(function(txt){
             throw new Error('HTTP ' + r.status + ': ' + (txt || '').slice(0, 200));
@@ -106,8 +132,8 @@
         return r.json();
       }).then(function(d){
         resetBtn();
-        if (d.ok) { showStatus('Đã upload icon "' + key + '"', true); setTimeout(function(){ location.reload(); }, 600); }
-        else { showStatus('✗ ' + (d.error || 'Lỗi không xác định'), false); }
+        if (d.ok) { showStatus('Đã upload "' + key + '"', true); setTimeout(function(){ location.reload(); }, 600); }
+        else { showStatus('✗ ' + (d.error || 'Lỗi'), false); }
       }).catch(function(err){
         resetBtn();
         showStatus('✗ ' + (err.message || 'Network error'), false);
@@ -118,14 +144,14 @@
   document.querySelectorAll('.ti-remove-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       var key = btn.dataset.key;
-      if (!confirm('Xoá icon "' + key + '"? Sẽ revert về emoji mặc định.')) return;
+      if (!confirm('Xoá "' + key + '"? Sẽ revert về emoji mặc định.')) return;
       fetch('/admin/api/tab-icons/remove', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': _csrf() },
         body: JSON.stringify({ key: key, _csrf: _csrf() })
       }).then(function(r){ return r.json(); }).then(function(d){
-        if (d.ok) { showStatus('Đã xoá icon "' + key + '"', true); setTimeout(function(){ location.reload(); }, 600); }
+        if (d.ok) { showStatus('Đã xoá "' + key + '"', true); setTimeout(function(){ location.reload(); }, 600); }
         else { showStatus('✗ ' + (d.error || 'Lỗi'), false); }
       });
     });
