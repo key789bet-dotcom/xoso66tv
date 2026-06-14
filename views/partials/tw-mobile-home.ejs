@@ -320,11 +320,21 @@ _cnt.all = _cards.length;
       <% _cards.forEach(function(c){ %>
         <a href="<%= c.href %>" class="mh-card-lux block relative overflow-hidden" data-cat="<%= c.cat %>">
 
-          <!-- 🏆 Ảnh nền giải đấu (admin set) - phía sau toàn card. z-index âm để text + head/body luôn ở trên -->
+          <!-- 🏆 Ảnh nền giải đấu (admin set) - hiển thị rõ, KHÔNG lớp phủ đen che -->
           <% if (c.type === 'sports' && c.leagueBg) { %>
-            <img src="<%= c.leagueBg %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none" onerror="this.style.display='none'" style="z-index:0;">
-            <div class="absolute inset-0 pointer-events-none" style="z-index:0;background:linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.45), rgba(0,0,0,.35));"></div>
-            <style>.mh-card-lux .mh-lux-head, .mh-card-lux .mh-lux-body { position:relative; z-index:2; }</style>
+            <img src="<%= c.leagueBg %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'" style="z-index:0;opacity:1;">
+            <!-- Chỉ shadow nhẹ ở 2 đầu để text dễ đọc, không che ảnh -->
+            <div class="absolute inset-0 pointer-events-none" style="z-index:0;background:linear-gradient(to bottom, rgba(0,0,0,.35) 0%, transparent 25%, transparent 75%, rgba(0,0,0,.5) 100%);"></div>
+            <style>
+              .mh-card-lux .mh-lux-head, .mh-card-lux .mh-lux-body { position:relative; z-index:2; }
+              /* Body trong suốt khi có ảnh nền league */
+              .mh-card-lux .mh-lux-body { background:transparent !important; }
+              .mh-card-lux .mh-lux-head { background:linear-gradient(90deg,rgba(0,0,0,.6),rgba(0,0,0,.35)) !important; }
+              /* Text shadow đậm để chữ vẫn đọc rõ trên ảnh */
+              .mh-card-lux .mh-lux-team-name { color:#fff !important; text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 6px rgba(0,0,0,.7); font-weight:800 !important; }
+              .mh-card-lux .mh-lux-time { text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 8px rgba(0,0,0,.8) !important; }
+              .mh-card-lux .mh-lux-league-name { color:#fff !important; text-shadow:0 1px 2px rgba(0,0,0,.9); }
+            </style>
           <% } %>
 
           <!-- TOP HEADER: League/Category + Status -->
