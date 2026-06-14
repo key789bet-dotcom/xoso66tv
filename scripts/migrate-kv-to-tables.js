@@ -99,11 +99,19 @@ const mysql = require('mysql2/promise');
   }
   console.log('   ✅ Migrated', userCount, 'users\n');
 
+  // Helper: validate user_id existence để tránh FK fail
+  async function _validUserId(uid) {
+    if (!uid) return null;
+    const [r] = await pool.query('SELECT id FROM users WHERE id = ? LIMIT 1', [uid]);
+    return r.length ? uid : null;
+  }
+
   // ─── 3. Migrate IDOLS ────────────────────────────────────────
   console.log('💎 Migrate idols...');
   let idolCount = 0;
   for (const i of (data.idols || [])) {
     try {
+      const validUid = await _validUserId(i.userId || i.user_id);
       await pool.query(`
         INSERT INTO idols
           (id, user_id, name, slug, avatar, card_image, category, bio,
@@ -117,7 +125,7 @@ const mysql = require('mysql2/promise');
           extra = VALUES(extra)
       `, [
         i.id,
-        i.userId || i.user_id || null,
+        validUid,  // ✓ null nếu user_id không tồn tại trong users table
         i.name,
         i.slug || i.id,
         i.avatar || null,
@@ -156,6 +164,7 @@ const mysql = require('mysql2/promise');
   let blvCount = 0;
   for (const b of (data.blvs || [])) {
     try {
+      const validUid = await _validUserId(b.userId || b.user_id);
       await pool.query(`
         INSERT INTO blvs
           (id, user_id, name, slug, avatar, card_image, live_now,
@@ -163,7 +172,7 @@ const mysql = require('mysql2/promise');
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE name = VALUES(name)
       `, [
-        b.id, b.userId || b.user_id || null, b.name, b.slug || b.id,
+        b.id, validUid, b.name, b.slug || b.id,
         b.avatar || null, b.cardImage || b.card_image || null,
         b.liveNow ? 1 : 0,
         b.liveStartedAt ? new Date(b.liveStartedAt) : null,
