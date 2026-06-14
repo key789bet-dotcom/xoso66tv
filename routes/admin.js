@@ -938,7 +938,9 @@ const bunnyConfig = require('../lib/bunny-config-store');
 const tabIconsStore = require('../lib/tab-icons-store');
 const _tabIconStorage = multer.diskStorage({
   destination: function(req, file, cb){
-    var dir = path.join(__dirname, '..', 'public', 'uploads', 'tab-icons');
+    // ⚠️ Lưu vào <root>/uploads/ vì express.static('/uploads') serve từ đây
+    //    (KHÔNG phải public/uploads/ — đó là chỗ serve qua '/static')
+    var dir = path.join(__dirname, '..', 'uploads', 'tab-icons');
     require('fs').mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
@@ -970,10 +972,10 @@ router.post('/api/tab-icons/upload', _tabIconUpload.single('file'), function(req
     if (tabIconsStore.VALID_KEYS.indexOf(key) === -1) return res.status(400).json({ ok:false, error:'Key không hợp lệ' });
     if (!req.file) return res.status(400).json({ ok:false, error:'Thiếu file' });
     var url = '/uploads/tab-icons/' + req.file.filename;
-    // Xoá ảnh cũ nếu có
+    // Xoá ảnh cũ (path tương đối với root project, vì uploads ở root)
     var old = tabIconsStore.list()[key];
     if (old && old.indexOf('/uploads/tab-icons/') === 0) {
-      try { require('fs').unlinkSync(path.join(__dirname, '..', 'public', old)); } catch(_) {}
+      try { require('fs').unlinkSync(path.join(__dirname, '..', old)); } catch(_) {}
     }
     tabIconsStore.set(key, url);
     res.json({ ok:true, key:key, url:url });
@@ -988,7 +990,7 @@ router.post('/api/tab-icons/remove', function(req, res){
     if (tabIconsStore.VALID_KEYS.indexOf(key) === -1) return res.status(400).json({ ok:false, error:'Key không hợp lệ' });
     var old = tabIconsStore.remove(key);
     if (old && old.indexOf('/uploads/tab-icons/') === 0) {
-      try { require('fs').unlinkSync(path.join(__dirname, '..', 'public', old)); } catch(_) {}
+      try { require('fs').unlinkSync(path.join(__dirname, '..', old)); } catch(_) {}
     }
     res.json({ ok:true });
   } catch(e) {
