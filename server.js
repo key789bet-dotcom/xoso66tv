@@ -2887,13 +2887,25 @@ try {
   console.warn('[SOCKET] attach fail (fallback polling):', e.message);
 }
 
-httpServer.listen(PORT, HOST, function () {
-  console.log('XOSO66 TV (Tailwind) chạy tại ' + SITE);
-  console.log('  Local:    http://localhost:' + PORT);
-  console.log('  Network:  http://<YOUR-IP>:' + PORT + ' (truy cập từ điện thoại cùng WiFi)');
-  console.log('  HTTPS:    Để bật camera trên điện thoại, dùng ngrok: ngrok http ' + PORT);
-  console.log('[SYNC] Auto sync SRS publish → DB liveNow: enabled (10s interval)');
-});
+// 🐬 Nếu dùng MySQL backend → preload DB từ MySQL trước khi listen
+//    (SQLite backend: initAsync() là no-op, listen ngay)
+(async function bootServer() {
+  try {
+    if (typeof db.initAsync === 'function') {
+      await db.initAsync();
+    }
+  } catch (e) {
+    console.error('[BOOT] ❌ DB init fail:', e.message);
+    process.exit(1);
+  }
+  httpServer.listen(PORT, HOST, function () {
+    console.log('XOSO66 TV (Tailwind) chạy tại ' + SITE);
+    console.log('  Local:    http://localhost:' + PORT);
+    console.log('  Network:  http://<YOUR-IP>:' + PORT + ' (truy cập từ điện thoại cùng WiFi)');
+    console.log('  HTTPS:    Để bật camera trên điện thoại, dùng ngrok: ngrok http ' + PORT);
+    console.log('[SYNC] Auto sync SRS publish → DB liveNow: enabled (10s interval)');
+  });
+})();
 
 // ╔════════════════════════════════════════════════════════════════════╗
 // ║ AUTO SYNC SRS publish state → DB liveNow                          ║
