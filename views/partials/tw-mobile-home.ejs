@@ -425,11 +425,15 @@ _cnt.all = _cards.length;
             <% } %>
           </div>
 
-          <!-- BOTTOM FOOTER: Avatars + Viewers -->
+          <!-- BOTTOM FOOTER: Tên BLV/streamer + Viewers (giống desktop card) -->
           <div class="mh-lux-foot">
-            <div class="mh-lux-avatars">
-              <% for (var ai=0; ai<3; ai++) { %>
-                <span class="mh-lux-avatar" style="background:linear-gradient(135deg,hsl(<%= (ai*120+30) %>,70%,50%),hsl(<%= (ai*120+90) %>,70%,40%))"></span>
+            <div class="mh-lux-blv">
+              <% if (c.type === 'idol') { %>
+                <span class="mh-lux-blv-ico">📡</span>
+                <span class="mh-lux-blv-name"><%= c.isLive ? c.name : 'Đang chờ idol' %></span>
+              <% } else { %>
+                <span class="mh-lux-blv-ico">📡</span>
+                <span class="mh-lux-blv-name"><%= c.blvName || 'Đang chờ BLV' %></span>
               <% } %>
             </div>
             <div class="mh-lux-views">
@@ -663,12 +667,16 @@ _cnt.all = _cards.length;
   border-top:1px solid rgba(255,122,24,.15);
   min-height:22px;
 }
-.mh-lux-avatars { display:flex; gap:-4px; }
-.mh-lux-avatar {
-  width:14px; height:14px; border-radius:50%;
-  border:1.5px solid #0a0d12;
-  margin-right:-5px;
-  box-shadow:0 1px 3px rgba(0,0,0,.5);
+.mh-lux-blv {
+  display:flex; align-items:center; gap:4px;
+  min-width:0; flex:1;
+  color:#cbd5e1; font-size:10px; font-weight:600;
+  overflow:hidden;
+}
+.mh-lux-blv-ico { font-size:10px; flex-shrink:0; }
+.mh-lux-blv-name {
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  min-width:0;
 }
 .mh-lux-views {
   display:flex; align-items:center; gap:3px;
