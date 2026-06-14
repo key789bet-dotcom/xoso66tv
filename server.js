@@ -3087,6 +3087,20 @@ setTimeout(function(){
 }, 5000);
 
 // ╔════════════════════════════════════════════════════════════════════╗
+// ║ AUTO-END SCHEDULED LIVE — tự động cắt live khi hết giờ đăng ký    ║
+// ║   - Grace period 5 phút (cho idol kết thúc đẹp)                   ║
+// ║   - Cắt cả idol VÀ blv                                            ║
+// ║   - Khoá stream key cũ → phải đăng ký lịch mới                    ║
+// ║   - Kick OBS publisher qua SRS API (cắt connection ngay)          ║
+// ║ ⚠️ CHỈ chạy ở Worker đầu tiên (instance 0) để tránh duplicate     ║
+// ║    khi cluster mode 2+ workers cùng chạy cron                     ║
+// ╚════════════════════════════════════════════════════════════════════╝
+if (!process.env.NODE_APP_INSTANCE || process.env.NODE_APP_INSTANCE === '0') {
+  const autoEndLive = require('./lib/auto-end-scheduled-live');
+  autoEndLive.start(30 * 1000);  // tick mỗi 30s
+}
+
+// ╔════════════════════════════════════════════════════════════════════╗
 // ║ AUTO GENERATE NEWS - chạy hàng ngày lúc 6h sáng VN (UTC+7 = 23h UTC)║
 // ║ Cần env CLAUDE_API_KEY (set trong ecosystem.config.js)             ║
 // ║ Run thủ công: node scripts/generate-news.js                        ║
