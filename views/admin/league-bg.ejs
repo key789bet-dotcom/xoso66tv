@@ -88,6 +88,17 @@
   var __data = { backgrounds: {}, detectedLeagues: [] };
   var __filter = 'all';
 
+  // 🛡️ CSRF helper — lấy token từ meta để chèn vào FormData (multipart) hoặc header
+  function _csrf(){
+    var m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute('content') : '';
+  }
+  function _csrfHeaders(extra){
+    var h = extra || {};
+    h['X-CSRF-Token'] = _csrf();
+    return h;
+  }
+
   function esc(s){ return String(s||'').replace(/[<>&"]/g,function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c];}); }
 
   function load(){
@@ -162,11 +173,12 @@
     var file = input.files[0];
     if (file.size > 8 * 1024 * 1024) { alert('Ảnh quá lớn! Tối đa 8MB'); input.value=''; return; }
     var fd = new FormData();
+    fd.append('_csrf', _csrf());
     fd.append('leagueName', name);
     fd.append('file', file);
 
-    fetch('/api/admin/league-bg/upload', {
-      method:'POST', credentials:'same-origin', body: fd
+    fetch('/api/admin/league-bg/upload?_csrf=' + encodeURIComponent(_csrf()), {
+      method:'POST', credentials:'same-origin', headers: _csrfHeaders(), body: fd
     }).then(function(r){ return r.json(); }).then(function(d){
       input.value = '';
       if (d.ok) { alert('✅ Đã upload ảnh cho "' + name + '"'); load(); }
@@ -178,8 +190,8 @@
     if (!confirm('Xoá ảnh nền của "' + name + '"?')) return;
     fetch('/api/admin/league-bg/remove', {
       method:'POST', credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ leagueName: name })
+      headers: _csrfHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify({ leagueName: name, _csrf: _csrf() })
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d.ok) load(); else alert(d.error || 'Lỗi');
     });
@@ -193,10 +205,11 @@
     if (file.size > 8 * 1024 * 1024) return alert('Ảnh quá lớn! Tối đa 8MB');
 
     var fd = new FormData();
+    fd.append('_csrf', _csrf());
     fd.append('leagueName', name);
     fd.append('file', file);
-    fetch('/api/admin/league-bg/upload', {
-      method:'POST', credentials:'same-origin', body: fd
+    fetch('/api/admin/league-bg/upload?_csrf=' + encodeURIComponent(_csrf()), {
+      method:'POST', credentials:'same-origin', headers: _csrfHeaders(), body: fd
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d.ok) {
         document.getElementById('lbgNewName').value = '';
@@ -213,12 +226,15 @@
     if (!file) return alert('Chọn file ảnh trước');
     if (file.size > 8 * 1024 * 1024) return alert('Ảnh quá lớn! Tối đa 8MB');
     var fd = new FormData();
+    fd.append('_csrf', _csrf());
     fd.append('leagueName', '__default__');
     fd.append('file', file);
     var status = document.getElementById('lbgDefaultStatus');
     status.className = 'text-[11px] mt-2 text-amber-300'; status.textContent = '⏳ Đang upload...';
     status.classList.remove('hidden');
-    fetch('/api/admin/league-bg/upload', { method:'POST', credentials:'same-origin', body: fd })
+    fetch('/api/admin/league-bg/upload?_csrf=' + encodeURIComponent(_csrf()), {
+      method:'POST', credentials:'same-origin', headers: _csrfHeaders(), body: fd
+    })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if (d.ok) {
@@ -236,8 +252,8 @@
     if (!confirm('Xoá ảnh mặc định? (Các giải không có ảnh riêng sẽ hiện nền gradient cũ)')) return;
     fetch('/api/admin/league-bg/remove', {
       method:'POST', credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ leagueName: '__default__' })
+      headers: _csrfHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify({ leagueName: '__default__', _csrf: _csrf() })
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d.ok) location.reload(); else alert(d.error || 'Lỗi');
     });
