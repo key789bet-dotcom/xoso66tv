@@ -676,6 +676,38 @@ app.get('/live/:id', async function (req, res, next) {
         }
       } catch(e) { console.warn('[LIVE] custom fallback fail:', e.message); }
     }
+    // 🆕 Fallback 4: BLV PROFILE — id dạng b_xxx → tìm BLV trong DB → render synthetic match
+    if (!match && /^b_/.test(req.params.id)) {
+      try {
+        const dbData = db.load();
+        const blvRec = (dbData.blvs || []).find(b =>
+          b.id === req.params.id || b.slug === req.params.id ||
+          (b.username || '').toLowerCase() === req.params.id.toLowerCase()
+        );
+        if (blvRec) {
+          match = {
+            id: blvRec.id,
+            sport: 'Soccer',
+            league: 'Phòng BLV',
+            home: blvRec.name || 'BLV',
+            away: 'XOSO66 TV',
+            homeBadge: blvRec.avatar || '',
+            awayBadge: '',
+            score: null,
+            date: '',
+            time: blvRec.liveNow ? 'LIVE' : 'Chuẩn bị',
+            matchTs: null,
+            venue: '',
+            status: blvRec.liveNow ? 'live' : 'upcoming',
+            statusText: blvRec.liveNow ? 'ĐANG LIVE' : 'BLV chưa lên sóng',
+            poster: blvRec.cardImage || blvRec.avatar || '',
+            slug: blvRec.id,
+            _isBlvRoom: true,
+            _blvStreamKey: blvRec.streamKey || blvRec.id
+          };
+        }
+      } catch(e) { console.warn('[LIVE] BLV fallback fail:', e.message); }
+    }
     if (!match) return res.status(404).render('tw-404');
     const all = await api.getLiveStreams().catch(function(){ return []; });
     const others = (all || []).filter(function (x) { return x.id !== match.id; }).slice(0, 6);
