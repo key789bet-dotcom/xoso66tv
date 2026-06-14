@@ -9,7 +9,7 @@
       Nếu không upload → fallback dùng emoji + text mặc định.
     </p>
     <p class="text-xs text-yellow-300 mt-2">
-      💡 Khuyến nghị: ảnh <b>tỉ lệ ~3:1 (chữ nhật ngang)</b>, ví dụ <b>240×80px</b> hoặc <b>300×100px</b>, PNG/WEBP nền trong suốt, dung lượng &lt;1MB. Ảnh nên có sẵn cả icon + chữ "Hot/Thể thao/..." bên trong.
+      💡 Khuyến nghị: ảnh <b>tỉ lệ ~3:1 (chữ nhật ngang)</b>, ví dụ <b>240×80px</b> hoặc <b>300×100px</b>. Hỗ trợ: <b>PNG / WEBP / JPG / GIF (animated OK)</b>. Nền trong suốt, dung lượng &lt;2MB. Ảnh nên có sẵn cả icon + chữ "Hot/Thể thao/..." bên trong.
     </p>
   </header>
 
@@ -44,7 +44,7 @@
         </div>
 
         <!-- Upload form -->
-        <input type="file" id="file_<%= c.key %>" accept="image/png,image/webp,image/jpeg" class="block w-full text-xs text-gray-300 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-pri file:text-white file:font-bold file:cursor-pointer">
+        <input type="file" id="file_<%= c.key %>" accept="image/png,image/webp,image/jpeg,image/gif" class="block w-full text-xs text-gray-300 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-pri file:text-white file:font-bold file:cursor-pointer">
 
         <div class="flex gap-2 mt-3">
           <button type="button" data-key="<%= c.key %>" class="ti-upload-btn flex-1 px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">
@@ -83,21 +83,33 @@
       var fileInput = document.getElementById('file_' + key);
       if (!fileInput.files || !fileInput.files[0]) return showStatus('Chọn file trước khi upload', false);
       var file = fileInput.files[0];
-      if (file.size > 1024 * 1024) return showStatus('Ảnh quá lớn (>1MB). Nén lại trước khi upload.', false);
+      if (file.size > 2 * 1024 * 1024) return showStatus('Ảnh quá lớn (>2MB). Nén lại trước khi upload.', false);
       var fd = new FormData();
       fd.append('_csrf', _csrf());
       fd.append('key', key);
       fd.append('file', file);
       btn.disabled = true; btn.textContent = '⏳';
+      var resetBtn = function(){ btn.disabled = false; btn.textContent = '💾 Upload'; };
       fetch('/admin/api/tab-icons/upload?_csrf=' + encodeURIComponent(_csrf()), {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'X-CSRF-Token': _csrf() },
         body: fd
-      }).then(function(r){ return r.json(); }).then(function(d){
-        btn.disabled = false; btn.textContent = '💾 Upload';
+      }).then(function(r){
+        // Catch HTTP error (403 CSRF, 413 too large, 500 server) trước khi parse JSON
+        if (!r.ok) {
+          return r.text().then(function(txt){
+            throw new Error('HTTP ' + r.status + ': ' + (txt || '').slice(0, 200));
+          });
+        }
+        return r.json();
+      }).then(function(d){
+        resetBtn();
         if (d.ok) { showStatus('Đã upload icon "' + key + '"', true); setTimeout(function(){ location.reload(); }, 600); }
-        else { showStatus('✗ ' + (d.error || 'Lỗi'), false); }
+        else { showStatus('✗ ' + (d.error || 'Lỗi không xác định'), false); }
+      }).catch(function(err){
+        resetBtn();
+        showStatus('✗ ' + (err.message || 'Network error'), false);
       });
     });
   });
