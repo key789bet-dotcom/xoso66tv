@@ -1,20 +1,33 @@
 <%
 // Mobile home layout - OkwinTV style
-// Props: brand, banners, live, upcoming, dbIdols
+// Props: brand, banners, live, upcoming, dbIdols, dbBlvs
 var _live = live || [];
 var _up = upcoming || [];
 var _featured = _live[0] || _up[0] || null;
 var _featuredLink = _featured ? ('/live/' + (_featured.slug || _featured.id)) : '#';
 var _idolList = (typeof dbIdols !== 'undefined' && dbIdols && dbIdols.length) ? dbIdols.filter(function(i){ return i.status==='active'; }) : [];
+var _blvList  = (typeof dbBlvs  !== 'undefined' && dbBlvs  && dbBlvs.length)  ? dbBlvs.filter(function(i){ return i.status==='active'; })  : [];
 
-// Danh sách stream keys có thể đang live (idol đã được cấp quyền live)
-var _liveCandidates = _idolList
-  .filter(function(i){ return i.canLive; })
-  .map(function(i){ return { key: i.id, href: '/idol/' + i.id, name: i.name }; });
-// Fallback: nếu chưa có idol canLive, vẫn thử tất cả idol active
-if (_liveCandidates.length === 0) {
-  _liveCandidates = _idolList.map(function(i){ return { key: i.id, href: '/idol/' + i.id, name: i.name }; });
-}
+// 🎯 ƯU TIÊN HIỂN THỊ: idol/blv ĐANG LIVE NOW lên đầu
+var _liveNowIdols = _idolList.filter(function(i){ return i.liveNow; });
+var _liveNowBlvs  = _blvList.filter(function(i){ return i.liveNow; });
+
+// Danh sách stream keys có thể đang live — priority: liveNow → canLive → all
+var _candIdols = _liveNowIdols.length ? _liveNowIdols : _idolList.filter(function(i){ return i.canLive; });
+if (_candIdols.length === 0) _candIdols = _idolList;
+var _candBlvs  = _liveNowBlvs.length  ? _liveNowBlvs  : _blvList.filter(function(i){ return i.canLive; });
+
+var _liveCandidates = [].concat(
+  _candBlvs.map(function(b){  return { key: b.id, href: '/live/' + b.id, name: b.name, avatar: b.avatar || b.cardImage || '', kind:'blv' }; }),
+  _candIdols.map(function(i){ return { key: i.id, href: '/idol/' + i.id, name: i.name, avatar: i.avatar || i.cardImage || '', kind:'idol' }; })
+);
+
+// 🖼️ POSTER FALLBACK đa tầng: ưu tiên avatar candidate, sau đó featured.poster, cuối cùng team badge
+var _previewPoster = '';
+if (_liveCandidates.length && _liveCandidates[0].avatar) _previewPoster = _liveCandidates[0].avatar;
+else if (_featured && _featured.poster) _previewPoster = _featured.poster;
+else if (_featured && _featured.homeBadge) _previewPoster = _featured.homeBadge;
+else if (_idolList[0] && _idolList[0].avatar) _previewPoster = _idolList[0].avatar;
 
 // Count by category
 var _cnt = { all: _live.length + _idolList.length, hot: 0, bongda: 0, bongro: 0, tennis: 0, bongchuyen: 0, bongban: 0, esport: 0, casino: 5, idol: _idolList.length };
@@ -147,11 +160,13 @@ _cnt.all = _cards.length;
       <!-- Video element ẩn ban đầu, hiện khi có stream live -->
       <video id="mhLiveVideo" class="hidden absolute inset-0 w-full h-full object-cover bg-black" playsinline autoplay muted></video>
 
-      <!-- Poster placeholder (hiện khi chưa có video) -->
-      <% if (_featured && _featured.poster) { %>
-        <img id="mhLivePoster" src="<%= _featured.poster %>" class="absolute inset-0 w-full h-full object-cover opacity-50" alt="" onerror="this.style.display='none'">
+      <!-- Poster fallback đa tầng — avatar idol/blv/team badge, opacity FULL để rõ -->
+      <% if (_previewPoster) { %>
+        <img id="mhLivePoster" src="<%= _previewPoster %>" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'" style="opacity:0.9;">
+        <!-- Lớp phủ tối nhẹ để text CTA + badge đọc rõ, không che ảnh -->
+        <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at center, rgba(0,0,0,.3) 0%, rgba(0,0,0,.55) 100%);"></div>
       <% } %>
-      <div id="mhLiveGradient" class="absolute inset-0 bg-gradient-to-br from-bg-card via-bg to-black"></div>
+      <div id="mhLiveGradient" class="absolute inset-0 bg-gradient-to-br from-bg-card via-bg to-black" style="<%= _previewPoster ? 'display:none;' : '' %>"></div>
 
       <!-- LIVE badge top-left -->
       <span id="mhLiveBadge" class="hidden absolute top-2 left-2 z-[3] bg-live text-white px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 shadow-lg"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
