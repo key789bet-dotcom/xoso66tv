@@ -110,7 +110,7 @@
             <td class="px-4 py-3 text-center">
               <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold" style="background:<%= tier.color %>20;color:<%= tier.color %>;border:1px solid <%= tier.color %>40"><%= tier.name %></span>
             </td>
-            <td class="px-4 py-3 text-right font-bold text-gold"><%= u.balance.toLocaleString('vi-VN') %>d</td>
+            <td class="px-4 py-3 text-right font-bold text-gold"><%= (u.balance || u.xCoin || u.coin || 0).toLocaleString('vi-VN') %>d</td>
             <td class="px-4 py-3 text-center">
               <% if (u.status==='banned') { %>
                 <span class="px-2 py-0.5 bg-live/15 text-live rounded text-[11px] font-bold" title="<%= u.banReason||'' %>">Banned</span>

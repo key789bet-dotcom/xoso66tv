@@ -41,9 +41,9 @@
 
           <% if (b.status==='active') { %>
           <div class="mt-3 grid grid-cols-3 gap-2 text-xs">
-            <div class="bg-bg-soft px-2.5 py-2 rounded text-center"><div class="text-muted text-[10px]">RATING</div><div class="font-extrabold text-gold"><%= b.rating.toFixed(1) %>&#9733;</div></div>
-            <div class="bg-bg-soft px-2.5 py-2 rounded text-center"><div class="text-muted text-[10px]">FOLLOWERS</div><div class="font-extrabold text-pri-light"><%= b.followers.toLocaleString('vi-VN') %></div></div>
-            <div class="bg-bg-soft px-2.5 py-2 rounded text-center"><div class="text-muted text-[10px]">STREAMS</div><div class="font-extrabold text-white"><%= b.totalStreams %></div></div>
+            <div class="bg-bg-soft px-2.5 py-2 rounded text-center"><div class="text-muted text-[10px]">RATING</div><div class="font-extrabold text-gold"><%= (+(b.rating) || 5).toFixed(1) %>&#9733;</div></div>
+            <div class="bg-bg-soft px-2.5 py-2 rounded text-center"><div class="text-muted text-[10px]">FOLLOWERS</div><div class="font-extrabold text-pri-light"><%= (b.followers || 0).toLocaleString('vi-VN') %></div></div>
+            <div class="bg-bg-soft px-2.5 py-2 rounded text-center"><div class="text-muted text-[10px]">STREAMS</div><div class="font-extrabold text-white"><%= b.totalStreams || 0 %></div></div>
           </div>
           <% } %>
 
