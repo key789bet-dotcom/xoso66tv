@@ -26,19 +26,20 @@ async function main() {
   }
 
   const targetUsername = process.argv[2];   // optional
-  const d = db.load();
-  const list = d.schedules || [];
-  const approved = list.filter(s => s.status === 'approved');
+  const scheduleStore = require(path.join(ROOT, 'lib', 'schedule-store'));
+  const all = scheduleStore.listAll({ limit: 500 });
+  const approved = all.filter(s => s.status === 'approved');
 
-  console.log('Tổng schedules:', list.length);
+  console.log('Tổng schedules:', all.length);
   console.log('Approved:', approved.length);
-  console.log('Ended:', list.filter(s => s.status === 'ended').length);
+  console.log('Ended:', all.filter(s => s.status === 'ended').length);
 
   let target;
   if (targetUsername) {
     target = approved.find(s => s.username.toLowerCase() === targetUsername.toLowerCase());
     if (!target) {
       console.log('❌ Không có schedule approved của username:', targetUsername);
+      console.log('   List approved:', approved.map(s => s.username).join(', ') || '(none)');
       process.exit(1);
     }
   } else {
@@ -56,10 +57,14 @@ async function main() {
   console.log('  startTime:', new Date(target.startTime).toLocaleString('vi-VN'));
   console.log('  endTime (cũ):', new Date(target.endTime).toLocaleString('vi-VN'));
 
-  // Force expire: endTime = 10 phút trước
-  target.endTime = Date.now() - 10 * 60 * 1000;
-  db.save(d);
-  console.log('  endTime (mới):', new Date(target.endTime).toLocaleString('vi-VN'), '← FORCED EXPIRE');
+  // Force expire bằng cách ghi trực tiếp vào file schedules.json
+  const fs = require('fs');
+  const SCHED_FILE = path.join(ROOT, 'data', 'schedules.json');
+  const raw = JSON.parse(fs.readFileSync(SCHED_FILE, 'utf8'));
+  const idx = raw.findIndex(s => s.id === target.id);
+  raw[idx].endTime = Date.now() - 10 * 60 * 1000;
+  fs.writeFileSync(SCHED_FILE, JSON.stringify(raw, null, 2));
+  console.log('  endTime (mới):', new Date(raw[idx].endTime).toLocaleString('vi-VN'), '← FORCED EXPIRE');
 
   console.log('');
   console.log('→ Trigger tick() ngay (không đợi cron 30s)...');
@@ -70,7 +75,7 @@ async function main() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   // Verify
   const d2 = db.load();
-  const after = (d2.schedules || []).find(s => s.id === target.id);
+  const after = scheduleStore.findById(target.id);
   if (!after) {
     console.log('❌ Schedule biến mất sau tick (bug)');
   } else {
