@@ -211,11 +211,19 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
   <!-- Right sidebar: Tab list of rooms - CỐ ĐỊNH max-height, scroll bên trong -->
   <aside class="bg-bg-card border border-line rounded-xl overflow-hidden flex flex-col" style="max-height:560px;min-height:0;">
     <!-- Tabs - LOC IDOL THEO CATEGORY -->
+    <% var _ti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};
+       function _renderTabIcon(key, fallbackEmoji) {
+         if (_ti[key]) {
+           return '<img src="' + _ti[key] + '" alt="' + key + '" class="w-5 h-5 object-contain inline-block">';
+         }
+         return fallbackEmoji;
+       }
+    %>
     <nav class="flex gap-1 p-2 border-b border-line overflow-x-auto scrollbar-hide" role="tablist" id="roomTabs">
-      <button data-tab="hot"     class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap bg-pri text-white shadow-pri transition-all" role="tab">&#128293; Hot</button>
-      <button data-tab="thethao" class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#9917; Thể thao</button>
-      <button data-tab="idol"    class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#128081; Idol Live</button>
-      <button data-tab="casino"  class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#127920; Casino</button>
+      <button data-tab="hot"     class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap bg-pri text-white shadow-pri transition-all" role="tab"><%- _renderTabIcon('hot',     '&#128293;') %> Hot</button>
+      <button data-tab="thethao" class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab"><%- _renderTabIcon('thethao', '&#9917;')   %> Thể thao</button>
+      <button data-tab="idol"    class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab"><%- _renderTabIcon('idol',    '&#128081;') %> Idol Live</button>
+      <button data-tab="casino"  class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab"><%- _renderTabIcon('casino',  '&#127920;') %> Casino</button>
       <button data-tab="esport"  class="room-tab flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all" role="tab">&#127918; Esports</button>
     </nav>
 

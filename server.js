@@ -321,6 +321,9 @@ app.use(async function (req, res, next) {
   //    route render view (kể cả GET /) đều thấy. Lazy require tránh cycle.
   try { res.locals.leagueBgs = require('./lib/league-bg-store').list(); }
   catch (e) { res.locals.leagueBgs = {}; }
+  // 🎨 Tab icons (admin upload qua /admin/tab-icons)
+  try { res.locals.tabIcons = require('./lib/tab-icons-store').list(); }
+  catch(e) { res.locals.tabIcons = {}; }
   next();
 });
 

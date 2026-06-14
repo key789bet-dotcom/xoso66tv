@@ -932,6 +932,70 @@ router.post('/api/header-banner/remove', function(req, res){
 // ════════════════════════════════════════════════════════
 const bunnyConfig = require('../lib/bunny-config-store');
 
+// ════════════════════════════════════════════════════════
+// TAB ICONS — 4 ảnh icon cho tab Hot/Thể thao/Idol/Casino trang chủ
+// ════════════════════════════════════════════════════════
+const tabIconsStore = require('../lib/tab-icons-store');
+const _tabIconStorage = multer.diskStorage({
+  destination: function(req, file, cb){
+    var dir = path.join(__dirname, '..', 'public', 'uploads', 'tab-icons');
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req, file, cb){
+    var key = (req.body && req.body.key) || 'icon';
+    cb(null, 'tab-' + key + '-' + Date.now() + path.extname(file.originalname).toLowerCase());
+  }
+});
+const _tabIconUpload = multer({
+  storage: _tabIconStorage,
+  limits: { fileSize: 500 * 1024 },  // 500KB
+  fileFilter: function(req, file, cb){
+    var ok = /^image\/(png|webp|jpeg)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Chỉ PNG/WEBP/JPG'), ok);
+  }
+});
+
+router.get('/tab-icons', function(req, res){
+  res.render('admin/tab-icons', {
+    active: 'tab-icons',
+    title: 'Icon 4 tab trang chủ',
+    icons: tabIconsStore.list()
+  });
+});
+
+router.post('/api/tab-icons/upload', _tabIconUpload.single('file'), function(req, res){
+  try {
+    var key = (req.body && req.body.key) || '';
+    if (tabIconsStore.VALID_KEYS.indexOf(key) === -1) return res.status(400).json({ ok:false, error:'Key không hợp lệ' });
+    if (!req.file) return res.status(400).json({ ok:false, error:'Thiếu file' });
+    var url = '/uploads/tab-icons/' + req.file.filename;
+    // Xoá ảnh cũ nếu có
+    var old = tabIconsStore.list()[key];
+    if (old && old.indexOf('/uploads/tab-icons/') === 0) {
+      try { require('fs').unlinkSync(path.join(__dirname, '..', 'public', old)); } catch(_) {}
+    }
+    tabIconsStore.set(key, url);
+    res.json({ ok:true, key:key, url:url });
+  } catch(e) {
+    res.status(500).json({ ok:false, error:e.message });
+  }
+});
+
+router.post('/api/tab-icons/remove', function(req, res){
+  try {
+    var key = (req.body && req.body.key) || '';
+    if (tabIconsStore.VALID_KEYS.indexOf(key) === -1) return res.status(400).json({ ok:false, error:'Key không hợp lệ' });
+    var old = tabIconsStore.remove(key);
+    if (old && old.indexOf('/uploads/tab-icons/') === 0) {
+      try { require('fs').unlinkSync(path.join(__dirname, '..', 'public', old)); } catch(_) {}
+    }
+    res.json({ ok:true });
+  } catch(e) {
+    res.status(500).json({ ok:false, error:e.message });
+  }
+});
+
 router.get('/bunny-stream', function(req, res){
   res.render('admin/bunny-stream', {
     active: 'bunny-stream',
