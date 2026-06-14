@@ -1,0 +1,232 @@
+<%- include('partials/layout-start', { active: 'bunny-stream' }) %>
+
+<div class="space-y-6">
+  <header class="bg-bg-card border border-line rounded-xl p-5 flex items-center justify-between gap-4 flex-wrap">
+    <div>
+      <h2 class="text-lg font-extrabold text-white mb-1">🐰 BunnyCDN Stream — Cấu hình live streaming cho 10k+ viewers</h2>
+      <p class="text-sm text-muted">Đăng ký + tạo Stream Library tại <a href="https://dash.bunny.net/stream" target="_blank" class="text-pri-light underline">dash.bunny.net/stream</a></p>
+      <p class="text-xs text-muted mt-1">Cập nhật cuối: <%= cfg.updatedAt ? new Date(cfg.updatedAt).toLocaleString('vi-VN') : '(chưa có)' %></p>
+    </div>
+    <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+      <span class="text-sm font-bold text-white"><%= cfg.enabled ? 'ĐANG BẬT' : 'ĐANG TẮT' %></span>
+      <button id="toggleBtn" type="button" class="px-3 py-1.5 rounded-lg <%= cfg.enabled ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-bg-deep border border-line' %> text-white text-xs font-bold">
+        <%= cfg.enabled ? '⛔ Tắt' : '✅ Bật' %>
+      </button>
+    </label>
+  </header>
+
+  <% if (cfg.enabled && cfg.libraryId && cfg.apiKey && cfg.cdnHostname) { %>
+  <div class="bg-emerald-500/10 border border-emerald-500 rounded-xl p-4 text-emerald-300 text-sm">
+    ✅ BunnyCDN đã ready. Mỗi idol/BLV go live sẽ tự đẩy stream qua BunnyCDN (10k+ viewers concurrent).
+  </div>
+  <% } else { %>
+  <div class="bg-yellow-500/10 border border-yellow-500 rounded-xl p-4 text-yellow-300 text-sm">
+    ⚠️ Cần cấu hình đầy đủ 3 trường bên dưới + bật toggle để BunnyCDN active.
+  </div>
+  <% } %>
+
+  <!-- ───────── FORM CẤU HÌNH ───────── -->
+  <form id="bunnyForm" class="bg-bg-card border border-line rounded-xl p-5 space-y-4">
+    <div>
+      <label class="block text-xs font-bold text-muted uppercase mb-1.5">Library ID <span class="text-red-400">*</span></label>
+      <input type="text" id="libraryId" value="<%= cfg.libraryId %>" placeholder="VD: 524284"
+             class="w-full bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-lg outline-none text-sm focus:border-pri">
+      <p class="text-[11px] text-muted mt-1">Số 6-7 chữ số trong URL: dash.bunny.net/stream/<b class="text-pri-light">524284</b></p>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-muted uppercase mb-1.5">API Key <span class="text-red-400">*</span></label>
+      <input type="password" id="apiKey" value="<%= cfg.apiKey %>" placeholder="Paste API Key (UUID dạng 47ff4938-...)"
+             class="w-full bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-lg outline-none text-sm focus:border-pri">
+      <p class="text-[11px] text-muted mt-1">Tab <b class="text-pri-light">API</b> trong library → "Default API Key"</p>
+      <% if (cfg.apiKey) { %>
+        <p class="text-[10px] text-emerald-400 mt-1">✓ Đã set (<%= cfg.apiKey.slice(0,8) %>...<%= cfg.apiKey.slice(-4) %>)</p>
+      <% } %>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-muted uppercase mb-1.5">CDN Hostname <span class="text-red-400">*</span></label>
+      <input type="text" id="cdnHostname" value="<%= cfg.cdnHostname %>" placeholder="VD: vz-abc12345-xyz.b-cdn.net"
+             class="w-full bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-lg outline-none text-sm focus:border-pri">
+      <p class="text-[11px] text-muted mt-1">Tab <b class="text-pri-light">API</b> → "Pull Zone Hostname". KHÔNG cần https://</p>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-muted uppercase mb-1.5">RTMP Push URL</label>
+      <input type="text" id="rtmpUrl" value="<%= cfg.rtmpUrl %>" placeholder="rtmps://live.bunnycdn.com/live"
+             class="w-full bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-lg outline-none text-sm focus:border-pri">
+      <p class="text-[11px] text-muted mt-1">Mặc định: <code class="text-pri-light">rtmps://live.bunnycdn.com/live</code> (chỉ đổi nếu Bunny cung cấp URL khác)</p>
+    </div>
+
+    <button type="button" id="saveBtn" class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-bold hover:opacity-90">
+      💾 Lưu cấu hình
+    </button>
+
+    <button type="button" id="testBtn" class="ml-2 px-5 py-2.5 rounded-lg bg-pri text-white text-sm font-bold hover:opacity-90">
+      🧪 Test kết nối API
+    </button>
+  </form>
+
+  <!-- ───────── GÁN VIDEO ID CHO IDOL/BLV ───────── -->
+  <div class="bg-bg-card border border-line rounded-xl p-5">
+    <h3 class="text-sm font-extrabold text-pri-light mb-2">🎯 Gán Bunny Video ID cho Idol/BLV</h3>
+    <p class="text-xs text-muted mb-3 leading-relaxed">
+      Mỗi idol/BLV cần 1 video ID riêng trên BunnyCDN để khán giả xem qua CDN. Có 2 cách:
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-3">
+      <!-- Cách 1: Auto tạo qua API -->
+      <div class="bg-bg-deep border border-line rounded-lg p-3">
+        <h4 class="text-xs font-bold text-emerald-300 mb-2">⚡ Cách 1: Auto tạo (khuyến nghị)</h4>
+        <p class="text-[11px] text-muted mb-2">Click button → tự gọi Bunny API tạo video container + gán vào DB.</p>
+        <select id="bcAutoType" class="w-full bg-bg-card border border-line text-gray-100 px-2 py-1.5 rounded text-xs mb-2">
+          <option value="idol">Idol</option>
+          <option value="blv">BLV</option>
+        </select>
+        <input id="bcAutoId" placeholder="Idol/BLV ID hoặc slug (vd: yennhi, i1)" class="w-full bg-bg-card border border-line text-gray-100 px-2 py-1.5 rounded text-xs mb-2">
+        <button id="bcAutoBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-1.5 rounded">🎬 Tạo + gán tự động</button>
+      </div>
+
+      <!-- Cách 2: Paste GUID thủ công -->
+      <div class="bg-bg-deep border border-line rounded-lg p-3">
+        <h4 class="text-xs font-bold text-pri-light mb-2">📋 Cách 2: Paste GUID thủ công</h4>
+        <p class="text-[11px] text-muted mb-2">Nếu đã tạo video trên dashboard Bunny → paste GUID vào đây.</p>
+        <select id="bcManType" class="w-full bg-bg-card border border-line text-gray-100 px-2 py-1.5 rounded text-xs mb-2">
+          <option value="idol">Idol</option>
+          <option value="blv">BLV</option>
+        </select>
+        <input id="bcManId" placeholder="Idol/BLV ID hoặc slug" class="w-full bg-bg-card border border-line text-gray-100 px-2 py-1.5 rounded text-xs mb-2">
+        <input id="bcManVid" placeholder="Video GUID (UUID)" class="w-full bg-bg-card border border-line text-gray-100 px-2 py-1.5 rounded text-xs mb-2">
+        <button id="bcManBtn" class="w-full bg-pri hover:brightness-110 text-white text-xs font-bold py-1.5 rounded">💾 Gán GUID</button>
+      </div>
+    </div>
+
+    <div id="bcResult" class="hidden mt-3 p-3 rounded text-xs"></div>
+  </div>
+
+  <!-- ───────── HƯỚNG DẪN ───────── -->
+  <div class="bg-bg-card border border-line rounded-xl p-5">
+    <h3 class="text-sm font-extrabold text-pri-light mb-2">💡 Hướng dẫn lấy 3 thông số</h3>
+    <ol class="text-xs text-gray-300 space-y-1.5 list-decimal pl-5">
+      <li>Đăng nhập <a href="https://dash.bunny.net" target="_blank" class="text-pri-light underline">dash.bunny.net</a></li>
+      <li>Nạp tối thiểu $10 vào Billing (cần để tạo Stream Library)</li>
+      <li>Sidebar trái → <b>Stream</b> → <b>Add Video Library</b> → đặt tên <code class="text-pri-light">xoso66tv</code> → Replication tick <b>Singapore (SG)</b> + <b>Hong Kong (HK)</b></li>
+      <li>Click vào library vừa tạo</li>
+      <li>Lấy <b>Library ID</b>: số trong URL (vd <code>dash.bunny.net/stream/524284</code> → ID = 524284)</li>
+      <li>Tab <b>API</b> → copy <b>Default API Key</b> + <b>Pull Zone Hostname</b></li>
+      <li>Paste vào form ở trên → <b>Lưu cấu hình</b> → bật toggle <b>BẬT</b></li>
+    </ol>
+
+    <div class="mt-3 pt-3 border-t border-line">
+      <h4 class="text-xs font-bold text-pri-light mb-1.5">💰 Chi phí dự kiến (tier Standard $0.005/GB)</h4>
+      <ul class="text-xs text-gray-300 space-y-0.5">
+        <li>• 0-500 viewers concurrent: ~$10-30/tháng</li>
+        <li>• 500-2,000 viewers: ~$50-150/tháng</li>
+        <li>• 2,000-5,000 viewers: ~$150-400/tháng</li>
+        <li>• 5,000-10,000 viewers: ~$300-800/tháng</li>
+      </ul>
+    </div>
+
+    <div class="mt-3 pt-3 border-t border-line">
+      <h4 class="text-xs font-bold text-pri-light mb-1.5">⚡ Cách hoạt động</h4>
+      <pre class="text-xs text-gray-300 bg-bg-deep p-3 rounded overflow-x-auto leading-relaxed">OBS Idol/BLV → push RTMP → BunnyCDN Origin
+                      ↓ (auto distribute)
+              BunnyCDN Edge worldwide
+                      ↓
+            10,000+ viewers (KHÔNG LIMIT)
+
+Latency: 2-5 giây (LL-HLS)
+Chat + Gift: WebSocket VPS (đã có sẵn)</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var saveBtn = document.getElementById('saveBtn');
+  var testBtn = document.getElementById('testBtn');
+  var toggleBtn = document.getElementById('toggleBtn');
+
+  saveBtn && saveBtn.addEventListener('click', function(){
+    var body = {
+      libraryId: document.getElementById('libraryId').value.trim(),
+      apiKey:    document.getElementById('apiKey').value.trim(),
+      cdnHostname: document.getElementById('cdnHostname').value.trim(),
+      rtmpUrl:   document.getElementById('rtmpUrl').value.trim()
+    };
+    if (!body.libraryId || !body.apiKey || !body.cdnHostname) {
+      return showToast('Vui lòng nhập đủ Library ID + API Key + CDN Hostname', 'error');
+    }
+    fetch('/admin/api/bunny-stream/update', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) { showToast('Đã lưu cấu hình BunnyCDN','success'); setTimeout(function(){ location.reload(); }, 600); }
+      else { showToast(d.error || 'Lưu thất bại','error'); }
+    });
+  });
+
+  toggleBtn && toggleBtn.addEventListener('click', function(){
+    var newState = !<%= cfg.enabled %>;
+    fetch('/admin/api/bunny-stream/toggle', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify({ enabled: newState })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) { location.reload(); }
+      else { showToast(d.error || 'Toggle thất bại','error'); }
+    });
+  });
+
+  function bcShow(msg, ok){
+    var box = document.getElementById('bcResult');
+    box.className = 'mt-3 p-3 rounded text-xs ' + (ok ? 'bg-emerald-500/10 border border-emerald-500 text-emerald-300' : 'bg-red-500/10 border border-red-500 text-red-300');
+    box.innerHTML = msg;
+    box.classList.remove('hidden');
+  }
+
+  document.getElementById('bcAutoBtn') && document.getElementById('bcAutoBtn').addEventListener('click', function(){
+    var type = document.getElementById('bcAutoType').value;
+    var id   = document.getElementById('bcAutoId').value.trim();
+    if (!id) return bcShow('Nhập ID hoặc slug', false);
+    fetch('/admin/api/bunny-stream/create-for', {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
+      body: JSON.stringify({ type: type, id: id })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) bcShow('✓ Đã tạo + gán Bunny video cho <b>' + (d.item.name || d.item.id) + '</b><br>GUID: <code>' + d.guid + '</code><br>HLS: <code class="break-all">' + d.hlsUrl + '</code>', true);
+      else bcShow('✗ ' + (d.error || 'Lỗi'), false);
+    });
+  });
+
+  document.getElementById('bcManBtn') && document.getElementById('bcManBtn').addEventListener('click', function(){
+    var type = document.getElementById('bcManType').value;
+    var id   = document.getElementById('bcManId').value.trim();
+    var vid  = document.getElementById('bcManVid').value.trim();
+    if (!id || !vid) return bcShow('Nhập đủ ID + Video GUID', false);
+    fetch('/admin/api/bunny-stream/assign', {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
+      body: JSON.stringify({ type: type, id: id, videoId: vid })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) bcShow('✓ Đã gán GUID cho <b>' + (d.item.name || d.item.id) + '</b>', true);
+      else bcShow('✗ ' + (d.error || 'Lỗi'), false);
+    });
+  });
+
+  testBtn && testBtn.addEventListener('click', function(){
+    testBtn.textContent = '⏳ Đang test...';
+    testBtn.disabled = true;
+    fetch('/admin/api/bunny-stream/test', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); }).then(function(d){
+        testBtn.disabled = false;
+        testBtn.textContent = '🧪 Test kết nối API';
+        if (d.ok) { showToast('✓ Kết nối BunnyCDN OK! Library: ' + d.libraryName, 'success'); }
+        else { showToast('✗ Lỗi: ' + (d.error || 'Unknown'), 'error'); }
+      });
+  });
+})();
+</script>
+
+<%- include('partials/layout-end') %>

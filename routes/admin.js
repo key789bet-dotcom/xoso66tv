@@ -927,6 +927,107 @@ router.post('/api/header-banner/remove', function(req, res){
   }
 });
 
+// ════════════════════════════════════════════════════════
+// BUNNYCDN STREAM — cấu hình live streaming scale 10k+ viewers
+// ════════════════════════════════════════════════════════
+const bunnyConfig = require('../lib/bunny-config-store');
+
+router.get('/bunny-stream', function(req, res){
+  res.render('admin/bunny-stream', {
+    active: 'bunny-stream',
+    title:  'BunnyCDN Stream',
+    cfg:    bunnyConfig.get()
+  });
+});
+
+router.post('/api/bunny-stream/update', function(req, res){
+  try {
+    var data = bunnyConfig.update(req.body || {});
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+router.post('/api/bunny-stream/toggle', function(req, res){
+  try {
+    var enabled = !!(req.body && req.body.enabled);
+    var data = bunnyConfig.update({ enabled: enabled });
+    res.json({ ok:true, config: data });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+// Test kết nối API: gọi GET library info
+router.get('/api/bunny-stream/test', async function(req, res){
+  try {
+    var c = bunnyConfig.get();
+    if (!c.libraryId || !c.apiKey) {
+      return res.json({ ok:false, error:'Chưa nhập Library ID + API Key' });
+    }
+    const fetchFn = (typeof fetch === 'function') ? fetch : require('node-fetch');
+    const resp = await fetchFn('https://api.bunny.net/videolibrary/' + c.libraryId, {
+      headers: { 'AccessKey': c.apiKey, 'Accept': 'application/json' }
+    });
+    if (!resp.ok) {
+      return res.json({ ok:false, error:'API trả ' + resp.status + ': ' + (await resp.text()).slice(0,150) });
+    }
+    const data = await resp.json();
+    res.json({ ok:true, libraryName: data.Name || ('ID#' + c.libraryId) });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+// Assign bunny_video_id thủ công cho 1 idol/blv (paste GUID từ Bunny dashboard)
+router.post('/api/bunny-stream/assign', function(req, res){
+  try {
+    var type = (req.body && req.body.type) || '';
+    var id = (req.body && req.body.id) || '';
+    var videoId = (req.body && req.body.videoId) || '';
+    if (!type || !id) return res.status(400).json({ ok:false, error:'Thiếu type hoặc id' });
+    var db = require('../lib/db');
+    var data = db.load();
+    var list = type === 'blv' ? (data.blvs || []) : (data.idols || []);
+    var item = list.find(function(x){ return x.id === id || x.slug === id || x.username === id; });
+    if (!item) return res.status(404).json({ ok:false, error:'Không tìm thấy ' + type + ' ' + id });
+    item.bunny_video_id = String(videoId).trim();
+    if (!item.extra) item.extra = {};
+    item.extra.bunny_video_id = item.bunny_video_id;
+    db.save(data);
+    res.json({ ok:true, item: { id:item.id, name:item.name, bunny_video_id: item.bunny_video_id } });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
+// Auto: tạo 1 Bunny video container mới và gán vào idol/blv
+router.post('/api/bunny-stream/create-for', async function(req, res){
+  try {
+    var type = (req.body && req.body.type) || '';
+    var id = (req.body && req.body.id) || '';
+    if (!type || !id) return res.status(400).json({ ok:false, error:'Thiếu type hoặc id' });
+    var bunny = require('../lib/bunny-stream');
+    if (!bunny.isReady()) return res.status(400).json({ ok:false, error:'BunnyCDN chưa cấu hình hoặc chưa bật' });
+    var db = require('../lib/db');
+    var data = db.load();
+    var list = type === 'blv' ? (data.blvs || []) : (data.idols || []);
+    var item = list.find(function(x){ return x.id === id || x.slug === id || x.username === id; });
+    if (!item) return res.status(404).json({ ok:false, error:'Không tìm thấy ' + type + ' ' + id });
+    var video = await bunny.createVideo(item.name || item.id);
+    var guid = video.guid || video.Guid || '';
+    if (!guid) return res.status(500).json({ ok:false, error:'Bunny API không trả guid' });
+    item.bunny_video_id = guid;
+    if (!item.extra) item.extra = {};
+    item.extra.bunny_video_id = guid;
+    db.save(data);
+    res.json({ ok:true, guid: guid, hlsUrl: bunny.getHlsUrl(guid), item: { id:item.id, name:item.name } });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: e.message });
+  }
+});
+
 // PUBLIC API — cho client query (KHÔNG dùng cho render server-side, chỉ debug)
 router.get('/api/skin-public', function(req, res){
   res.json({ ok:true, config: skinStore.activeConfig() });
