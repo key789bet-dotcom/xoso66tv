@@ -222,24 +222,24 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
         var baseCls = 'room-tab flex items-center justify-center whitespace-nowrap transition-all rounded-md shrink-0';
         var activeCls = isActive ? 'bg-pri text-white shadow-pri' : 'text-gray-200 hover:bg-bg-soft';
         if (_ti[key]) {
-          // Ảnh tab to: h-14 (56px), width auto theo tỉ lệ ảnh, padding nhỏ
-          return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' p-1 h-14" role="tab" aria-label="' + label + '">' +
-                   '<img src="' + _ti[key] + '" alt="' + label + '" class="h-full w-auto object-contain">' +
+          // 🎯 Kích thước CỐ ĐỊNH 240×80 đúng tỉ lệ ảnh gốc, không méo
+          return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' p-1" role="tab" aria-label="' + label + '" style="width:240px;height:80px;">' +
+                   '<img src="' + _ti[key] + '" alt="' + label + '" class="w-full h-full object-contain">' +
                  '</button>';
         }
-        // Fallback emoji + text: matched height h-14 + font lớn hơn
-        return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' gap-1.5 px-4 h-14 text-sm font-bold" role="tab">' +
+        // Fallback emoji + text: cùng chiều cao 80px để align
+        return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' gap-1.5 px-6 text-base font-bold" role="tab" style="height:80px;">' +
                  fallbackEmoji + ' ' + label +
                '</button>';
       }
     %>
-    <!-- Khung tab: cho scroll ngang khi tràn (5 tab + thanh trượt mượt) -->
-    <nav class="flex gap-2 p-2 border-b border-line overflow-x-auto scrollbar-thin scroll-smooth" role="tablist" id="roomTabs" style="scrollbar-width:thin;-webkit-overflow-scrolling:touch;">
+    <!-- Khung tab: scroll ngang khi tràn (5 tab × 240px = 1200px, vượt khung 980px) -->
+    <nav class="flex gap-2 p-2 border-b border-line overflow-x-auto scroll-smooth" role="tablist" id="roomTabs" style="scrollbar-width:thin;-webkit-overflow-scrolling:touch;">
       <%- _renderTab('hot',     '&#128293;', 'Hot',       true)  %>
       <%- _renderTab('thethao', '&#9917;',   'Thể thao',  false) %>
       <%- _renderTab('idol',    '&#128081;', 'Idol Live', false) %>
       <%- _renderTab('casino',  '&#127920;', 'Casino',    false) %>
-      <button data-tab="esport" class="room-tab flex items-center justify-center gap-1.5 px-4 rounded-md text-sm font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all shrink-0 h-14" role="tab">&#127918; Esports</button>
+      <button data-tab="esport" class="room-tab flex items-center justify-center gap-1.5 px-6 rounded-md text-base font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all shrink-0" role="tab" style="height:80px;">&#127918; Esports</button>
     </nav>
     <style>
       #roomTabs::-webkit-scrollbar { height: 6px; }
