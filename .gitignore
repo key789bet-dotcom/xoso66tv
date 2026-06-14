@@ -19,5 +19,27 @@ data/chat-history.json
 data/chat-bans.json
 data/news.json
 
+# ⚠️ FIX DỨT ĐIỂM banner/config bị reset: TẤT CẢ file JSON admin chỉnh qua web
+# (admin upload banner / skin / promo / link / bunny-config / 2fa secret ...)
+# → mỗi VPS giữ riêng, KHÔNG commit và KHÔNG bị git ghi đè.
+data/header-banner.json
+data/banners.json
+data/promos.json
+data/league-bg.json
+data/skin.json
+data/skin-config.json
+data/chat-banners.json
+data/partner-links.json
+data/gifts.json
+data/gifts-config.json
+data/links.json
+data/bunny-config.json
+data/schedules.json
+data/sessions.json
+data/notifications.json
+data/audit.json
+data/admin-2fa.json
+data/header-banner.example.json
+
 # Ảnh user upload (mỗi VPS giữ riêng)
 uploads/
