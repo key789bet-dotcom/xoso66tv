@@ -949,7 +949,7 @@ const _tabIconStorage = multer.diskStorage({
 });
 const _tabIconUpload = multer({
   storage: _tabIconStorage,
-  limits: { fileSize: 500 * 1024 },  // 500KB
+  limits: { fileSize: 1024 * 1024 },  // 1MB cho ảnh chữ nhật chứa cả icon + text
   fileFilter: function(req, file, cb){
     var ok = /^image\/(png|webp|jpeg)$/.test(file.mimetype);
     cb(ok ? null : new Error('Chỉ PNG/WEBP/JPG'), ok);

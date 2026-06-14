@@ -2,13 +2,14 @@
 
 <div class="space-y-5">
   <header class="bg-bg-card border border-line rounded-xl p-5">
-    <h2 class="text-lg font-extrabold text-white mb-1">🎨 Icon 4 tab trang chủ</h2>
+    <h2 class="text-lg font-extrabold text-white mb-1">🎨 Ảnh 4 tab trang chủ</h2>
     <p class="text-sm text-muted leading-relaxed">
-      Upload ảnh PNG/WEBP riêng cho 4 tab <b>Hot · Thể thao · Idol Live · Casino</b> trên trang chủ.
-      Nếu không upload → fallback dùng emoji mặc định.
+      Upload ảnh riêng cho 4 tab <b>Hot · Thể thao · Idol Live · Casino</b> trên trang chủ.
+      Ảnh sẽ <b>thay toàn bộ button</b> (icon + chữ trong ảnh), không hiện text label nữa.
+      Nếu không upload → fallback dùng emoji + text mặc định.
     </p>
     <p class="text-xs text-yellow-300 mt-2">
-      💡 Khuyến nghị: ảnh vuông <b>64×64px</b> hoặc <b>96×96px</b>, nền trong suốt (PNG), dung lượng &lt;200KB.
+      💡 Khuyến nghị: ảnh <b>tỉ lệ ~3:1 (chữ nhật ngang)</b>, ví dụ <b>240×80px</b> hoặc <b>300×100px</b>, PNG/WEBP nền trong suốt, dung lượng &lt;1MB. Ảnh nên có sẵn cả icon + chữ "Hot/Thể thao/..." bên trong.
     </p>
   </header>
 
@@ -30,12 +31,15 @@
           </span>
         </div>
 
-        <!-- Preview -->
-        <div class="aspect-square bg-bg-deep border border-line rounded-lg grid place-items-center mb-3 overflow-hidden">
+        <!-- Preview - tỉ lệ ~3:1 cho ảnh chữ nhật -->
+        <div class="aspect-[3/1] bg-bg-deep border border-line rounded-lg grid place-items-center mb-3 overflow-hidden p-2">
           <% if (url) { %>
             <img src="<%= url %>?v=<%= Date.now() %>" alt="<%= c.key %>" class="max-w-full max-h-full object-contain">
           <% } else { %>
-            <span class="text-5xl"><%= c.emoji %></span>
+            <div class="text-center">
+              <div class="text-3xl"><%= c.emoji %></div>
+              <div class="text-[10px] text-muted mt-1">(emoji mặc định)</div>
+            </div>
           <% } %>
         </div>
 
@@ -79,7 +83,7 @@
       var fileInput = document.getElementById('file_' + key);
       if (!fileInput.files || !fileInput.files[0]) return showStatus('Chọn file trước khi upload', false);
       var file = fileInput.files[0];
-      if (file.size > 500 * 1024) return showStatus('Ảnh quá lớn (>500KB). Nén lại trước khi upload.', false);
+      if (file.size > 1024 * 1024) return showStatus('Ảnh quá lớn (>1MB). Nén lại trước khi upload.', false);
       var fd = new FormData();
       fd.append('_csrf', _csrf());
       fd.append('key', key);
