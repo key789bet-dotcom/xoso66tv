@@ -219,28 +219,34 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
        *   - Không ảnh: render emoji + text như mặc định
        */
       function _renderTab(key, fallbackEmoji, label, isActive) {
-        var baseCls = 'room-tab flex items-center justify-center whitespace-nowrap transition-all rounded-md';
+        var baseCls = 'room-tab flex items-center justify-center whitespace-nowrap transition-all rounded-md shrink-0';
         var activeCls = isActive ? 'bg-pri text-white shadow-pri' : 'text-gray-200 hover:bg-bg-soft';
         if (_ti[key]) {
-          // Ảnh nguyên tab: flex-1 để 4 tab chia đều width, ảnh scale theo
-          // contain để giữ tỉ lệ, ko bị cắt. min-w-0 để flex-1 hoạt động.
-          return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' flex-1 min-w-0 p-0.5 h-10" role="tab" aria-label="' + label + '">' +
-                   '<img src="' + _ti[key] + '" alt="' + label + '" class="max-h-full max-w-full object-contain">' +
+          // Ảnh tab to: h-14 (56px), width auto theo tỉ lệ ảnh, padding nhỏ
+          return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' p-1 h-14" role="tab" aria-label="' + label + '">' +
+                   '<img src="' + _ti[key] + '" alt="' + label + '" class="h-full w-auto object-contain">' +
                  '</button>';
         }
-        // Fallback emoji + text
-        return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' flex-1 min-w-0 gap-1.5 px-2 py-2 text-[12px] font-bold h-10" role="tab">' +
+        // Fallback emoji + text: matched height h-14 + font lớn hơn
+        return '<button data-tab="' + key + '" class="' + baseCls + ' ' + activeCls + ' gap-1.5 px-4 h-14 text-sm font-bold" role="tab">' +
                  fallbackEmoji + ' ' + label +
                '</button>';
       }
     %>
-    <nav class="flex gap-1 p-2 border-b border-line" role="tablist" id="roomTabs">
+    <!-- Khung tab: cho scroll ngang khi tràn (5 tab + thanh trượt mượt) -->
+    <nav class="flex gap-2 p-2 border-b border-line overflow-x-auto scrollbar-thin scroll-smooth" role="tablist" id="roomTabs" style="scrollbar-width:thin;-webkit-overflow-scrolling:touch;">
       <%- _renderTab('hot',     '&#128293;', 'Hot',       true)  %>
       <%- _renderTab('thethao', '&#9917;',   'Thể thao',  false) %>
       <%- _renderTab('idol',    '&#128081;', 'Idol Live', false) %>
       <%- _renderTab('casino',  '&#127920;', 'Casino',    false) %>
-      <button data-tab="esport" class="room-tab flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all shrink-0 h-10" role="tab">&#127918; Esports</button>
+      <button data-tab="esport" class="room-tab flex items-center justify-center gap-1.5 px-4 rounded-md text-sm font-bold whitespace-nowrap text-gray-200 hover:bg-bg-soft transition-all shrink-0 h-14" role="tab">&#127918; Esports</button>
     </nav>
+    <style>
+      #roomTabs::-webkit-scrollbar { height: 6px; }
+      #roomTabs::-webkit-scrollbar-track { background: transparent; }
+      #roomTabs::-webkit-scrollbar-thumb { background: rgba(249,115,22,.5); border-radius: 3px; }
+      #roomTabs::-webkit-scrollbar-thumb:hover { background: rgba(249,115,22,.8); }
+    </style>
 
     <!-- Room panels -->
     <div class="flex-1 overflow-y-auto scrollbar-thin">
