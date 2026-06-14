@@ -36,15 +36,21 @@ function _md2html(md) {
 var _articleHtml = _md2html(article.content);
 var _imageUrl = article.image || '/static/img/logoxoso66tv.webp';
 
+// SEO chuẩn 2026 — keyword chính: nhận định bóng đá, soi kèo bóng đá, dự đoán tỷ số, xoso66
+var _metaDesc = article.metaDescription || article.excerpt || '';
+if (_metaDesc.toLowerCase().indexOf('xoso66') === -1) _metaDesc += ' Xem nhận định + soi kèo + dự đoán tỷ số tại XOSO66 TV.';
+_metaDesc = _metaDesc.slice(0, 160);
+
 seo = {
-  title: article.title + ' - ' + brand.name,
-  description: article.excerpt,
-  keywords: (article.tags || []).join(', ') + ', soi kèo, nhận định bóng đá',
+  title: article.title + ' | ' + brand.name,
+  description: _metaDesc,
+  keywords: ['nhận định bóng đá', 'soi kèo bóng đá', 'dự đoán tỷ số', 'xoso66', 'xoso66 tv']
+    .concat(article.tags || []).filter(function(v,i,a){ return a.indexOf(v) === i; }).join(', '),
   canonical: '/tin-tuc/' + article.slug,
   ogType: 'article',
   ogImage: _imageUrl,
   breadcrumb: [
-    { name:'Tin tức', url:'/tin-tuc' },
+    { name:'Nhận định bóng đá', url:'/tin-tuc' },
     { name: article.title, url:'/tin-tuc/'+article.slug }
   ]
 };
@@ -52,25 +58,38 @@ seo = {
 <%- include('partials/tw-layout-start') %>
 <%- include('partials/tw-breadcrumb') %>
 
-<!-- JSON-LD Article schema for SEO -->
+<!-- JSON-LD Article schema chuẩn SEO 2026: NewsArticle + BreadcrumbList -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "NewsArticle",
   "headline": "<%= article.title %>",
-  "description": "<%= article.excerpt %>",
-  "image": "<%= _imageUrl %>",
+  "description": "<%= _metaDesc %>",
+  "image": ["<%= _imageUrl.indexOf('http')===0 ? _imageUrl : 'https://xoso66tv.com'+_imageUrl %>"],
   "datePublished": "<%= _iso(article.publishedAt) %>",
   "dateModified": "<%= _iso(article.publishedAt) %>",
-  "author": { "@type": "Organization", "name": "<%= article.author %>" },
+  "author": { "@type": "Organization", "name": "<%= article.author || brand.name %>", "url": "https://xoso66tv.com" },
   "publisher": {
     "@type": "Organization",
     "name": "<%= brand.name %>",
-    "logo": { "@type": "ImageObject", "url": "https://xoso66tv.com/static/img/logoxoso66tv.webp" }
+    "logo": { "@type": "ImageObject", "url": "https://xoso66tv.com/static/img/logoxoso66tv.webp", "width": 200, "height": 60 }
   },
   "mainEntityOfPage": { "@type": "WebPage", "@id": "https://xoso66tv.com/tin-tuc/<%= article.slug %>" },
-  "articleSection": "Bóng đá",
-  "keywords": "<%= (article.tags||[]).join(', ') %>"
+  "articleSection": "Nhận định bóng đá",
+  "keywords": "nhận định bóng đá, soi kèo bóng đá, dự đoán tỷ số, xoso66, <%= (article.tags||[]).join(', ') %>",
+  "inLanguage": "vi-VN",
+  "isAccessibleForFree": true
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://xoso66tv.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Nhận định bóng đá", "item": "https://xoso66tv.com/tin-tuc" },
+    { "@type": "ListItem", "position": 3, "name": "<%= article.title %>", "item": "https://xoso66tv.com/tin-tuc/<%= article.slug %>" }
+  ]
 }
 </script>
 
