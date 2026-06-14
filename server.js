@@ -147,6 +147,18 @@ if (process.env.CSRF_DISABLED !== '1') {
   app.use(csrf.verify);
 }
 
+// ⚡ Phase 2 Final — HTML CACHE cho guests (Redis 60s) — tăng tốc 5-10×
+//    Cache trang chủ, idol-live, tin-tuc, lich-phat-song, ... cho user CHƯA login
+//    User đã login → BYPASS (render dynamic). Trang admin/api → BYPASS
+//    Disable: ENV HTML_CACHE_DISABLED=1
+if (process.env.HTML_CACHE_DISABLED !== '1') {
+  try {
+    const htmlCache = require('./lib/html-cache');
+    app.use(htmlCache.middleware({ ttl: 60 }));
+    console.log('[perf] HTML cache middleware enabled (Redis 60s for guests)');
+  } catch (e) { console.warn('[perf] HTML cache disabled:', e.message); }
+}
+
 // ⚡ Static assets - cache 30 ngày + immutable (file hash bust qua ?v=)
 app.use('/static', express.static(path.join(__dirname, 'public'), {
   maxAge: '30d',
