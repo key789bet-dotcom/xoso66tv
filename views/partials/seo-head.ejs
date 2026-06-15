@@ -15,6 +15,9 @@ function _detectOgImage(seoImg, url, p) {
   // Match page
   m = (p || '').match(/^\/live\/([^\/?]+)/);
   if (m) return url + '/og/match/' + encodeURIComponent(m[1]) + '.png';
+  // Article (tin-tuc) page — dynamic OG with title overlay
+  m = (p || '').match(/^\/tin-tuc\/([^\/?]+)/);
+  if (m) return url + '/og/article/' + encodeURIComponent(m[1]) + '.png';
   // Home
   if (p === '/' || p === '') return url + '/og/home.png';
   // Default

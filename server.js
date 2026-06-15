@@ -475,6 +475,19 @@ function sendOgImage(res, bufferPromise) {
 app.get('/og/home.png',         function(req, res){ sendOgImage(res, ogImage.getHome()); });
 app.get('/og/default.png',      function(req, res){ sendOgImage(res, ogImage.getDefault()); });
 app.get('/og/idol/:id.png',     function(req, res){ sendOgImage(res, ogImage.getIdol(req.params.id)); });
+app.get('/og/article/:slug.png', function(req, res){
+  try {
+    const art = newsStore.findBySlug(req.params.slug);
+    if (!art) return sendOgImage(res, ogImage.getDefault());
+    sendOgImage(res, ogImage.getArticle({
+      slug: art.slug,
+      title: art.title,
+      league: art.league,
+      predictedScore: art.predictedScore,
+      author: art.author
+    }));
+  } catch(e) { sendOgImage(res, ogImage.getDefault()); }
+});
 app.get('/og/match/:slug.png',  function(req, res){
   // Try resolve match from API/DB
   api.getLiveStreams().then(function(live){
@@ -2857,6 +2870,47 @@ app.get('/api/predict/my/:matchId', pubAuth.requireLogin, function (req, res) {
   const user = pubAuth.getUser(req);
   const p = predictStore.getUserPrediction(user.username, req.params.matchId);
   res.json({ ok:true, prediction: p });
+});
+
+// Admin UI: /admin/predictions
+app.get('/admin/predictions', pubAuth.requireAdmin, function (req, res) {
+  try {
+    const statusFilter = req.query.status === 'settled' ? 'settled' : 'pending';
+    const all = predictStore.load();
+    // Group predictions by matchId
+    const byMatch = {};
+    (all.predictions || []).forEach(p => {
+      if (!byMatch[p.matchId]) {
+        byMatch[p.matchId] = {
+          matchId: p.matchId,
+          home: p.home,
+          away: p.away,
+          league: p.league,
+          predictions: [],
+          result: (all.results || {})[p.matchId] || null
+        };
+      }
+      byMatch[p.matchId].predictions.push(p);
+    });
+    const matches = { pending: [], settled: [] };
+    Object.values(byMatch).forEach(m => {
+      if (m.result) matches.settled.push(m);
+      else matches.pending.push(m);
+    });
+    // Sort: pending by số user nhiều nhất; settled by recent
+    matches.pending.sort((a,b) => b.predictions.length - a.predictions.length);
+    matches.settled.sort((a,b) => (b.result?.settledAt||0) - (a.result?.settledAt||0));
+    const stats = predictStore.stats();
+    res.render('admin/predictions', {
+      active:'predictions',
+      adminUser: pubAuth.getUser(req) || { username:'admin' },
+      obsPending: 0,
+      matches, statusFilter, stats
+    });
+  } catch (e) {
+    console.error('[admin/predictions]', e);
+    res.status(500).send('Error: ' + e.message);
+  }
 });
 
 // Admin: settle match score
