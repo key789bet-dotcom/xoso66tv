@@ -36,15 +36,15 @@ function _md2html(md) {
 var _articleHtml = _md2html(article.content);
 var _imageUrl = article.image || '/static/img/logoxoso66tv.webp';
 
-// SEO chuẩn 2026 — keyword chính: nhận định bóng đá, soi kèo bóng đá, dự đoán tỷ số, xoso66
+// SEO chuẩn 2026 — keyword chính: nhận định bóng đá, dự đoán bóng đá, xoso66, xổ số 66
 var _metaDesc = article.metaDescription || article.excerpt || '';
-if (_metaDesc.toLowerCase().indexOf('xoso66') === -1) _metaDesc += ' Xem nhận định + soi kèo + dự đoán tỷ số tại XOSO66 TV.';
+if (_metaDesc.toLowerCase().indexOf('xoso66') === -1) _metaDesc += ' Nhận định bóng đá & dự đoán tỉ số chính xác tại XOSO66 TV.';
 _metaDesc = _metaDesc.slice(0, 160);
 
 seo = {
-  title: article.title + ' | ' + brand.name,
+  title: article.title + ' - Nhận Định & Dự Đoán | XOSO66 TV',
   description: _metaDesc,
-  keywords: ['nhận định bóng đá', 'soi kèo bóng đá', 'dự đoán tỷ số', 'xoso66', 'xoso66 tv']
+  keywords: ['nhận định bóng đá', 'dự đoán bóng đá', 'dự đoán tỉ số', 'soi kèo bóng đá', 'xoso66', 'xổ số 66', 'xoso66 tv']
     .concat(article.tags || []).filter(function(v,i,a){ return a.indexOf(v) === i; }).join(', '),
   canonical: '/tin-tuc/' + article.slug,
   ogType: 'article',

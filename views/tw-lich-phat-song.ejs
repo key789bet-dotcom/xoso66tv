@@ -2,11 +2,11 @@
 var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
 var _catName = sport ? (cats[sport] && cats[sport].name || '') : '';
 seo = {
-  title: (_catName ? 'Lịch '+_catName : 'Lịch phát sóng thể thao')+' hôm nay '+_todayVi+' - '+brand.name,
-  description: 'Lịch phát sóng trực tiếp '+(_catName||'thể thao')+' hôm nay '+_todayVi+' và ngày mai tại '+brand.name+'. '+list.length+' trận HD bình luận tiếng Việt.',
-  keywords: 'lịch phát sóng, lịch thi đấu '+(_catName||'thể thao')+', livestream '+brand.short,
+  title: 'Lịch Phát Sóng Bóng Đá Hôm Nay '+_todayVi+' - Xem Trực Tiếp | XOSO66 TV',
+  description: 'Lịch phát sóng bóng đá hôm nay '+_todayVi+' & ngày mai tại XOSO66 TV (xổ số 66). Xem trực tiếp bóng đá Full HD '+list.length+' trận Ngoại Hạng Anh, La Liga, Champions League, V-League cùng BLV tiếng Việt.',
+  keywords: 'lịch phát sóng bóng đá, lịch thi đấu bóng đá hôm nay, xem trực tiếp bóng đá, xoso66, xổ số 66, xoso66 tv, livestream bóng đá, lịch bóng đá ngày mai',
   canonical: '/lich-phat-song'+(sport?'?mon='+sport:''),
-  breadcrumb: [{ name:'Lịch phát sóng', url:'/lich-phat-song' }].concat(sport?[{ name:_catName, url:'/lich-phat-song?mon='+sport }]:[])
+  breadcrumb: [{ name:'Lịch phát sóng bóng đá', url:'/lich-phat-song' }].concat(sport?[{ name:_catName, url:'/lich-phat-song?mon='+sport }]:[])
 };
 
 // ===== Mobile day picker - sinh 6 ngày liên tiếp =====

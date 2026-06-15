@@ -1,8 +1,8 @@
 <%
 var _S2 = (typeof seo !== 'undefined' && seo) ? seo : {};
-var _T2 = _S2.title || (brand.name + ' - ' + brand.tagline);
-var _D2 = _S2.description || ('Xem trực tiếp thể thao HD miễn phí 24/7 tại ' + brand.name + '. Bóng đá, casino, idol live - chất lượng Full HD 1080p, không quảng cáo.');
-var _K2 = _S2.keywords || ('xem bóng đá trực tiếp, livescore, casino trực tuyến, idol live, ' + brand.short + ', ' + brand.domain);
+var _T2 = _S2.title || (brand.name + ' - Xem Trực Tiếp Bóng Đá, Idol Live HD 24/7');
+var _D2 = _S2.description || ('XOSO66 TV (xổ số 66) - Nền tảng xem trực tiếp bóng đá Full HD miễn phí, nhận định bóng đá chuyên gia, dự đoán tỉ số chính xác và idol live tương tác 24/7. Không quảng cáo, BLV tiếng Việt.');
+var _K2 = _S2.keywords || ('xoso66, xổ số 66, xoso66 tv, xem trực tiếp bóng đá, nhận định bóng đá, dự đoán bóng đá, idol live, soi kèo bóng đá, livescore, ' + brand.domain);
 var _U2 = (typeof siteUrl !== 'undefined' && siteUrl) ? siteUrl : ('https://www.' + brand.domain);
 var _P2 = (typeof path !== 'undefined' ? path : '/');
 var _C2 = _S2.canonical ? (_U2 + _S2.canonical) : (_U2 + _P2);
@@ -87,7 +87,7 @@ var _MD2 = _S2.modifiedAt || new Date().toISOString().slice(0,10);
     "@type":"Organization",
     "@id":"<%= _U2 %>#org",
     "name":"<%= brand.name %>",
-    "alternateName":"<%= brand.short %>",
+    "alternateName":["<%= brand.short %>","XOSO66","xổ số 66","xoso66 tv"],
     "url":"<%= _U2 %>",
     "logo":{
       "@type":"ImageObject",
