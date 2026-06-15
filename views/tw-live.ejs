@@ -196,6 +196,15 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     <%
       var _predLines = { ouLine: 2.5, ahLine: 0.5 };
       try { _predLines = require('../lib/predict-store').getLines(match.id); } catch(e){}
+      // 🎯 Live odds từ thethaoviet.vip (nếu có thì hiển thị odds value + bookmaker)
+      var _hasLiveOdds = (typeof liveOdds !== 'undefined' && liveOdds && (liveOdds.ah || liveOdds.ou || liveOdds.x12));
+      var _bookmaker = _hasLiveOdds ? ((liveOdds.ou && liveOdds.ou.bookmaker) || (liveOdds.ah && liveOdds.ah.bookmaker) || (liveOdds.x12 && liveOdds.x12.bookmaker)) : null;
+      var _ouTai = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.taiOdds : null;
+      var _ouXiu = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.xiuOdds : null;
+      var _ahHome = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.homeOdds : null;
+      var _ahAway = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.awayOdds : null;
+      var _ahLineAbs = Math.abs(_predLines.ahLine || 0);
+      var _homeIsFav = (_predLines.ahLine || 0) > 0;  // dương = home chấp
     %>
     <% if (_showPredict) { %>
     <section class="predict-widget relative overflow-hidden rounded-2xl mt-3.5" id="predictWidget">
@@ -224,6 +233,16 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
           </a>
         </div>
 
+        <% if (_hasLiveOdds) { %>
+          <div class="flex items-center gap-2 mb-3 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-400/30">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-wide">Tỉ lệ kèo LIVE</span>
+            <% if (_bookmaker) { %>
+              <span class="text-[10px] text-emerald-200/80 font-medium">· <%= _bookmaker %></span>
+            <% } %>
+          </div>
+        <% } %>
+
         <form id="predictForm" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>" data-ou-line="<%= _predLines.ouLine %>" data-ah-line="<%= _predLines.ahLine %>">
 
           <!-- ─── KÈO 1: TÀI / XỈU ─── -->
@@ -240,6 +259,12 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
                   <div class="predict-pick-icon">📈</div>
                   <div class="predict-pick-label">TÀI</div>
                   <div class="predict-pick-desc">Trên <%= _predLines.ouLine %> bàn</div>
+                  <% if (_ouTai) { %>
+                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
+                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
+                      <span class="text-[12px] font-black text-emerald-200"><%= _ouTai.toFixed(2) %></span>
+                    </div>
+                  <% } %>
                 </div>
               </label>
               <label class="predict-pick">
@@ -248,6 +273,12 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
                   <div class="predict-pick-icon">📉</div>
                   <div class="predict-pick-label">XỈU</div>
                   <div class="predict-pick-desc">Dưới <%= _predLines.ouLine %> bàn</div>
+                  <% if (_ouXiu) { %>
+                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
+                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
+                      <span class="text-[12px] font-black text-emerald-200"><%= _ouXiu.toFixed(2) %></span>
+                    </div>
+                  <% } %>
                 </div>
               </label>
             </div>
@@ -258,7 +289,7 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
             <div class="predict-section-header">
               <span class="predict-section-icon">⚖️</span>
               <span class="predict-section-title">Kèo chấp cả trận</span>
-              <span class="predict-line-badge">Chấp <%= _predLines.ahLine %></span>
+              <span class="predict-line-badge"><%= _homeIsFav ? match.home.slice(0,8) : match.away.slice(0,8) %> chấp <%= _ahLineAbs %></span>
             </div>
             <div class="predict-pick-grid">
               <label class="predict-pick">
@@ -266,7 +297,13 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
                 <div class="predict-pick-inner">
                   <div class="predict-pick-icon">🏠</div>
                   <div class="predict-pick-label" title="<%= match.home %>"><%= match.home.slice(0, 14) %></div>
-                  <div class="predict-pick-desc">-<%= _predLines.ahLine %> (chấp <%= _predLines.ahLine %>)</div>
+                  <div class="predict-pick-desc"><%= _homeIsFav ? '-' + _ahLineAbs + ' (chấp)' : '+' + _ahLineAbs + ' (được chấp)' %></div>
+                  <% if (_ahHome) { %>
+                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
+                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
+                      <span class="text-[12px] font-black text-emerald-200"><%= _ahHome.toFixed(2) %></span>
+                    </div>
+                  <% } %>
                 </div>
               </label>
               <label class="predict-pick">
@@ -274,7 +311,13 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
                 <div class="predict-pick-inner">
                   <div class="predict-pick-icon">✈️</div>
                   <div class="predict-pick-label" title="<%= match.away %>"><%= match.away.slice(0, 14) %></div>
-                  <div class="predict-pick-desc">+<%= _predLines.ahLine %> (được chấp)</div>
+                  <div class="predict-pick-desc"><%= _homeIsFav ? '+' + _ahLineAbs + ' (được chấp)' : '-' + _ahLineAbs + ' (chấp)' %></div>
+                  <% if (_ahAway) { %>
+                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
+                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
+                      <span class="text-[12px] font-black text-emerald-200"><%= _ahAway.toFixed(2) %></span>
+                    </div>
+                  <% } %>
                 </div>
               </label>
             </div>
