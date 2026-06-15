@@ -71,9 +71,31 @@ seo = {
       <textarea name="bio" required minlength="30" maxlength="600" rows="4" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri resize-none" placeholder="VD: Từng làm BLV bóng đá 3 năm tại các giải nội bộ. Đam mê thể thao, am hiểu Premier League, V-League. Có khả năng đọc trận đấu nhanh..."></textarea>
     </div>
 
+    <!-- Avatar UPLOAD từ máy/điện thoại -->
     <div>
-      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">Link ảnh đại diện (tùy chọn)</label>
-      <input name="avatar" type="url" class="w-full bg-bg-deep border border-line text-white px-3 py-2.5 rounded-lg outline-none focus:border-pri" placeholder="https://... (để trống = auto)"/>
+      <label class="text-[11px] text-muted uppercase font-bold block mb-1.5">📸 Ảnh đại diện (tùy chọn)</label>
+      <div class="border-2 border-dashed border-line rounded-lg p-4 bg-bg-deep hover:border-pri/60 transition-colors">
+        <div id="avatarPreview" class="hidden mb-3 text-center">
+          <img id="avatarImg" alt="Preview" class="w-28 h-28 mx-auto rounded-full object-cover border-2 border-pri shadow-lg" style="object-fit:cover;">
+          <button type="button" id="avatarRemove" class="mt-2 text-xs text-live hover:text-red-400 font-bold">✕ Xóa ảnh</button>
+        </div>
+        <div id="avatarEmpty" class="text-center">
+          <div class="text-3xl mb-1.5 opacity-60">📷</div>
+          <p class="text-xs text-muted mb-2">Chụp ảnh bằng điện thoại hoặc chọn từ thư viện</p>
+          <div class="flex gap-2 justify-center flex-wrap">
+            <label class="cursor-pointer px-3 py-2 bg-pri/20 hover:bg-pri/30 border border-pri/50 text-pri-light text-xs font-bold rounded-lg flex items-center gap-1.5">
+              📸 Chụp ảnh
+              <input type="file" accept="image/*" capture="user" class="hidden" data-avatar-input>
+            </label>
+            <label class="cursor-pointer px-3 py-2 bg-bg-card hover:bg-bg-soft border border-line text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
+              🖼️ Chọn từ máy
+              <input type="file" accept="image/*" class="hidden" data-avatar-input>
+            </label>
+          </div>
+          <p class="text-[10px] text-dim mt-2">JPG/PNG/WEBP/GIF/HEIC — tối đa 5MB. Để trống = tự sinh ảnh mặc định</p>
+        </div>
+        <input type="file" name="avatarFile" accept="image/*" class="hidden" id="avatarFinal">
+      </div>
     </div>
 
     <div class="bg-bg-deep border border-pri/30 rounded-lg p-3 text-[12px] text-muted leading-relaxed">
@@ -136,17 +158,48 @@ fetch('/api/apply/my-status', { credentials:'same-origin' })
     }
   });
 
+// ═══ AVATAR UPLOAD HANDLER ═══
+(function(){
+  var inputs = document.querySelectorAll('[data-avatar-input]');
+  var preview = document.getElementById('avatarPreview');
+  var empty = document.getElementById('avatarEmpty');
+  var img = document.getElementById('avatarImg');
+  var final = document.getElementById('avatarFinal');
+  var removeBtn = document.getElementById('avatarRemove');
+  function handleFile(file) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('Ảnh quá lớn (max 5MB)', 'error'); return; }
+    if (!/^image\//i.test(file.type)) { showToast('Chỉ chấp nhận file ảnh', 'error'); return; }
+    var dt = new DataTransfer(); dt.items.add(file); final.files = dt.files;
+    var r = new FileReader();
+    r.onload = function(e){ img.src = e.target.result; preview.classList.remove('hidden'); empty.classList.add('hidden'); };
+    r.readAsDataURL(file);
+  }
+  inputs.forEach(function(inp){
+    inp.addEventListener('change', function(e){ if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]); });
+  });
+  removeBtn.addEventListener('click', function(){
+    final.value = ''; img.src = ''; preview.classList.add('hidden'); empty.classList.remove('hidden');
+    inputs.forEach(function(inp){ inp.value = ''; });
+  });
+})();
+
 document.getElementById('applyBlvForm').addEventListener('submit', async function(e){
   e.preventDefault();
   var f = this;
-  var data = Object.fromEntries(new FormData(f).entries());
-  data.agree = !!f.agree.checked;
+  var fd = new FormData();
+  var fields = ['stageName','sport','experience','bio','style'];
+  fields.forEach(function(k){ if (f[k]) fd.append(k, f[k].value || ''); });
+  fd.append('agree', f.agree.checked ? '1' : '');
+  var avatarFinal = document.getElementById('avatarFinal');
+  if (avatarFinal && avatarFinal.files && avatarFinal.files[0]) fd.append('avatarFile', avatarFinal.files[0]);
   var btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Đang gửi...';
   try {
     var r = await fetch('/api/apply/blv', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      credentials:'same-origin', body: JSON.stringify(data)
+      method:'POST',
+      credentials:'same-origin',
+      body: fd
     });
     var j = await r.json();
     if (j.ok) {
