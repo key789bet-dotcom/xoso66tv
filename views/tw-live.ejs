@@ -191,15 +191,17 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     </div>
     <% } %>
 
-    <!-- ═══ PREDICT WIDGET — Dự đoán tỉ số inline (luxury UI/UX) ═══ -->
+    <!-- ═══ PREDICT WIDGET — Tài Xỉu + Kèo Chấp cả trận ═══ -->
     <% var _showPredict = match && match.home && match.away && match.status !== 'finished'; %>
+    <%
+      var _predLines = { ouLine: 2.5, ahLine: 0.5 };
+      try { _predLines = require('../lib/predict-store').getLines(match.id); } catch(e){}
+    %>
     <% if (_showPredict) { %>
     <section class="predict-widget relative overflow-hidden rounded-2xl mt-3.5" id="predictWidget">
-      <!-- Animated gradient border + bg -->
       <div class="predict-bg"></div>
       <div class="predict-shimmer"></div>
 
-      <!-- Floating reward sticker -->
       <div class="predict-reward-sticker">
         <div class="text-[9px] font-extrabold uppercase tracking-wide">Thưởng tối đa</div>
         <div class="text-base font-black flex items-center gap-1">
@@ -209,12 +211,12 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 
       <div class="relative p-5 z-10">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pri to-live grid place-items-center text-xl shadow-lg" style="box-shadow:0 0 15px rgba(255,122,24,.5);">🎯</div>
             <div>
-              <h3 class="text-white text-[14px] font-black leading-tight">Dự đoán tỉ số</h3>
-              <p class="text-[10px] text-pri-light/80">Nhận X COIN nếu đoán đúng</p>
+              <h3 class="text-white text-[14px] font-black leading-tight">Dự đoán Tài/Xỉu &amp; Kèo Chấp</h3>
+              <p class="text-[10px] text-pri-light/80">Chọn ít nhất 1 kèo · Nhận X COIN khi thắng</p>
             </div>
           </div>
           <a href="/cao-thu" class="text-[10px] text-pri-light hover:text-yellow-300 font-bold flex items-center gap-1 transition-colors">
@@ -222,59 +224,83 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
           </a>
         </div>
 
-        <!-- Score input row -->
-        <form id="predictForm" class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 mb-4" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>">
-          <!-- HOME -->
-          <div class="predict-team home">
-            <div class="predict-team-name truncate" title="<%= match.home %>"><%= match.home %></div>
-            <div class="predict-score-wrap">
-              <button type="button" class="predict-stepper -" onclick="adjPredScore('predHome',-1)" aria-label="Giảm">−</button>
-              <input type="number" id="predHome" min="0" max="20" value="1" required class="predict-score-input" inputmode="numeric">
-              <button type="button" class="predict-stepper +" onclick="adjPredScore('predHome',1)" aria-label="Tăng">+</button>
+        <form id="predictForm" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>" data-ou-line="<%= _predLines.ouLine %>" data-ah-line="<%= _predLines.ahLine %>">
+
+          <!-- ─── KÈO 1: TÀI / XỈU ─── -->
+          <div class="predict-section">
+            <div class="predict-section-header">
+              <span class="predict-section-icon">⚽</span>
+              <span class="predict-section-title">Tổng bàn thắng cả trận</span>
+              <span class="predict-line-badge">Mốc <%= _predLines.ouLine %></span>
+            </div>
+            <div class="predict-pick-grid">
+              <label class="predict-pick">
+                <input type="radio" name="pickOU" value="tai">
+                <div class="predict-pick-inner">
+                  <div class="predict-pick-icon">📈</div>
+                  <div class="predict-pick-label">TÀI</div>
+                  <div class="predict-pick-desc">Trên <%= _predLines.ouLine %> bàn</div>
+                </div>
+              </label>
+              <label class="predict-pick">
+                <input type="radio" name="pickOU" value="xiu">
+                <div class="predict-pick-inner">
+                  <div class="predict-pick-icon">📉</div>
+                  <div class="predict-pick-label">XỈU</div>
+                  <div class="predict-pick-desc">Dưới <%= _predLines.ouLine %> bàn</div>
+                </div>
+              </label>
             </div>
           </div>
 
-          <!-- VS divider -->
-          <div class="predict-vs">
-            <span class="vs-text">VS</span>
-          </div>
-
-          <!-- AWAY -->
-          <div class="predict-team away">
-            <div class="predict-team-name truncate" title="<%= match.away %>"><%= match.away %></div>
-            <div class="predict-score-wrap">
-              <button type="button" class="predict-stepper -" onclick="adjPredScore('predAway',-1)" aria-label="Giảm">−</button>
-              <input type="number" id="predAway" min="0" max="20" value="1" required class="predict-score-input" inputmode="numeric">
-              <button type="button" class="predict-stepper +" onclick="adjPredScore('predAway',1)" aria-label="Tăng">+</button>
+          <!-- ─── KÈO 2: ASIAN HANDICAP ─── -->
+          <div class="predict-section">
+            <div class="predict-section-header">
+              <span class="predict-section-icon">⚖️</span>
+              <span class="predict-section-title">Kèo chấp cả trận</span>
+              <span class="predict-line-badge">Chấp <%= _predLines.ahLine %></span>
+            </div>
+            <div class="predict-pick-grid">
+              <label class="predict-pick">
+                <input type="radio" name="pickAH" value="home">
+                <div class="predict-pick-inner">
+                  <div class="predict-pick-icon">🏠</div>
+                  <div class="predict-pick-label" title="<%= match.home %>"><%= match.home.slice(0, 14) %></div>
+                  <div class="predict-pick-desc">-<%= _predLines.ahLine %> (chấp <%= _predLines.ahLine %>)</div>
+                </div>
+              </label>
+              <label class="predict-pick">
+                <input type="radio" name="pickAH" value="away">
+                <div class="predict-pick-inner">
+                  <div class="predict-pick-icon">✈️</div>
+                  <div class="predict-pick-label" title="<%= match.away %>"><%= match.away.slice(0, 14) %></div>
+                  <div class="predict-pick-desc">+<%= _predLines.ahLine %> (được chấp)</div>
+                </div>
+              </label>
             </div>
           </div>
+
+          <!-- Reward tiers -->
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <div class="predict-tier tier-silver">
+              <div class="text-[9px] font-extrabold text-orange-300 uppercase text-center">Đúng 1 kèo</div>
+              <div class="text-[14px] font-black text-orange-200 text-center">+30 <span class="text-[10px]">X COIN</span></div>
+            </div>
+            <div class="predict-tier tier-gold">
+              <div class="text-[9px] font-extrabold text-yellow-300 uppercase text-center">Đúng cả 2 kèo</div>
+              <div class="text-[14px] font-black text-yellow-200 text-center">+100 <span class="text-[10px]">X COIN</span></div>
+            </div>
+          </div>
+
+          <button type="submit" id="predictBtn" class="predict-submit-btn">
+            <span class="btn-shine"></span>
+            <span class="relative z-10 flex items-center justify-center gap-2">
+              <span class="text-lg">🎯</span>
+              <span>DỰ ĐOÁN NGAY</span>
+            </span>
+          </button>
+          <div id="predictResult" class="mt-3 text-center text-[12px] hidden font-bold"></div>
         </form>
-
-        <!-- Reward hints -->
-        <div class="grid grid-cols-3 gap-1.5 mb-3 text-center">
-          <div class="predict-tier tier-gold">
-            <div class="text-[9px] font-extrabold text-yellow-300 uppercase">Chính xác</div>
-            <div class="text-[12px] font-black text-yellow-200">+100</div>
-          </div>
-          <div class="predict-tier tier-silver">
-            <div class="text-[9px] font-extrabold text-orange-300 uppercase">Sát kết quả</div>
-            <div class="text-[12px] font-black text-orange-200">+30</div>
-          </div>
-          <div class="predict-tier tier-bronze">
-            <div class="text-[9px] font-extrabold text-pri-light/80 uppercase">Đúng kết quả</div>
-            <div class="text-[12px] font-black text-pri-light">+10</div>
-          </div>
-        </div>
-
-        <!-- Submit button -->
-        <button type="submit" form="predictForm" id="predictBtn" class="predict-submit-btn">
-          <span class="btn-shine"></span>
-          <span class="relative z-10 flex items-center justify-center gap-2">
-            <span class="text-lg">🎯</span>
-            <span>DỰ ĐOÁN NGAY</span>
-          </span>
-        </button>
-        <div id="predictResult" class="mt-3 text-center text-[12px] hidden font-bold"></div>
       </div>
     </section>
 
@@ -319,6 +345,64 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       0%,100% { transform:rotate(8deg) translateY(0); }
       50% { transform:rotate(8deg) translateY(-4px); }
     }
+    /* ─── Section (Tài Xỉu / Kèo Chấp) ─── */
+    .predict-section { margin-bottom:14px; }
+    .predict-section-header {
+      display:flex; align-items:center; gap:8px;
+      margin-bottom:8px; padding:6px 10px;
+      background:rgba(255,122,24,.08);
+      border-left:3px solid #ff7a18;
+      border-radius:6px;
+    }
+    .predict-section-icon { font-size:16px; }
+    .predict-section-title {
+      flex:1; font-size:12px; font-weight:800; color:#ffd9a8;
+      letter-spacing:.3px;
+    }
+    .predict-line-badge {
+      background:linear-gradient(135deg,#facc15,#f59e0b);
+      color:#1a0f08; font-size:10px; font-weight:900;
+      padding:3px 8px; border-radius:6px;
+      box-shadow:0 2px 6px rgba(250,204,21,.3);
+    }
+    /* ─── Pick options ─── */
+    .predict-pick-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    }
+    .predict-pick { position:relative; cursor:pointer; display:block; }
+    .predict-pick input[type="radio"] {
+      position:absolute; opacity:0; pointer-events:none;
+    }
+    .predict-pick-inner {
+      background:rgba(255,255,255,.03);
+      border:2px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:10px 8px;
+      text-align:center;
+      transition:all .2s ease;
+    }
+    .predict-pick:hover .predict-pick-inner {
+      background:rgba(255,122,24,.08);
+      border-color:rgba(255,122,24,.35);
+      transform:translateY(-1px);
+    }
+    .predict-pick input[type="radio"]:checked + .predict-pick-inner {
+      background:linear-gradient(135deg,rgba(255,122,24,.25),rgba(239,68,68,.2));
+      border-color:#facc15;
+      box-shadow:0 0 0 3px rgba(250,204,21,.2), 0 6px 18px rgba(255,122,24,.35);
+      transform:translateY(-2px);
+    }
+    .predict-pick-icon { font-size:24px; line-height:1; margin-bottom:4px; }
+    .predict-pick-label {
+      font-size:13px; font-weight:900; color:#fff;
+      line-height:1.2; margin-bottom:2px;
+    }
+    .predict-pick-desc {
+      font-size:10px; color:#ffd9a8; font-weight:600;
+    }
+    .predict-pick input[type="radio"]:checked + .predict-pick-inner .predict-pick-label { color:#facc15; }
+    .predict-pick input[type="radio"]:checked + .predict-pick-inner .predict-pick-desc { color:#fff; }
+
     .predict-team {
       background:rgba(255,255,255,.04);
       border:1px solid rgba(255,122,24,.25);
