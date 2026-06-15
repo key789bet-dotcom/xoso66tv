@@ -95,8 +95,54 @@ async function main() {
     process.exit(1);
   }
   console.log('\n✅ Endpoint có data:', raw.source);
-  console.log('📦 Full data:');
-  console.log(JSON.stringify(raw.raw, null, 2).slice(0, 2000));
+
+  // Dump full data ra file để xem
+  const fs = require('fs');
+  const dumpPath = '/tmp/odds-api-dump-' + fixtureId + '.json';
+  fs.writeFileSync(dumpPath, JSON.stringify(raw.raw, null, 2));
+  console.log('📁 Full response dumped to:', dumpPath, '(' + JSON.stringify(raw.raw).length + ' bytes)');
+
+  // Tìm tất cả các key liên quan tới odds trong toàn bộ JSON
+  console.log('\n🔍 Tìm các key liên quan tới ODDS trong response:');
+  const oddsKeys = [];
+  function findKeys(obj, path) {
+    if (!obj || typeof obj !== 'object') return;
+    Object.keys(obj).forEach(function(k) {
+      const fullPath = path + '.' + k;
+      const lk = k.toLowerCase();
+      if (lk.indexOf('odd') >= 0 || lk.indexOf('handicap') >= 0 || lk.indexOf('asian') >= 0 ||
+          lk.indexOf('over') >= 0 || lk.indexOf('under') >= 0 || lk.indexOf('tai') >= 0 ||
+          lk.indexOf('xiu') >= 0 || lk.indexOf('x12') >= 0 || lk.indexOf('1x2') >= 0 ||
+          lk.indexOf('bet') >= 0 || lk.indexOf('market') >= 0 || lk.indexOf('line') >= 0) {
+        oddsKeys.push({ path: fullPath, value: obj[k] });
+      }
+      if (typeof obj[k] === 'object') findKeys(obj[k], fullPath);
+    });
+  }
+  findKeys(raw.raw, 'data');
+  if (oddsKeys.length === 0) {
+    console.log('   ⚠️  KHÔNG tìm thấy key odds nào trong response /detail.');
+    console.log('   → Endpoint /detail không có odds. Em cần endpoint khác.');
+    // Top-level keys để xem có gì
+    console.log('\n📋 Top-level keys trong data.fixture:');
+    if (raw.raw && raw.raw.data && raw.raw.data.fixture) {
+      Object.keys(raw.raw.data.fixture).forEach(function(k){
+        console.log('   - ' + k);
+      });
+    }
+    console.log('\n📋 Top-level keys trong data (ngoài fixture):');
+    if (raw.raw && raw.raw.data) {
+      Object.keys(raw.raw.data).forEach(function(k){
+        console.log('   - data.' + k + ' (' + typeof raw.raw.data[k] + ')');
+      });
+    }
+  } else {
+    console.log('   ✅ Tìm thấy ' + oddsKeys.length + ' key:');
+    oddsKeys.slice(0, 20).forEach(function(item){
+      const v = typeof item.value === 'object' ? JSON.stringify(item.value).slice(0, 200) : String(item.value).slice(0, 100);
+      console.log('   - ' + item.path + ' = ' + v);
+    });
+  }
 
   console.log('\n═══ TEST 2: Parse odds ═══');
   const parsed = oddsApi.parseOdds(raw.raw);
