@@ -4,9 +4,9 @@ var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear
 var _liveCount = (live && live.length) ? live.length : '50+';
 var _upCount   = (upcoming && upcoming.length) ? upcoming.length : '100+';
 seo = {
-  title: 'XOSO66 TV - Xem Trực Tiếp Bóng Đá Full HD, Idol Live 24/7 (' + _todayVi + ')',
-  description: 'XOSO66 (xổ số 66) - Xem trực tiếp bóng đá Full HD miễn phí Ngoại Hạng Anh, La Liga, Champions League cùng nhận định bóng đá, dự đoán tỉ số chính xác và idol live show 24/7. ' + _liveCount + ' trận đang live hôm nay ' + _todayVi + ' tại XOSO66 TV.',
-  keywords: 'xoso66, xổ số 66, xoso66 tv, xem trực tiếp bóng đá, nhận định bóng đá, dự đoán bóng đá, idol live, xem bóng đá Ngoại Hạng Anh, La Liga, Champions League, V-League, livescore, soi kèo bóng đá',
+  title: 'XOSO66 TV - Xem Trực Tiếp Bóng Đá HD, Idol Live 24/7',
+  description: 'XOSO66 TV (xổ số 66) - Xem trực tiếp bóng đá Full HD miễn phí, nhận định bóng đá, dự đoán tỉ số chính xác và idol live 24/7. ' + _liveCount + ' trận live hôm nay.',
+  keywords: 'xoso66, xổ số 66, xoso66 tv, xem trực tiếp bóng đá, nhận định bóng đá, dự đoán bóng đá, idol live, livescore, soi kèo bóng đá',
   canonical: '/',
   ogType: 'website',
   ogImage: (typeof siteUrl !== 'undefined' ? siteUrl : '') + '/static/img/logoxoso66tv.webp',
@@ -147,7 +147,7 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
         if (!featuredBg && featured && featured.poster) featuredBg = featured.poster;
       %>
       <% if (featuredBg) { %>
-        <img src="<%= featuredBg %>" alt="" class="absolute inset-0 w-full h-full object-cover opacity-55" onerror="this.style.display='none'">
+        <img src="<%= featuredBg %>" alt="<%= featured ? (featured.home + ' vs ' + featured.away + ' - ' + (featured.league||'')) : 'XOSO66 TV - Xem trực tiếp bóng đá' %>" class="absolute inset-0 w-full h-full object-cover opacity-55" onerror="this.style.display='none'">
         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/50"></div>
       <% } %>
       <!-- decorative football pattern -->

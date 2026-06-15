@@ -162,7 +162,7 @@ _cnt.all = _cards.length;
 
       <!-- Poster fallback đa tầng — avatar idol/blv/team badge, opacity FULL để rõ -->
       <% if (_previewPoster) { %>
-        <img id="mhLivePoster" src="<%= _previewPoster %>" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'" style="opacity:0.9;">
+        <img id="mhLivePoster" src="<%= _previewPoster %>" class="absolute inset-0 w-full h-full object-cover" alt="Xem trực tiếp bóng đá tại XOSO66 TV" onerror="this.style.display='none'" style="opacity:0.9;">
         <!-- Lớp phủ tối nhẹ để text CTA + badge đọc rõ, không che ảnh -->
         <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at center, rgba(0,0,0,.3) 0%, rgba(0,0,0,.55) 100%);"></div>
       <% } %>
@@ -337,7 +337,7 @@ _cnt.all = _cards.length;
 
           <!-- 🏆 Ảnh nền giải đấu (admin set) - hiển thị rõ, KHÔNG lớp phủ đen che -->
           <% if (c.type === 'sports' && c.leagueBg) { %>
-            <img src="<%= c.leagueBg %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'" style="z-index:0;opacity:1;">
+            <img src="<%= c.leagueBg %>" alt="<%= (c.home||'')+' vs '+(c.away||'')+' - '+(c.league||'') %>" loading="lazy" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'" style="z-index:0;opacity:1;">
             <!-- Chỉ shadow nhẹ ở 2 đầu để text dễ đọc, không che ảnh -->
             <div class="absolute inset-0 pointer-events-none" style="z-index:0;background:linear-gradient(to bottom, rgba(0,0,0,.35) 0%, transparent 25%, transparent 75%, rgba(0,0,0,.5) 100%);"></div>
             <style>

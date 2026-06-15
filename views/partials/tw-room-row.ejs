@@ -28,7 +28,7 @@
   <!-- Thumb -->
   <div class="relative w-[68px] h-[44px] rounded-md overflow-hidden bg-gradient-to-br <%= _isIdol ? 'from-purple to-pink' : 'from-[#1a2030] to-bg' %> shrink-0 border border-line/40">
     <% if (_rowBg) { %>
-      <img src="<%= _rowBg %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+      <img src="<%= _rowBg %>" alt="<%= m.title || (m.home + ' vs ' + (m.away||'')) %>" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
     <% } else if (_isIdol) { %>
       <div class="absolute inset-0 grid place-items-center text-2xl text-white"><%= m.emoji || '👑' %></div>
     <% } %>
