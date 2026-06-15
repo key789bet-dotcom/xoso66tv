@@ -72,13 +72,13 @@ function _fmtDate(d){
   }
 %>
 
-<!-- ╔════ HERO HEADER DIỄN ĐÀN (emerald đậm như ref) ════╗ -->
+<!-- ╔════ HERO HEADER — Tin tức & Nhận định XOSO66 TV ════╗ -->
 <header class="rounded-xl px-6 py-5 mb-4 border border-emerald-700" style="background:linear-gradient(135deg,#064e3b 0%,#065f46 50%,#047857 100%);">
   <div class="flex items-center gap-4">
-    <div class="w-12 h-12 rounded-full bg-emerald-500/30 border-2 border-emerald-400 grid place-items-center text-3xl shadow-lg" style="box-shadow:0 0 20px rgba(16,185,129,.4);">⚽</div>
+    <div class="w-12 h-12 rounded-full bg-emerald-500/30 border-2 border-emerald-400 grid place-items-center text-3xl shadow-lg" style="box-shadow:0 0 20px rgba(16,185,129,.4);">📰</div>
     <div class="flex-1">
-      <h1 class="text-xl font-black text-white mb-1">Diễn Đàn Bóng Đá <span class="text-emerald-300">XOSO66</span> — Nhận Định, Soi Kèo, Dự Đoán Tỉ Số</h1>
-      <p class="text-[12px] text-emerald-50/90 leading-relaxed">Cộng đồng <strong>nhận định bóng đá Việt Nam #1</strong>: tham gia thảo luận với hàng nghìn BLV và chuyên gia về <a href="#" class="text-emerald-200 underline">Ngoại Hạng Anh</a>, <a href="#" class="text-emerald-200 underline">La Liga</a>, <a href="#" class="text-emerald-200 underline">Champions League</a>, <a href="#" class="text-emerald-200 underline">V-League</a> và nhiều giải đấu khác. Đăng bài soi kèo, dự đoán tỉ số trận đấu, kiếm XP lên <a href="#" class="text-emerald-200 underline">BXH Cao Thủ</a>.</p>
+      <h1 class="text-xl font-black text-white mb-1">Tin Tức & Nhận Định Bóng Đá <span class="text-emerald-300">XOSO66 TV</span></h1>
+      <p class="text-[12px] text-emerald-50/90 leading-relaxed"><strong>Cập nhật mỗi sáng 6:00</strong> — Phân tích phong độ, đối đầu, dự đoán tỉ số chính xác các trận đấu <a href="/lich-phat-song" class="text-emerald-200 underline">Ngoại Hạng Anh</a>, <a href="/lich-phat-song" class="text-emerald-200 underline">La Liga</a>, <a href="/lich-phat-song" class="text-emerald-200 underline">Champions League</a>, <a href="/lich-phat-song" class="text-emerald-200 underline">V-League</a> và nhiều giải khác. Xem trực tiếp tại <a href="/" class="text-emerald-200 underline font-bold">XOSO66 TV</a> cùng đội ngũ BLV chuyên nghiệp.</p>
     </div>
   </div>
 </header>
@@ -86,18 +86,15 @@ function _fmtDate(d){
 <!-- ╔════ SECTION: BÀI VIẾT & NHẬN ĐỊNH MỚI NHẤT ════╗ -->
 <section class="bg-bg-card border border-line rounded-xl p-4 mb-4">
   <div class="flex items-center justify-between flex-wrap gap-3 mb-3 pb-3 border-b border-line">
-    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-7 h-7 rounded-full grid place-items-center text-base" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.6);">⚽</span> Bài viết & Nhận định mới nhất</h2>
-    <a href="<%= partner.register %>" target="_blank" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-bg text-xs font-extrabold rounded-lg flex items-center gap-1.5 shadow-lg">📝 Đăng bài</a>
+    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-7 h-7 rounded-full grid place-items-center text-base" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.6);">📰</span> Bài viết & Nhận định mới nhất <span class="text-[11px] font-bold text-emerald-300">(<%= list.length %>)</span></h2>
+    <a href="/lich-phat-song" class="px-4 py-2 bg-pri hover:bg-pri-light text-white text-xs font-extrabold rounded-lg flex items-center gap-1.5 shadow-lg">📅 Lịch Trực Tiếp</a>
   </div>
-  <!-- Filter chips theo giải (giống reference) -->
+  <!-- Filter chips theo giải -->
   <div class="flex flex-wrap gap-2">
     <button data-flt="all" class="news-flt active px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap text-white" style="background:linear-gradient(135deg,#059669,#047857);">⚡ Tất cả</button>
-    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">💬 Thảo Luận Chung <span class="text-emerald-400">(0)</span></button>
-    <% _leagueList.slice(0, 10).forEach(function(lg){ %>
-      <button data-flt="<%= lg %>" class="news-flt px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">⚽ Nhận Định <%= lg %> <span class="text-emerald-400">(<%= _leagues[lg] %>)</span></button>
+    <% _leagueList.slice(0, 12).forEach(function(lg){ %>
+      <button data-flt="<%= lg %>" class="news-flt px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">⚽ <%= lg %> <span class="text-emerald-400">(<%= _leagues[lg] %>)</span></button>
     <% }); %>
-    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">🎯 Dự Đoán Tỉ Số <span class="text-emerald-400">(0)</span></button>
-    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">🔁 Tin Chuyển Nhượng <span class="text-emerald-400">(0)</span></button>
   </div>
 </section>
 
