@@ -11,8 +11,9 @@
  * ║   TELEGRAM_BOT_TOKEN=123:abc...                                   ║
  * ║   TELEGRAM_CHANNEL_ID=@xoso66tv hoặc -100xxx                      ║
  * ║                                                                    ║
- * ║ Cron: 0 */6 * * * cd /var/www/xoso66tv && node scripts/telegram-share-news.js
- * ╚══════════════════════════════════════════════════════════════════*/
+ * ║ Cron: 0 mỗi-6h cd /var/www/xoso66tv && node scripts/telegram-share-news.js
+ * ╚══════════════════════════════════════════════════════════════════
+ */
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
