@@ -11,6 +11,31 @@ const api = require('../lib/api');
 async function main() {
   // Lấy fixtureId từ args hoặc auto-detect từ live fixtures
   let fixtureId = process.argv[2];
+  let home = process.argv[3];
+  let away = process.argv[4];
+
+  // ═══ TEST SCRAPE thethaoviet.vip HTML (NEW APPROACH) ═══
+  if (fixtureId && home && away) {
+    console.log('\n═══ TEST 0: Scrape HTML từ thethaoviet.vip ═══');
+    const scraped = await oddsApi.scrapeOdds(home, away, fixtureId);
+    console.log('Source URL:', scraped && scraped._source);
+    console.log('Result:');
+    console.log(JSON.stringify(scraped, null, 2).slice(0, 1500));
+    if (scraped && (scraped.ah || scraped.ou || scraped.x12)) {
+      console.log('\n🎉 SCRAPE THÀNH CÔNG!');
+      if (scraped.ah) console.log('  🎯 AH:', scraped.ah);
+      if (scraped.ou) console.log('  📊 OU:', scraped.ou);
+      if (scraped.x12) console.log('  🏆 1X2:', scraped.x12);
+      process.exit(0);
+    } else if (scraped && scraped._empty) {
+      console.log('\n⚠️  HTML page tồn tại nhưng parser chưa extract được odds.');
+      console.log('💡 HTML snippet (đầu page):', scraped._htmlSnippet);
+      console.log('💡 HTML size:', scraped._htmlSize, 'bytes');
+      console.log('   → Có thể odds load qua JS sau khi DOM ready (CSR), không có trong initial HTML.');
+      console.log('   → Hoặc parser regex cần cập nhật để match đúng format.');
+    }
+  }
+
   if (!fixtureId) {
     console.log('⏳ Lấy fixture đầu tiên từ /lich-phat-song...');
     try {
