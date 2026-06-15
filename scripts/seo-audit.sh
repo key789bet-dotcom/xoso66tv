@@ -16,6 +16,19 @@ echo "║  🔍 SEO AUDIT - xoso66tv.com - $(date +'%Y-%m-%d %H:%M')          �
 echo "╚══════════════════════════════════════════════════════════════════╝"
 echo ""
 
+# Warm-up check: đảm bảo site đang serve (tránh false 502 sau pm2 restart)
+echo "⏳ Warm-up check..."
+for i in 1 2 3 4 5; do
+  STATUS=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 5 "$SITE/" 2>/dev/null)
+  if [ "$STATUS" = "200" ]; then
+    echo "✅ Site sẵn sàng (HTTP 200) sau ${i} lần thử"
+    break
+  fi
+  echo "  Thử $i/5: HTTP $STATUS → đợi 10s..."
+  sleep 10
+done
+echo ""
+
 # Helper functions
 chk() {
   local status=$1
