@@ -210,20 +210,47 @@ function _fmtDate(d){
     <a href="#" class="block px-3 py-2 text-[11px] text-pri-light hover:bg-bg-soft text-center font-bold border-t border-line">Xem tất cả giải đấu →</a>
   </div>
 
-  <!-- Widget 3: BLV nổi bật -->
+  <!-- Widget 3: BLV nổi bật — REAL DATA từ DB -->
   <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
     <div class="px-3 py-2.5 border-b border-line flex items-center gap-2" style="background:linear-gradient(90deg,#064e3b,#047857);">
       <span class="text-yellow-300">🎤</span>
       <h3 class="text-xs font-extrabold text-white flex-1">BLV NỔI BẬT</h3>
+      <% if ((blvs||[]).length) { %><span class="text-[10px] text-emerald-300 font-bold"><%= blvs.length %></span><% } %>
     </div>
-    <div class="p-3 grid grid-cols-3 gap-2.5">
-      <% [['BLV Long','#f97316'],['BLV An','#10b981'],['BLV Hùng','#3b82f6'],['BLV Phong','#ef4444'],['BLV Nam','#a855f7'],['BLV Khoa','#eab308'],['BLV Tú','#06b6d4'],['BLV Đức','#ec4899'],['BLV Tài','#6366f1']].forEach(function(b){ %>
-        <a href="#" class="group text-center">
-          <div class="aspect-square rounded-full bg-bg-soft border-2 border-line group-hover:border-pri grid place-items-center text-base font-black text-white mb-1 transition-all" style="background:linear-gradient(135deg,<%= b[1] %>40,<%= b[1] %>10)"><%= b[0].split(' ')[1].charAt(0) %></div>
-          <div class="text-[9px] text-gray-300 group-hover:text-pri-light font-bold truncate"><%= b[0] %></div>
-        </a>
-      <% }); %>
-    </div>
+    <% if (!blvs || !blvs.length) { %>
+      <div class="p-6 text-center text-muted text-xs">
+        <div class="text-3xl mb-2 opacity-50">🎤</div>
+        Chưa có BLV nào đăng ký.<br>
+        <a href="/dang-ky-blv" class="text-emerald-400 font-bold underline mt-1 inline-block">Đăng ký làm BLV →</a>
+      </div>
+    <% } else { %>
+      <div class="p-3 grid grid-cols-3 gap-2.5">
+        <% blvs.forEach(function(b){
+          // Hash màu ổn định từ id để mỗi BLV có gradient riêng (không random)
+          var _palette = ['#f97316','#10b981','#3b82f6','#ef4444','#a855f7','#eab308','#06b6d4','#ec4899','#6366f1'];
+          var _hash = (b.id||'').split('').reduce(function(s,c){ return s + c.charCodeAt(0); }, 0);
+          var _color = _palette[_hash % _palette.length];
+          var _initial = (b.name||'B').trim().charAt(0).toUpperCase();
+        %>
+          <a href="/live/<%= b.id %>" class="group text-center relative">
+            <div class="aspect-square rounded-full border-2 border-line group-hover:border-pri grid place-items-center text-base font-black text-white mb-1 transition-all overflow-hidden" style="background:linear-gradient(135deg,<%= _color %>40,<%= _color %>10)">
+              <% if (b.avatar) { %>
+                <img src="<%= b.avatar %>" alt="<%= b.name %>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextSibling.style.display='block';">
+                <span style="display:none;"><%= _initial %></span>
+              <% } else { %>
+                <%= _initial %>
+              <% } %>
+            </div>
+            <% if (b.liveNow) { %>
+              <span class="absolute top-0 right-0 bg-live text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5" style="box-shadow:0 0 8px rgba(239,68,68,.6);">
+                <span class="w-1 h-1 bg-white rounded-full animate-pulse"></span>LIVE
+              </span>
+            <% } %>
+            <div class="text-[9px] text-gray-300 group-hover:text-pri-light font-bold truncate" title="<%= b.name %>"><%= b.name %></div>
+          </a>
+        <% }); %>
+      </div>
+    <% } %>
   </div>
 </section>
 

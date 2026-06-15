@@ -801,7 +801,24 @@ const newsStore = require('./lib/news-store');
 app.get('/tin-tuc', function (req, res, next) {
   try {
     const list = newsStore.listRecent(30);
-    res.render('tw-tin-tuc', { active:'news', list: list });
+    // Real BLV data from DB (không hardcode)
+    let blvs = [];
+    try {
+      const dbData = db.load();
+      blvs = (dbData.blvs || [])
+        .filter(b => b && b.status === 'active')
+        .map(b => ({
+          id: b.id,
+          name: b.name || b.username || 'BLV',
+          slug: b.slug || b.id,
+          avatar: b.avatar || '',
+          liveNow: !!b.liveNow,
+          followers: b.followers || 0
+        }))
+        .sort((a, b) => (b.liveNow - a.liveNow) || (b.followers - a.followers))
+        .slice(0, 9);
+    } catch (e) { console.warn('[tin-tuc] load blvs fail:', e.message); }
+    res.render('tw-tin-tuc', { active:'news', list: list, blvs: blvs });
   } catch (e) { next(e); }
 });
 
