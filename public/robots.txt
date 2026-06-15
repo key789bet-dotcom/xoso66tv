@@ -70,3 +70,6 @@ Crawl-delay: 1
 
 # Sitemap chính
 Sitemap: https://xoso66tv.com/sitemap.xml
+
+# RSS feed - Google News + Feedly + Inoreader
+# https://xoso66tv.com/rss.xml
