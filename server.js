@@ -2821,6 +2821,57 @@ app.get('/gioi-thieu',             function (req, res) { res.render('tw-gioi-thi
 app.get('/lien-he',                function (req, res) { res.render('tw-lien-he',                { active:'static' }); });
 app.get('/chinh-sach-bao-mat',     function (req, res) { res.render('tw-chinh-sach-bao-mat',     { active:'static' }); });
 app.get('/chinh-sach-bien-tap',    function (req, res) { res.render('tw-chinh-sach-bien-tap',    { active:'static' }); });
+
+// ═══ CAO THỦ DỰ ĐOÁN — Leaderboard + API ═══
+const predictStore = require('./lib/predict-store');
+
+app.get('/cao-thu', function (req, res) {
+  const period = ['week','month','all'].indexOf(req.query.period) >= 0 ? req.query.period : 'week';
+  const leaders = predictStore.leaderboard(period, 100);
+  const stats = predictStore.stats();
+  res.render('tw-cao-thu', { active:'cao-thu', period, leaders, stats });
+});
+
+// Submit prediction (user)
+app.post('/api/predict', pubAuth.requireLogin, function (req, res) {
+  try {
+    const user = pubAuth.getUser(req);
+    const item = predictStore.submitPrediction({
+      username: user.username,
+      matchId: req.body.matchId,
+      home: req.body.home,
+      away: req.body.away,
+      league: req.body.league,
+      homeScore: parseInt(req.body.homeScore, 10),
+      awayScore: parseInt(req.body.awayScore, 10),
+      matchTime: req.body.matchTime ? +req.body.matchTime : null
+    });
+    res.json({ ok:true, prediction: item, message:'Dự đoán đã lưu! Theo dõi kết quả tại /cao-thu' });
+  } catch (e) {
+    res.status(400).json({ ok:false, error: e.message });
+  }
+});
+
+// Get user's prediction for a match
+app.get('/api/predict/my/:matchId', pubAuth.requireLogin, function (req, res) {
+  const user = pubAuth.getUser(req);
+  const p = predictStore.getUserPrediction(user.username, req.params.matchId);
+  res.json({ ok:true, prediction: p });
+});
+
+// Admin: settle match score
+app.post('/api/admin/predict/settle', pubAuth.requireAdmin, function (req, res) {
+  try {
+    const r = predictStore.settleMatch(
+      req.body.matchId,
+      parseInt(req.body.actualHome, 10),
+      parseInt(req.body.actualAway, 10)
+    );
+    res.json({ ok:true, result: r });
+  } catch (e) {
+    res.status(400).json({ ok:false, error: e.message });
+  }
+});
 app.get('/thoa-thuan-phat-song',   function (req, res) { res.render('tw-thoa-thuan-phat-song',   { active:'static' }); });
 app.get('/dieu-khoan-su-dung',     function (req, res) { res.render('tw-dieu-khoan-su-dung',     { active:'static' }); });
 app.get('/bo-suu-tap-qua',         function (req, res) { res.render('tw-bo-suu-tap-qua',         { active:'static' }); });

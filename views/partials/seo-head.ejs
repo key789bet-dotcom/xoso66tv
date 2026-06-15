@@ -81,6 +81,11 @@ var _MD2 = _S2.modifiedAt || new Date().toISOString().slice(0,10);
 <!-- RSS feed auto-discovery (Google News, Feedly, Inoreader đọc được) -->
 <link rel="alternate" type="application/rss+xml" title="XOSO66 TV - Nhận Định Bóng Đá" href="<%= _U2 %>/rss.xml">
 
+<!-- Google AdSense (lazy load nếu publisher ID đã setup) -->
+<% if (typeof adsense !== 'undefined' && adsense && adsense.publisherId) { %>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= adsense.publisherId %>" crossorigin="anonymous"></script>
+<% } %>
+
 <link rel="stylesheet" href="/static/css/seo.css">
 
 <!-- ====== JSON-LD schema graph (SEO 2026) ====== -->

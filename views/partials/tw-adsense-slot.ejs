@@ -1,0 +1,39 @@
+<%
+// ════════════════════════════════════════════════════════════════
+// 💰 AdSense Slot — placeholder cho Google AdSense
+// Include: <%- include('partials/tw-adsense-slot', { slot:'header', size:'horizontal' }) %>
+//
+// Sizes:
+//   - 'horizontal' (728x90 desktop, 320x50 mobile)
+//   - 'rectangle'  (336x280 / 300x250)
+//   - 'square'     (250x250)
+//   - 'in-feed'    (responsive)
+//   - 'in-article' (responsive)
+//
+// SETUP: vào /admin/api/config (hoặc env) set ADSENSE_PUBLISHER_ID & slot IDs
+// ════════════════════════════════════════════════════════════════
+var _adPubId = (typeof adsense !== 'undefined' && adsense && adsense.publisherId) || '';
+var _adSlots = (typeof adsense !== 'undefined' && adsense && adsense.slots) || {};
+var _slotKey = (typeof slot !== 'undefined' && slot) || 'default';
+var _slotId  = _adSlots[_slotKey] || '';
+var _size    = (typeof size !== 'undefined' && size) || 'horizontal';
+var _enabled = !!(_adPubId && _slotId);
+%>
+<% if (_enabled) { %>
+  <!-- AdSense slot: <%= _slotKey %> (<%= _size %>) -->
+  <div class="ad-slot ad-<%= _size %>" style="text-align:center;margin:16px auto;min-height:90px;overflow:hidden;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="<%= _adPubId %>"
+         data-ad-slot="<%= _slotId %>"
+         data-ad-format="<%= _size==='in-feed'?'fluid':(_size==='in-article'?'fluid':'auto') %>"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+<% } else if (process && process.env && process.env.NODE_ENV !== 'production') { %>
+  <!-- AdSense placeholder (dev only) -->
+  <div style="background:repeating-linear-gradient(45deg,#1a2030,#1a2030 10px,#232a3a 10px,#232a3a 20px);border:1px dashed #4a5568;text-align:center;padding:20px;margin:16px auto;color:#94a3b8;font-size:11px;border-radius:8px;">
+    📢 AdSense Slot: <strong><%= _slotKey %></strong> (<%= _size %>)<br>
+    <span style="opacity:.6;">Setup ADSENSE_PUBLISHER_ID & slot ID để hiện ad</span>
+  </div>
+<% } %>

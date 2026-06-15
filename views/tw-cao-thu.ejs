@@ -1,0 +1,149 @@
+<%
+var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+seo = {
+  title: 'Cao Thủ Dự Đoán Bóng Đá - BXH Top 100 | XOSO66 TV',
+  description: 'Bảng xếp hạng cao thủ dự đoán bóng đá tại XOSO66 TV. Dự đoán đúng tỉ số nhận 100 X COIN, tham gia BXH tuần/tháng. '+(stats.total||0)+' lượt dự đoán, '+(stats.uniqueUsers||0)+' cao thủ tham gia.',
+  keywords: 'dự đoán bóng đá, dự đoán tỉ số, cao thủ bóng đá, xoso66, xổ số 66, xoso66 tv, bxh dự đoán bóng đá',
+  canonical: '/cao-thu',
+  breadcrumb: [{ name:'Cao Thủ Dự Đoán', url:'/cao-thu' }]
+};
+%>
+<%- include('partials/tw-layout-start') %>
+<%- include('partials/tw-breadcrumb') %>
+
+<!-- HERO -->
+<header class="rounded-xl px-6 py-5 mb-4 border border-emerald-700 relative overflow-hidden" style="background:linear-gradient(135deg,#064e3b 0%,#065f46 50%,#047857 100%);">
+  <div class="absolute -top-10 -right-10 text-9xl opacity-10">🏆</div>
+  <div class="flex items-center gap-4 relative">
+    <div class="w-14 h-14 rounded-full bg-yellow-400/30 border-2 border-yellow-300 grid place-items-center text-3xl shadow-lg" style="box-shadow:0 0 20px rgba(250,204,21,.5);">🏆</div>
+    <div class="flex-1">
+      <h1 class="text-xl md:text-2xl font-black text-white mb-1">🎯 Cao Thủ Dự Đoán Bóng Đá XOSO66 TV</h1>
+      <p class="text-[12px] text-emerald-50/90 leading-relaxed">
+        Dự đoán đúng tỉ số nhận <strong class="text-yellow-300">100 X COIN</strong> ·
+        Dự đoán đúng kết quả nhận <strong class="text-yellow-200">10-30 X COIN</strong> ·
+        Top tuần nhận thêm phần thưởng VIP
+      </p>
+    </div>
+  </div>
+</header>
+
+<!-- STATS QUICK -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+  <div class="bg-bg-card border border-line rounded-lg p-3 text-center">
+    <div class="text-2xl mb-1">📊</div>
+    <div class="text-2xl font-black text-pri"><%= (stats.total||0).toLocaleString('vi-VN') %></div>
+    <div class="text-[10px] text-muted">TỔNG LƯỢT DỰ ĐOÁN</div>
+  </div>
+  <div class="bg-bg-card border border-line rounded-lg p-3 text-center">
+    <div class="text-2xl mb-1">👥</div>
+    <div class="text-2xl font-black text-emerald-400"><%= (stats.uniqueUsers||0).toLocaleString('vi-VN') %></div>
+    <div class="text-[10px] text-muted">CAO THỦ THAM GIA</div>
+  </div>
+  <div class="bg-bg-card border border-line rounded-lg p-3 text-center">
+    <div class="text-2xl mb-1">🎯</div>
+    <div class="text-2xl font-black text-yellow-400"><%= (stats.exactPredictions||0).toLocaleString('vi-VN') %></div>
+    <div class="text-[10px] text-muted">ĐÚNG CHÍNH XÁC</div>
+  </div>
+  <div class="bg-bg-card border border-line rounded-lg p-3 text-center">
+    <div class="text-2xl mb-1">💰</div>
+    <div class="text-2xl font-black text-pink-400"><%= (stats.totalRewarded||0).toLocaleString('vi-VN') %></div>
+    <div class="text-[10px] text-muted">X COIN ĐÃ TRAO</div>
+  </div>
+</section>
+
+<!-- TAB chọn kỳ -->
+<div class="flex gap-2 mb-4 bg-bg-card border border-line rounded-xl p-2">
+  <a href="/cao-thu?period=week" class="flex-1 text-center px-3 py-2 rounded-lg text-[12px] font-bold transition-colors <%= (period==='week'||!period) ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-lg' : 'text-gray-300 hover:bg-bg-soft' %>">🗓️ TUẦN NÀY</a>
+  <a href="/cao-thu?period=month" class="flex-1 text-center px-3 py-2 rounded-lg text-[12px] font-bold transition-colors <%= period==='month' ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-lg' : 'text-gray-300 hover:bg-bg-soft' %>">📅 THÁNG NÀY</a>
+  <a href="/cao-thu?period=all" class="flex-1 text-center px-3 py-2 rounded-lg text-[12px] font-bold transition-colors <%= period==='all' ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-lg' : 'text-gray-300 hover:bg-bg-soft' %>">🏆 ALL-TIME</a>
+</div>
+
+<!-- LEADERBOARD TABLE -->
+<section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+  <div class="px-4 py-3 border-b border-line bg-bg-soft flex items-center justify-between">
+    <h2 class="text-sm font-extrabold text-white flex items-center gap-2">🏆 BẢNG XẾP HẠNG CAO THỦ <span class="text-pri-light"><%= period==='all'?'(All-time)':(period==='month'?'(Tháng)':'(Tuần)') %></span></h2>
+    <span class="text-[10px] text-muted">Cập nhật <%= _todayVi %></span>
+  </div>
+
+  <% if (!leaders || !leaders.length) { %>
+    <div class="p-12 text-center text-muted">
+      <div class="text-5xl mb-3 opacity-50">🎯</div>
+      <p class="text-[14px] font-bold mb-2">Chưa có cao thủ nào</p>
+      <p class="text-[12px]">Hãy là người đầu tiên dự đoán! Vào <a href="/lich-phat-song" class="text-pri-light underline font-bold">Lịch Phát Sóng</a> để đặt dự đoán.</p>
+    </div>
+  <% } else { %>
+    <table class="w-full text-[12px]">
+      <thead class="bg-bg-soft text-muted">
+        <tr>
+          <th class="px-3 py-2 text-left w-12">#</th>
+          <th class="px-3 py-2 text-left">Cao Thủ</th>
+          <th class="px-3 py-2 text-center hidden md:table-cell">Lượt</th>
+          <th class="px-3 py-2 text-center hidden md:table-cell">Đúng</th>
+          <th class="px-3 py-2 text-center">Acc</th>
+          <th class="px-3 py-2 text-right text-yellow-400">X COIN</th>
+          <th class="px-3 py-2 text-right text-emerald-400">Điểm</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line/50">
+        <% leaders.forEach(function(u, i){
+          var rank = i+1;
+          var medal = rank===1 ? '🥇' : rank===2 ? '🥈' : rank===3 ? '🥉' : '';
+          var rankClass = rank<=3 ? 'bg-yellow-500/10' : '';
+        %>
+          <tr class="<%= rankClass %> hover:bg-bg-soft transition-colors">
+            <td class="px-3 py-2.5 font-extrabold text-pri-light"><%= medal || rank %></td>
+            <td class="px-3 py-2.5">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center text-white text-[10px] font-black"><%= u.username.charAt(0).toUpperCase() %></div>
+                <span class="font-bold text-white"><%= u.username %></span>
+                <% if (u.exact>=3) { %><span class="text-[9px] bg-yellow-400/20 text-yellow-300 px-1.5 py-0.5 rounded font-extrabold">🎯 SNIPER</span><% } %>
+              </div>
+            </td>
+            <td class="px-3 py-2.5 text-center text-gray-300 hidden md:table-cell"><%= u.count %></td>
+            <td class="px-3 py-2.5 text-center text-emerald-400 font-bold hidden md:table-cell"><%= u.correct %></td>
+            <td class="px-3 py-2.5 text-center">
+              <span class="font-bold <%= u.accuracy>=70?'text-emerald-400':(u.accuracy>=50?'text-yellow-400':'text-gray-400') %>"><%= u.accuracy %>%</span>
+            </td>
+            <td class="px-3 py-2.5 text-right text-yellow-300 font-extrabold"><%= u.reward.toLocaleString('vi-VN') %></td>
+            <td class="px-3 py-2.5 text-right text-emerald-300 font-extrabold"><%= u.total.toLocaleString('vi-VN') %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <div class="px-4 py-3 border-t border-line bg-bg-soft text-center">
+    <a href="/lich-phat-song" class="inline-block px-5 py-2 bg-gradient-to-r from-pri to-live text-white font-extrabold rounded-lg text-[12px] hover:brightness-110 transition-all">🎯 DỰ ĐOÁN TRẬN ĐẦU TIÊN →</a>
+  </div>
+</section>
+
+<!-- SEO content + rules -->
+<section class="bg-bg-card border border-line rounded-xl p-5 mt-4">
+  <h2 class="text-base font-extrabold text-white mb-3">📜 Luật chơi & Phần thưởng</h2>
+  <div class="grid md:grid-cols-2 gap-4 text-[13px] text-gray-300 leading-relaxed">
+    <div>
+      <h3 class="text-pri-light font-bold mb-2">🎯 Cách tính điểm dự đoán bóng đá</h3>
+      <ul class="space-y-1.5 list-disc list-inside">
+        <li>Đúng <strong class="text-yellow-300">CHÍNH XÁC tỉ số</strong>: <span class="text-yellow-300 font-bold">100 điểm + 100 X COIN</span></li>
+        <li>Đúng kết quả + chênh ≤ 1 bàn: <span class="text-emerald-400 font-bold">30 điểm + 30 X COIN</span></li>
+        <li>Đúng kết quả (W/D/L): <span class="text-blue-400 font-bold">10 điểm + 10 X COIN</span></li>
+        <li>Sai: 0 điểm</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-pri-light font-bold mb-2">🏆 Phần thưởng VIP cuối tuần</h3>
+      <ul class="space-y-1.5 list-disc list-inside">
+        <li>🥇 Top 1 tuần: <span class="text-yellow-300 font-bold">500 X COIN + VIP badge</span></li>
+        <li>🥈 Top 2-3: <span class="text-yellow-200 font-bold">300 X COIN</span></li>
+        <li>🥉 Top 4-10: <span class="text-emerald-300 font-bold">100 X COIN</span></li>
+        <li>Cao thủ Sniper (3+ đúng chính xác/tuần): <span class="text-pink-300 font-bold">Badge SNIPER vĩnh viễn</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="mt-4 pt-3 border-t border-line text-[11px] text-muted">
+    💡 <strong>Mẹo:</strong> Đọc <a href="/tin-tuc" class="text-pri-light underline">nhận định bóng đá</a> của chuyên gia XOSO66 TV để tăng tỉ lệ dự đoán đúng.
+    Xem <a href="/lich-phat-song" class="text-pri-light underline">lịch phát sóng bóng đá</a> các trận sắp tới để đặt dự đoán.
+  </div>
+</section>
+
+<%- include('partials/tw-footer') %>
