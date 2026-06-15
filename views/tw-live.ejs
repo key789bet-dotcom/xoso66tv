@@ -12,8 +12,67 @@ seo = {
     { name:_matchName, url:'/live/'+(match.slug||match.id) }
   ]
 };
+// SportsEvent schema cho Rich Snippet trên Google Search
+var _matchStart = match.matchTs ? new Date(match.matchTs).toISOString() : new Date().toISOString();
+var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status === 'finished' ? 'EventCompleted' : 'EventScheduled');
 %>
 <%- include('partials/tw-layout-start') %>
+
+<!-- ═══ JSON-LD SportsEvent + BroadcastEvent schema (Rich Snippet) ═══ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SportsEvent",
+  "name": "<%= _matchName %> - <%= match.league %>",
+  "description": "Xem trực tiếp <%= _matchName %> tại <%= match.league %> ngày <%= match.date %> Full HD miễn phí tại XOSO66 TV.",
+  "startDate": "<%= _matchStart %>",
+  "eventStatus": "https://schema.org/<%= _matchStatus %>",
+  "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+  "location": {
+    "@type": "VirtualLocation",
+    "url": "https://xoso66tv.com/live/<%= match.slug || match.id %>"
+  },
+  "competitor": [
+    {
+      "@type": "SportsTeam",
+      "name": "<%= match.home %>"<% if (match.homeBadge) { %>,
+      "logo": "<%= match.homeBadge %>"<% } %>
+    },
+    {
+      "@type": "SportsTeam",
+      "name": "<%= match.away %>"<% if (match.awayBadge) { %>,
+      "logo": "<%= match.awayBadge %>"<% } %>
+    }
+  ],
+  "sport": "<%= match.sport === 'Soccer' ? 'Soccer' : match.sport %>",
+  "organizer": {
+    "@type": "Organization",
+    "name": "<%= match.league %>"
+  },
+  "broadcastOfEvent": {
+    "@type": "BroadcastEvent",
+    "name": "Trực tiếp <%= _matchName %>",
+    "isLiveBroadcast": <%= match.status === 'live' ? 'true' : 'false' %>,
+    "videoFormat": "HD",
+    "inLanguage": "vi-VN",
+    "publishedOn": {
+      "@type": "BroadcastService",
+      "name": "XOSO66 TV",
+      "broadcastDisplayName": "XOSO66 TV - Xem Trực Tiếp Bóng Đá",
+      "url": "https://xoso66tv.com/"
+    }
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "https://xoso66tv.com/live/<%= match.slug || match.id %>",
+    "price": "0",
+    "priceCurrency": "VND",
+    "availability": "https://schema.org/InStock",
+    "validFrom": "<%= _matchStart %>"
+  }
+}
+</script>
+
 <%- include('partials/tw-skin-overlay') %>
 <%- include('partials/tw-breadcrumb') %>
 

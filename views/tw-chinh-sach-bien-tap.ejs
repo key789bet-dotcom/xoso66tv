@@ -1,0 +1,113 @@
+<% var pageTitle='Chính Sách Biên Tập',
+   pageH1='Chính Sách Biên Tập '+brand.name,
+   breadcrumbName='Chính Sách Biên Tập',
+   updated='2026-06-15',
+   canonicalPath='/chinh-sach-bien-tap';
+var pageDesc = 'Chính sách biên tập, tiêu chuẩn nội dung, quy trình sửa lỗi và cam kết minh bạch của '+brand.name+'. Tuân thủ chuẩn Google News E-E-A-T.';
+var contentHtml = `
+<p>${brand.name} cam kết cung cấp nội dung chất lượng cao, chính xác và minh bạch. Trang này mô tả chi tiết quy trình biên tập và các tiêu chuẩn áp dụng cho mọi bài viết trên nền tảng.</p>
+
+<h2>🎯 Sứ mệnh nội dung</h2>
+<p>${brand.name} cam kết phục vụ cộng đồng người hâm mộ thể thao Việt Nam bằng:</p>
+<ul>
+  <li><strong>Tin tức bóng đá nhanh, chính xác</strong> — cập nhật theo thời gian thực</li>
+  <li><strong>Nhận định bóng đá chuyên sâu</strong> — phân tích phong độ, đối đầu, đội hình</li>
+  <li><strong>Dự đoán tỉ số có cơ sở</strong> — dựa trên dữ liệu thống kê thực tế</li>
+  <li><strong>Livestream Full HD miễn phí</strong> — không quảng cáo gián đoạn</li>
+</ul>
+
+<h2>📋 Quy trình biên tập 5 bước</h2>
+<ol>
+  <li><strong>Thu thập dữ liệu:</strong> Lấy thông tin trận đấu từ API thể thao chính thức (api.thethaoviet.vip) — phong độ 10 trận gần nhất, lịch sử đối đầu 5 trận, đội hình dự kiến.</li>
+  <li><strong>Phân tích AI:</strong> Hệ thống Claude AI (Anthropic) phân tích dữ liệu, sinh bài nhận định 800-1200 chữ với cấu trúc chuẩn 6 mục: phong độ, đối đầu, đội hình, kèo, dự đoán, lời khuyên.</li>
+  <li><strong>Kiểm tra tự động:</strong> Hệ thống tự động validate: kiểm tra tên đội, giải đấu, ngày giờ trận. Loại bỏ bài có dữ kiện sai.</li>
+  <li><strong>Review biên tập viên:</strong> Biên tập viên review ngẫu nhiên 10% bài/ngày, đặc biệt với các trận lớn (NHA, Champions League, World Cup).</li>
+  <li><strong>Publish + monitor:</strong> Bài được publish lên website + RSS feed + push tới Bing/Yandex qua IndexNow. Hệ thống tự động monitor traffic và phản hồi user.</li>
+</ol>
+
+<h2>✅ Tiêu chuẩn chất lượng nội dung</h2>
+<h3>1. Chính xác (Accuracy)</h3>
+<ul>
+  <li>Dữ liệu thống kê lấy từ nguồn uy tín, có thể kiểm chứng</li>
+  <li>Tên cầu thủ, đội bóng, HLV viết đúng chính tả</li>
+  <li>Tỉ số dự đoán dựa trên model có cơ sở (không random)</li>
+  <li>Không lan truyền tin đồn chưa được xác thực</li>
+</ul>
+
+<h3>2. Khách quan (Objectivity)</h3>
+<ul>
+  <li>Nhận định trung lập, không thiên vị đội nào</li>
+  <li>Không sử dụng từ ngữ kích động, phân biệt</li>
+  <li>Phân tích dựa trên dữ liệu, không cảm tính</li>
+</ul>
+
+<h3>3. Minh bạch (Transparency)</h3>
+<ul>
+  <li>Bài AI-generated có nhãn rõ ràng ở cuối bài</li>
+  <li>Nguồn dữ liệu được công bố</li>
+  <li>Ngày publish và update được hiển thị</li>
+  <li>Tên tác giả (hoặc "AI Phân Tích") rõ ràng</li>
+</ul>
+
+<h3>4. Có giá trị (Helpful)</h3>
+<ul>
+  <li>Bài viết phải hữu ích cho người đọc</li>
+  <li>Không clickbait, title phản ánh đúng nội dung</li>
+  <li>Cung cấp insight thực tế, không sao chép</li>
+</ul>
+
+<h2>🤖 Chính sách sử dụng AI</h2>
+<p>${brand.name} sử dụng <strong>Generative AI (Claude của Anthropic)</strong> để hỗ trợ tạo bài nhận định bóng đá. Chúng tôi tuân thủ:</p>
+<ul>
+  <li><strong>Google AI Content Policy</strong> — AI content được phép nếu có chất lượng và minh bạch</li>
+  <li><strong>Disclosure rõ ràng</strong> — mọi bài AI có badge "🤖 AI-generated" ở đầu/cuối bài</li>
+  <li><strong>Human oversight</strong> — biên tập viên review ngẫu nhiên</li>
+  <li><strong>Fact-checking</strong> — dữ liệu được validate trước khi publish</li>
+  <li><strong>Không deceive</strong> — không giả mạo content do người viết</li>
+</ul>
+<p>Tham khảo: <a href="https://developers.google.com/search/blog/2023/02/google-search-and-ai-content" target="_blank" rel="noopener">Google's guidance on AI-generated content</a>.</p>
+
+<h2>🔧 Chính sách sửa lỗi (Correction Policy)</h2>
+<p>Khi phát hiện lỗi trong bài viết, ${brand.name} áp dụng quy trình:</p>
+<ol>
+  <li><strong>Báo lỗi:</strong> User gửi email <a href="mailto:editor@xoso66tv.com">editor@xoso66tv.com</a> hoặc qua <a href="/lien-he">trang Liên Hệ</a></li>
+  <li><strong>Xác thực:</strong> Biên tập viên kiểm tra lỗi trong 12 giờ</li>
+  <li><strong>Sửa lỗi:</strong> Cập nhật nội dung trong 24 giờ</li>
+  <li><strong>Thông báo đính chính:</strong> Lỗi nghiêm trọng (sai tỉ số, sai tên cầu thủ) — thêm box "📝 Đính chính" ở đầu bài</li>
+  <li><strong>Cập nhật metadata:</strong> Trường <code>dateModified</code> trong schema được update</li>
+</ol>
+
+<h2>🚫 Nội dung KHÔNG được phép</h2>
+<p>${brand.name} không đăng tải:</p>
+<ul>
+  <li>Tin giả, tin đồn chưa xác thực</li>
+  <li>Nội dung kích động, phân biệt</li>
+  <li>Spam, quảng cáo trá hình</li>
+  <li>Vi phạm bản quyền</li>
+  <li>Nội dung 18+ không phù hợp</li>
+  <li>Cá độ bất hợp pháp (chỉ giới thiệu nhà cái có license)</li>
+</ul>
+
+<h2>👥 Đội ngũ biên tập</h2>
+<p>${brand.name} có đội ngũ:</p>
+<ul>
+  <li><strong>Tổng biên tập:</strong> XOSO66 TV Editorial Team</li>
+  <li><strong>10+ biên tập viên</strong> chuyên về bóng đá, thể thao</li>
+  <li><strong>100+ BLV</strong> bình luận trực tiếp các trận đấu</li>
+  <li><strong>AI Engineering:</strong> Đội ngũ phát triển hệ thống AI sinh bài nhận định</li>
+</ul>
+
+<h2>📞 Liên hệ biên tập</h2>
+<ul>
+  <li>📧 <strong>Email biên tập:</strong> editor@xoso66tv.com</li>
+  <li>📧 <strong>Báo lỗi:</strong> correction@xoso66tv.com</li>
+  <li>💬 <strong>Telegram:</strong> <a href="${partner.telegram}" target="_blank" rel="noopener">CSKH 24/7</a></li>
+  <li>🌐 <strong>Liên hệ:</strong> <a href="/lien-he">/lien-he</a></li>
+</ul>
+
+<h2>📅 Cập nhật chính sách</h2>
+<p>Chính sách biên tập này được cập nhật lần cuối: <strong>15/06/2026</strong>. ${brand.name} có thể điều chỉnh nội dung chính sách bất cứ lúc nào. Mọi thay đổi sẽ được thông báo trên trang chủ.</p>
+
+<p><em>Xem thêm: <a href="/gioi-thieu">Giới thiệu</a> · <a href="/chinh-sach-bao-mat">Chính sách bảo mật</a> · <a href="/dieu-khoan-su-dung">Điều khoản sử dụng</a></em></p>
+`; %>
+<%- include('partials/tw-static-shell', { pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml, canonicalPath }) %>

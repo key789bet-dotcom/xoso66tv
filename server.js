@@ -2820,6 +2820,7 @@ app.get('/profile',      function (req, res) {
 app.get('/gioi-thieu',             function (req, res) { res.render('tw-gioi-thieu',             { active:'static' }); });
 app.get('/lien-he',                function (req, res) { res.render('tw-lien-he',                { active:'static' }); });
 app.get('/chinh-sach-bao-mat',     function (req, res) { res.render('tw-chinh-sach-bao-mat',     { active:'static' }); });
+app.get('/chinh-sach-bien-tap',    function (req, res) { res.render('tw-chinh-sach-bien-tap',    { active:'static' }); });
 app.get('/thoa-thuan-phat-song',   function (req, res) { res.render('tw-thoa-thuan-phat-song',   { active:'static' }); });
 app.get('/dieu-khoan-su-dung',     function (req, res) { res.render('tw-dieu-khoan-su-dung',     { active:'static' }); });
 app.get('/bo-suu-tap-qua',         function (req, res) { res.render('tw-bo-suu-tap-qua',         { active:'static' }); });

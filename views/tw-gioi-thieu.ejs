@@ -41,7 +41,51 @@ var contentHtml = `
 <h2>🤝 Đối tác chiến lược</h2>
 <p>${brand.name} là một phần của liên minh thương hiệu cùng <a href="${partner.home}" target="_blank" rel="noopener">${brand.domain}</a> - nhà tài trợ chính cho các chương trình livestream và khuyến mãi hấp dẫn dành cho cộng đồng người xem.</p>
 
+<h2>👥 Đội ngũ biên tập</h2>
+<p>${brand.name} có đội ngũ biên tập viên chuyên nghiệp, am hiểu thể thao, làm việc 24/7 để mang đến tin tức, nhận định, dự đoán bóng đá chính xác và kịp thời.</p>
+<ul>
+  <li><strong>Tổng Biên Tập:</strong> XOSO66 TV Editorial Team — chịu trách nhiệm nội dung cuối cùng</li>
+  <li><strong>BLV chuyên nghiệp:</strong> 100+ bình luận viên thể thao có chứng chỉ</li>
+  <li><strong>Phân tích AI:</strong> Hệ thống AI tự động sinh bài nhận định mỗi sáng 6h, sau đó được biên tập viên review</li>
+  <li><strong>Liên hệ biên tập:</strong> editor@xoso66tv.com</li>
+</ul>
+
+<h2>📋 Tiêu chuẩn biên tập</h2>
+<p>Mọi bài viết trên ${brand.name} đều tuân thủ:</p>
+<ul>
+  <li><strong>Chính xác:</strong> Dữ liệu thống kê, phong độ, đối đầu được lấy từ nguồn API thể thao chính thức</li>
+  <li><strong>Minh bạch:</strong> Bài viết AI sinh được đánh dấu rõ ràng "AI-generated", không lừa dối người đọc</li>
+  <li><strong>Trung lập:</strong> Nhận định khách quan, không thiên vị đội nào</li>
+  <li><strong>Cập nhật:</strong> Thông tin được cập nhật theo thời gian thực, có timestamp lastmod</li>
+  <li><strong>Không spam:</strong> Không clickbait, không title giả tạo, không nội dung lừa đảo</li>
+</ul>
+<p>Chi tiết xem tại <a href="/chinh-sach-bien-tap">Chính sách biên tập</a>.</p>
+
+<h2>🔧 Chính sách sửa lỗi (Correction Policy)</h2>
+<p>${brand.name} cam kết minh bạch khi có lỗi:</p>
+<ul>
+  <li>Phát hiện lỗi → sửa trong vòng <strong>24 giờ</strong></li>
+  <li>Lỗi nghiêm trọng (dữ kiện sai, tỉ số sai) → đăng <strong>thông báo đính chính</strong> ở đầu bài</li>
+  <li>Người đọc báo lỗi → liên hệ: editor@xoso66tv.com</li>
+  <li>Bài viết bị sửa → cập nhật trường <code>dateModified</code> trong schema</li>
+</ul>
+
+<h2>🤖 Sử dụng AI có trách nhiệm</h2>
+<p>${brand.name} áp dụng <strong>Generative AI</strong> (Claude AI của Anthropic) để hỗ trợ tạo bài nhận định bóng đá hàng ngày. Nguyên tắc:</p>
+<ul>
+  <li><strong>Minh bạch:</strong> Mọi bài AI đều có nhãn "AI-generated" ở cuối bài</li>
+  <li><strong>Có review:</strong> Bài AI được hệ thống kiểm tra dữ kiện trước khi publish</li>
+  <li><strong>Có người giám sát:</strong> Biên tập viên review ngẫu nhiên 10% bài/ngày</li>
+  <li><strong>Tuân thủ <a href="https://developers.google.com/search/blog/2023/02/google-search-and-ai-content" target="_blank" rel="noopener">Google AI Content Policy</a></strong></li>
+</ul>
+
 <h2>📞 Liên hệ với chúng tôi</h2>
-<p>Mọi thắc mắc, góp ý hoặc yêu cầu hợp tác, vui lòng liên hệ qua trang <a href="/lien-he">Liên Hệ</a> hoặc gửi tin nhắn trực tiếp qua <a href="${partner.telegram}" target="_blank" rel="noopener">Telegram CSKH 24/7</a>.</p>
+<ul>
+  <li>📧 <strong>Email biên tập:</strong> editor@xoso66tv.com</li>
+  <li>📧 <strong>Email kỹ thuật:</strong> tech@xoso66tv.com</li>
+  <li>📧 <strong>Email hợp tác:</strong> business@xoso66tv.com</li>
+  <li>💬 <strong>Hỗ trợ 24/7:</strong> <a href="${partner.telegram}" target="_blank" rel="noopener">Telegram CSKH</a></li>
+  <li>🌐 <strong>Trang liên hệ:</strong> <a href="/lien-he">/lien-he</a></li>
+</ul>
 `; %>
 <%- include('partials/tw-static-shell', { pageTitle, pageDesc, pageH1, breadcrumbName, updated, contentHtml, canonicalPath }) %>

@@ -124,6 +124,7 @@ router.get('/sitemap.xml', async function (req, res) {
     { loc:'/gioi-thieu',           priority:0.6, freq:'monthly' },
     { loc:'/lien-he',              priority:0.5, freq:'monthly' },
     { loc:'/chinh-sach-bao-mat',   priority:0.4, freq:'yearly' },
+    { loc:'/chinh-sach-bien-tap',  priority:0.6, freq:'monthly' },
     { loc:'/thoa-thuan-phat-song', priority:0.4, freq:'yearly' },
     { loc:'/dieu-khoan-su-dung',   priority:0.4, freq:'yearly' }
   ];
