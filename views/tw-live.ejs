@@ -191,33 +191,262 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     </div>
     <% } %>
 
-    <!-- ═══ PREDICT WIDGET — Dự đoán tỉ số inline ═══ -->
+    <!-- ═══ PREDICT WIDGET — Dự đoán tỉ số inline (luxury UI/UX) ═══ -->
     <% var _showPredict = match && match.home && match.away && match.status !== 'finished'; %>
     <% if (_showPredict) { %>
-    <section class="bg-gradient-to-br from-emerald-900/40 to-emerald-700/20 border border-emerald-500/40 rounded-xl p-4 mt-3.5 relative overflow-hidden">
-      <div class="absolute -top-6 -right-6 text-7xl opacity-10">🎯</div>
-      <h3 class="text-emerald-300 text-sm font-extrabold mb-2.5 flex items-center gap-1.5">🎯 Dự đoán tỉ số — Nhận X COIN</h3>
-      <p class="text-[11px] text-emerald-100/80 mb-3">Đúng chính xác: <strong class="text-yellow-300">100 X COIN</strong> · Đúng kết quả: <strong class="text-yellow-200">10-30 X COIN</strong></p>
+    <section class="predict-widget relative overflow-hidden rounded-2xl mt-3.5" id="predictWidget">
+      <!-- Animated gradient border + bg -->
+      <div class="predict-bg"></div>
+      <div class="predict-shimmer"></div>
 
-      <form id="predictForm" class="flex items-center gap-2 mb-2" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>">
-        <div class="flex-1 text-right">
-          <div class="text-[11px] text-muted mb-1 truncate"><%= match.home %></div>
-          <input type="number" id="predHome" min="0" max="20" value="1" required class="w-16 bg-bg-deep border-2 border-emerald-500/50 text-white text-center text-2xl font-black rounded-lg py-1.5 focus:border-emerald-400 outline-none">
+      <!-- Floating reward sticker -->
+      <div class="predict-reward-sticker">
+        <div class="text-[9px] font-extrabold uppercase tracking-wide">Thưởng tối đa</div>
+        <div class="text-base font-black flex items-center gap-1">
+          <span class="text-yellow-300">💰</span> 100 <span class="text-[10px]">X COIN</span>
         </div>
-        <div class="text-3xl font-black text-emerald-400 px-1">-</div>
-        <div class="flex-1 text-left">
-          <div class="text-[11px] text-muted mb-1 truncate"><%= match.away %></div>
-          <input type="number" id="predAway" min="0" max="20" value="1" required class="w-16 bg-bg-deep border-2 border-emerald-500/50 text-white text-center text-2xl font-black rounded-lg py-1.5 focus:border-emerald-400 outline-none">
+      </div>
+
+      <div class="relative p-5 z-10">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pri to-live grid place-items-center text-xl shadow-lg" style="box-shadow:0 0 15px rgba(255,122,24,.5);">🎯</div>
+            <div>
+              <h3 class="text-white text-[14px] font-black leading-tight">Dự đoán tỉ số</h3>
+              <p class="text-[10px] text-pri-light/80">Nhận X COIN nếu đoán đúng</p>
+            </div>
+          </div>
+          <a href="/cao-thu" class="text-[10px] text-pri-light hover:text-yellow-300 font-bold flex items-center gap-1 transition-colors">
+            🏆 <span class="hidden sm:inline">BXH</span>
+          </a>
         </div>
-      </form>
-      <button type="submit" form="predictForm" id="predictBtn" class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-white font-extrabold text-[13px] rounded-lg shadow-lg shadow-emerald-500/30 transition-all">
-        🎯 DỰ ĐOÁN NGAY
-      </button>
-      <div id="predictResult" class="mt-2 text-center text-[12px] hidden"></div>
-      <div class="mt-3 pt-3 border-t border-emerald-500/30 text-center">
-        <a href="/cao-thu" class="text-[11px] text-emerald-300 hover:text-emerald-200 underline">🏆 Xem BXH Cao Thủ Dự Đoán →</a>
+
+        <!-- Score input row -->
+        <form id="predictForm" class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 mb-4" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>">
+          <!-- HOME -->
+          <div class="predict-team home">
+            <div class="predict-team-name truncate" title="<%= match.home %>"><%= match.home %></div>
+            <div class="predict-score-wrap">
+              <button type="button" class="predict-stepper -" onclick="adjPredScore('predHome',-1)" aria-label="Giảm">−</button>
+              <input type="number" id="predHome" min="0" max="20" value="1" required class="predict-score-input" inputmode="numeric">
+              <button type="button" class="predict-stepper +" onclick="adjPredScore('predHome',1)" aria-label="Tăng">+</button>
+            </div>
+          </div>
+
+          <!-- VS divider -->
+          <div class="predict-vs">
+            <span class="vs-text">VS</span>
+          </div>
+
+          <!-- AWAY -->
+          <div class="predict-team away">
+            <div class="predict-team-name truncate" title="<%= match.away %>"><%= match.away %></div>
+            <div class="predict-score-wrap">
+              <button type="button" class="predict-stepper -" onclick="adjPredScore('predAway',-1)" aria-label="Giảm">−</button>
+              <input type="number" id="predAway" min="0" max="20" value="1" required class="predict-score-input" inputmode="numeric">
+              <button type="button" class="predict-stepper +" onclick="adjPredScore('predAway',1)" aria-label="Tăng">+</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Reward hints -->
+        <div class="grid grid-cols-3 gap-1.5 mb-3 text-center">
+          <div class="predict-tier tier-gold">
+            <div class="text-[9px] font-extrabold text-yellow-300 uppercase">Chính xác</div>
+            <div class="text-[12px] font-black text-yellow-200">+100</div>
+          </div>
+          <div class="predict-tier tier-silver">
+            <div class="text-[9px] font-extrabold text-orange-300 uppercase">Sát kết quả</div>
+            <div class="text-[12px] font-black text-orange-200">+30</div>
+          </div>
+          <div class="predict-tier tier-bronze">
+            <div class="text-[9px] font-extrabold text-pri-light/80 uppercase">Đúng kết quả</div>
+            <div class="text-[12px] font-black text-pri-light">+10</div>
+          </div>
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" form="predictForm" id="predictBtn" class="predict-submit-btn">
+          <span class="btn-shine"></span>
+          <span class="relative z-10 flex items-center justify-center gap-2">
+            <span class="text-lg">🎯</span>
+            <span>DỰ ĐOÁN NGAY</span>
+          </span>
+        </button>
+        <div id="predictResult" class="mt-3 text-center text-[12px] hidden font-bold"></div>
       </div>
     </section>
+
+    <style>
+    .predict-widget { isolation:isolate; }
+    .predict-bg {
+      position:absolute; inset:0; z-index:0;
+      background: linear-gradient(135deg, #1a0f08 0%, #2a1810 30%, #1a1410 70%, #0f0a08 100%);
+      border:1px solid rgba(255,122,24,.4);
+      border-radius:16px;
+    }
+    .predict-bg::before {
+      content:''; position:absolute; inset:-2px; z-index:-1;
+      background: linear-gradient(135deg, #ff7a18, #ef4444, #facc15, #ff7a18);
+      background-size:300% 300%;
+      border-radius:18px;
+      animation: predict-border 6s ease infinite;
+      filter:blur(8px); opacity:.5;
+    }
+    @keyframes predict-border {
+      0%,100% { background-position:0% 50%; }
+      50% { background-position:100% 50%; }
+    }
+    .predict-shimmer {
+      position:absolute; top:0; left:-100%; width:60%; height:100%; z-index:1; pointer-events:none;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,212,128,.15) 50%, transparent 60%);
+      animation: predict-shimmer 4s ease-in-out infinite;
+    }
+    @keyframes predict-shimmer {
+      0%,100% { left:-100%; }
+      50% { left:140%; }
+    }
+    .predict-reward-sticker {
+      position:absolute; top:8px; right:8px; z-index:2;
+      background: linear-gradient(135deg, #ff7a18, #ef4444);
+      color:#fff; padding:6px 10px; border-radius:10px;
+      transform:rotate(8deg);
+      box-shadow:0 4px 15px rgba(255,122,24,.5);
+      animation: predict-bounce 2s ease infinite;
+    }
+    @keyframes predict-bounce {
+      0%,100% { transform:rotate(8deg) translateY(0); }
+      50% { transform:rotate(8deg) translateY(-4px); }
+    }
+    .predict-team {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,122,24,.25);
+      border-radius:12px;
+      padding:10px 8px;
+      transition:all .25s ease;
+    }
+    .predict-team:hover, .predict-team:focus-within {
+      background:rgba(255,122,24,.08);
+      border-color:rgba(255,122,24,.6);
+      transform:translateY(-2px);
+      box-shadow:0 6px 20px rgba(255,122,24,.2);
+    }
+    .predict-team-name {
+      font-size:11px; font-weight:800; color:#ffd9a8; text-align:center;
+      margin-bottom:6px; letter-spacing:.3px; max-width:100%;
+    }
+    .predict-score-wrap { display:flex; align-items:center; justify-content:center; gap:4px; }
+    .predict-stepper {
+      width:28px; height:32px; border-radius:8px;
+      background:linear-gradient(135deg,#ff7a18,#e85d00);
+      color:#fff; font-size:18px; font-weight:900; line-height:1;
+      border:none; cursor:pointer;
+      transition:all .15s ease;
+      box-shadow:0 2px 6px rgba(255,122,24,.4);
+    }
+    .predict-stepper:hover { transform:scale(1.1); box-shadow:0 4px 12px rgba(255,122,24,.6); }
+    .predict-stepper:active { transform:scale(.95); }
+    .predict-score-input {
+      width:48px; height:42px;
+      background:#0a0d12; border:2px solid rgba(255,122,24,.4);
+      color:#fff; text-align:center;
+      font-size:24px; font-weight:900;
+      border-radius:8px; outline:none;
+      transition:all .25s ease;
+      -moz-appearance: textfield;
+    }
+    .predict-score-input::-webkit-outer-spin-button,
+    .predict-score-input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .predict-score-input:focus {
+      border-color:#facc15;
+      box-shadow:0 0 0 3px rgba(250,204,21,.25), inset 0 0 12px rgba(250,204,21,.15);
+    }
+    .predict-vs {
+      display:grid; place-items:center; padding:0 4px;
+    }
+    .vs-text {
+      font-size:13px; font-weight:900; color:#ff7a18;
+      letter-spacing:1px;
+      background:rgba(0,0,0,.5);
+      padding:6px 10px; border-radius:50%;
+      border:2px solid rgba(255,122,24,.5);
+      animation: vs-pulse 2.5s ease infinite;
+      display:inline-block;
+    }
+    @keyframes vs-pulse {
+      0%,100% { box-shadow:0 0 0 0 rgba(255,122,24,.7); }
+      50% { box-shadow:0 0 0 12px rgba(255,122,24,0); }
+    }
+    .predict-tier {
+      padding:6px 4px; border-radius:8px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      transition:all .2s ease;
+    }
+    .predict-tier:hover { transform:translateY(-1px); }
+    .tier-gold { border-color:rgba(250,204,21,.3); background:rgba(250,204,21,.08); }
+    .tier-silver { border-color:rgba(251,146,60,.3); background:rgba(251,146,60,.08); }
+    .tier-bronze { border-color:rgba(255,122,24,.3); background:rgba(255,122,24,.08); }
+    .predict-submit-btn {
+      width:100%; position:relative; overflow:hidden;
+      padding:14px 16px;
+      background:linear-gradient(135deg, #ff7a18 0%, #ef4444 50%, #ff7a18 100%);
+      background-size:200% 100%;
+      color:#fff; font-weight:900; font-size:14px;
+      border:none; border-radius:12px;
+      cursor:pointer;
+      box-shadow:0 6px 20px rgba(255,122,24,.45), 0 0 0 1px rgba(255,212,128,.3) inset;
+      transition:all .25s ease;
+      letter-spacing:.5px;
+      animation: btn-gradient 3s ease infinite;
+    }
+    @keyframes btn-gradient {
+      0%,100% { background-position:0% 50%; }
+      50% { background-position:100% 50%; }
+    }
+    .predict-submit-btn:hover {
+      transform:translateY(-2px);
+      box-shadow:0 10px 30px rgba(255,122,24,.6), 0 0 0 1px rgba(255,212,128,.5) inset;
+    }
+    .predict-submit-btn:active { transform:translateY(0); }
+    .predict-submit-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .btn-shine {
+      position:absolute; top:0; left:-100%; width:50%; height:100%;
+      background:linear-gradient(105deg, transparent 40%, rgba(255,255,255,.4) 50%, transparent 60%);
+      animation: btn-shine 2.5s ease-in-out infinite;
+    }
+    @keyframes btn-shine {
+      0% { left:-100%; }
+      50%, 100% { left:130%; }
+    }
+    #predictResult.success {
+      color:#4ade80;
+      background:rgba(74,222,128,.1);
+      border:1px solid rgba(74,222,128,.3);
+      padding:8px 12px; border-radius:8px;
+    }
+    #predictResult.error {
+      color:#fca5a5;
+      background:rgba(239,68,68,.1);
+      border:1px solid rgba(239,68,68,.3);
+      padding:8px 12px; border-radius:8px;
+    }
+    </style>
+
+    <script>
+    function adjPredScore(id, delta) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var v = (parseInt(el.value, 10) || 0) + delta;
+      if (v < 0) v = 0;
+      if (v > 20) v = 20;
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    </script>
     <script>
     (function(){
       var form = document.getElementById('predictForm');
