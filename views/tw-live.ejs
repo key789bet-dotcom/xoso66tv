@@ -194,20 +194,29 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     <!-- ═══ PREDICT WIDGET — Tài Xỉu + Kèo Chấp cả trận ═══ -->
     <% var _showPredict = match && match.home && match.away && match.status !== 'finished'; %>
     <%
-      // 🎯 ƯU TIÊN line từ Live odds API (Marathonbet/Bet365) — không dùng cache predict-store
+      // 🎯 ƯU TIÊN line từ Live odds API (Bet365/Pinnacle/Betano) — không dùng cache predict-store
       var _hasLiveOdds = (typeof liveOdds !== 'undefined' && liveOdds && (liveOdds.ah || liveOdds.ou || liveOdds.x12));
-      var _ouLine = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.line : 2.5;
-      var _ahLine = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.line : 0.5;
+      var _ouLine = (_hasLiveOdds && liveOdds.ou && typeof liveOdds.ou.line === 'number') ? liveOdds.ou.line : 2.5;
+      var _ahLine = (_hasLiveOdds && liveOdds.ah && typeof liveOdds.ah.line === 'number') ? liveOdds.ah.line : 0.5;
       var _predLines = { ouLine: _ouLine, ahLine: _ahLine };
       var _bookmaker = _hasLiveOdds ? ((liveOdds.ou && liveOdds.ou.bookmaker) || (liveOdds.ah && liveOdds.ah.bookmaker) || (liveOdds.x12 && liveOdds.x12.bookmaker)) : null;
-      var _ouTai = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.taiOdds : null;
-      var _ouXiu = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.xiuOdds : null;
-      var _ahHome = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.homeOdds : null;
-      var _ahAway = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.awayOdds : null;
-      // ahLine âm = đội KHÁCH được chấp (đội nhà mạnh hơn, "đội nhà chấp")
-      // ahLine dương = đội NHÀ được chấp (đội khách mạnh hơn)
-      var _ahLineAbs = Math.abs(_ahLine || 0);
-      var _homeIsFav = (_ahLine || 0) < 0;  // line âm = đội nhà mạnh → đội nhà chấp
+      var _ouTai = (_hasLiveOdds && liveOdds.ou && typeof liveOdds.ou.taiOdds === 'number') ? liveOdds.ou.taiOdds : null;
+      var _ouXiu = (_hasLiveOdds && liveOdds.ou && typeof liveOdds.ou.xiuOdds === 'number') ? liveOdds.ou.xiuOdds : null;
+      var _ahHome = (_hasLiveOdds && liveOdds.ah && typeof liveOdds.ah.homeOdds === 'number') ? liveOdds.ah.homeOdds : null;
+      var _ahAway = (_hasLiveOdds && liveOdds.ah && typeof liveOdds.ah.awayOdds === 'number') ? liveOdds.ah.awayOdds : null;
+      // ahLine âm = đội nhà mạnh (chấp). dương = đội khách mạnh. 0 = kèo cân (Pick)
+      var _ahLineAbs = Math.abs(_ahLine);
+      var _ahIsEven = (_ahLine === 0 || _ahLineAbs < 0.001);  // kèo cân
+      var _homeIsFav = _ahLine < 0;  // âm = đội nhà chấp
+      function _ahBadgeText() {
+        if (_ahIsEven) return 'Kèo cân';
+        return (_homeIsFav ? (match.home||'').slice(0,10) : (match.away||'').slice(0,10)) + ' chấp ' + _ahLineAbs;
+      }
+      function _ahPickLabel(side) {
+        if (_ahIsEven) return 'PK';  // Pick (kèo cân, hòa = trả tiền)
+        if (side === 'home') return _homeIsFav ? '−' + _ahLineAbs : '+' + _ahLineAbs;
+        return _homeIsFav ? '+' + _ahLineAbs : '−' + _ahLineAbs;
+      }
     %>
     <% if (_showPredict) { %>
     <section class="predict-widget relative overflow-hidden rounded-xl mt-3" id="predictWidget">
@@ -270,15 +279,15 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
           <div class="mb-2">
             <div class="flex items-center justify-between mb-1 px-0.5">
               <span class="text-[10px] font-bold text-pri-light/90 uppercase">Kèo chấp</span>
-              <span class="text-[9px] font-bold text-yellow-300/90"><%= (_homeIsFav ? match.home : match.away).slice(0,10) %> chấp <%= _ahLineAbs %></span>
+              <span class="text-[9px] font-bold text-yellow-300/90"><%= _ahBadgeText() %></span>
             </div>
             <div class="grid grid-cols-2 gap-1.5">
               <label class="predict-pick-c">
                 <input type="radio" name="pickAH" value="home">
                 <div class="predict-pick-c-inner">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="text-[11px] font-black text-white truncate" title="<%= match.home %>"><%= match.home.slice(0, 10) %></span>
-                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _homeIsFav ? '−'+_ahLineAbs : '+'+_ahLineAbs %></span>
+                    <span class="text-[11px] font-black text-white truncate" title="<%= match.home %>"><%= (match.home||'').slice(0, 10) %></span>
+                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _ahPickLabel('home') %></span>
                   </div>
                   <% if (_ahHome) { %><span class="predict-odds-c"><%= _ahHome.toFixed(2) %></span><% } %>
                 </div>
@@ -287,8 +296,8 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
                 <input type="radio" name="pickAH" value="away">
                 <div class="predict-pick-c-inner">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="text-[11px] font-black text-white truncate" title="<%= match.away %>"><%= match.away.slice(0, 10) %></span>
-                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _homeIsFav ? '+'+_ahLineAbs : '−'+_ahLineAbs %></span>
+                    <span class="text-[11px] font-black text-white truncate" title="<%= match.away %>"><%= (match.away||'').slice(0, 10) %></span>
+                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _ahPickLabel('away') %></span>
                   </div>
                   <% if (_ahAway) { %><span class="predict-odds-c"><%= _ahAway.toFixed(2) %></span><% } %>
                 </div>

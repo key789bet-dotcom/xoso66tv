@@ -780,23 +780,14 @@ app.get('/live/:id', async function (req, res, next) {
     let liveOdds = null;
     try {
       const _idNum = /^\d+$/.test(String(match.id || ''));
-      if (_idNum && match.sport === 'Soccer' && match.home && match.away) {
+      if (_idNum && match.sport === 'Soccer') {
         const _oddsApi = require('./lib/odds-api');
         const _odds = await Promise.race([
-          _oddsApi.getOdds(match.id, { home: match.home, away: match.away }),
+          _oddsApi.getOdds(match.id),
           new Promise(r => setTimeout(() => r(null), 3000))  // 3s timeout — không block render
         ]);
         if (_odds && (_odds.ah || _odds.ou || _odds.x12)) {
           liveOdds = _odds;
-          // Auto-set lines vào predict-store để widget render line đúng
-          try {
-            const _predStore = require('./lib/predict-store');
-            const ouLine = _odds.ou ? _odds.ou.line : null;
-            const ahLine = _odds.ah ? _odds.ah.line : null;
-            if (ouLine !== null || ahLine !== null) {
-              _predStore.setLines(match.id, ouLine, ahLine);
-            }
-          } catch(e){ console.warn('[ODDS] setLines fail:', e.message); }
         }
       }
     } catch(e) { console.warn('[ODDS] fetch fail:', e.message); }
