@@ -1,0 +1,72 @@
+# ════════════════════════════════════════════════════════════════
+# robots.txt — xoso66tv.com
+# Cho phép Googlebot, Bingbot, Yandex, Baidu, Coc Coc crawl tất cả
+# trang public; chỉ chặn area private/auth/admin/api
+# ════════════════════════════════════════════════════════════════
+
+User-agent: *
+Allow: /
+Allow: /static/
+Allow: /uploads/avatars/
+Allow: /og/
+Allow: /tin-tuc/
+Allow: /lich-phat-song
+Allow: /the-thao/
+Allow: /live/
+Allow: /idol-live
+Allow: /su-kien
+Allow: /qua-tang
+Allow: /video-noi-bat
+Allow: /mini-game
+
+Disallow: /api/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin-2fa
+Disallow: /dang-nhap
+Disallow: /dang-ky
+Disallow: /quen-mat-khau
+Disallow: /profile
+Disallow: /profile/
+Disallow: /idol-studio
+Disallow: /blv-obs
+Disallow: /uploads/private/
+Disallow: /*?logout=
+Disallow: /*?token=
+
+# Cho Googlebot crawl mọi static asset (quan trọng cho Core Web Vitals)
+User-agent: Googlebot
+Allow: /static/
+Allow: /uploads/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.webp
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.svg
+
+# Bingbot - không có giới hạn riêng
+User-agent: Bingbot
+Allow: /
+
+# CocCoc (Vietnam search) - rất quan trọng cho thị trường VN
+User-agent: coccocbot
+Allow: /
+
+# Yandex (dùng IndexNow)
+User-agent: Yandex
+Allow: /
+
+# Cấm AI bot scrape content (tùy chọn, có thể bỏ nếu muốn vào ChatGPT search)
+User-agent: GPTBot
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: CCBot
+Disallow: /
+
+# Crawl-delay: 1 giây giữa các request (giảm tải server)
+Crawl-delay: 1
+
+# Sitemap chính
+Sitemap: https://xoso66tv.com/sitemap.xml
