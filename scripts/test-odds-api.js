@@ -37,17 +37,45 @@ async function main() {
   }
 
   if (!fixtureId) {
-    console.log('⏳ Lấy fixture đầu tiên từ /lich-phat-song...');
+    console.log('⏳ Auto-detect fixture UPCOMING (status !== FT)...');
     try {
-      const list = await api.getUpcomingStreams(null, 5);
-      if (list && list[0]) {
-        fixtureId = list[0].id;
-        console.log('✅ Test với fixture:', list[0].home, 'vs', list[0].away, '(id:', fixtureId + ')');
+      // Lấy 30 fixture đầu tiên, lọc ra trận chưa đá xong
+      const list = await api.getUpcomingStreams(null, 30);
+      const upcoming = (list || []).filter(function(m) {
+        const st = (m.status || m.status_short || '').toString().toUpperCase();
+        // FT/AET/PEN = đã xong; NS/TBD/PST = upcoming; 1H/2H/HT/LIVE = đang đá
+        return st !== 'FT' && st !== 'AET' && st !== 'PEN' && st !== 'FINISHED';
+      });
+      if (upcoming[0]) {
+        fixtureId = upcoming[0].id;
+        home = upcoming[0].home;
+        away = upcoming[0].away;
+        console.log('✅ Test với fixture UPCOMING:', home, 'vs', away, '(id:', fixtureId + ', status:', upcoming[0].status + ')');
+        // Thử scrape ngay nếu chưa thử
+        console.log('\n═══ TEST 0 (auto): Scrape HTML từ thethaoviet.vip ═══');
+        const scraped = await oddsApi.scrapeOdds(home, away, fixtureId);
+        console.log('Source URL:', scraped && scraped._source);
+        console.log('Result:', JSON.stringify(scraped, null, 2).slice(0, 1500));
+        if (scraped && (scraped.ah || scraped.ou || scraped.x12)) {
+          console.log('\n🎉 SCRAPE THÀNH CÔNG!');
+          if (scraped.ah) console.log('  🎯 AH:', scraped.ah);
+          if (scraped.ou) console.log('  📊 OU:', scraped.ou);
+          if (scraped.x12) console.log('  🏆 1X2:', scraped.x12);
+          process.exit(0);
+        } else if (scraped && scraped._empty) {
+          console.log('⚠️  HTML page tồn tại nhưng parser chưa extract được odds (' + scraped._htmlSize + ' bytes).');
+          // Tìm các từ khóa odds trong HTML
+          if (scraped._htmlSnippet) {
+            console.log('💡 Snippet first 400 chars:', scraped._htmlSnippet.slice(0, 400));
+          }
+        }
+      } else {
+        console.log('⚠️ Không tìm thấy fixture upcoming trong 30 trận đầu (toàn FT?)');
       }
     } catch(e) { console.error('Auto-detect fail:', e.message); }
   }
   if (!fixtureId) {
-    console.error('❌ Không có fixtureId. Truyền vào: node scripts/test-odds-api.js <ID>');
+    console.error('❌ Không có fixtureId. Truyền vào: node scripts/test-odds-api.js <ID> [home] [away]');
     process.exit(1);
   }
 
