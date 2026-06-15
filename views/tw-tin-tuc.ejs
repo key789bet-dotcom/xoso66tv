@@ -15,11 +15,10 @@ function _fmtDate(d){
 %>
 <%- include('partials/tw-layout-start') %>
 
-<!-- ═══════════ DESKTOP — Layout chuẩn báo thể thao ═══════════ -->
+<!-- ═══════════ DESKTOP — Layout DIỄN ĐÀN BÓNG ĐÁ ═══════════ -->
 <div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
-<!-- HEADER nhỏ gọn + filter chips theo giải -->
 <%
   // Group bài theo league để filter
   var _leagues = {};
@@ -27,26 +26,48 @@ function _fmtDate(d){
     var lg = n.league || 'Khác';
     _leagues[lg] = (_leagues[lg] || 0) + 1;
   });
-  var _leagueList = Object.keys(_leagues).sort(function(a,b){ return _leagues[b]-_leagues[a]; }).slice(0, 8);
+  var _leagueList = Object.keys(_leagues).sort(function(a,b){ return _leagues[b]-_leagues[a]; });
+  // Format "x giờ trước"
+  function _hoursAgo(t){
+    var ms = Date.now() - new Date(t).getTime();
+    var h = Math.floor(ms/3600000);
+    if (h < 1) return Math.max(1, Math.floor(ms/60000)) + ' phút trước';
+    if (h < 24) return h + ' giờ trước';
+    return Math.floor(h/24) + ' ngày trước';
+  }
+  // Mock view count ổn định từ id (không random)
+  function _viewCount(n){
+    var s = (n.slug || n.id || '').split('').reduce(function(a,c){ return a + c.charCodeAt(0); }, 0);
+    return 200 + (s % 800);
+  }
 %>
-<header class="bg-bg-card border border-line rounded-xl px-5 py-4 mb-4">
-  <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
-    <div>
-      <h1 class="text-xl font-black text-white mb-1">📰 Nhận Định & Soi Kèo Bóng Đá <%= _todayVi %></h1>
-      <p class="text-[12px] text-muted"><strong class="text-pri-light"><%= list.length %> bài</strong> phân tích chuyên sâu · cập nhật mỗi sáng 6:00 bởi AI</p>
+
+<!-- ╔════ HERO HEADER DIỄN ĐÀN ════╗ -->
+<header class="bg-gradient-to-r from-emerald-900/40 via-bg-card to-bg-card border border-line rounded-xl px-5 py-4 mb-4">
+  <div class="flex items-center gap-3 mb-2">
+    <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 grid place-items-center text-2xl">⚽</div>
+    <div class="flex-1">
+      <h1 class="text-lg font-black text-white">Diễn Đàn Bóng Đá <span class="text-emerald-400">XOSO66</span> — Nhận Định, Soi Kèo, Dự Đoán Tỉ Số</h1>
+      <p class="text-[12px] text-muted mt-0.5">Cộng đồng nhận định bóng đá Việt Nam #1 · tham gia thảo luận với <strong class="text-white">10K+</strong> thành viên BLV và chuyên gia về <a href="#" class="text-pri-light">Ngoại Hạng Anh</a>, <a href="#" class="text-pri-light">La Liga</a>, <a href="#" class="text-pri-light">Champions League</a>, <a href="#" class="text-pri-light">V-League</a> và nhiều giải đấu khác. Đăng bài soi kèo, dự đoán tỉ số trận đấu, kiếm XP từ <a href="#" class="text-pri-light">BXH Cao Thủ</a></p>
     </div>
-    <a href="/lich-phat-song?mon=bong-da" class="px-3 py-1.5 bg-pri/15 hover:bg-pri/25 text-pri-light text-xs font-bold rounded-lg border border-pri/30 transition-all">📅 Lịch thi đấu →</a>
   </div>
-  <% if (_leagueList.length > 1) { %>
-  <!-- Filter chips theo league -->
-  <div class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-    <button data-flt="all" class="news-flt active shrink-0 px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap bg-pri text-white shadow-pri transition-all">Tất cả <%= list.length %></button>
-    <% _leagueList.forEach(function(lg){ %>
-      <button data-flt="<%= lg %>" class="news-flt shrink-0 px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap bg-bg-soft text-gray-200 hover:bg-bg-deep border border-line transition-all">🏆 <%= lg %> <span class="text-pri-light"><%= _leagues[lg] %></span></button>
+</header>
+
+<!-- ╔════ SECTION: BÀI VIẾT & NHẬN ĐỊNH MỚI NHẤT ════╗ -->
+<section class="bg-bg-card border border-line rounded-xl p-4 mb-4">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-3 pb-3 border-b border-line">
+    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-pri/20 border border-pri grid place-items-center text-pri-light">📝</span> Bài viết & Nhận định mới nhất</h2>
+    <a href="<%= partner.register %>" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5">🔐 Đăng nhập đăng bài</a>
+  </div>
+  <!-- Filter chips theo giải (2 dòng tablist) -->
+  <div class="flex flex-wrap gap-1.5">
+    <button data-flt="all" class="news-flt active px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-emerald-600 text-white">⚡ Tất cả <span class="opacity-80">(<%= list.length %>)</span></button>
+    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">💬 Thảo Luận Chung</button>
+    <% _leagueList.slice(0, 6).forEach(function(lg){ %>
+      <button data-flt="<%= lg %>" class="news-flt px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">🏆 <%= lg %> <span class="text-pri-light">(<%= _leagues[lg] %>)</span></button>
     <% }); %>
   </div>
-  <% } %>
-</header>
+</section>
 
 <% if (!list || list.length === 0) { %>
   <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
@@ -55,39 +76,36 @@ function _fmtDate(d){
   </div>
 <% } else { %>
 
-<!-- ╔════ HERO FEATURED + TOP 2 PICKS ════╗ -->
+<!-- ╔════ FEATURED LAYOUT 2 cột: 1 hero LEFT + 4 cards RIGHT ════╗ -->
 <% var _hero = list[0]; %>
-<section class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 mb-5" aria-label="Nổi bật">
-  <!-- Hero article LỚN -->
-  <article class="news-hero relative overflow-hidden rounded-xl border-2 border-pri/40 hover:border-pri transition-all cursor-pointer group" itemscope itemtype="https://schema.org/NewsArticle">
-    <a href="/tin-tuc/<%= _hero.slug %>" class="block" itemprop="url">
-      <div class="aspect-[16/9] bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden relative">
+<section class="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr] gap-4 mb-4" aria-label="Nổi bật">
+  <!-- LEFT: Hero article LỚN -->
+  <article class="bg-bg-card border border-line rounded-xl overflow-hidden hover:border-pri/60 transition-all" itemscope itemtype="https://schema.org/NewsArticle">
+    <a href="/tin-tuc/<%= _hero.slug %>" itemprop="url" class="block">
+      <div class="aspect-[16/10] bg-gradient-to-br from-bg-soft to-bg-deep overflow-hidden relative">
         <% if (_hero.image) { %>
-          <img src="<%= _hero.image %>" alt="<%= _hero.title %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" itemprop="image">
+          <img src="<%= _hero.image %>" alt="<%= _hero.title %>" class="w-full h-full object-cover" itemprop="image">
         <% } else { %>
-          <div class="w-full h-full grid place-items-center text-8xl opacity-30">⚽</div>
-        <% } %>
-        <!-- Gradient overlay cho text dễ đọc -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-        <!-- HOT badge top-left -->
-        <span class="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>HOT PICK</span>
-        <!-- Predicted score top-right -->
-        <% if (_hero.predictedScore) { %>
-          <span class="absolute top-3 right-3 bg-pri text-white text-sm font-black px-3 py-1.5 rounded-lg shadow-lg">🎯 <%= _hero.predictedScore %></span>
-        <% } %>
-        <!-- Title + meta overlay bottom -->
-        <div class="absolute bottom-0 left-0 right-0 p-5">
-          <% if (_hero.league) { %>
-            <div class="inline-flex items-center gap-1.5 bg-pri/90 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-2">🏆 <%= _hero.league %></div>
-          <% } %>
-          <h2 class="text-2xl font-black text-white mb-2 line-clamp-2 drop-shadow-lg" itemprop="headline"><%= _hero.title %></h2>
-          <p class="text-sm text-gray-200 line-clamp-2 mb-3 drop-shadow" itemprop="description"><%= _hero.excerpt %></p>
-          <div class="flex items-center gap-3 text-[11px] text-gray-300">
-            <span>📰 AI Phân Tích</span>
-            <span>•</span>
-            <time datetime="<%= _iso(_hero.publishedAt) %>" itemprop="datePublished">📅 <%= _fmtDate(_hero.publishedAt) %></time>
-            <span class="ml-auto bg-white/10 backdrop-blur px-2.5 py-1 rounded text-white font-bold">Đọc ngay →</span>
+          <div class="w-full h-full grid place-items-center">
+            <div class="text-center text-muted/30">
+              <div class="text-6xl mb-2">🖼️</div>
+              <div class="text-xs">image not</div>
+            </div>
           </div>
+        <% } %>
+        <span class="absolute top-3 left-3 bg-pri text-white text-[10px] font-black uppercase px-2 py-1 rounded">📰 Nhận Định</span>
+        <% if (_hero.predictedScore) { %>
+          <span class="absolute top-3 right-3 bg-emerald-600 text-white text-sm font-black px-3 py-1 rounded shadow">🎯 <%= _hero.predictedScore %></span>
+        <% } %>
+      </div>
+      <div class="p-4">
+        <h2 class="text-base font-extrabold text-white leading-snug mb-2 line-clamp-2 hover:text-pri-light" itemprop="headline"><%= _hero.title %></h2>
+        <p class="text-xs text-muted line-clamp-2 mb-3" itemprop="description"><%= _hero.excerpt %></p>
+        <div class="flex items-center gap-3 text-[11px] text-dim">
+          <span class="flex items-center gap-1">🎤 <span class="text-pri-light"><%= _hero.author || 'BLV X66' %></span></span>
+          <span>·</span>
+          <time datetime="<%= _iso(_hero.publishedAt) %>" itemprop="datePublished">⏱ <%= _hoursAgo(_hero.publishedAt) %></time>
+          <span class="ml-auto flex items-center gap-1 text-pri-light">👁 <%= _viewCount(_hero) %></span>
         </div>
         <meta itemprop="author" content="<%= _hero.author %>">
         <meta itemprop="publisher" content="<%= brand.name %>">
@@ -95,28 +113,27 @@ function _fmtDate(d){
     </a>
   </article>
 
-  <!-- Top 2 picks bên cạnh (horizontal layout) -->
-  <div class="flex flex-col gap-3">
-    <% (list.slice(1, 3)).forEach(function(n){ %>
-      <article class="bg-bg-card border border-line rounded-xl overflow-hidden hover:border-pri transition-all group" itemscope itemtype="https://schema.org/NewsArticle">
-        <a href="/tin-tuc/<%= n.slug %>" class="grid grid-cols-[120px_1fr] h-full" itemprop="url">
-          <div class="bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden relative">
+  <!-- RIGHT: 4 cards sidebar style -->
+  <div class="flex flex-col gap-2.5">
+    <% (list.slice(1, 5)).forEach(function(n){ %>
+      <article class="bg-bg-card border border-line rounded-xl overflow-hidden hover:border-pri/60 transition-all" itemscope itemtype="https://schema.org/NewsArticle">
+        <a href="/tin-tuc/<%= n.slug %>" class="grid grid-cols-[80px_1fr] gap-3 p-2.5" itemprop="url">
+          <div class="aspect-square bg-bg-soft border border-line rounded-lg overflow-hidden grid place-items-center relative">
             <% if (n.image) { %>
-              <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform" itemprop="image" loading="lazy">
+              <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" loading="lazy">
             <% } else { %>
-              <div class="w-full h-full grid place-items-center text-4xl opacity-30">⚽</div>
-            <% } %>
-            <% if (n.predictedScore) { %>
-              <span class="absolute top-1.5 left-1.5 bg-pri text-white text-[10px] font-black px-1.5 py-0.5 rounded">🎯 <%= n.predictedScore %></span>
+              <div class="text-2xl opacity-40">🇪🇸</div>
             <% } %>
           </div>
-          <div class="p-3 flex flex-col justify-between">
+          <div class="min-w-0 flex flex-col justify-between py-0.5">
             <div>
-              <% if (n.league) { %><span class="text-[10px] text-pri-light font-bold uppercase">🏆 <%= n.league %></span><% } %>
-              <h3 class="text-sm font-bold text-white mt-1 line-clamp-3 leading-tight" itemprop="headline"><%= n.title %></h3>
+              <span class="inline-block text-[9px] font-extrabold uppercase text-emerald-400 mb-1">📰 NHẬN ĐỊNH BLV</span>
+              <h3 class="text-[12px] font-bold text-white leading-snug line-clamp-2 hover:text-pri-light" itemprop="headline"><%= n.title %></h3>
             </div>
-            <time class="text-[10px] text-dim mt-2" datetime="<%= _iso(n.publishedAt) %>" itemprop="datePublished">📅 <%= _fmtDate(n.publishedAt) %></time>
-            <meta itemprop="author" content="<%= n.author %>">
+            <div class="flex items-center gap-2 text-[10px] text-dim mt-1.5">
+              <span>⏱ <%= _hoursAgo(n.publishedAt) %></span>
+              <span class="ml-auto text-pri-light">👁 <%= _viewCount(n) %></span>
+            </div>
           </div>
         </a>
       </article>
@@ -124,41 +141,97 @@ function _fmtDate(d){
   </div>
 </section>
 
-<!-- ╔════ MAIN GRID 2 cột + SIDEBAR widget ════╗ -->
-<section class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-5" aria-label="Nhận định bóng đá">
-
-  <!-- Main grid: bài #4 trở đi, 2 cột -->
-  <div>
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-base font-extrabold text-white flex items-center gap-2">📋 Tất cả nhận định <span class="text-[11px] text-muted font-normal">(<%= list.length - 3 %> bài)</span></h2>
-      <div class="flex items-center gap-1 text-[10px] text-muted">
-        <span>Sort:</span>
-        <span class="text-pri-light font-bold">Mới nhất</span>
-      </div>
+<!-- ╔════ 3 WIDGETS ROW: Lịch / Giải / BLV ════╗ -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+  <!-- Widget 1: Lịch thi đấu mới nhất -->
+  <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+    <div class="bg-bg-soft px-3 py-2 border-b border-line flex items-center gap-2">
+      <span class="text-pri-light">📅</span>
+      <h3 class="text-xs font-extrabold text-white flex-1">LỊCH THI ĐẤU MỚI NHẤT</h3>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="newsGrid">
-      <% list.slice(3).forEach(function(n){ %>
-        <article class="news-card bg-bg-card border border-line rounded-xl overflow-hidden hover:border-pri hover:-translate-y-0.5 hover:shadow-lg hover:shadow-pri/20 transition-all flex flex-col" data-league="<%= n.league || 'Khác' %>" itemscope itemtype="https://schema.org/NewsArticle">
-          <a href="/tin-tuc/<%= n.slug %>" itemprop="url" class="flex flex-col h-full">
-            <div class="aspect-video bg-gradient-to-br from-[#1a2030] to-bg overflow-hidden relative">
+    <ul class="divide-y divide-line/50">
+      <% (list.slice(0, 5)).forEach(function(n){ %>
+        <li>
+          <a href="/tin-tuc/<%= n.slug %>" class="flex items-center gap-2 px-3 py-2 hover:bg-bg-soft transition-colors">
+            <span class="text-[10px] text-pri-light">🏆</span>
+            <span class="flex-1 text-[11px] text-gray-200 line-clamp-1"><%= (n.title || '').replace(/Nhận Định|Soi Kèo|Phân Tích/gi, '').replace(/^[\s:–-]+/,'').slice(0,50) %></span>
+            <span class="text-[10px] text-dim shrink-0">19:00</span>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+    <a href="/lich-phat-song" class="block px-3 py-2 text-[11px] text-pri-light hover:bg-bg-soft text-center font-bold border-t border-line">Xem thêm lịch thi đấu →</a>
+  </div>
+
+  <!-- Widget 2: Giải đấu nổi bật -->
+  <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+    <div class="bg-bg-soft px-3 py-2 border-b border-line flex items-center gap-2">
+      <span class="text-pri-light">🏆</span>
+      <h3 class="text-xs font-extrabold text-white flex-1">GIẢI ĐẤU NỔI BẬT</h3>
+    </div>
+    <ul class="divide-y divide-line/50">
+      <% _leagueList.slice(0, 5).forEach(function(lg){ %>
+        <li>
+          <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-bg-soft transition-colors">
+            <span class="text-[10px]">⚽</span>
+            <span class="flex-1 text-[11px] text-gray-200 font-bold line-clamp-1"><%= lg %></span>
+            <span class="text-[10px] text-pri-light shrink-0"><%= _leagues[lg] %> bài</span>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+    <a href="#" class="block px-3 py-2 text-[11px] text-pri-light hover:bg-bg-soft text-center font-bold border-t border-line">Xem tất cả giải đấu →</a>
+  </div>
+
+  <!-- Widget 3: BLV nổi bật -->
+  <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+    <div class="bg-bg-soft px-3 py-2 border-b border-line flex items-center gap-2">
+      <span class="text-pri-light">🎤</span>
+      <h3 class="text-xs font-extrabold text-white flex-1">BLV NỔI BẬT</h3>
+    </div>
+    <div class="p-3 grid grid-cols-3 gap-2.5">
+      <% [['BLV Long','#f97316'],['BLV An','#10b981'],['BLV Hùng','#3b82f6'],['BLV Phong','#ef4444'],['BLV Nam','#a855f7'],['BLV Khoa','#eab308'],['BLV Tú','#06b6d4'],['BLV Đức','#ec4899'],['BLV Tài','#6366f1']].forEach(function(b){ %>
+        <a href="#" class="group text-center">
+          <div class="aspect-square rounded-full bg-bg-soft border-2 border-line group-hover:border-pri grid place-items-center text-base font-black text-white mb-1 transition-all" style="background:linear-gradient(135deg,<%= b[1] %>40,<%= b[1] %>10)"><%= b[0].split(' ')[1].charAt(0) %></div>
+          <div class="text-[9px] text-gray-300 group-hover:text-pri-light font-bold truncate"><%= b[0] %></div>
+        </a>
+      <% }); %>
+    </div>
+  </div>
+</section>
+
+<!-- ╔════ TIN BÓNG ĐÁ MỚI NHẤT + SIDEBAR Đọc nhiều ════╗ -->
+<section class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+
+  <!-- LEFT: List bài viết full width -->
+  <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+    <div class="bg-bg-soft px-4 py-3 border-b border-line flex items-center justify-between">
+      <h2 class="text-sm font-extrabold text-white flex items-center gap-2"><span class="w-6 h-6 rounded bg-pri/20 border border-pri grid place-items-center text-pri-light">📰</span> TIN BÓNG ĐÁ MỚI NHẤT</h2>
+      <a href="#" class="text-[11px] text-pri-light font-bold hover:underline">Nhận định BLV →</a>
+    </div>
+    <div class="divide-y divide-line/50" id="newsGrid">
+      <% list.slice(5).forEach(function(n){ %>
+        <article class="news-card hover:bg-bg-soft transition-colors" data-league="<%= n.league || 'Khác' %>" itemscope itemtype="https://schema.org/NewsArticle">
+          <a href="/tin-tuc/<%= n.slug %>" class="grid grid-cols-[100px_1fr] gap-3 p-3" itemprop="url">
+            <div class="aspect-square bg-bg-soft border border-line rounded-lg overflow-hidden grid place-items-center">
               <% if (n.image) { %>
-                <img src="<%= n.image %>" loading="lazy" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image">
+                <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" loading="lazy">
               <% } else { %>
-                <div class="w-full h-full grid place-items-center text-5xl opacity-30">⚽</div>
+                <div class="text-3xl opacity-40">🇮🇪</div>
               <% } %>
-              <% if (n.predictedScore) { %>
-                <span class="absolute top-2 left-2 bg-pri text-white text-[11px] font-extrabold px-2 py-1 rounded shadow">🎯 <%= n.predictedScore %></span>
-              <% } %>
-              <span class="absolute bottom-2 right-2 bg-black/75 backdrop-blur text-white text-[9px] font-bold px-2 py-0.5 rounded">AI Phân Tích</span>
             </div>
-            <div class="p-3.5 flex-1 flex flex-col">
-              <% if (n.league) { %><div class="text-[10px] text-pri-light font-bold uppercase tracking-wider mb-1.5">🏆 <%= n.league %></div><% } %>
-              <h2 class="text-[14px] font-bold text-white leading-snug mb-2 line-clamp-2 group-hover:text-pri-light" itemprop="headline"><%= n.title %></h2>
-              <p class="text-xs text-muted mb-3 line-clamp-2 flex-1" itemprop="description"><%= n.excerpt %></p>
-              <div class="flex items-center justify-between text-[10px] text-dim pt-2 border-t border-line/50">
-                <span>📰 <%= n.author || 'AI Editor' %></span>
-                <time datetime="<%= _iso(n.publishedAt) %>" itemprop="datePublished">📅 <%= _fmtDate(n.publishedAt) %></time>
+            <div class="min-w-0 flex flex-col justify-between">
+              <div>
+                <span class="inline-block text-[9px] font-extrabold uppercase text-emerald-400 mb-1">📰 NHẬN ĐỊNH BLV</span>
+                <h2 class="text-sm font-bold text-white leading-snug line-clamp-2 mb-1 hover:text-pri-light" itemprop="headline"><%= n.title %></h2>
+                <p class="text-[11px] text-muted line-clamp-2" itemprop="description"><%= n.excerpt %></p>
               </div>
+              <div class="flex items-center gap-3 text-[10px] text-dim mt-2">
+                <span>🎤 <%= n.author || 'BLV X66' %></span>
+                <span>⏱ <%= _hoursAgo(n.publishedAt) %></span>
+                <span class="ml-auto text-pri-light">👁 <%= _viewCount(n) %></span>
+              </div>
+              <meta itemprop="author" content="<%= n.author %>">
               <meta itemprop="publisher" content="<%= brand.name %>">
             </div>
           </a>
@@ -167,22 +240,24 @@ function _fmtDate(d){
     </div>
   </div>
 
-  <!-- SIDEBAR widgets -->
+  <!-- RIGHT SIDEBAR -->
   <aside class="space-y-4">
-    <!-- Widget: Top kèo hot -->
-    <div class="bg-bg-card border border-line rounded-xl p-4 sticky top-4">
-      <h3 class="text-sm font-extrabold text-white mb-3 flex items-center gap-2">🔥 Top kèo HOT</h3>
-      <ul class="space-y-2.5">
+    <!-- Widget: Đọc nhiều trong tuần -->
+    <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <div class="bg-bg-soft px-3 py-2.5 border-b border-line flex items-center gap-2">
+        <span>🔥</span>
+        <h3 class="text-xs font-extrabold text-white flex-1">ĐỌC NHIỀU TRONG TUẦN</h3>
+      </div>
+      <ul class="divide-y divide-line/50">
         <% (list.slice(0, 5)).forEach(function(n, i){ %>
           <li>
-            <a href="/tin-tuc/<%= n.slug %>" class="flex items-start gap-2.5 group">
+            <a href="/tin-tuc/<%= n.slug %>" class="flex items-start gap-2.5 px-3 py-2.5 hover:bg-bg-soft transition-colors">
               <span class="shrink-0 w-6 h-6 rounded grid place-items-center text-[11px] font-black <%= i===0?'bg-gradient-to-br from-pri to-live text-white':'bg-bg-soft text-pri-light border border-line' %>"><%= i+1 %></span>
               <div class="min-w-0 flex-1">
-                <% if (n.predictedScore) { %>
-                  <span class="inline-block text-[9px] bg-pri/20 text-pri-light font-bold px-1.5 py-0.5 rounded mr-1 align-middle">🎯 <%= n.predictedScore %></span>
-                <% } %>
-                <h4 class="inline text-xs font-bold text-gray-200 group-hover:text-pri-light line-clamp-2 leading-snug"><%= n.title %></h4>
-                <% if (n.league) { %><div class="text-[10px] text-dim mt-0.5"><%= n.league %></div><% } %>
+                <h4 class="text-[11px] font-bold text-gray-200 hover:text-pri-light line-clamp-2 leading-snug"><%= n.title %></h4>
+                <div class="flex items-center gap-2 text-[9px] text-dim mt-1">
+                  <span>👁 <%= _viewCount(n) %></span>
+                </div>
               </div>
             </a>
           </li>
@@ -190,35 +265,31 @@ function _fmtDate(d){
       </ul>
     </div>
 
-    <!-- Widget: Liên kết nhanh -->
-    <div class="bg-bg-card border border-line rounded-xl p-4">
-      <h3 class="text-sm font-extrabold text-white mb-3 flex items-center gap-2">⚡ Truy cập nhanh</h3>
-      <div class="grid grid-cols-2 gap-2">
-        <a href="/lich-phat-song" class="bg-bg-soft hover:bg-pri/15 border border-line hover:border-pri/40 rounded-lg p-2.5 text-center transition-all">
-          <div class="text-xl mb-1">📅</div>
-          <div class="text-[10px] text-gray-200 font-bold">Lịch thi đấu</div>
-        </a>
-        <a href="/" class="bg-bg-soft hover:bg-pri/15 border border-line hover:border-pri/40 rounded-lg p-2.5 text-center transition-all">
-          <div class="text-xl mb-1">📺</div>
-          <div class="text-[10px] text-gray-200 font-bold">Live trực tiếp</div>
-        </a>
-        <a href="<%= partner.register %>" target="_blank" class="bg-gradient-to-br from-pri/20 to-live/20 hover:from-pri/30 hover:to-live/30 border border-pri/40 rounded-lg p-2.5 text-center transition-all">
-          <div class="text-xl mb-1">🎁</div>
-          <div class="text-[10px] text-pri-light font-bold">Nhận 100%</div>
-        </a>
-        <a href="/khuyen-mai" class="bg-bg-soft hover:bg-pri/15 border border-line hover:border-pri/40 rounded-lg p-2.5 text-center transition-all">
-          <div class="text-xl mb-1">🎊</div>
-          <div class="text-[10px] text-gray-200 font-bold">Khuyến mãi</div>
-        </a>
-      </div>
+    <!-- Widget: Dự đoán tỉ số CTA -->
+    <div class="bg-gradient-to-br from-pri/15 to-live/15 border border-pri/40 rounded-xl p-4 text-center">
+      <div class="text-3xl mb-2">🎯</div>
+      <h3 class="text-sm font-extrabold text-white mb-1">Dự đoán tỉ số</h3>
+      <p class="text-[11px] text-gray-300 mb-3">Tham gia dự đoán tỉ số ăn thưởng XP &amp; lên top BXH cao thủ</p>
+      <a href="<%= partner.register %>" target="_blank" class="block bg-pri hover:bg-pri-light text-white text-xs font-extrabold px-4 py-2 rounded-lg transition-all">DỰ ĐOÁN NGAY</a>
     </div>
 
-    <!-- Widget: Newsletter / Telegram -->
-    <div class="bg-gradient-to-br from-pri/15 to-live/15 border border-pri/40 rounded-xl p-4 text-center">
-      <div class="text-2xl mb-2">📢</div>
-      <h3 class="text-sm font-extrabold text-white mb-1">Theo dõi Telegram</h3>
-      <p class="text-[11px] text-gray-300 mb-3">Nhận kèo HOT mỗi ngày trước trận đấu</p>
-      <a href="<%= partner.telegram || 'https://t.me/xoso66tv' %>" target="_blank" class="inline-block bg-pri hover:bg-pri-light text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-all">Tham gia →</a>
+    <!-- Widget: Chuyên mục -->
+    <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <div class="bg-bg-soft px-3 py-2.5 border-b border-line flex items-center gap-2">
+        <span>📚</span>
+        <h3 class="text-xs font-extrabold text-white flex-1">CHUYÊN MỤC</h3>
+      </div>
+      <ul class="divide-y divide-line/50">
+        <% _leagueList.slice(0, 6).forEach(function(lg){ %>
+          <li>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-bg-soft transition-colors">
+              <span class="text-[10px] text-emerald-400">●</span>
+              <span class="flex-1 text-[11px] text-gray-200 line-clamp-1"><%= lg %></span>
+              <span class="text-[10px] text-dim"><%= _leagues[lg] %></span>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
     </div>
   </aside>
 </section>
