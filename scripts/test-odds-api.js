@@ -26,16 +26,24 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('\n═══ TEST 1: Raw fetch (thử các endpoint candidates) ═══');
-  const raw = await oddsApi.debugRaw(fixtureId);
-  if (!raw) {
-    console.log('❌ Tất cả endpoint candidates đều fail. Cần check API docs hoặc inspect Network của trang gốc.');
-    console.log('💡 Gợi ý: mở https://thethaoviet.vip → F12 → Network → click "Dữ liệu" cạnh trận → xem URL request');
+  console.log('\n═══ TEST 1: Raw fetch (verbose mode — show ALL endpoints) ═══');
+  const raw = await oddsApi.debugRaw(fixtureId, true);
+  if (raw && raw.allResponses) {
+    console.log('\n📋 Tất cả ' + raw.allResponses.length + ' endpoints đã thử:');
+    raw.allResponses.forEach(function(r, i) {
+      const statusIcon = r.status === 200 ? '✅' : (r.status >= 400 ? '❌' : '⚠️');
+      console.log('\n' + (i+1) + '. ' + statusIcon + ' [' + r.status + '] ' + r.url);
+      console.log('   Response: ' + r.sample);
+    });
+  }
+  if (!raw || !raw.raw) {
+    console.log('\n❌ Không endpoint nào trả data. Cần inspect Network browser:');
+    console.log('💡 Mở https://thethaoviet.vip → F12 → Network → click "Dữ liệu" cạnh trận có odds → copy URL request → paste cho em');
     process.exit(1);
   }
-  console.log('✅ Endpoint tìm thấy:', raw.source);
-  console.log('📦 Sample data (200 chars đầu):');
-  console.log(JSON.stringify(raw.raw, null, 2).slice(0, 500));
+  console.log('\n✅ Endpoint có data:', raw.source);
+  console.log('📦 Full data:');
+  console.log(JSON.stringify(raw.raw, null, 2).slice(0, 2000));
 
   console.log('\n═══ TEST 2: Parse odds ═══');
   const parsed = oddsApi.parseOdds(raw.raw);
