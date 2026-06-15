@@ -2,9 +2,9 @@
 var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
 var _catName = sport ? (cats[sport] && cats[sport].name || '') : '';
 seo = {
-  title: 'Lịch Phát Sóng Bóng Đá Hôm Nay '+_todayVi+' - Xem Trực Tiếp | XOSO66 TV',
-  description: 'Lịch phát sóng bóng đá hôm nay '+_todayVi+' & ngày mai tại XOSO66 TV (xổ số 66). Xem trực tiếp bóng đá Full HD '+list.length+' trận Ngoại Hạng Anh, La Liga, Champions League, V-League cùng BLV tiếng Việt.',
-  keywords: 'lịch phát sóng bóng đá, lịch thi đấu bóng đá hôm nay, xem trực tiếp bóng đá, xoso66, xổ số 66, xoso66 tv, livestream bóng đá, lịch bóng đá ngày mai',
+  title: 'Lịch Phát Sóng Bóng Đá '+_todayVi+' | XOSO66 TV',
+  description: 'Lịch phát sóng bóng đá '+_todayVi+' & ngày mai. Xem trực tiếp Full HD '+list.length+' trận NHA, La Liga, V-League cùng BLV tiếng Việt tại XOSO66.',
+  keywords: 'lịch phát sóng bóng đá, lịch thi đấu bóng đá hôm nay, xem trực tiếp bóng đá, xoso66, xổ số 66, xoso66 tv',
   canonical: '/lich-phat-song'+(sport?'?mon='+sport:''),
   breadcrumb: [{ name:'Lịch phát sóng bóng đá', url:'/lich-phat-song' }].concat(sport?[{ name:_catName, url:'/lich-phat-song?mon='+sport }]:[])
 };
@@ -118,7 +118,7 @@ _idolList.forEach(function(i){
   <!-- Title bar: ‹ Lịch Phát Sóng -->
   <div class="flex items-center gap-2 mb-3 mt-1">
     <a href="/" class="text-pri-light text-2xl leading-none" aria-label="Back">‹</a>
-    <h1 class="text-pri-light font-extrabold text-xl">Lịch Phát Sóng</h1>
+    <h2 class="text-pri-light font-extrabold text-xl">Lịch Phát Sóng</h2>
   </div>
 
   <!-- Day picker - horizontal scroll, 6 ngày -->
