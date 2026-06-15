@@ -191,8 +191,9 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     </div>
     <% } %>
 
-    <!-- ═══ PREDICT WIDGET — Dự đoán tỉ số inline (chỉ hiện khi trận chưa bắt đầu) ═══ -->
-    <% if (match.status !== 'live' && match.status !== 'finished' && match.sport === 'Soccer') { %>
+    <!-- ═══ PREDICT WIDGET — Dự đoán tỉ số inline ═══ -->
+    <% var _showPredict = match && match.home && match.away && match.status !== 'finished'; %>
+    <% if (_showPredict) { %>
     <section class="bg-gradient-to-br from-emerald-900/40 to-emerald-700/20 border border-emerald-500/40 rounded-xl p-4 mt-3.5 relative overflow-hidden">
       <div class="absolute -top-6 -right-6 text-7xl opacity-10">🎯</div>
       <h3 class="text-emerald-300 text-sm font-extrabold mb-2.5 flex items-center gap-1.5">🎯 Dự đoán tỉ số — Nhận X COIN</h3>
