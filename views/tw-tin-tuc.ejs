@@ -82,9 +82,9 @@ function _fmtDate(d){
   <!-- LEFT: Hero article LỚN -->
   <article class="bg-bg-card border border-line rounded-xl overflow-hidden hover:border-pri/60 transition-all" itemscope itemtype="https://schema.org/NewsArticle">
     <a href="/tin-tuc/<%= _hero.slug %>" itemprop="url" class="block">
-      <div class="aspect-[16/10] bg-gradient-to-br from-bg-soft to-bg-deep overflow-hidden relative">
+      <div class="bg-gradient-to-br from-bg-soft to-bg-deep overflow-hidden relative" style="height:280px;">
         <% if (_hero.image) { %>
-          <img src="<%= _hero.image %>" alt="<%= _hero.title %>" class="w-full h-full object-cover" itemprop="image">
+          <img src="<%= _hero.image %>" alt="<%= _hero.title %>" class="w-full h-full object-cover" itemprop="image" style="object-fit:cover;width:100%;height:100%;">
         <% } else { %>
           <div class="w-full h-full grid place-items-center">
             <div class="text-center text-muted/30">
@@ -93,9 +93,9 @@ function _fmtDate(d){
             </div>
           </div>
         <% } %>
-        <span class="absolute top-3 left-3 bg-pri text-white text-[10px] font-black uppercase px-2 py-1 rounded">📰 Nhận Định</span>
+        <span class="absolute top-3 left-3 bg-pri text-white text-[10px] font-black uppercase px-2 py-1 rounded z-10">📰 Nhận Định</span>
         <% if (_hero.predictedScore) { %>
-          <span class="absolute top-3 right-3 bg-emerald-600 text-white text-sm font-black px-3 py-1 rounded shadow">🎯 <%= _hero.predictedScore %></span>
+          <span class="absolute top-3 right-3 bg-emerald-600 text-white text-sm font-black px-3 py-1 rounded shadow z-10">🎯 <%= _hero.predictedScore %></span>
         <% } %>
       </div>
       <div class="p-4">
@@ -118,9 +118,9 @@ function _fmtDate(d){
     <% (list.slice(1, 5)).forEach(function(n){ %>
       <article class="bg-bg-card border border-line rounded-xl overflow-hidden hover:border-pri/60 transition-all" itemscope itemtype="https://schema.org/NewsArticle">
         <a href="/tin-tuc/<%= n.slug %>" class="grid grid-cols-[80px_1fr] gap-3 p-2.5" itemprop="url">
-          <div class="aspect-square bg-bg-soft border border-line rounded-lg overflow-hidden grid place-items-center relative">
+          <div class="bg-bg-soft border border-line rounded-lg overflow-hidden grid place-items-center relative shrink-0" style="width:80px;height:80px;">
             <% if (n.image) { %>
-              <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" loading="lazy">
+              <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" loading="lazy" style="object-fit:cover;width:100%;height:100%;">
             <% } else { %>
               <div class="text-2xl opacity-40">🇪🇸</div>
             <% } %>
@@ -213,9 +213,9 @@ function _fmtDate(d){
       <% list.slice(5).forEach(function(n){ %>
         <article class="news-card hover:bg-bg-soft transition-colors" data-league="<%= n.league || 'Khác' %>" itemscope itemtype="https://schema.org/NewsArticle">
           <a href="/tin-tuc/<%= n.slug %>" class="grid grid-cols-[100px_1fr] gap-3 p-3" itemprop="url">
-            <div class="aspect-square bg-bg-soft border border-line rounded-lg overflow-hidden grid place-items-center">
+            <div class="bg-bg-soft border border-line rounded-lg overflow-hidden grid place-items-center shrink-0" style="width:100px;height:100px;">
               <% if (n.image) { %>
-                <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" loading="lazy">
+                <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" itemprop="image" loading="lazy" style="object-fit:cover;width:100%;height:100%;">
               <% } else { %>
                 <div class="text-3xl opacity-40">🇮🇪</div>
               <% } %>
