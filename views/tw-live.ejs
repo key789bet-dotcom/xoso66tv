@@ -194,155 +194,118 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     <!-- ═══ PREDICT WIDGET — Tài Xỉu + Kèo Chấp cả trận ═══ -->
     <% var _showPredict = match && match.home && match.away && match.status !== 'finished'; %>
     <%
-      var _predLines = { ouLine: 2.5, ahLine: 0.5 };
-      try { _predLines = require('../lib/predict-store').getLines(match.id); } catch(e){}
-      // 🎯 Live odds từ thethaoviet.vip (nếu có thì hiển thị odds value + bookmaker)
+      // 🎯 ƯU TIÊN line từ Live odds API (Marathonbet/Bet365) — không dùng cache predict-store
       var _hasLiveOdds = (typeof liveOdds !== 'undefined' && liveOdds && (liveOdds.ah || liveOdds.ou || liveOdds.x12));
+      var _ouLine = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.line : 2.5;
+      var _ahLine = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.line : 0.5;
+      var _predLines = { ouLine: _ouLine, ahLine: _ahLine };
       var _bookmaker = _hasLiveOdds ? ((liveOdds.ou && liveOdds.ou.bookmaker) || (liveOdds.ah && liveOdds.ah.bookmaker) || (liveOdds.x12 && liveOdds.x12.bookmaker)) : null;
       var _ouTai = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.taiOdds : null;
       var _ouXiu = (_hasLiveOdds && liveOdds.ou) ? liveOdds.ou.xiuOdds : null;
       var _ahHome = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.homeOdds : null;
       var _ahAway = (_hasLiveOdds && liveOdds.ah) ? liveOdds.ah.awayOdds : null;
-      var _ahLineAbs = Math.abs(_predLines.ahLine || 0);
-      var _homeIsFav = (_predLines.ahLine || 0) > 0;  // dương = home chấp
+      // ahLine âm = đội KHÁCH được chấp (đội nhà mạnh hơn, "đội nhà chấp")
+      // ahLine dương = đội NHÀ được chấp (đội khách mạnh hơn)
+      var _ahLineAbs = Math.abs(_ahLine || 0);
+      var _homeIsFav = (_ahLine || 0) < 0;  // line âm = đội nhà mạnh → đội nhà chấp
     %>
     <% if (_showPredict) { %>
-    <section class="predict-widget relative overflow-hidden rounded-2xl mt-3.5" id="predictWidget">
+    <section class="predict-widget relative overflow-hidden rounded-xl mt-3" id="predictWidget">
       <div class="predict-bg"></div>
-      <div class="predict-shimmer"></div>
 
-      <div class="predict-reward-sticker">
-        <div class="text-[9px] font-extrabold uppercase tracking-wide">Thưởng tối đa</div>
-        <div class="text-base font-black flex items-center gap-1">
-          <span class="text-yellow-300">💰</span> 100 <span class="text-[10px]">X COIN</span>
-        </div>
-      </div>
-
-      <div class="relative p-5 z-10">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pri to-live grid place-items-center text-xl shadow-lg" style="box-shadow:0 0 15px rgba(255,122,24,.5);">🎯</div>
-            <div>
-              <h3 class="text-white text-[14px] font-black leading-tight">Dự đoán Tài/Xỉu &amp; Kèo Chấp</h3>
-              <p class="text-[10px] text-pri-light/80">Chọn ít nhất 1 kèo · Nhận X COIN khi thắng</p>
-            </div>
+      <div class="relative px-3 py-2.5 z-10">
+        <!-- Compact header: 1 dòng -->
+        <div class="flex items-center justify-between mb-2 gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="text-base">🎯</span>
+            <span class="text-white text-[12px] font-black uppercase tracking-wide truncate">Dự đoán</span>
+            <span class="text-[10px] text-pri-light/70 hidden sm:inline">·</span>
+            <span class="text-[10px] text-pri-light/70 hidden sm:inline">Đúng nhận X COIN</span>
+            <% if (_hasLiveOdds) { %>
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-400/15 border border-emerald-400/30">
+                <span class="inline-block w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[9px] font-bold text-emerald-300 uppercase">LIVE</span>
+                <% if (_bookmaker) { %><span class="text-[9px] text-emerald-200/70 hidden sm:inline"><%= _bookmaker.slice(0, 10) %></span><% } %>
+              </span>
+            <% } %>
           </div>
-          <a href="/cao-thu" class="text-[10px] text-pri-light hover:text-yellow-300 font-bold flex items-center gap-1 transition-colors">
+          <a href="/cao-thu" class="text-[10px] text-pri-light hover:text-yellow-300 font-bold flex items-center gap-0.5 flex-shrink-0">
             🏆 <span class="hidden sm:inline">BXH</span>
           </a>
         </div>
 
-        <% if (_hasLiveOdds) { %>
-          <div class="flex items-center gap-2 mb-3 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-400/30">
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-wide">Tỉ lệ kèo LIVE</span>
-            <% if (_bookmaker) { %>
-              <span class="text-[10px] text-emerald-200/80 font-medium">· <%= _bookmaker %></span>
-            <% } %>
-          </div>
-        <% } %>
-
         <form id="predictForm" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>" data-ou-line="<%= _predLines.ouLine %>" data-ah-line="<%= _predLines.ahLine %>">
 
-          <!-- ─── KÈO 1: TÀI / XỈU ─── -->
-          <div class="predict-section">
-            <div class="predict-section-header">
-              <span class="predict-section-icon">⚽</span>
-              <span class="predict-section-title">Tổng bàn thắng cả trận</span>
-              <span class="predict-line-badge">Mốc <%= _predLines.ouLine %></span>
+          <!-- ─── ROW 1: TÀI / XỈU (mốc từ API) ─── -->
+          <div class="mb-1.5">
+            <div class="flex items-center justify-between mb-1 px-0.5">
+              <span class="text-[10px] font-bold text-pri-light/90 uppercase">Tài/Xỉu</span>
+              <span class="text-[9px] font-bold text-yellow-300/90">Mốc <%= _predLines.ouLine %></span>
             </div>
-            <div class="predict-pick-grid">
-              <label class="predict-pick">
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="predict-pick-c">
                 <input type="radio" name="pickOU" value="tai">
-                <div class="predict-pick-inner">
-                  <div class="predict-pick-icon">📈</div>
-                  <div class="predict-pick-label">TÀI</div>
-                  <div class="predict-pick-desc">Trên <%= _predLines.ouLine %> bàn</div>
-                  <% if (_ouTai) { %>
-                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
-                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
-                      <span class="text-[12px] font-black text-emerald-200"><%= _ouTai.toFixed(2) %></span>
-                    </div>
-                  <% } %>
+                <div class="predict-pick-c-inner">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[11px] font-black text-white">TÀI</span>
+                    <span class="text-[9px] text-white/60">&gt;<%= _predLines.ouLine %></span>
+                  </div>
+                  <% if (_ouTai) { %><span class="predict-odds-c"><%= _ouTai.toFixed(2) %></span><% } %>
                 </div>
               </label>
-              <label class="predict-pick">
+              <label class="predict-pick-c">
                 <input type="radio" name="pickOU" value="xiu">
-                <div class="predict-pick-inner">
-                  <div class="predict-pick-icon">📉</div>
-                  <div class="predict-pick-label">XỈU</div>
-                  <div class="predict-pick-desc">Dưới <%= _predLines.ouLine %> bàn</div>
-                  <% if (_ouXiu) { %>
-                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
-                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
-                      <span class="text-[12px] font-black text-emerald-200"><%= _ouXiu.toFixed(2) %></span>
-                    </div>
-                  <% } %>
+                <div class="predict-pick-c-inner">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[11px] font-black text-white">XỈU</span>
+                    <span class="text-[9px] text-white/60">&lt;<%= _predLines.ouLine %></span>
+                  </div>
+                  <% if (_ouXiu) { %><span class="predict-odds-c"><%= _ouXiu.toFixed(2) %></span><% } %>
                 </div>
               </label>
             </div>
           </div>
 
-          <!-- ─── KÈO 2: ASIAN HANDICAP ─── -->
-          <div class="predict-section">
-            <div class="predict-section-header">
-              <span class="predict-section-icon">⚖️</span>
-              <span class="predict-section-title">Kèo chấp cả trận</span>
-              <span class="predict-line-badge"><%= _homeIsFav ? match.home.slice(0,8) : match.away.slice(0,8) %> chấp <%= _ahLineAbs %></span>
+          <!-- ─── ROW 2: ASIAN HANDICAP (line từ API) ─── -->
+          <div class="mb-2">
+            <div class="flex items-center justify-between mb-1 px-0.5">
+              <span class="text-[10px] font-bold text-pri-light/90 uppercase">Kèo chấp</span>
+              <span class="text-[9px] font-bold text-yellow-300/90"><%= (_homeIsFav ? match.home : match.away).slice(0,10) %> chấp <%= _ahLineAbs %></span>
             </div>
-            <div class="predict-pick-grid">
-              <label class="predict-pick">
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="predict-pick-c">
                 <input type="radio" name="pickAH" value="home">
-                <div class="predict-pick-inner">
-                  <div class="predict-pick-icon">🏠</div>
-                  <div class="predict-pick-label" title="<%= match.home %>"><%= match.home.slice(0, 14) %></div>
-                  <div class="predict-pick-desc"><%= _homeIsFav ? '-' + _ahLineAbs + ' (chấp)' : '+' + _ahLineAbs + ' (được chấp)' %></div>
-                  <% if (_ahHome) { %>
-                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
-                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
-                      <span class="text-[12px] font-black text-emerald-200"><%= _ahHome.toFixed(2) %></span>
-                    </div>
-                  <% } %>
+                <div class="predict-pick-c-inner">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-[11px] font-black text-white truncate" title="<%= match.home %>"><%= match.home.slice(0, 10) %></span>
+                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _homeIsFav ? '−'+_ahLineAbs : '+'+_ahLineAbs %></span>
+                  </div>
+                  <% if (_ahHome) { %><span class="predict-odds-c"><%= _ahHome.toFixed(2) %></span><% } %>
                 </div>
               </label>
-              <label class="predict-pick">
+              <label class="predict-pick-c">
                 <input type="radio" name="pickAH" value="away">
-                <div class="predict-pick-inner">
-                  <div class="predict-pick-icon">✈️</div>
-                  <div class="predict-pick-label" title="<%= match.away %>"><%= match.away.slice(0, 14) %></div>
-                  <div class="predict-pick-desc"><%= _homeIsFav ? '+' + _ahLineAbs + ' (được chấp)' : '-' + _ahLineAbs + ' (chấp)' %></div>
-                  <% if (_ahAway) { %>
-                    <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-400/20 border border-emerald-400/40">
-                      <span class="text-[9px] font-bold text-emerald-300 uppercase">Tỉ lệ</span>
-                      <span class="text-[12px] font-black text-emerald-200"><%= _ahAway.toFixed(2) %></span>
-                    </div>
-                  <% } %>
+                <div class="predict-pick-c-inner">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-[11px] font-black text-white truncate" title="<%= match.away %>"><%= match.away.slice(0, 10) %></span>
+                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _homeIsFav ? '+'+_ahLineAbs : '−'+_ahLineAbs %></span>
+                  </div>
+                  <% if (_ahAway) { %><span class="predict-odds-c"><%= _ahAway.toFixed(2) %></span><% } %>
                 </div>
               </label>
             </div>
           </div>
 
-          <!-- Reward tiers -->
-          <div class="grid grid-cols-2 gap-2 mb-3">
-            <div class="predict-tier tier-silver">
-              <div class="text-[9px] font-extrabold text-orange-300 uppercase text-center">Đúng 1 kèo</div>
-              <div class="text-[14px] font-black text-orange-200 text-center">+30 <span class="text-[10px]">X COIN</span></div>
-            </div>
-            <div class="predict-tier tier-gold">
-              <div class="text-[9px] font-extrabold text-yellow-300 uppercase text-center">Đúng cả 2 kèo</div>
-              <div class="text-[14px] font-black text-yellow-200 text-center">+100 <span class="text-[10px]">X COIN</span></div>
-            </div>
-          </div>
-
-          <button type="submit" id="predictBtn" class="predict-submit-btn">
+          <!-- Compact submit + reward inline -->
+          <button type="submit" id="predictBtn" class="predict-submit-btn-c">
             <span class="btn-shine"></span>
-            <span class="relative z-10 flex items-center justify-center gap-2">
-              <span class="text-lg">🎯</span>
-              <span>DỰ ĐOÁN NGAY</span>
+            <span class="relative z-10 flex items-center justify-center gap-1.5">
+              <span class="text-sm">🎯</span>
+              <span class="text-[12px] font-black uppercase tracking-wide">Dự đoán</span>
+              <span class="text-[9px] text-yellow-200/90 font-bold">· +30/100 X COIN</span>
             </span>
           </button>
-          <div id="predictResult" class="mt-3 text-center text-[12px] hidden font-bold"></div>
+          <div id="predictResult" class="mt-2 text-center text-[11px] hidden font-bold"></div>
         </form>
       </div>
     </section>
@@ -561,6 +524,62 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       border:1px solid rgba(239,68,68,.3);
       padding:8px 12px; border-radius:8px;
     }
+
+    /* ═══════════════ COMPACT WIDGET (v2 — small footprint) ═══════════════ */
+    .predict-pick-c { position:relative; cursor:pointer; display:block; }
+    .predict-pick-c input[type="radio"] {
+      position:absolute; opacity:0; pointer-events:none;
+    }
+    .predict-pick-c-inner {
+      display:flex; align-items:center; justify-content:space-between;
+      gap:6px; padding:6px 9px;
+      background:rgba(255,255,255,.04);
+      border:1.5px solid rgba(255,255,255,.08);
+      border-radius:8px;
+      transition:all .15s ease;
+      min-height:32px;
+    }
+    .predict-pick-c:hover .predict-pick-c-inner {
+      background:rgba(255,122,24,.08);
+      border-color:rgba(255,122,24,.3);
+    }
+    .predict-pick-c input[type="radio"]:checked + .predict-pick-c-inner {
+      background:linear-gradient(135deg,rgba(255,122,24,.22),rgba(239,68,68,.15));
+      border-color:#facc15;
+      box-shadow:0 0 0 2px rgba(250,204,21,.18), 0 3px 10px rgba(255,122,24,.25);
+    }
+    .predict-odds-c {
+      flex-shrink:0;
+      font-size:12px; font-weight:900; color:#86efac;
+      background:rgba(74,222,128,.12);
+      border:1px solid rgba(74,222,128,.35);
+      padding:1px 6px; border-radius:5px;
+      letter-spacing:.2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .predict-pick-c input[type="radio"]:checked + .predict-pick-c-inner .predict-odds-c {
+      background:rgba(250,204,21,.18);
+      color:#fde68a;
+      border-color:rgba(250,204,21,.5);
+    }
+    .predict-submit-btn-c {
+      width:100%; position:relative; overflow:hidden;
+      padding:8px 12px; margin-top:2px;
+      background:linear-gradient(135deg, #ff7a18 0%, #ef4444 50%, #ff7a18 100%);
+      background-size:200% 100%;
+      color:#fff;
+      border:none; border-radius:8px;
+      cursor:pointer;
+      box-shadow:0 3px 10px rgba(255,122,24,.35), 0 0 0 1px rgba(255,212,128,.25) inset;
+      transition:all .2s ease;
+      animation: btn-gradient 3s ease infinite;
+    }
+    .predict-submit-btn-c:hover {
+      transform:translateY(-1px);
+      box-shadow:0 5px 16px rgba(255,122,24,.5), 0 0 0 1px rgba(255,212,128,.4) inset;
+    }
+    .predict-submit-btn-c:active { transform:translateY(0); }
+    .predict-submit-btn-c:disabled { opacity:.6; cursor:not-allowed; transform:none; }
     </style>
 
     <script>
