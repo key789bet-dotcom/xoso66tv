@@ -42,13 +42,13 @@ function _fmtDate(d){
   }
 %>
 
-<!-- ╔════ HERO HEADER DIỄN ĐÀN ════╗ -->
-<header class="bg-gradient-to-r from-emerald-900/40 via-bg-card to-bg-card border border-line rounded-xl px-5 py-4 mb-4">
-  <div class="flex items-center gap-3 mb-2">
-    <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 grid place-items-center text-2xl">⚽</div>
+<!-- ╔════ HERO HEADER DIỄN ĐÀN (emerald đậm như ref) ════╗ -->
+<header class="rounded-xl px-6 py-5 mb-4 border border-emerald-700" style="background:linear-gradient(135deg,#064e3b 0%,#065f46 50%,#047857 100%);">
+  <div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full bg-emerald-500/30 border-2 border-emerald-400 grid place-items-center text-3xl shadow-lg" style="box-shadow:0 0 20px rgba(16,185,129,.4);">⚽</div>
     <div class="flex-1">
-      <h1 class="text-lg font-black text-white">Diễn Đàn Bóng Đá <span class="text-emerald-400">XOSO66</span> — Nhận Định, Soi Kèo, Dự Đoán Tỉ Số</h1>
-      <p class="text-[12px] text-muted mt-0.5">Cộng đồng nhận định bóng đá Việt Nam #1 · tham gia thảo luận với <strong class="text-white">10K+</strong> thành viên BLV và chuyên gia về <a href="#" class="text-pri-light">Ngoại Hạng Anh</a>, <a href="#" class="text-pri-light">La Liga</a>, <a href="#" class="text-pri-light">Champions League</a>, <a href="#" class="text-pri-light">V-League</a> và nhiều giải đấu khác. Đăng bài soi kèo, dự đoán tỉ số trận đấu, kiếm XP từ <a href="#" class="text-pri-light">BXH Cao Thủ</a></p>
+      <h1 class="text-xl font-black text-white mb-1">Diễn Đàn Bóng Đá <span class="text-emerald-300">XOSO66</span> — Nhận Định, Soi Kèo, Dự Đoán Tỉ Số</h1>
+      <p class="text-[12px] text-emerald-50/90 leading-relaxed">Cộng đồng <strong>nhận định bóng đá Việt Nam #1</strong>: tham gia thảo luận với hàng nghìn BLV và chuyên gia về <a href="#" class="text-emerald-200 underline">Ngoại Hạng Anh</a>, <a href="#" class="text-emerald-200 underline">La Liga</a>, <a href="#" class="text-emerald-200 underline">Champions League</a>, <a href="#" class="text-emerald-200 underline">V-League</a> và nhiều giải đấu khác. Đăng bài soi kèo, dự đoán tỉ số trận đấu, kiếm XP lên <a href="#" class="text-emerald-200 underline">BXH Cao Thủ</a>.</p>
     </div>
   </div>
 </header>
@@ -56,16 +56,18 @@ function _fmtDate(d){
 <!-- ╔════ SECTION: BÀI VIẾT & NHẬN ĐỊNH MỚI NHẤT ════╗ -->
 <section class="bg-bg-card border border-line rounded-xl p-4 mb-4">
   <div class="flex items-center justify-between flex-wrap gap-3 mb-3 pb-3 border-b border-line">
-    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-pri/20 border border-pri grid place-items-center text-pri-light">📝</span> Bài viết & Nhận định mới nhất</h2>
-    <a href="<%= partner.register %>" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5">🔐 Đăng nhập đăng bài</a>
+    <h2 class="text-base font-extrabold text-white flex items-center gap-2"><span class="w-7 h-7 rounded-full grid place-items-center text-base" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.6);">⚽</span> Bài viết & Nhận định mới nhất</h2>
+    <a href="<%= partner.register %>" target="_blank" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-bg text-xs font-extrabold rounded-lg flex items-center gap-1.5 shadow-lg">📝 Đăng bài</a>
   </div>
-  <!-- Filter chips theo giải (2 dòng tablist) -->
-  <div class="flex flex-wrap gap-1.5">
-    <button data-flt="all" class="news-flt active px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-emerald-600 text-white">⚡ Tất cả <span class="opacity-80">(<%= list.length %>)</span></button>
-    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">💬 Thảo Luận Chung</button>
-    <% _leagueList.slice(0, 6).forEach(function(lg){ %>
-      <button data-flt="<%= lg %>" class="news-flt px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">🏆 <%= lg %> <span class="text-pri-light">(<%= _leagues[lg] %>)</span></button>
+  <!-- Filter chips theo giải (giống reference) -->
+  <div class="flex flex-wrap gap-2">
+    <button data-flt="all" class="news-flt active px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap text-white" style="background:linear-gradient(135deg,#059669,#047857);">⚡ Tất cả</button>
+    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">💬 Thảo Luận Chung <span class="text-emerald-400">(0)</span></button>
+    <% _leagueList.slice(0, 10).forEach(function(lg){ %>
+      <button data-flt="<%= lg %>" class="news-flt px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">⚽ Nhận Định <%= lg %> <span class="text-emerald-400">(<%= _leagues[lg] %>)</span></button>
     <% }); %>
+    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">🎯 Dự Đoán Tỉ Số <span class="text-emerald-400">(0)</span></button>
+    <button class="px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-bg-soft text-gray-300 hover:bg-bg-deep border border-line">🔁 Tin Chuyển Nhượng <span class="text-emerald-400">(0)</span></button>
   </div>
 </section>
 
@@ -145,9 +147,9 @@ function _fmtDate(d){
 <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
   <!-- Widget 1: Lịch thi đấu mới nhất -->
   <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
-    <div class="bg-bg-soft px-3 py-2 border-b border-line flex items-center gap-2">
-      <span class="text-pri-light">📅</span>
-      <h3 class="text-xs font-extrabold text-white flex-1">LỊCH THI ĐẤU MỚI NHẤT</h3>
+    <div class="px-3 py-2.5 border-b border-line flex items-center gap-2" style="background:linear-gradient(90deg,#064e3b,#047857);">
+      <span class="text-yellow-300">🏆</span>
+      <h3 class="text-xs font-extrabold text-white flex-1">LỊCH THI ĐẤU NỔI BẬT</h3>
     </div>
     <ul class="divide-y divide-line/50">
       <% (list.slice(0, 5)).forEach(function(n){ %>
@@ -165,8 +167,8 @@ function _fmtDate(d){
 
   <!-- Widget 2: Giải đấu nổi bật -->
   <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
-    <div class="bg-bg-soft px-3 py-2 border-b border-line flex items-center gap-2">
-      <span class="text-pri-light">🏆</span>
+    <div class="px-3 py-2.5 border-b border-line flex items-center gap-2" style="background:linear-gradient(90deg,#064e3b,#047857);">
+      <span class="text-yellow-300">🏆</span>
       <h3 class="text-xs font-extrabold text-white flex-1">GIẢI ĐẤU NỔI BẬT</h3>
     </div>
     <ul class="divide-y divide-line/50">
@@ -185,8 +187,8 @@ function _fmtDate(d){
 
   <!-- Widget 3: BLV nổi bật -->
   <div class="bg-bg-card border border-line rounded-xl overflow-hidden">
-    <div class="bg-bg-soft px-3 py-2 border-b border-line flex items-center gap-2">
-      <span class="text-pri-light">🎤</span>
+    <div class="px-3 py-2.5 border-b border-line flex items-center gap-2" style="background:linear-gradient(90deg,#064e3b,#047857);">
+      <span class="text-yellow-300">🎤</span>
       <h3 class="text-xs font-extrabold text-white flex-1">BLV NỔI BẬT</h3>
     </div>
     <div class="p-3 grid grid-cols-3 gap-2.5">
