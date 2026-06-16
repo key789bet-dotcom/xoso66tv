@@ -47,10 +47,32 @@ const PRIORITY_LEAGUES = [
   'super league', 'a-league',
 ];
 
-function isPriorityLeague(name) {
+// Country whitelist — chỉ những nước này mới có "Premier League" được coi là priority
+const PRIORITY_COUNTRIES = new Set(['england', 'vietnam', 'world', 'europe', 'spain', 'italy', 'germany', 'france']);
+
+function isPriorityLeague(match) {
+  // Backward compat: nếu truyền string thì check name only (legacy)
+  const name = (typeof match === 'string') ? match : (match && match.league) || '';
+  const country = (typeof match === 'object' && match && match.country) ? String(match.country).toLowerCase() : '';
   if (!name) return false;
   const lname = String(name).toLowerCase();
-  return PRIORITY_LEAGUES.some(k => lname.indexOf(k) !== -1);
+
+  // Match keyword
+  const matched = PRIORITY_LEAGUES.some(k => lname.indexOf(k) !== -1);
+  if (!matched) return false;
+
+  // Nếu là "premier league" generic (vd Ethiopia/Bhutan/Lebanon) → loại
+  // (đã được leagueNameToVi append country như "Premier League (Ethiopia)")
+  if (/premier league \(/i.test(name) && !/premier league \((england|vietnam)\)/i.test(name)) {
+    return false;
+  }
+  // Nếu có country field và country không trong whitelist → loại (chỉ giải lớn)
+  if (country && !PRIORITY_COUNTRIES.has(country)) {
+    // Exception: World/Europe ko có country nhưng có trong name
+    if (!/world|europe|champions|copa/i.test(lname)) return false;
+  }
+
+  return true;
 }
 
 // Image: dùng badge của 2 đội + bg football. Fallback Unsplash random
@@ -91,8 +113,8 @@ async function main() {
   });
 
   // 🏆 BƯỚC 1: Lấy TẤT CẢ trận của giải đấu ưu tiên (full all)
-  const priorityMatches = uniqueMatches.filter(m => isPriorityLeague(m.league));
-  const otherMatches = uniqueMatches.filter(m => !isPriorityLeague(m.league));
+  const priorityMatches = uniqueMatches.filter(m => isPriorityLeague(m));
+  const otherMatches = uniqueMatches.filter(m => !isPriorityLeague(m));
 
   // 🎯 BƯỚC 2: Build danh sách candidates
   //   - Priority matches: FULL hết (không cắt)
@@ -116,7 +138,7 @@ async function main() {
   console.log(`   🎯 Sẽ sinh: ${candidates.length} bài (min ${MIN_ARTICLES}, cap ${HARD_CAP})`);
   console.log('');
   candidates.forEach((m, i) => {
-    const tag = isPriorityLeague(m.league) ? '🔥' : '  ';
+    const tag = isPriorityLeague(m) ? '🔥' : '  ';
     console.log(`  ${tag} ${i+1}. ${m.home} vs ${m.away} (${m.league || m.sport})`);
   });
 
@@ -142,7 +164,7 @@ async function main() {
   let success = 0; let failed = 0;
   for (let i = 0; i < newMatches.length; i++) {
     const m = newMatches[i];
-    const tag = isPriorityLeague(m.league) ? '🔥 PRIORITY' : '';
+    const tag = isPriorityLeague(m) ? '🔥 PRIORITY' : '';
     console.log(`\n📝 [${i+1}/${newMatches.length}] ${tag} Đang sinh: ${m.home} vs ${m.away}...`);
     try {
       // 🎯 Fetch odds + insights TRƯỚC khi gọi Claude (để feed vào prompt)
