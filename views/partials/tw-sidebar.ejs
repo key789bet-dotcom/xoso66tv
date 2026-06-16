@@ -202,7 +202,9 @@
       %>
         <a href="<%= href %>" class="relative flex items-center gap-2.5 px-3 py-2.5 my-0.5 rounded-lg text-sm font-semibold transition-colors <%= ac ? 'bg-gradient-to-r from-pri/20 to-transparent text-pri-light' : 'text-gray-100 hover:bg-bg-soft hover:text-white' %>">
           <% if (ac) { %><span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-pri rounded-r"></span><% } %>
-          <span class="w-6 h-6 shrink-0 flex items-center justify-center text-lg"><%= c.icon %></span>
+          <span class="w-6 h-6 shrink-0 flex items-center justify-center <%= ac ? 'text-pri-light' : 'text-pri' %>">
+            <% if (c.svg) { %><%- c.svg %><% } else { %><span class="text-lg"><%= c.icon %></span><% } %>
+          </span>
           <span class="flex-1"><%= c.name %></span>
           <% if (cnt > 0) { %><span class="<%= ac?'bg-pri text-white':'bg-bg-deep text-pri-light' %> px-2 py-0.5 rounded-full text-[11px] font-extrabold min-w-[22px] text-center"><%= cnt %></span><% } %>
         </a>
