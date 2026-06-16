@@ -2070,8 +2070,15 @@ const giftTxStore= require('./lib/gift-tx-store');
 // Expose PREMIUM_GIFTS cho EJS template (modal tặng quà thật) - EJS không có require()
 app.locals.PREMIUM_GIFTS = giftsLib.PREMIUM_GIFTS;
 
-// 🔥 Microsoft Clarity Project ID — pass qua app.locals vì EJS scope không có process.env
+// 🔥 Microsoft Clarity Project ID — pass qua app.locals VÀ middleware để chắc chắn vào EJS scope
 app.locals.CLARITY_ID = process.env.CLARITY_PROJECT_ID || '';
+// Failsafe middleware: nếu có route override res.locals → CLARITY_ID vẫn được set lại
+app.use(function(req, res, next) {
+  if (!res.locals.CLARITY_ID) {
+    res.locals.CLARITY_ID = process.env.CLARITY_PROJECT_ID || '';
+  }
+  next();
+});
 
 // ⚡ Tailwind precompiled detection - check file đã build chưa
 try {
