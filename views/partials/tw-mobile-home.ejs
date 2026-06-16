@@ -210,16 +210,19 @@ _cnt.all = _cards.length;
 
       // Click toàn vùng → vào phòng
       box.addEventListener('click', function(e){
-        if (e.target === unmuteBtn || unmuteBtn.contains(e.target)) return;
+        // Defensive: unmuteBtn có thể null nếu HTML đã xoá <!-- Nút bật tiếng đã bỏ -->
+        if (unmuteBtn && (e.target === unmuteBtn || unmuteBtn.contains(e.target))) return;
         location.href = clickHref;
       });
 
-      // Unmute button
-      unmuteBtn.addEventListener('click', function(e){
-        e.stopPropagation();
-        if (video) { video.muted = false; video.volume = 1; }
-        unmuteBtn.classList.add('hidden');
-      });
+      // Unmute button — chỉ attach nếu element tồn tại
+      if (unmuteBtn) {
+        unmuteBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          if (video) { video.muted = false; video.volume = 1; }
+          unmuteBtn.classList.add('hidden');
+        });
+      }
 
       function attachStream(cand){
         // 🚀 Bypass Cloudflare 100s timeout
