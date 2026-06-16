@@ -13,11 +13,19 @@ const partnerSync = require('../lib/partner-sync');
 const partnerLinks = require('../lib/partner-links');
 const multer    = require('multer');
 const path      = require('path');
+const uploadHelper = require('../lib/upload-helper'); // 🆕 SEO filename
+
+// 🆕 Helper: tạo SEO filename từ original file + prefix + extra parts
+function _seoName(prefix, file, extra) {
+  const ext = (path.extname(file.originalname || '') || '.jpg').slice(1).toLowerCase();
+  const baseName = path.basename(file.originalname || '', path.extname(file.originalname || ''));
+  return uploadHelper.seoFilename([prefix, extra, baseName], ext);
+}
 
 // Multer cau hinh upload banner
 const _bnStorage = multer.diskStorage({
   destination: function(req,file,cb){ cb(null, path.join(__dirname,'..','public','uploads','banners')); },
-  filename: function(req,file,cb){ cb(null, 'banner-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+  filename: function(req,file,cb){ cb(null, _seoName('banner', file, (req.body && req.body.title) || '')); }
 });
 const _bnUpload = multer({
   storage: _bnStorage,
@@ -35,7 +43,7 @@ const _cardStorage = multer.diskStorage({
     require('fs').mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
-  filename: function(req,file,cb){ cb(null, 'card-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+  filename: function(req,file,cb){ cb(null, _seoName('card', file, (req.params && req.params.id) || (req.body && req.body.name) || '')); }
 });
 const _cardUpload = multer({
   storage: _cardStorage,
@@ -61,9 +69,8 @@ const _skinStorage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function(req,file,cb){
-    // Tên file = slotId-timestamp.ext để cache-bust khi upload mới
     var slot = (req.params && req.params.id) ? req.params.id : 'unknown';
-    cb(null, 'skin-' + slot + '-' + Date.now() + path.extname(file.originalname).toLowerCase());
+    cb(null, _seoName('skin', file, slot));
   }
 });
 const _skinUpload = multer({
@@ -82,7 +89,7 @@ const _cbStorage = multer.diskStorage({
     require('fs').mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
-  filename: function(req,file,cb){ cb(null, 'cb-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+  filename: function(req,file,cb){ cb(null, _seoName('cb', file, (req.body && req.body.title) || '')); }
 });
 const _cbUpload = multer({
   storage: _cbStorage,
@@ -100,7 +107,7 @@ const _giftStorage = multer.diskStorage({
     require('fs').mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
-  filename: function(req,file,cb){ cb(null, 'gift-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+path.extname(file.originalname).toLowerCase()); }
+  filename: function(req,file,cb){ cb(null, _seoName('gift', file, (req.body && req.body.name) || '')); }
 });
 const _giftUpload = multer({
   storage: _giftStorage,
@@ -867,7 +874,7 @@ const _hbStorage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function(req, file, cb){
-    cb(null, 'header-banner-' + Date.now() + path.extname(file.originalname).toLowerCase());
+    cb(null, _seoName('header-banner', file, ''));
   }
 });
 const _hbUpload = multer({
@@ -946,7 +953,7 @@ const _tabIconStorage = multer.diskStorage({
   },
   filename: function(req, file, cb){
     var key = (req.body && req.body.key) || 'icon';
-    cb(null, 'tab-' + key + '-' + Date.now() + path.extname(file.originalname).toLowerCase());
+    cb(null, _seoName('tab', file, key));
   }
 });
 const _tabIconUpload = multer({
