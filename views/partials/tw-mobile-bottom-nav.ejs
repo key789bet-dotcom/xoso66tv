@@ -48,6 +48,9 @@ function __isActive(tab){ return __activeTab === tab ? 'is-active' : ''; }
 .gmn-tab.is-active { color:#ff7a18; }
 .gmn-tab.is-active svg { color:#ff7a18; }
 
+/* Override: SVG inside FAB phải to + rõ, không bị rule chung ép xuống 18px */
+.gmn-fab svg { width:28px !important; height:28px !important; color:#fff !important; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+
 /* Center FAB - Trang chủ */
 .gmn-fab-wrap { position:relative; }
 .gmn-fab {
