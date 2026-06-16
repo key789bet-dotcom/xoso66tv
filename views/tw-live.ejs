@@ -350,13 +350,13 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     <%# ═══════════════ 📊 LIVE INSIGHTS WIDGET ═══════════════ %>
     <% if (typeof matchInsights !== 'undefined' && matchInsights && (matchInsights.formHome || matchInsights.formAway || matchInsights.h2h || matchInsights.pick)) { %>
     <section class="insights-widget relative overflow-hidden rounded-xl mt-3">
-      <div class="px-3 py-2.5 bg-gradient-to-br from-[#0a1018] to-[#0e1622] border border-emerald-500/30 rounded-xl">
+      <div class="px-3 py-2.5 bg-[#13171f] border border-[rgba(255,122,24,.3)] rounded-xl">
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-1.5">
             <span class="text-base">📊</span>
             <span class="text-white text-[12px] font-black uppercase tracking-wide">Phân tích trận đấu</span>
           </div>
-          <span class="text-[9px] text-emerald-300/80 font-bold uppercase">AI Insights</span>
+          <span class="text-[9px] text-pri-light/90 font-bold uppercase bg-pri/15 px-1.5 py-0.5 rounded">AI Insights</span>
         </div>
 
         <%# Form 5 trận gần nhất %>
@@ -455,23 +455,12 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 
     <style>
     .predict-widget { isolation:isolate; }
+    /* 🎨 Phối màu mới: dark card flat + border cam mỏng (bỏ gradient lòe) */
     .predict-bg {
       position:absolute; inset:0; z-index:0;
-      background: linear-gradient(135deg, #1a0f08 0%, #2a1810 30%, #1a1410 70%, #0f0a08 100%);
-      border:1px solid rgba(255,122,24,.4);
-      border-radius:16px;
-    }
-    .predict-bg::before {
-      content:''; position:absolute; inset:-2px; z-index:-1;
-      background: linear-gradient(135deg, #ff7a18, #ef4444, #facc15, #ff7a18);
-      background-size:300% 300%;
-      border-radius:18px;
-      animation: predict-border 6s ease infinite;
-      filter:blur(8px); opacity:.5;
-    }
-    @keyframes predict-border {
-      0%,100% { background-position:0% 50%; }
-      50% { background-position:100% 50%; }
+      background: #13171f;
+      border:1px solid rgba(255,122,24,.3);
+      border-radius:12px;
     }
     .predict-shimmer {
       position:absolute; top:0; left:-100%; width:60%; height:100%; z-index:1; pointer-events:none;
@@ -708,18 +697,17 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     .predict-submit-btn-c {
       width:100%; position:relative; overflow:hidden;
       padding:8px 12px; margin-top:2px;
-      background:linear-gradient(135deg, #ff7a18 0%, #ef4444 50%, #ff7a18 100%);
-      background-size:200% 100%;
+      background:#ff7a18;
       color:#fff;
       border:none; border-radius:8px;
       cursor:pointer;
-      box-shadow:0 3px 10px rgba(255,122,24,.35), 0 0 0 1px rgba(255,212,128,.25) inset;
+      box-shadow:0 2px 6px rgba(255,122,24,.25);
       transition:all .2s ease;
-      animation: btn-gradient 3s ease infinite;
     }
     .predict-submit-btn-c:hover {
+      background:#e56a0a;
       transform:translateY(-1px);
-      box-shadow:0 5px 16px rgba(255,122,24,.5), 0 0 0 1px rgba(255,212,128,.4) inset;
+      box-shadow:0 4px 10px rgba(255,122,24,.4);
     }
     .predict-submit-btn-c:active { transform:translateY(0); }
     .predict-submit-btn-c:disabled { opacity:.6; cursor:not-allowed; transform:none; }
@@ -739,10 +727,10 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       transform:translateY(-1px);
     }
     .stake-chip.active {
-      background:linear-gradient(135deg,#facc15,#f59e0b);
-      color:#1a0f08;
-      border-color:#facc15;
-      box-shadow:0 2px 8px rgba(250,204,21,.4);
+      background:#ff7a18;
+      color:#fff;
+      border-color:#ff7a18;
+      box-shadow:0 2px 6px rgba(255,122,24,.4);
     }
     </style>
 
