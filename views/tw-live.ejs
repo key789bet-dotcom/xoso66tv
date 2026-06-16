@@ -253,63 +253,65 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
               data-odds-ah-home="<%= _ahHome || '' %>"
               data-odds-ah-away="<%= _ahAway || '' %>">
 
-          <!-- ─── ROW 1: TÀI / XỈU (mốc từ API) ─── -->
-          <div class="mb-1.5">
-            <div class="flex items-center justify-between mb-1 px-0.5">
-              <span class="text-[10px] font-bold text-pri-light/90 uppercase">Tài/Xỉu</span>
-              <span class="text-[9px] font-bold text-yellow-300/90">Mốc <%= _predLines.ouLine %></span>
+          <!-- 🆕 ROW 1+2 gộp 1 hàng: TÀI/XỈU (trái) + KÈO CHẤP (phải) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+            <!-- Cột trái: TÀI/XỈU -->
+            <div>
+              <div class="flex items-center justify-between mb-1 px-0.5">
+                <span class="text-[10px] font-bold text-pri-light/90 uppercase">Tài/Xỉu</span>
+                <span class="text-[9px] font-bold text-yellow-300/90">Mốc <%= _predLines.ouLine %></span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <label class="predict-pick-c">
+                  <input type="radio" name="pickOU" value="tai">
+                  <div class="predict-pick-c-inner">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[11px] font-black text-white">TÀI</span>
+                      <span class="text-[9px] text-white/60">&gt;<%= _predLines.ouLine %></span>
+                    </div>
+                    <% if (_ouTai) { %><span class="predict-odds-c"><%= _ouTai.toFixed(2) %></span><% } %>
+                  </div>
+                </label>
+                <label class="predict-pick-c">
+                  <input type="radio" name="pickOU" value="xiu">
+                  <div class="predict-pick-c-inner">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[11px] font-black text-white">XỈU</span>
+                      <span class="text-[9px] text-white/60">&lt;<%= _predLines.ouLine %></span>
+                    </div>
+                    <% if (_ouXiu) { %><span class="predict-odds-c"><%= _ouXiu.toFixed(2) %></span><% } %>
+                  </div>
+                </label>
+              </div>
             </div>
-            <div class="grid grid-cols-2 gap-1.5">
-              <label class="predict-pick-c">
-                <input type="radio" name="pickOU" value="tai">
-                <div class="predict-pick-c-inner">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-[11px] font-black text-white">TÀI</span>
-                    <span class="text-[9px] text-white/60">&gt;<%= _predLines.ouLine %></span>
+            <!-- Cột phải: KÈO CHẤP -->
+            <div>
+              <div class="flex items-center justify-between mb-1 px-0.5">
+                <span class="text-[10px] font-bold text-pri-light/90 uppercase">Kèo chấp</span>
+                <span class="text-[9px] font-bold text-yellow-300/90"><%= _ahBadgeText() %></span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <label class="predict-pick-c">
+                  <input type="radio" name="pickAH" value="home">
+                  <div class="predict-pick-c-inner">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="text-[11px] font-black text-white truncate" title="<%= match.home %>"><%= (match.home||'').slice(0, 10) %></span>
+                      <span class="text-[9px] text-white/60 flex-shrink-0"><%= _ahPickLabel('home') %></span>
+                    </div>
+                    <% if (_ahHome) { %><span class="predict-odds-c"><%= _ahHome.toFixed(2) %></span><% } %>
                   </div>
-                  <% if (_ouTai) { %><span class="predict-odds-c"><%= _ouTai.toFixed(2) %></span><% } %>
-                </div>
-              </label>
-              <label class="predict-pick-c">
-                <input type="radio" name="pickOU" value="xiu">
-                <div class="predict-pick-c-inner">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-[11px] font-black text-white">XỈU</span>
-                    <span class="text-[9px] text-white/60">&lt;<%= _predLines.ouLine %></span>
+                </label>
+                <label class="predict-pick-c">
+                  <input type="radio" name="pickAH" value="away">
+                  <div class="predict-pick-c-inner">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="text-[11px] font-black text-white truncate" title="<%= match.away %>"><%= (match.away||'').slice(0, 10) %></span>
+                      <span class="text-[9px] text-white/60 flex-shrink-0"><%= _ahPickLabel('away') %></span>
+                    </div>
+                    <% if (_ahAway) { %><span class="predict-odds-c"><%= _ahAway.toFixed(2) %></span><% } %>
                   </div>
-                  <% if (_ouXiu) { %><span class="predict-odds-c"><%= _ouXiu.toFixed(2) %></span><% } %>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- ─── ROW 2: ASIAN HANDICAP (line từ API) ─── -->
-          <div class="mb-2">
-            <div class="flex items-center justify-between mb-1 px-0.5">
-              <span class="text-[10px] font-bold text-pri-light/90 uppercase">Kèo chấp</span>
-              <span class="text-[9px] font-bold text-yellow-300/90"><%= _ahBadgeText() %></span>
-            </div>
-            <div class="grid grid-cols-2 gap-1.5">
-              <label class="predict-pick-c">
-                <input type="radio" name="pickAH" value="home">
-                <div class="predict-pick-c-inner">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="text-[11px] font-black text-white truncate" title="<%= match.home %>"><%= (match.home||'').slice(0, 10) %></span>
-                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _ahPickLabel('home') %></span>
-                  </div>
-                  <% if (_ahHome) { %><span class="predict-odds-c"><%= _ahHome.toFixed(2) %></span><% } %>
-                </div>
-              </label>
-              <label class="predict-pick-c">
-                <input type="radio" name="pickAH" value="away">
-                <div class="predict-pick-c-inner">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="text-[11px] font-black text-white truncate" title="<%= match.away %>"><%= (match.away||'').slice(0, 10) %></span>
-                    <span class="text-[9px] text-white/60 flex-shrink-0"><%= _ahPickLabel('away') %></span>
-                  </div>
-                  <% if (_ahAway) { %><span class="predict-odds-c"><%= _ahAway.toFixed(2) %></span><% } %>
-                </div>
-              </label>
+                </label>
+              </div>
             </div>
           </div>
 
