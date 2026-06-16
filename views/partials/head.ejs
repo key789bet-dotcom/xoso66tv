@@ -7,6 +7,10 @@
 <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
 <link rel="icon" type="image/webp" href="/static/img/favicon.webp">
 <link rel="apple-touch-icon" href="/static/img/favicon.webp">
+<!-- 🚀 LAZY LOAD - auto add loading="lazy" + decoding="async" cho TẤT CẢ <img> không có sẵn attribute (tiết kiệm bandwidth, tăng PageSpeed) -->
+<script>document.addEventListener('DOMContentLoaded',function(){try{document.querySelectorAll('img:not([loading])').forEach(function(i){if(i.getBoundingClientRect().top>window.innerHeight){i.loading='lazy';i.decoding='async';}});}catch(e){}});
+// Observer cho img dynamic insert sau initial load
+if('IntersectionObserver' in window){window.addEventListener('load',function(){new MutationObserver(function(muts){muts.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1){var imgs=n.tagName==='IMG'?[n]:n.querySelectorAll?n.querySelectorAll('img:not([loading])'):[];imgs.forEach(function(i){i.loading='lazy';i.decoding='async';});}});});}).observe(document.body,{childList:true,subtree:true});});}</script>
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#ff7a18">

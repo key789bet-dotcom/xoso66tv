@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v57-2026-06-16-og-article-pass-badges';
+const VERSION = 'v58-2026-06-16-upload-seo-compress-lazyload';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

@@ -1130,16 +1130,17 @@ const avatarUpload = multer({
 
 // POST /api/upload/avatar - user upload avatar của mình
 // Multipart form-data, field name: "avatar"
-app.post('/api/upload/avatar', pubAuth.requireLogin, avatarUpload.single('avatar'), function (req, res) {
+app.post('/api/upload/avatar', pubAuth.requireLogin, avatarUpload.single('avatar'), async function (req, res) {
   const user = res.locals.publicUser || pubAuth.getUser(req) || {};
   if (!user.username) return res.status(401).json({ ok:false, error:'Cần đăng nhập' });
   if (!req.file)       return res.json({ ok:false, error:'Không có file upload' });
 
   try {
     const ext = (req.file.mimetype.match(/\/(jpe?g|png|webp|gif)/i) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg');
-    const fname = user.username + '_' + Date.now().toString(36) + '.' + ext;
-    const filepath = path.join(AVATAR_DIR, fname);
-    fs.writeFileSync(filepath, req.file.buffer);
+    // 🆕 SEO filename + auto-compress (sharp 800px max, quality 85)
+    const uploadHelper = require('./lib/upload-helper');
+    const fname = uploadHelper.seoFilename(['avatar', user.username, user.fullname], ext);
+    await uploadHelper.compressAndSave(req.file.buffer, AVATAR_DIR, fname, { maxWidth: 800, quality: 85 });
     const url = '/uploads/avatars/' + fname;
 
     const data = db.load();
@@ -2326,16 +2327,17 @@ app.get('/api/admin/league-bg/list', pubAuth.requireAdmin, async function(req, r
 
 // ADMIN: POST upload ảnh cho 1 giải
 // form-data: leagueName=string, file=image
-app.post('/api/admin/league-bg/upload', pubAuth.requireAdmin, leagueBgUpload.single('file'), function(req, res) {
+app.post('/api/admin/league-bg/upload', pubAuth.requireAdmin, leagueBgUpload.single('file'), async function(req, res) {
   try {
     const leagueName = String((req.body && req.body.leagueName) || '').trim();
     if (!leagueName) return res.json({ ok:false, error:'Thiếu tên giải đấu' });
     if (!req.file)   return res.json({ ok:false, error:'Thiếu file ảnh' });
 
     const ext = (req.file.mimetype.match(/\/(jpe?g|png|webp|gif)/i) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg');
-    const slug = leagueName.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
-    const fname = 'league_' + slug + '_' + Date.now().toString(36) + '.' + ext;
-    fs.writeFileSync(path.join(LEAGUE_BG_DIR, fname), req.file.buffer);
+    // 🆕 SEO filename + auto-compress (banner ngang max 1920px, quality 82)
+    const uploadHelper = require('./lib/upload-helper');
+    const fname = uploadHelper.seoFilename(['league', leagueName, 'banner'], ext);
+    await uploadHelper.compressAndSave(req.file.buffer, LEAGUE_BG_DIR, fname, { maxWidth: 1920, quality: 82 });
     const url = '/uploads/leagues/' + fname;
 
     // Xoá ảnh cũ nếu có
