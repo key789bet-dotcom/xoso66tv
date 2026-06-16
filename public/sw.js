@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v40-2026-06-16-fab-icon-visible';
+const VERSION = 'v41-2026-06-16-cat-svg-icons';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
