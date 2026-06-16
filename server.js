@@ -171,6 +171,19 @@ app.use('/static', express.static(path.join(__dirname, 'public'), {
     }
   }
 }));
+// 🔑 IndexNow key verification — serve /{key}.txt từ public/ ở ROOT (cần cho IndexNow API)
+// Spec: https://www.indexnow.org/documentation
+app.get(/^\/([a-f0-9]{8,128})\.txt$/, function(req, res) {
+  const fs = require('fs');
+  const key = req.params[0];
+  const file = path.join(__dirname, 'public', key + '.txt');
+  fs.readFile(file, 'utf8', function(err, content) {
+    if (err) return res.status(404).type('text/plain').send('Not found');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.type('text/plain').send(content);
+  });
+});
+
 // User-uploaded avatars (persist outside public/ để không bị git overwrite)
 const fs = require('fs');
 const AVATAR_DIR = path.join(__dirname, 'uploads', 'avatars');
