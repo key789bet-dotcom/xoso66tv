@@ -1,0 +1,125 @@
+<%
+seo = {
+  title: 'Bảng xếp hạng bóng đá - BXH '+(standings && standings.league ? standings.league.name : 'NHA, La Liga, V-League')+' | XOSO66 TV',
+  description: 'Bảng xếp hạng bóng đá mới nhất: Ngoại Hạng Anh, La Liga, Bundesliga, Champions League, V-League. Điểm số, thắng-thua-hòa, hiệu số bàn thắng.',
+  keywords: 'bảng xếp hạng bóng đá, bxh ngoại hạng anh, bxh la liga, bxh v-league, bxh c1, xoso66, xổ số 66',
+  canonical: '/bxh' + (currentLeague ? '?giai='+currentLeague : ''),
+  breadcrumb: [{ name:'Bảng xếp hạng bóng đá', url:'/bxh' }]
+};
+
+var _leagueTabs = [
+  { key:'premier-league', name:'Ngoại Hạng Anh', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { key:'la-liga',        name:'La Liga',         flag:'🇪🇸' },
+  { key:'bundesliga',     name:'Bundesliga',      flag:'🇩🇪' },
+  { key:'serie-a',        name:'Serie A',          flag:'🇮🇹' },
+  { key:'ligue-1',        name:'Ligue 1',          flag:'🇫🇷' },
+  { key:'champions-league',name:'Champions League',flag:'🏆' },
+  { key:'v-league',       name:'V-League',         flag:'🇻🇳' }
+];
+%>
+<%- include('partials/tw-layout-start', { active: 'bxh' }) %>
+
+<main class="max-w-[1280px] mx-auto px-3 md:px-6 py-4">
+  <!-- HERO -->
+  <header class="mb-5">
+    <h1 class="text-2xl md:text-4xl font-black text-white mb-2">
+      🏆 Bảng xếp hạng bóng đá
+    </h1>
+    <p class="text-muted text-sm md:text-base">
+      Cập nhật điểm số, thắng-thua-hòa, hiệu số bàn thắng tất cả giải đấu hàng đầu thế giới.
+    </p>
+  </header>
+
+  <!-- TABS giải -->
+  <nav class="flex flex-wrap gap-2 mb-5 overflow-x-auto pb-1">
+    <% _leagueTabs.forEach(function(lg){
+      var active = currentLeague === lg.key;
+    %>
+      <a href="/bxh?giai=<%= lg.key %>" class="<%= active ? 'bg-pri text-white shadow-pri' : 'bg-bg-card border border-line text-gray-300 hover:border-pri hover:text-pri-light' %> px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all flex items-center gap-1.5">
+        <span><%= lg.flag %></span> <%= lg.name %>
+      </a>
+    <% }); %>
+  </nav>
+
+  <!-- BXH TABLE -->
+  <% if (standings && standings.rows && standings.rows.length) { %>
+    <section class="bg-bg-card border border-line rounded-xl overflow-hidden">
+      <header class="bg-gradient-to-r from-pri to-pri-dark px-4 py-3 flex items-center justify-between">
+        <h2 class="text-white font-extrabold text-base md:text-lg flex items-center gap-2">
+          🏆 <%= standings.league.name %>
+          <% if (standings.league.season) { %><span class="text-white/70 text-xs font-semibold">Mùa <%= standings.league.season %></span><% } %>
+        </h2>
+        <span class="text-white/90 text-xs font-semibold"><%= standings.rows.length %> đội</span>
+      </header>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-bg-deep border-b border-line text-muted">
+            <tr>
+              <th class="px-3 py-2.5 text-left">#</th>
+              <th class="px-3 py-2.5 text-left">Đội</th>
+              <th class="px-2 py-2.5 text-center">Trận</th>
+              <th class="px-2 py-2.5 text-center text-green-400">T</th>
+              <th class="px-2 py-2.5 text-center text-yellow-400">H</th>
+              <th class="px-2 py-2.5 text-center text-red-400">B</th>
+              <th class="px-2 py-2.5 text-center hidden md:table-cell">BT-BB</th>
+              <th class="px-2 py-2.5 text-center hidden md:table-cell">+/-</th>
+              <th class="px-3 py-2.5 text-center font-extrabold text-gold">Điểm</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% standings.rows.forEach(function(r, idx){
+              var rank = r.rank || (idx + 1);
+              var rankColor = rank <= 4 ? 'text-green-400' : rank >= standings.rows.length - 2 ? 'text-red-400' : 'text-white';
+            %>
+              <tr class="border-b border-line/50 hover:bg-bg-deep/50 transition-colors">
+                <td class="px-3 py-2.5 font-black <%= rankColor %>"><%= rank %></td>
+                <td class="px-3 py-2.5">
+                  <div class="flex items-center gap-2">
+                    <% if (r.badge) { %><img src="<%= r.badge %>" alt="<%= r.team %>" class="w-6 h-6 rounded-full bg-white p-0.5 flex-shrink-0" loading="lazy"><% } %>
+                    <span class="text-white font-semibold"><%= r.team %></span>
+                  </div>
+                </td>
+                <td class="px-2 py-2.5 text-center text-gray-300 tabular-nums"><%= r.played || 0 %></td>
+                <td class="px-2 py-2.5 text-center text-green-400 tabular-nums"><%= r.won || 0 %></td>
+                <td class="px-2 py-2.5 text-center text-yellow-400 tabular-nums"><%= r.drawn || 0 %></td>
+                <td class="px-2 py-2.5 text-center text-red-400 tabular-nums"><%= r.lost || 0 %></td>
+                <td class="px-2 py-2.5 text-center text-gray-300 tabular-nums hidden md:table-cell"><%= (r.goalsFor || 0) %>:<%= (r.goalsAgainst || 0) %></td>
+                <td class="px-2 py-2.5 text-center tabular-nums hidden md:table-cell <%= (r.goalDiff || 0) > 0 ? 'text-green-400' : (r.goalDiff || 0) < 0 ? 'text-red-400' : 'text-gray-400' %>">
+                  <%= (r.goalDiff || 0) > 0 ? '+' : '' %><%= r.goalDiff || 0 %>
+                </td>
+                <td class="px-3 py-2.5 text-center font-black text-gold tabular-nums"><%= r.points || 0 %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <footer class="bg-bg-deep px-4 py-2.5 text-[10px] text-muted flex flex-wrap gap-3">
+        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-green-400 rounded-full"></span> Champions League</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-red-400 rounded-full"></span> Xuống hạng</span>
+      </footer>
+    </section>
+  <% } else { %>
+    <div class="bg-bg-card border border-line rounded-xl p-8 text-center">
+      <div class="text-5xl mb-3">📊</div>
+      <h2 class="text-white text-lg font-bold mb-1">Đang cập nhật bảng xếp hạng</h2>
+      <p class="text-muted text-sm">API tạm thời chưa có data cho giải này. Vui lòng chọn giải khác hoặc thử lại sau.</p>
+    </div>
+  <% } %>
+
+  <!-- SEO ARTICLE -->
+  <article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
+    <h2 class="text-white text-xl font-extrabold mb-3">Bảng xếp hạng bóng đá XOSO66 TV - Cập nhật realtime</h2>
+    <p class="text-gray-300 text-sm leading-relaxed mb-3">
+      <b class="text-pri-light">BXH XOSO66</b> tổng hợp bảng xếp hạng tất cả các giải đấu hàng đầu thế giới: Ngoại Hạng Anh, La Liga, Bundesliga, Serie A, Ligue 1, Champions League, V-League. Dữ liệu cập nhật ngay sau mỗi trận đấu kết thúc. Hiển thị đầy đủ: vị trí, số trận đá, thắng-hòa-bại, hiệu số bàn thắng, tổng điểm.
+    </p>
+    <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Ý nghĩa màu sắc trên BXH</h3>
+    <p class="text-gray-300 text-sm leading-relaxed mb-2">
+      <b class="text-green-400">Màu xanh lá (Top 4)</b>: Suất dự Champions League mùa sau. <b class="text-red-400">Màu đỏ (3 cuối bảng)</b>: Khu vực xuống hạng. <b class="text-gold">Cột Điểm vàng</b>: Tổng điểm xếp hạng (Thắng = 3đ, Hòa = 1đ, Thua = 0đ).
+    </p>
+    <p class="text-gray-300 text-sm leading-relaxed">
+      Xem thêm <a href="/livescore" class="text-pri-light hover:underline">tỷ số trực tiếp</a> các trận đang đá, <a href="/ket-qua" class="text-pri-light hover:underline">kết quả</a> trận đã kết thúc và <a href="/lich-phat-song" class="text-pri-light hover:underline">lịch thi đấu</a> sắp tới để theo dõi sát sao biến động BXH.
+    </p>
+  </article>
+</main>
+
+<%- include('partials/tw-footer') %>

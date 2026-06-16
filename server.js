@@ -3012,14 +3012,37 @@ app.post('/api/admin/predict/settle', pubAuth.requireAdmin, function (req, res) 
 app.get('/thoa-thuan-phat-song',   function (req, res) { res.render('tw-thoa-thuan-phat-song',   { active:'static' }); });
 app.get('/dieu-khoan-su-dung',     function (req, res) { res.render('tw-dieu-khoan-su-dung',     { active:'static' }); });
 
-// 🆕 7 REDIRECTS FIX 404 (audit phát hiện) — 301 permanent, giữ SEO juice
+// 🆕 4 REDIRECTS FIX 404 (audit phát hiện) — 301 permanent
 app.get('/the-thao',  function (req, res) { res.redirect(301, '/the-thao/bong-da'); });
 app.get('/bao-mat',   function (req, res) { res.redirect(301, '/chinh-sach-bao-mat'); });
 app.get('/dieu-khoan',function (req, res) { res.redirect(301, '/dieu-khoan-su-dung'); });
 app.get('/khuyen-mai',function (req, res) { res.redirect(301, '/su-kien'); });
-app.get('/livescore', function (req, res) { res.redirect(301, '/lich-phat-song'); });
-app.get('/bxh',       function (req, res) { res.redirect(301, '/lich-phat-song'); });
-app.get('/ket-qua',   function (req, res) { res.redirect(301, '/lich-phat-song'); });
+
+// 🆕 3 trang SEO RIÊNG: Livescore + Kết quả + BXH (boost SEO traffic)
+app.get('/livescore', async function (req, res, next) {
+  try {
+    const [liveMatches, upcomingMatches] = await Promise.all([
+      api.getLiveStreams().catch(() => []),
+      api.getUpcomingStreams(null, 24).catch(() => [])
+    ]);
+    res.render('tw-livescore', { active:'livescore', liveMatches: liveMatches || [], upcomingMatches: upcomingMatches || [] });
+  } catch (e) { next(e); }
+});
+
+app.get('/ket-qua', async function (req, res, next) {
+  try {
+    const finishedMatches = await api.getFinishedStreams(null, 60).catch(() => []);
+    res.render('tw-ket-qua', { active:'ket-qua', finishedMatches: finishedMatches || [] });
+  } catch (e) { next(e); }
+});
+
+app.get('/bxh', async function (req, res, next) {
+  try {
+    const currentLeague = String(req.query.giai || 'premier-league').toLowerCase();
+    const standings = await api.getStandings(currentLeague).catch(() => null);
+    res.render('tw-bxh', { active:'bxh', currentLeague: currentLeague, standings: standings });
+  } catch (e) { next(e); }
+});
 app.get('/bo-suu-tap-qua',         function (req, res) { res.render('tw-bo-suu-tap-qua',         { active:'static' }); });
 
 app.use('/admin', admin);

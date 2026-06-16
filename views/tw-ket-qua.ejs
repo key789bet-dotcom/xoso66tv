@@ -1,0 +1,111 @@
+<%
+var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+seo = {
+  title: 'Kết quả bóng đá '+_todayVi+' - Tỷ số chung cuộc | XOSO66 TV',
+  description: 'Kết quả bóng đá '+_todayVi+' & 2 ngày trước: '+finishedMatches.length+' trận với tỷ số chính xác. Ngoại Hạng Anh, La Liga, V-League. Xem highlight Full HD.',
+  keywords: 'kết quả bóng đá, kết quả bóng đá hôm nay, tỷ số bóng đá, ket qua bong da, xoso66, xổ số 66',
+  canonical: '/ket-qua',
+  breadcrumb: [{ name:'Kết quả bóng đá', url:'/ket-qua' }]
+};
+
+// Group matches by date
+var _grouped = {};
+(finishedMatches || []).forEach(function(m){
+  var d = m.date || 'Khác';
+  if (!_grouped[d]) _grouped[d] = [];
+  _grouped[d].push(m);
+});
+var _dates = Object.keys(_grouped).sort().reverse();
+%>
+<%- include('partials/tw-layout-start', { active: 'ket-qua' }) %>
+
+<main class="max-w-[1280px] mx-auto px-3 md:px-6 py-4">
+  <!-- HERO -->
+  <header class="mb-5">
+    <h1 class="text-2xl md:text-4xl font-black text-white mb-2">
+      🏆 Kết quả bóng đá <%= _todayVi %>
+    </h1>
+    <p class="text-muted text-sm md:text-base">
+      Tỷ số chung cuộc <b class="text-pri-light"><%= finishedMatches.length %></b> trận đã kết thúc trong 3 ngày qua. Click để xem highlight + bình luận chi tiết.
+    </p>
+  </header>
+
+  <!-- RESULTS BY DATE -->
+  <% if (finishedMatches.length === 0) { %>
+    <div class="bg-bg-card border border-line rounded-xl p-8 text-center mb-5">
+      <div class="text-5xl mb-3">📊</div>
+      <h2 class="text-white text-lg font-bold mb-1">Chưa có kết quả</h2>
+      <p class="text-muted text-sm mb-4">Các trận chưa kết thúc. Xem lịch hoặc tỷ số trực tiếp nhé!</p>
+      <div class="flex flex-wrap gap-2 justify-center">
+        <a href="/livescore" class="bg-live hover:bg-red-700 text-white px-5 py-2.5 rounded-full font-bold text-sm">🔴 Livescore</a>
+        <a href="/lich-phat-song" class="bg-pri hover:bg-pri-dark text-white px-5 py-2.5 rounded-full font-bold text-sm">📅 Lịch sắp tới</a>
+      </div>
+    </div>
+  <% } else { %>
+    <% _dates.forEach(function(d){
+      var dateLabel = d;
+      try {
+        var dt = new Date(d);
+        var dd = String(dt.getDate()).padStart(2,'0');
+        var mm = String(dt.getMonth()+1).padStart(2,'0');
+        dateLabel = dd+'/'+mm+'/'+dt.getFullYear();
+        if (d === new Date().toISOString().slice(0,10)) dateLabel = 'Hôm nay ('+dateLabel+')';
+      } catch(e){}
+    %>
+      <section class="mb-6">
+        <div class="flex items-center gap-2.5 mb-3.5">
+          <span class="w-1 h-5 bg-pri rounded-sm"></span>
+          <h2 class="text-lg font-extrabold text-white">📅 <%= dateLabel %> (<%= _grouped[d].length %> trận)</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <% _grouped[d].forEach(function(m){ %>
+            <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri transition-all">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1 flex-1">⚽ <%= m.league %></span>
+                <span class="bg-black/60 text-gray-300 text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex-1 text-center min-w-0">
+                  <% if (m.homeBadge) { %><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
+                  <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.home %></div>
+                </div>
+                <div class="text-center flex-shrink-0 px-2">
+                  <% if (m.score) {
+                    var hWin = m.score[0] > m.score[1], aWin = m.score[0] < m.score[1];
+                  %>
+                    <div class="text-2xl md:text-3xl font-black tabular-nums leading-none">
+                      <span class="<%= hWin?'text-gold':'text-white' %>"><%= m.score[0] %></span>
+                      <span class="text-pri mx-0.5">-</span>
+                      <span class="<%= aWin?'text-gold':'text-white' %>"><%= m.score[1] %></span>
+                    </div>
+                  <% } else { %>
+                    <div class="text-xl font-black text-gray-400">?-?</div>
+                  <% } %>
+                  <div class="text-muted text-[10px] font-semibold mt-1"><%= m.time || '' %></div>
+                </div>
+                <div class="flex-1 text-center min-w-0">
+                  <% if (m.awayBadge) { %><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
+                  <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.away %></div>
+                </div>
+              </div>
+            </a>
+          <% }); %>
+        </div>
+      </section>
+    <% }); %>
+  <% } %>
+
+  <!-- SEO ARTICLE -->
+  <article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
+    <h2 class="text-white text-xl font-extrabold mb-3">Kết quả bóng đá hôm nay - Cập nhật nhanh nhất tại XOSO66 TV</h2>
+    <p class="text-gray-300 text-sm leading-relaxed mb-3">
+      <b class="text-pri-light">Kết quả bóng đá XOSO66</b> tổng hợp tỷ số chung cuộc tất cả các trận đã kết thúc trong 3 ngày gần đây. Bao phủ toàn bộ giải đấu lớn: Ngoại Hạng Anh, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, V-League, J-League. Click vào mỗi trận để xem chi tiết: highlight, thống kê, đội hình, thẻ phạt, bàn thắng.
+    </p>
+    <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Cập nhật tự động từ API chính thống</h3>
+    <p class="text-gray-300 text-sm leading-relaxed">
+      Dữ liệu kết quả được lấy realtime từ API chính thống của các tổ chức bóng đá quốc tế. Sai số gần như bằng 0. Ngoài <b class="text-white">kết quả trận đã đá</b>, bạn có thể xem <a href="/livescore" class="text-pri-light hover:underline">tỷ số livescore</a> các trận đang đá, <a href="/lich-phat-song" class="text-pri-light hover:underline">lịch thi đấu</a> sắp tới và <a href="/bxh" class="text-pri-light hover:underline">bảng xếp hạng</a> mới nhất.
+    </p>
+  </article>
+</main>
+
+<%- include('partials/tw-footer') %>

@@ -1,0 +1,113 @@
+<%
+var _today = new Date(); var _todayVi = _today.getDate()+'/'+(_today.getMonth()+1)+'/'+_today.getFullYear();
+seo = {
+  title: 'Livescore - Tỷ số trực tiếp bóng đá '+_todayVi+' | XOSO66 TV',
+  description: 'Cập nhật tỷ số trực tiếp '+liveMatches.length+' trận đang đá '+_todayVi+': Ngoại Hạng Anh, La Liga, Bundesliga, V-League. Bình luận tiếng Việt Full HD miễn phí.',
+  keywords: 'livescore, ty so truc tiep, tỷ số trực tiếp bóng đá, livescore 7m, livescore bongda, xoso66, xổ số 66',
+  canonical: '/livescore',
+  breadcrumb: [{ name:'Livescore - Tỷ số trực tiếp', url:'/livescore' }]
+};
+%>
+<%- include('partials/tw-layout-start', { active: 'livescore' }) %>
+
+<main class="max-w-[1280px] mx-auto px-3 md:px-6 py-4">
+  <!-- HERO -->
+  <header class="mb-5">
+    <h1 class="text-2xl md:text-4xl font-black text-white mb-2">
+      🔴 Livescore - Tỷ số trực tiếp <%= _todayVi %>
+    </h1>
+    <p class="text-muted text-sm md:text-base">
+      Cập nhật <b class="text-pri-light"><%= liveMatches.length %></b> trận đang đá realtime + lịch sắp tới trong ngày. Tự động refresh mỗi 30 giây.
+    </p>
+  </header>
+
+  <!-- LIVE MATCHES -->
+  <% if (liveMatches.length === 0) { %>
+    <div class="bg-bg-card border border-line rounded-xl p-8 text-center mb-5">
+      <div class="text-5xl mb-3">⏰</div>
+      <h2 class="text-white text-lg font-bold mb-1">Chưa có trận nào đang đá</h2>
+      <p class="text-muted text-sm mb-4">Các trận chưa bắt đầu. Xem lịch để đón chờ trận hot nhé!</p>
+      <a href="/lich-phat-song" class="inline-block bg-pri hover:bg-pri-dark text-white px-5 py-2.5 rounded-full font-bold text-sm">📅 Xem lịch phát sóng</a>
+    </div>
+  <% } else { %>
+    <section class="mb-6">
+      <div class="flex items-center gap-2.5 mb-3.5">
+        <span class="w-1 h-5 bg-live rounded-sm"></span>
+        <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
+          <span class="w-2 h-2 bg-live rounded-full animate-pulse-live"></span>
+          ĐANG ĐÁ (<%= liveMatches.length %>)
+        </h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <% liveMatches.forEach(function(m){ %>
+          <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri hover:shadow-pri transition-all flex flex-col">
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-pri-light text-[11px] font-bold uppercase tracking-wider line-clamp-1 flex-1">⚽ <%= m.league %></span>
+              <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex-1 text-center min-w-0">
+                <% if (m.homeBadge) { %><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
+                <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.home %></div>
+              </div>
+              <div class="text-center flex-shrink-0 px-2">
+                <% if (m.score) { %>
+                  <div class="text-2xl md:text-3xl font-black text-gold tabular-nums leading-none"><%= m.score[0] %><span class="text-pri mx-0.5">-</span><%= m.score[1] %></div>
+                <% } else { %>
+                  <div class="text-xl font-black text-pri">VS</div>
+                <% } %>
+                <div class="text-live text-[10px] font-bold mt-1 animate-pulse">● <%= m.statusText || 'LIVE' %></div>
+              </div>
+              <div class="flex-1 text-center min-w-0">
+                <% if (m.awayBadge) { %><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
+                <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.away %></div>
+              </div>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+
+  <!-- SẮP DIỄN RA -->
+  <% if (upcomingMatches && upcomingMatches.length) { %>
+    <section class="mb-6">
+      <div class="flex items-center gap-2.5 mb-3.5">
+        <span class="w-1 h-5 bg-pri rounded-sm"></span>
+        <h2 class="text-lg font-extrabold text-white">⏰ SẮP DIỄN RA (<%= upcomingMatches.length %>)</h2>
+        <a href="/lich-phat-song" class="ml-auto text-sm text-pri-light font-semibold">Lịch đầy đủ →</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <% upcomingMatches.slice(0, 12).forEach(function(m){ %>
+          <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1">⚽ <%= m.league %></span>
+              <span class="bg-gradient-to-r from-pri to-pri-dark text-white text-[10px] font-extrabold px-2 py-0.5 rounded">⏰ <%= m.time %></span>
+            </div>
+            <div class="text-white text-sm font-bold line-clamp-2"><%= m.home %> vs <%= m.away %></div>
+            <div class="text-muted text-xs mt-1.5"><%= m.date %></div>
+          </a>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+
+  <!-- SEO ARTICLE -->
+  <article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
+    <h2 class="text-white text-xl font-extrabold mb-3">Livescore XOSO66 TV - Cập nhật tỷ số nhanh nhất Việt Nam</h2>
+    <p class="text-gray-300 text-sm leading-relaxed mb-3">
+      <b class="text-pri-light">Livescore XOSO66</b> cung cấp tỷ số trực tiếp các trận bóng đá đang diễn ra trên toàn thế giới: <a href="/lich-phat-song" class="text-pri-light hover:underline">Ngoại Hạng Anh</a>, La Liga, Bundesliga, Serie A, Ligue 1, V-League, World Cup, Champions League. Dữ liệu cập nhật từng giây thông qua API chính thống, đảm bảo chính xác tuyệt đối. Click vào bất kỳ trận nào để xem trực tiếp Full HD 1080p với <a href="/lich-phat-song" class="text-pri-light hover:underline">BLV bình luận tiếng Việt</a>.
+    </p>
+    <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Điểm khác biệt của Livescore XOSO66</h3>
+    <p class="text-gray-300 text-sm leading-relaxed">
+      Khác với các trang livescore khác chỉ hiện tỷ số, XOSO66 TV tích hợp <b class="text-white">livestream Full HD miễn phí</b> ngay khi click vào trận. Bạn không cần chuyển sang web khác, tiết kiệm thời gian. Ngoài ra còn có <a href="/bxh" class="text-pri-light hover:underline">bảng xếp hạng</a>, <a href="/ket-qua" class="text-pri-light hover:underline">kết quả trận đã đá</a> và <a href="/tin-tuc" class="text-pri-light hover:underline">nhận định chuyên gia AI</a> mỗi ngày.
+    </p>
+  </article>
+</main>
+
+<!-- Auto-refresh livescore mỗi 30s (chỉ khi có trận live) -->
+<% if (liveMatches.length > 0) { %>
+<script>setTimeout(function(){location.reload();}, 30000);</script>
+<% } %>
+
+<%- include('partials/tw-footer') %>
