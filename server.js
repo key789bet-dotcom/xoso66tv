@@ -3011,6 +3011,15 @@ app.post('/api/admin/predict/settle', pubAuth.requireAdmin, function (req, res) 
 });
 app.get('/thoa-thuan-phat-song',   function (req, res) { res.render('tw-thoa-thuan-phat-song',   { active:'static' }); });
 app.get('/dieu-khoan-su-dung',     function (req, res) { res.render('tw-dieu-khoan-su-dung',     { active:'static' }); });
+
+// 🆕 7 REDIRECTS FIX 404 (audit phát hiện) — 301 permanent, giữ SEO juice
+app.get('/the-thao',  function (req, res) { res.redirect(301, '/the-thao/bong-da'); });
+app.get('/bao-mat',   function (req, res) { res.redirect(301, '/chinh-sach-bao-mat'); });
+app.get('/dieu-khoan',function (req, res) { res.redirect(301, '/dieu-khoan-su-dung'); });
+app.get('/khuyen-mai',function (req, res) { res.redirect(301, '/su-kien'); });
+app.get('/livescore', function (req, res) { res.redirect(301, '/lich-phat-song'); });
+app.get('/bxh',       function (req, res) { res.redirect(301, '/lich-phat-song'); });
+app.get('/ket-qua',   function (req, res) { res.redirect(301, '/lich-phat-song'); });
 app.get('/bo-suu-tap-qua',         function (req, res) { res.render('tw-bo-suu-tap-qua',         { active:'static' }); });
 
 app.use('/admin', admin);
