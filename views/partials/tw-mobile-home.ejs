@@ -192,9 +192,11 @@ _cnt.all = _cards.length;
     <script>
     (function initMhLivePreview(){
       var candidates = <%- JSON.stringify(_liveCandidates) %>;
-      if (!candidates.length) return;
+      // Fallback link khi không có idol/blv live: trận đầu tiên hoặc /lich-phat-song
+      var fallbackHref = <%- JSON.stringify(_featuredLink || '/lich-phat-song') %>;
 
       var box = document.getElementById('mhLivePreview');
+      if (!box) return;  // Defensive: chỉ skip nếu element không tồn tại
       var video = document.getElementById('mhLiveVideo');
       var poster = document.getElementById('mhLivePoster');
       var gradient = document.getElementById('mhLiveGradient');
@@ -206,7 +208,8 @@ _cnt.all = _cards.length;
 
       var currentStream = null;
       var flvPlayer = null;
-      var clickHref = candidates[0].href;
+      // Click href: ưu tiên candidate đầu tiên, fallback về trận đầu hoặc lịch
+      var clickHref = (candidates[0] && candidates[0].href) || fallbackHref;
 
       // Click toàn vùng → vào phòng
       box.addEventListener('click', function(e){
@@ -282,6 +285,8 @@ _cnt.all = _cards.length;
       }
 
       function start(){
+        // Skip FLV stream nếu không có candidates (click handler vẫn hoạt động bình thường)
+        if (!candidates.length) return;
         if (!window.flvjs) { setTimeout(start, 300); return; }
         tryNext();
         // Recheck mỗi 30s nếu chưa có stream
