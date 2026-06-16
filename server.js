@@ -517,7 +517,13 @@ app.get('/og/article/:slug.png', function(req, res){
       title: art.title,
       league: art.league,
       predictedScore: art.predictedScore,
-      author: art.author
+      author: art.author,
+      // 🆕 PASS đủ field để composite logo + name 2 team
+      home: art.home,
+      away: art.away,
+      homeBadge: art.homeBadge,
+      awayBadge: art.awayBadge,
+      leagueLogo: art.leagueLogo
     }));
   } catch(e) { sendOgImage(res, ogImage.getDefault()); }
 });

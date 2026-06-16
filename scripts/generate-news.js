@@ -203,6 +203,8 @@ async function main() {
         homeBadge: m.homeBadge,
         awayBadge: m.awayBadge,
         league: m.league || m.sport,
+        leagueLogo: m.leagueLogo || '',
+        leagueId: m.leagueId || null,
         matchTime: (m.time || '') + ' ' + (m.date || ''),
         author: 'XOSO66 TV Analyst'
       });
