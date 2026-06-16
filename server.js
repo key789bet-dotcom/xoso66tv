@@ -2039,6 +2039,9 @@ const giftTxStore= require('./lib/gift-tx-store');
 // Expose PREMIUM_GIFTS cho EJS template (modal tặng quà thật) - EJS không có require()
 app.locals.PREMIUM_GIFTS = giftsLib.PREMIUM_GIFTS;
 
+// 🔥 Microsoft Clarity Project ID — pass qua app.locals vì EJS scope không có process.env
+app.locals.CLARITY_ID = process.env.CLARITY_PROJECT_ID || '';
+
 // ⚡ Tailwind precompiled detection - check file đã build chưa
 try {
   const builtCssPath = path.join(__dirname, 'public', 'css', 'tailwind-built.css');
