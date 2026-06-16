@@ -135,6 +135,25 @@ try {
   console.warn('[perf] compression not installed, skip (npm i compression)');
 }
 
+// 🔑 IndexNow key verification — serve /{key}.txt từ public/ ở ROOT
+// PHẢI mount TRƯỚC html-cache + csrf để tránh middleware can thiệp
+// Spec: https://www.indexnow.org/documentation
+app.get(/^\/([a-f0-9]{8,128})\.txt$/, function(req, res) {
+  try {
+    const _fs = require('fs');
+    const key = req.params[0];
+    const file = path.join(__dirname, 'public', key + '.txt');
+    _fs.readFile(file, 'utf8', function(err, content) {
+      if (err) return res.status(404).type('text/plain').send('Not found');
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.type('text/plain').send(content);
+    });
+  } catch(e) {
+    console.error('[indexnow-key-route]', e.message);
+    res.status(500).type('text/plain').send('Error');
+  }
+});
+
 // (Cache-Control cho HTML page được set ở middleware bên dưới sau apiLimiter để tránh override)
 
 app.use(express.json({ limit: '100kb' }));
@@ -171,19 +190,6 @@ app.use('/static', express.static(path.join(__dirname, 'public'), {
     }
   }
 }));
-// 🔑 IndexNow key verification — serve /{key}.txt từ public/ ở ROOT (cần cho IndexNow API)
-// Spec: https://www.indexnow.org/documentation
-app.get(/^\/([a-f0-9]{8,128})\.txt$/, function(req, res) {
-  const fs = require('fs');
-  const key = req.params[0];
-  const file = path.join(__dirname, 'public', key + '.txt');
-  fs.readFile(file, 'utf8', function(err, content) {
-    if (err) return res.status(404).type('text/plain').send('Not found');
-    res.set('Cache-Control', 'public, max-age=86400');
-    res.type('text/plain').send(content);
-  });
-});
-
 // User-uploaded avatars (persist outside public/ để không bị git overwrite)
 const fs = require('fs');
 const AVATAR_DIR = path.join(__dirname, 'uploads', 'avatars');
