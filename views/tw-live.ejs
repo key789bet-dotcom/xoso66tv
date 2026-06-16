@@ -907,6 +907,44 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       </div>
     </aside>
 
+    <!-- 🆕 SEO ARTICLE BLOCK - bài viết dài chuẩn SEO 2026 (giống diendanbongda) -->
+    <article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-3.5 prose-seo">
+      <h2 class="text-white text-xl font-extrabold mb-3.5 leading-tight">
+        Trực tiếp <%= match.home %> vs <%= match.away %> &mdash; <%= match.league %>
+      </h2>
+      <p class="text-[14px] text-gray-300 leading-relaxed mb-4">
+        Xem <b class="text-white">trực tiếp <%= match.home %></b> đấu với <b class="text-white"><%= match.away %></b> vào lúc <b class="text-pri-light"><%= match.time %></b> ngày <b class="text-pri-light"><%= match.date %></b> thuộc khuôn khổ giải <b class="text-white"><%= match.league %></b> chất lượng <b class="text-gold">Full HD 1080p</b>, bình luận tiếng Việt cùng cộng đồng <b class="text-pri-light">XOSO66 TV</b>. Trang xem trực tiếp này được tối ưu cho mọi thiết bị (điện thoại, máy tính, smart TV), không giật lag, không quảng cáo gây phiền, miễn phí 24/7.
+      </p>
+
+      <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Thông tin chi tiết về trận đấu</h3>
+      <p class="text-[14px] text-gray-300 leading-relaxed mb-4">
+        Trận đấu giữa <b class="text-white"><%= match.home %></b> và <b class="text-white"><%= match.away %></b> hứa hẹn nhiều kịch tính.
+        <% if (match.score) { %>Tỷ số hiện tại là <b class="text-gold tabular-nums"><%= match.score[0] %> - <%= match.score[1] %></b>.<% } else { %>Trận đấu sẽ bắt đầu lúc <b class="text-pri-light"><%= match.time %></b> (giờ Việt Nam).<% } %>
+        Cập nhật <a href="/livescore" class="text-pri-light hover:underline font-semibold">livescore</a>, <a href="/bxh" class="text-pri-light hover:underline font-semibold">bảng xếp hạng</a>, <a href="/ty-le-keo" class="text-pri-light hover:underline font-semibold">tỷ lệ kèo</a> và <a href="/ket-qua" class="text-pri-light hover:underline font-semibold">kết quả các trận khác</a> ngay tại trang chủ.
+      </p>
+
+      <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Cách xem <%= match.home %> vs <%= match.away %> miễn phí</h3>
+      <p class="text-[14px] text-gray-300 leading-relaxed mb-4">
+        Để xem trực tiếp trận <b class="text-white"><%= match.home %> vs <%= match.away %></b>, bạn chỉ cần truy cập <b class="text-pri-light">xoso66tv.com</b>, không cần đăng ký tài khoản. Nếu muốn chat cùng BLV và cộng đồng, hãy đăng ký tài khoản miễn phí để tham gia bình luận trực tiếp. Stream hỗ trợ đầy đủ trên trình duyệt Chrome, Safari, Firefox, Cốc Cốc trên cả máy tính lẫn điện thoại Android/iOS.
+      </p>
+
+      <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Tham gia bình luận cùng cộng đồng</h3>
+      <p class="text-[14px] text-gray-300 leading-relaxed mb-2">
+        <a href="/dang-ky" class="text-pri-light hover:underline font-semibold">Đăng ký tài khoản</a> miễn phí để chat realtime với BLV và người hâm mộ khác, tham gia dự đoán tỷ số, săn X COIN, đổi quà tặng giá trị. Trang livescore của XOSO66 TV được cập nhật từng phút từ các nguồn dữ liệu chính thống, đảm bảo chính xác tuyệt đối.
+      </p>
+
+      <!-- Tags / Keywords -->
+      <div class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-line">
+        <span class="text-[10px] text-muted">Tags:</span>
+        <a href="/lich-phat-song" class="text-[10px] bg-bg-deep hover:bg-pri/20 text-pri-light px-2 py-0.5 rounded transition-colors">#<%= (match.home||'').replace(/\s+/g,'') %></a>
+        <a href="/lich-phat-song" class="text-[10px] bg-bg-deep hover:bg-pri/20 text-pri-light px-2 py-0.5 rounded transition-colors">#<%= (match.away||'').replace(/\s+/g,'') %></a>
+        <a href="/lich-phat-song" class="text-[10px] bg-bg-deep hover:bg-pri/20 text-pri-light px-2 py-0.5 rounded transition-colors">#<%= (match.league||'').replace(/\s+/g,'') %></a>
+        <a href="/livescore" class="text-[10px] bg-bg-deep hover:bg-pri/20 text-pri-light px-2 py-0.5 rounded transition-colors">#TructiepBongDa</a>
+        <a href="/ty-le-keo" class="text-[10px] bg-bg-deep hover:bg-pri/20 text-pri-light px-2 py-0.5 rounded transition-colors">#XOSO66TV</a>
+        <a href="/" class="text-[10px] bg-bg-deep hover:bg-pri/20 text-pri-light px-2 py-0.5 rounded transition-colors">#XemBongDaHD</a>
+      </div>
+    </article>
+
     <% if (others && others.length) { %>
     <section class="mt-5">
       <div class="flex items-center gap-2.5 mb-3.5"><span class="w-1 h-5 bg-pri rounded-sm"></span><h2 class="text-lg font-extrabold text-white">&#128308; Phòng khác đang LIVE</h2></div>
