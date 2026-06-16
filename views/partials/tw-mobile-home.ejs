@@ -443,20 +443,29 @@ _cnt.all = _cards.length;
             <% } %>
           </div>
 
+          <!-- Tên trận đầy đủ (sports) giống desktop, full text 2 line nếu dài -->
+          <% if (c.type === 'sports' && (c.home || c.away)) { %>
+            <div class="mh-lux-match-title"><%= (c.home||'') + ' vs ' + (c.away||'') %></div>
+          <% } %>
+
           <!-- BOTTOM FOOTER: Tên BLV/streamer + Viewers (giống desktop card) -->
           <div class="mh-lux-foot">
             <div class="mh-lux-blv">
               <% if (c.type === 'idol') { %>
-                <span class="mh-lux-blv-ico">📡</span>
+                <svg class="mh-lux-blv-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><circle cx="6" cy="18" r="2" fill="currentColor"/></svg>
                 <span class="mh-lux-blv-name"><%= c.isLive ? c.name : 'Đang chờ idol' %></span>
               <% } else { %>
-                <span class="mh-lux-blv-ico">📡</span>
+                <svg class="mh-lux-blv-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><circle cx="6" cy="18" r="2" fill="currentColor"/></svg>
                 <span class="mh-lux-blv-name"><%= c.blvName || 'Đang chờ BLV' %></span>
               <% } %>
             </div>
             <div class="mh-lux-views">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff7a18"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
-              <span><%= (c.viewers || 0).toLocaleString('vi-VN') %></span>
+              <% if (c.type === 'sports' && c.time) { %>
+                <span><%= c.time %></span>
+              <% } else { %>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff7a18"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+                <span><%= (c.viewers || 0).toLocaleString('vi-VN') %></span>
+              <% } %>
             </div>
           </div>
         </a>
@@ -677,29 +686,41 @@ _cnt.all = _cards.length;
 }
 .mh-lux-cta.esport { background:rgba(139,92,246,.35); border-color:rgba(139,92,246,.4); }
 
+/* Tên trận đầy đủ (sports) - giống desktop card */
+.mh-lux-match-title {
+  padding:5px 8px 4px;
+  color:#fff; font-size:11px; font-weight:800; line-height:1.25;
+  background:#0a0d12;
+  border-top:1px solid rgba(255,122,24,.12);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; text-overflow:ellipsis;
+  max-height:30px;
+}
+
 /* FOOTER bar */
 .mh-lux-foot {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:4px 7px;
+  display:flex; align-items:center; justify-content:space-between; gap:6px;
+  padding:6px 8px;
   background:linear-gradient(90deg,#0a0d12,#0f1419);
   border-top:1px solid rgba(255,122,24,.15);
-  min-height:22px;
+  min-height:28px;
 }
 .mh-lux-blv {
   display:flex; align-items:center; gap:4px;
   min-width:0; flex:1;
-  color:#cbd5e1; font-size:10px; font-weight:600;
+  color:#ff7a18; font-size:10.5px; font-weight:700;
   overflow:hidden;
 }
-.mh-lux-blv-ico { font-size:10px; flex-shrink:0; }
+.mh-lux-blv-ico { flex-shrink:0; color:#ff7a18; }
 .mh-lux-blv-name {
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  min-width:0;
+  min-width:0; color:#cbd5e1; font-weight:600;
 }
 .mh-lux-views {
   display:flex; align-items:center; gap:3px;
-  color:#cbd5e1; font-size:10px; font-weight:700;
+  color:#cbd5e1; font-size:10.5px; font-weight:700;
   font-variant-numeric:tabular-nums;
+  flex-shrink:0;
 }
 
 /* Bottom nav tabs */
