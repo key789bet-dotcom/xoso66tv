@@ -75,12 +75,16 @@ function isPriorityLeague(match) {
   return true;
 }
 
-// Image: dùng badge của 2 đội + bg football. Fallback Unsplash random
+// Image: ƯU TIÊN OG article API (composite 2 logo + brand XOSO66 TV) → đẹp pro
 function buildImage(match) {
+  // 1) OG dynamic image (lib/og-image.js composite logo thật + brand)
+  if (match.slug) return '/og/article/' + match.slug + '.png';
+  if (match.id)   return '/og/match/' + match.id + '.png';
+  // 2) Poster trận (admin upload)
   if (match.poster) return match.poster;
-  // Composite không khả thi server-side. Dùng badge home làm thumbnail.
+  // 3) Logo home (cũ - không đẹp)
   if (match.homeBadge) return match.homeBadge;
-  // Fallback: Unsplash random football
+  // 4) Unsplash random
   return 'https://source.unsplash.com/800x400/?football,stadium,' + encodeURIComponent(match.sport || 'soccer');
 }
 
