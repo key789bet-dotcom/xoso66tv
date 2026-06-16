@@ -359,10 +359,17 @@ _cnt.all = _cards.length;
             <!-- Chỉ shadow nhẹ ở 2 đầu để text dễ đọc, không che ảnh -->
             <div class="absolute inset-0 pointer-events-none" style="z-index:0;background:linear-gradient(to bottom, rgba(0,0,0,.35) 0%, transparent 25%, transparent 75%, rgba(0,0,0,.5) 100%);"></div>
             <style>
-              .mh-card-lux .mh-lux-head, .mh-card-lux .mh-lux-body { position:relative; z-index:2; }
+              /* TẤT CẢ block nội dung phải trên ảnh nền (z-index:2) - không quên match-title + foot */
+              .mh-card-lux .mh-lux-head,
+              .mh-card-lux .mh-lux-body,
+              .mh-card-lux .mh-lux-match-title,
+              .mh-card-lux .mh-lux-foot { position:relative; z-index:2; }
               /* Body trong suốt khi có ảnh nền league */
               .mh-card-lux .mh-lux-body { background:transparent !important; }
               .mh-card-lux .mh-lux-head { background:linear-gradient(90deg,rgba(0,0,0,.6),rgba(0,0,0,.35)) !important; }
+              /* Match-title + Foot có background đặc để text đọc rõ trên ảnh */
+              .mh-card-lux .mh-lux-match-title { background:rgba(10,13,18,.85) !important; backdrop-filter:blur(4px); border-top:1px solid rgba(255,122,24,.25) !important; }
+              .mh-card-lux .mh-lux-foot { background:linear-gradient(90deg,rgba(10,13,18,.92),rgba(15,20,25,.92)) !important; backdrop-filter:blur(4px); }
               /* Text shadow đậm để chữ vẫn đọc rõ trên ảnh */
               .mh-card-lux .mh-lux-team-name { color:#fff !important; text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 6px rgba(0,0,0,.7); font-weight:800 !important; }
               .mh-card-lux .mh-lux-time { text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 8px rgba(0,0,0,.8) !important; }
