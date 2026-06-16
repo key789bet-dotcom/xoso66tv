@@ -163,9 +163,9 @@ _cnt.all = _cards.length;
 
       <!-- Poster fallback đa tầng — avatar idol/blv/team badge, opacity FULL để rõ -->
       <% if (_previewPoster) { %>
-        <img id="mhLivePoster" src="<%= _previewPoster %>" class="absolute inset-0 w-full h-full object-cover" alt="Xem trực tiếp bóng đá tại XOSO66 TV" onerror="this.style.display='none'" style="opacity:0.9;">
-        <!-- Lớp phủ tối nhẹ để text CTA + badge đọc rõ, không che ảnh -->
-        <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at center, rgba(0,0,0,.3) 0%, rgba(0,0,0,.55) 100%);"></div>
+        <img id="mhLivePoster" src="<%= _previewPoster %>" class="absolute inset-0 w-full h-full object-cover" alt="Xem trực tiếp bóng đá tại XOSO66 TV" onerror="this.style.display='none'">
+        <!-- Shadow nhẹ 2 đầu để badge + CTA đọc rõ, GIỮA TRONG SUỐT cho ảnh hiện rõ -->
+        <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(to bottom, rgba(0,0,0,.35) 0%, transparent 25%, transparent 75%, rgba(0,0,0,.4) 100%);"></div>
       <% } %>
       <div id="mhLiveGradient" class="absolute inset-0 bg-gradient-to-br from-bg-card via-bg to-black" style="<%= _previewPoster ? 'display:none;' : '' %>"></div>
 
