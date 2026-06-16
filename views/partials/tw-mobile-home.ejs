@@ -161,13 +161,66 @@ _cnt.all = _cards.length;
       <!-- Video element ẩn ban đầu, hiện khi có stream live -->
       <video id="mhLiveVideo" class="hidden absolute inset-0 w-full h-full object-cover bg-black" playsinline autoplay muted></video>
 
-      <!-- Poster fallback đa tầng — avatar idol/blv/team badge, opacity FULL để rõ -->
-      <% if (_previewPoster) { %>
-        <img id="mhLivePoster" src="<%= _previewPoster %>" class="absolute inset-0 w-full h-full object-cover" alt="Xem trực tiếp bóng đá tại XOSO66 TV" onerror="this.style.display='none'">
-        <!-- Shadow nhẹ 2 đầu để badge + CTA đọc rõ, GIỮA TRONG SUỐT cho ảnh hiện rõ -->
-        <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(to bottom, rgba(0,0,0,.35) 0%, transparent 25%, transparent 75%, rgba(0,0,0,.4) 100%);"></div>
+      <!-- 🆕 TEAM PANEL: layout 2 logos + time + league (Option B SofaScore style) -->
+      <% if (_featured) {
+        var _featDate = '';
+        try { _featDate = _featured.date ? new Date(_featured.date).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'}) : ''; } catch(e){}
+      %>
+      <div id="mhLiveTeamPanel" class="absolute inset-0 z-[1] flex flex-col" style="background:linear-gradient(135deg,#1a2030 0%,#0a0d12 60%,#070a0f 100%);">
+        <!-- Decorative orange radial glow -->
+        <div class="absolute inset-0 opacity-15 pointer-events-none" style="background:radial-gradient(ellipse at center,#ff7a18 0%,transparent 65%);"></div>
+        <!-- League name TOP -->
+        <div class="relative z-10 text-center pt-3 px-3">
+          <% if (_featured.leagueLogo) { %>
+            <img src="<%= _featured.leagueLogo %>" alt="<%= _featured.league %>" class="inline-block w-4 h-4 align-middle mr-1 rounded bg-white/90 p-0.5" onerror="this.style.display='none'">
+          <% } %>
+          <span class="text-pri-light text-[11px] font-bold uppercase tracking-[2px] align-middle"><%= _featured.league || 'Sự kiện' %></span>
+        </div>
+        <!-- 2 TEAMS + TIME center -->
+        <div class="relative z-10 flex-1 flex items-center justify-center gap-5 px-4">
+          <!-- HOME -->
+          <div class="text-center flex flex-col items-center min-w-0 flex-1 max-w-[100px]">
+            <% if (_featured.homeBadge) { %>
+              <div class="w-14 h-14 bg-white rounded-full p-1.5 shadow-lg flex items-center justify-center">
+                <img src="<%= _featured.homeBadge %>" alt="<%= _featured.home %>" class="w-full h-full object-contain" onerror="this.parentNode.innerHTML='&#9917;'">
+              </div>
+            <% } else { %>
+              <div class="w-14 h-14 bg-bg-deep rounded-full grid place-items-center text-white font-extrabold text-lg border border-pri/30"><%= (_featured.home||'?')[0] %></div>
+            <% } %>
+            <div class="text-white text-[10px] font-bold mt-1.5 truncate w-full"><%= _featured.home || '' %></div>
+          </div>
+          <!-- TIME / VS -->
+          <div class="text-center flex-shrink-0">
+            <div class="text-pri text-[22px] font-black tracking-tight leading-none"><%= _featured.time || 'VS' %></div>
+            <% if (_featDate) { %><div class="text-white/60 text-[9px] font-semibold mt-1"><%= _featDate %></div><% } %>
+          </div>
+          <!-- AWAY -->
+          <div class="text-center flex flex-col items-center min-w-0 flex-1 max-w-[100px]">
+            <% if (_featured.awayBadge) { %>
+              <div class="w-14 h-14 bg-white rounded-full p-1.5 shadow-lg flex items-center justify-center">
+                <img src="<%= _featured.awayBadge %>" alt="<%= _featured.away %>" class="w-full h-full object-contain" onerror="this.parentNode.innerHTML='&#9917;'">
+              </div>
+            <% } else { %>
+              <div class="w-14 h-14 bg-bg-deep rounded-full grid place-items-center text-white font-extrabold text-lg border border-pri/30"><%= (_featured.away||'?')[0] %></div>
+            <% } %>
+            <div class="text-white text-[10px] font-bold mt-1.5 truncate w-full"><%= _featured.away || '' %></div>
+          </div>
+        </div>
+        <!-- Status badge top-left -->
+        <% if (_featured.status !== 'live') { %>
+          <span class="absolute top-2 left-2 z-10 bg-gradient-to-r from-pri to-live text-white text-[9px] font-extrabold px-2 py-0.5 rounded shadow flex items-center gap-1"><span>&#9200;</span>SẮP DIỄN RA</span>
+        <% } %>
+      </div>
+      <% } else { %>
+      <!-- Empty fallback khi không có featured -->
+      <div id="mhLiveTeamPanel" class="absolute inset-0 z-[1] grid place-items-center text-center" style="background:linear-gradient(135deg,#1a2030 0%,#0a0d12 100%);">
+        <div>
+          <div class="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center text-2xl shadow-lg">&#9654;</div>
+          <div class="text-white font-bold text-sm"><%= brand.name %></div>
+          <div class="text-muted text-[10px] mt-1">Đang chờ trận live...</div>
+        </div>
+      </div>
       <% } %>
-      <div id="mhLiveGradient" class="absolute inset-0 bg-gradient-to-br from-bg-card via-bg to-black" style="<%= _previewPoster ? 'display:none;' : '' %>"></div>
 
       <!-- LIVE badge top-left -->
       <span id="mhLiveBadge" class="hidden absolute top-2 left-2 z-[3] bg-live text-white px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 shadow-lg"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
@@ -201,6 +254,7 @@ _cnt.all = _cards.length;
       var video = document.getElementById('mhLiveVideo');
       var poster = document.getElementById('mhLivePoster');
       var gradient = document.getElementById('mhLiveGradient');
+      var teamPanel = document.getElementById('mhLiveTeamPanel'); // 🆕 Option B panel
       var badge = document.getElementById('mhLiveBadge');
       var viewers = document.getElementById('mhLiveViewers');
       var nameEl = document.getElementById('mhLiveName');
@@ -247,6 +301,7 @@ _cnt.all = _cards.length;
           video.classList.remove('hidden');
           if (poster) poster.style.display = 'none';
           if (gradient) gradient.style.display = 'none';
+          if (teamPanel) teamPanel.style.display = 'none'; // ẩn team panel khi video play
           badge.classList.remove('hidden');
           badge.style.display = 'flex';
           viewers.classList.remove('hidden');
