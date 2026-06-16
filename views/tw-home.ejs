@@ -163,18 +163,61 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
         <% } %>
         <span class="absolute top-3 right-3 z-[2] bg-black/70 text-gold px-2 py-0.5 rounded text-[10px] font-bold">HD 1080p</span>
 
-        <!-- match info center -->
-        <div class="relative z-[1] text-center px-6 py-4 text-white max-w-[90%]">
-          <div class="text-[11px] md:text-xs text-gray-300 mb-1.5 font-bold tracking-widest uppercase line-clamp-1"><%= featured.league %></div>
-          <h2 class="text-base md:text-xl font-extrabold mb-2 leading-tight line-clamp-2"><%= featured.home %> vs <%= featured.away %></h2>
-          <% if (featured.score) { %>
-            <div class="text-4xl md:text-5xl font-black text-gold my-2 drop-shadow-lg tabular-nums"><%= featured.score[0] %> : <%= featured.score[1] %></div>
-          <% } else { %>
-            <div class="text-2xl md:text-3xl font-black text-gold/80 my-2"><%= featured.time || 'VS' %></div>
-          <% } %>
-          <a href="/live/<%= featured.slug || featured.id %>" class="inline-flex items-center gap-2 px-6 md:px-9 py-2.5 md:py-3.5 bg-pri hover:bg-pri-dark text-white rounded-lg md:rounded-full font-extrabold text-xs md:text-sm shadow-pri hover:scale-105 transition-all">
-            &#9654; VÀO PHÒNG
-          </a>
+        <!-- 🆕 Option B: 2 team logos + time layout (SofaScore style, desktop) -->
+        <%
+          var _fHomeBadge = featured.homeBadge || '';
+          var _fAwayBadge = featured.awayBadge || '';
+          var _fDate = '';
+          try { _fDate = featured.date ? new Date(featured.date).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'}) : ''; } catch(e){}
+        %>
+        <div class="relative z-[1] w-full max-w-[680px] px-6 py-4 text-white">
+          <!-- League name + logo TOP -->
+          <div class="text-center mb-4">
+            <% if (featured.leagueLogo) { %>
+              <img src="<%= featured.leagueLogo %>" alt="<%= featured.league %>" class="inline-block w-5 h-5 align-middle mr-1.5 rounded bg-white/90 p-0.5" onerror="this.style.display='none'">
+            <% } %>
+            <span class="text-pri-light text-xs md:text-sm font-extrabold uppercase tracking-[3px] align-middle line-clamp-1"><%= featured.league || 'Sự kiện' %></span>
+          </div>
+          <!-- 2 TEAMS + TIME center -->
+          <div class="flex items-center justify-center gap-6 md:gap-10 mb-5">
+            <!-- HOME -->
+            <div class="text-center flex flex-col items-center flex-1 max-w-[180px]">
+              <% if (_fHomeBadge) { %>
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full p-2.5 shadow-2xl flex items-center justify-center mb-2">
+                  <img src="<%= _fHomeBadge %>" alt="<%= featured.home %>" class="w-full h-full object-contain" onerror="this.parentNode.innerHTML='&#9917;'">
+                </div>
+              <% } else { %>
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-bg-deep rounded-full grid place-items-center text-white font-black text-3xl border-2 border-pri/40 mb-2"><%= (featured.home||'?')[0] %></div>
+              <% } %>
+              <div class="text-white text-sm md:text-base font-bold leading-tight line-clamp-2"><%= featured.home || '' %></div>
+            </div>
+            <!-- TIME / SCORE -->
+            <div class="text-center flex-shrink-0">
+              <% if (featured.score) { %>
+                <div class="text-4xl md:text-5xl font-black text-gold drop-shadow-lg tabular-nums leading-none"><%= featured.score[0] %><span class="text-pri mx-1">:</span><%= featured.score[1] %></div>
+              <% } else { %>
+                <div class="text-3xl md:text-4xl font-black text-pri tracking-tight leading-none"><%= featured.time || 'VS' %></div>
+              <% } %>
+              <% if (_fDate) { %><div class="text-white/60 text-xs font-semibold mt-2"><%= _fDate %></div><% } %>
+            </div>
+            <!-- AWAY -->
+            <div class="text-center flex flex-col items-center flex-1 max-w-[180px]">
+              <% if (_fAwayBadge) { %>
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full p-2.5 shadow-2xl flex items-center justify-center mb-2">
+                  <img src="<%= _fAwayBadge %>" alt="<%= featured.away %>" class="w-full h-full object-contain" onerror="this.parentNode.innerHTML='&#9917;'">
+                </div>
+              <% } else { %>
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-bg-deep rounded-full grid place-items-center text-white font-black text-3xl border-2 border-pri/40 mb-2"><%= (featured.away||'?')[0] %></div>
+              <% } %>
+              <div class="text-white text-sm md:text-base font-bold leading-tight line-clamp-2"><%= featured.away || '' %></div>
+            </div>
+          </div>
+          <!-- CTA Vào Phòng -->
+          <div class="text-center">
+            <a href="/live/<%= featured.slug || featured.id %>" class="inline-flex items-center gap-2 px-8 md:px-10 py-3 md:py-3.5 bg-pri hover:bg-pri-dark text-white rounded-full font-extrabold text-sm md:text-base shadow-pri hover:scale-105 transition-all">
+              &#9654; VÀO PHÒNG
+            </a>
+          </div>
         </div>
       <% } else { %>
         <!-- Empty player placeholder -->
