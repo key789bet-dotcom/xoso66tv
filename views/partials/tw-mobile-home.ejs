@@ -97,6 +97,7 @@ _allSports.forEach(function(m){
     homeBadge: m.homeBadge || '',
     awayBadge: m.awayBadge || '',
     league: m.league || '',
+    leagueLogo: m.leagueLogo || '', // 🏆 logo giải đấu (từ API/fallback league-logos.js)
     leagueBg: _mhFindBg(m.league), // 🏆 ảnh nền giải đấu
     time: m.time || 'LIVE',
     isLive: m.status === 'live',
