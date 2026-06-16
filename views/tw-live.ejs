@@ -243,7 +243,15 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
           </a>
         </div>
 
-        <form id="predictForm" data-match-id="<%= match.id %>" data-match-time="<%= match.matchTs || '' %>" data-ou-line="<%= _predLines.ouLine %>" data-ah-line="<%= _predLines.ahLine %>">
+        <form id="predictForm"
+              data-match-id="<%= match.id %>"
+              data-match-time="<%= match.matchTs || '' %>"
+              data-ou-line="<%= _predLines.ouLine %>"
+              data-ah-line="<%= _predLines.ahLine %>"
+              data-odds-tai="<%= _ouTai || '' %>"
+              data-odds-xiu="<%= _ouXiu || '' %>"
+              data-odds-ah-home="<%= _ahHome || '' %>"
+              data-odds-ah-away="<%= _ahAway || '' %>">
 
           <!-- ─── ROW 1: TÀI / XỈU (mốc từ API) ─── -->
           <div class="mb-1.5">
@@ -305,19 +313,143 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
             </div>
           </div>
 
+          <!-- 💰 STAKE INPUT — cược X COIN, thắng nhận stake × odds -->
+          <div class="mb-2">
+            <div class="flex items-center justify-between mb-1 px-0.5">
+              <span class="text-[10px] font-bold text-yellow-300/90 uppercase">💰 Cược (X COIN)</span>
+              <span class="text-[9px] text-white/50">10 - 1000</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" data-stake="50"  class="stake-chip">50</button>
+              <button type="button" data-stake="100" class="stake-chip">100</button>
+              <button type="button" data-stake="200" class="stake-chip">200</button>
+              <button type="button" data-stake="500" class="stake-chip">500</button>
+              <input type="number" name="stake" id="predictStake" value="100" min="10" max="1000" step="10"
+                class="flex-1 bg-black/40 border border-yellow-400/30 rounded px-2 py-1 text-[12px] text-yellow-200 font-bold text-center focus:outline-none focus:border-yellow-300 focus:bg-black/60">
+            </div>
+            <div class="mt-1 text-[9px] text-white/50 px-0.5" id="potentialWin">
+              Tiềm năng thắng: <span class="text-emerald-300 font-bold">— X COIN</span>
+            </div>
+          </div>
+
           <!-- Compact submit + reward inline -->
           <button type="submit" id="predictBtn" class="predict-submit-btn-c">
             <span class="btn-shine"></span>
             <span class="relative z-10 flex items-center justify-center gap-1.5">
               <span class="text-sm">🎯</span>
-              <span class="text-[12px] font-black uppercase tracking-wide">Dự đoán</span>
-              <span class="text-[9px] text-yellow-200/90 font-bold">· +30/100 X COIN</span>
+              <span class="text-[12px] font-black uppercase tracking-wide">Đặt cược dự đoán</span>
             </span>
           </button>
           <div id="predictResult" class="mt-2 text-center text-[11px] hidden font-bold"></div>
         </form>
       </div>
     </section>
+
+    <%# ═══════════════ 📊 LIVE INSIGHTS WIDGET ═══════════════ %>
+    <% if (typeof matchInsights !== 'undefined' && matchInsights && (matchInsights.formHome || matchInsights.formAway || matchInsights.h2h || matchInsights.pick)) { %>
+    <section class="insights-widget relative overflow-hidden rounded-xl mt-3">
+      <div class="px-3 py-2.5 bg-gradient-to-br from-[#0a1018] to-[#0e1622] border border-emerald-500/30 rounded-xl">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-base">📊</span>
+            <span class="text-white text-[12px] font-black uppercase tracking-wide">Phân tích trận đấu</span>
+          </div>
+          <span class="text-[9px] text-emerald-300/80 font-bold uppercase">AI Insights</span>
+        </div>
+
+        <%# Form 5 trận gần nhất %>
+        <% if (matchInsights.formHome || matchInsights.formAway) { %>
+          <div class="grid grid-cols-2 gap-2 mb-2.5">
+            <div class="p-2 rounded-lg bg-black/30 border border-white/5">
+              <div class="text-[9px] text-white/50 uppercase font-bold mb-1 truncate" title="<%= match.home %>"><%= (match.home||'').slice(0,14) %></div>
+              <div class="flex gap-1">
+                <% (matchInsights.formHome || ['?','?','?','?','?']).slice(0,5).forEach(function(r){
+                  var cls = r === 'W' ? 'bg-emerald-500 text-white' : r === 'L' ? 'bg-red-500 text-white' : (r === 'D' ? 'bg-yellow-500 text-black' : 'bg-white/10 text-white/40');
+                %><span class="<%= cls %> w-5 h-5 rounded text-[10px] font-black flex items-center justify-center"><%= r %></span><% }); %>
+              </div>
+            </div>
+            <div class="p-2 rounded-lg bg-black/30 border border-white/5">
+              <div class="text-[9px] text-white/50 uppercase font-bold mb-1 truncate" title="<%= match.away %>"><%= (match.away||'').slice(0,14) %></div>
+              <div class="flex gap-1">
+                <% (matchInsights.formAway || ['?','?','?','?','?']).slice(0,5).forEach(function(r){
+                  var cls = r === 'W' ? 'bg-emerald-500 text-white' : r === 'L' ? 'bg-red-500 text-white' : (r === 'D' ? 'bg-yellow-500 text-black' : 'bg-white/10 text-white/40');
+                %><span class="<%= cls %> w-5 h-5 rounded text-[10px] font-black flex items-center justify-center"><%= r %></span><% }); %>
+              </div>
+            </div>
+          </div>
+        <% } %>
+
+        <%# H2H 5 trận đầu đối đầu %>
+        <% if (matchInsights.h2h && matchInsights.h2h.length) { %>
+          <div class="mb-2.5">
+            <div class="text-[9px] text-white/50 uppercase font-bold mb-1">🆚 5 trận gần nhất đối đầu</div>
+            <div class="space-y-0.5">
+              <% matchInsights.h2h.slice(0,5).forEach(function(h){ %>
+                <div class="flex items-center justify-between text-[10px] py-0.5 px-1.5 rounded bg-black/20">
+                  <span class="text-white/60 truncate flex-1"><%= h.home.slice(0,12) %></span>
+                  <span class="font-black text-yellow-200 mx-2 font-mono"><%= h.score %></span>
+                  <span class="text-white/60 truncate flex-1 text-right"><%= h.away.slice(0,12) %></span>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        <% } %>
+
+        <%# Fair probability từ 1X2 %>
+        <% if (matchInsights.prob) { %>
+          <div class="mb-2.5">
+            <div class="text-[9px] text-white/50 uppercase font-bold mb-1">📈 Xác suất công bằng (từ odds)</div>
+            <div class="flex h-6 rounded-md overflow-hidden border border-white/10">
+              <div class="bg-blue-500/80 flex items-center justify-center text-[10px] font-black text-white" style="width: <%= Math.round(matchInsights.prob.home * 100) %>%">
+                <%= Math.round(matchInsights.prob.home * 100) %>%
+              </div>
+              <div class="bg-gray-500/80 flex items-center justify-center text-[10px] font-black text-white" style="width: <%= Math.round(matchInsights.prob.draw * 100) %>%">
+                <%= Math.round(matchInsights.prob.draw * 100) %>%
+              </div>
+              <div class="bg-red-500/80 flex items-center justify-center text-[10px] font-black text-white" style="width: <%= Math.round(matchInsights.prob.away * 100) %>%">
+                <%= Math.round(matchInsights.prob.away * 100) %>%
+              </div>
+            </div>
+            <div class="flex justify-between mt-1 text-[9px] text-white/50">
+              <span>Nhà thắng</span><span>Hòa</span><span>Khách thắng</span>
+            </div>
+          </div>
+        <% } %>
+
+        <%# Smart pick recommendation %>
+        <% if (matchInsights.pick && (matchInsights.pick.ah || matchInsights.pick.ou)) { %>
+          <div class="p-2 rounded-lg bg-gradient-to-r from-emerald-500/15 to-yellow-500/10 border border-emerald-400/40">
+            <div class="flex items-center gap-1.5 mb-1.5">
+              <span class="text-sm">💡</span>
+              <span class="text-[10px] font-black text-emerald-300 uppercase">Smart Pick</span>
+              <% var cConf = matchInsights.pick.confidence === 'high' ? 'bg-emerald-400 text-black' : matchInsights.pick.confidence === 'mid' ? 'bg-yellow-400 text-black' : 'bg-white/20 text-white/70'; %>
+              <span class="<%= cConf %> px-1.5 py-0 rounded text-[8px] font-black uppercase">Tin cậy: <%= matchInsights.pick.confidence === 'high' ? 'CAO' : matchInsights.pick.confidence === 'mid' ? 'TB' : 'THẤP' %></span>
+            </div>
+            <div class="flex gap-1.5 mb-1.5">
+              <% if (matchInsights.pick.ou) { %>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/25 border border-emerald-400/50 text-[10px] font-black text-emerald-200">
+                  <%= matchInsights.pick.ou === 'tai' ? '📈 TÀI' : '📉 XỈU' %>
+                </span>
+              <% } %>
+              <% if (matchInsights.pick.ah) { %>
+                <span class="px-2 py-0.5 rounded bg-yellow-500/25 border border-yellow-400/50 text-[10px] font-black text-yellow-200">
+                  <%= matchInsights.pick.ah === 'home' ? '🏠 ' + (match.home||'').slice(0,10) : '✈️ ' + (match.away||'').slice(0,10) %>
+                </span>
+              <% } %>
+            </div>
+            <% if (matchInsights.pick.reasons && matchInsights.pick.reasons.length) { %>
+              <ul class="text-[10px] text-white/70 space-y-0.5">
+                <% matchInsights.pick.reasons.forEach(function(r){ %>
+                  <li>• <%= r %></li>
+                <% }); %>
+              </ul>
+            <% } %>
+            <div class="mt-1.5 text-[9px] text-white/40 italic">⚠️ Chỉ tham khảo, không cam kết chính xác. Hãy cân nhắc tài chính.</div>
+          </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
 
     <style>
     .predict-widget { isolation:isolate; }
@@ -589,6 +721,27 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     }
     .predict-submit-btn-c:active { transform:translateY(0); }
     .predict-submit-btn-c:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+    /* Stake chips */
+    .stake-chip {
+      padding:4px 10px; border-radius:6px;
+      background:rgba(250,204,21,.08);
+      border:1px solid rgba(250,204,21,.25);
+      color:#fde68a; font-size:11px; font-weight:800;
+      cursor:pointer; transition:all .15s ease;
+      font-variant-numeric: tabular-nums;
+    }
+    .stake-chip:hover {
+      background:rgba(250,204,21,.18);
+      border-color:rgba(250,204,21,.5);
+      transform:translateY(-1px);
+    }
+    .stake-chip.active {
+      background:linear-gradient(135deg,#facc15,#f59e0b);
+      color:#1a0f08;
+      border-color:#facc15;
+      box-shadow:0 2px 8px rgba(250,204,21,.4);
+    }
     </style>
 
     <script>
@@ -611,32 +764,106 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       var matchId = form.dataset.matchId;
       var matchTime = form.dataset.matchTime;
 
-      // Load existing prediction
+      // Odds lock từ server
+      var oddsTai    = parseFloat(form.dataset.oddsTai) || null;
+      var oddsXiu    = parseFloat(form.dataset.oddsXiu) || null;
+      var oddsAhHome = parseFloat(form.dataset.oddsAhHome) || null;
+      var oddsAhAway = parseFloat(form.dataset.oddsAhAway) || null;
+
+      var stakeInput = document.getElementById('predictStake');
+      var potential  = document.getElementById('potentialWin');
+
+      // ═══ Stake chips ═══
+      document.querySelectorAll('.stake-chip').forEach(function(chip){
+        chip.addEventListener('click', function(){
+          var v = parseInt(chip.dataset.stake, 10);
+          if (stakeInput) { stakeInput.value = v; stakeInput.dispatchEvent(new Event('input')); }
+          document.querySelectorAll('.stake-chip').forEach(function(c){ c.classList.remove('active'); });
+          chip.classList.add('active');
+        });
+      });
+
+      // ═══ Calc tiềm năng thắng ═══
+      function calcWin() {
+        if (!potential) return;
+        var stake = parseInt(stakeInput && stakeInput.value, 10) || 0;
+        if (stake < 10) { potential.innerHTML = 'Tiềm năng thắng: <span class="text-emerald-300 font-bold">— X COIN</span>'; return; }
+        var pickOU = (form.querySelector('input[name="pickOU"]:checked') || {}).value;
+        var pickAH = (form.querySelector('input[name="pickAH"]:checked') || {}).value;
+        var totalWin = 0;
+        var bothPicks = (pickOU && pickAH);
+        var perPick = bothPicks ? Math.floor(stake / 2) : stake;
+        if (pickOU) {
+          var o = pickOU === 'tai' ? oddsTai : oddsXiu;
+          if (o) totalWin += Math.round(perPick * o);
+        }
+        if (pickAH) {
+          var o2 = pickAH === 'home' ? oddsAhHome : oddsAhAway;
+          if (o2) totalWin += Math.round(perPick * o2);
+        }
+        if (bothPicks) totalWin = Math.round(totalWin * 1.1);  // parlay bonus 10%
+        if (totalWin === 0 && (pickOU || pickAH)) {
+          potential.innerHTML = '<span class="text-orange-300">⚠️ Chưa có odds — thắng cố định 50 X COIN/kèo</span>';
+        } else if (totalWin > 0) {
+          var profit = totalWin - stake;
+          potential.innerHTML = 'Tiềm năng thắng: <span class="text-emerald-300 font-black">' + totalWin + ' X COIN</span> <span class="text-white/40">(+' + profit + ')</span>';
+        } else {
+          potential.innerHTML = 'Tiềm năng thắng: <span class="text-white/50">chọn kèo trước</span>';
+        }
+      }
+      form.addEventListener('change', calcWin);
+      if (stakeInput) stakeInput.addEventListener('input', calcWin);
+      calcWin();
+
+      // ═══ Load existing prediction ═══
       fetch('/api/predict/my/' + encodeURIComponent(matchId), { credentials: 'same-origin' })
         .then(function(r){ return r.json(); })
         .then(function(j){
           if (j.ok && j.prediction) {
-            document.getElementById('predHome').value = j.prediction.homeScore;
-            document.getElementById('predAway').value = j.prediction.awayScore;
-            res.className = 'mt-2 text-center text-[12px] text-emerald-300 font-bold';
-            res.textContent = '✅ Đã dự đoán: ' + j.prediction.homeScore + '-' + j.prediction.awayScore + (j.prediction.settled ? ' · +' + j.prediction.reward + ' X COIN' : ' (chờ kết quả)');
+            var p = j.prediction;
+            if (p.pickOU) { var r1 = form.querySelector('input[name="pickOU"][value="' + p.pickOU + '"]'); if (r1) r1.checked = true; }
+            if (p.pickAH) { var r2 = form.querySelector('input[name="pickAH"][value="' + p.pickAH + '"]'); if (r2) r2.checked = true; }
+            if (stakeInput && p.stake) stakeInput.value = p.stake;
+            res.className = 'mt-2 text-center text-[11px] text-emerald-300 font-bold';
+            var rewardMsg = p.settled
+              ? (p.reward > 0 ? ' · 🏆 Thắng +' + p.reward + ' X COIN' : ' · ❌ Thua ' + (p.stake || 0) + ' X COIN')
+              : ' (chờ kết quả · cược ' + (p.stake || 0) + ')';
+            res.textContent = '✅ Đã đặt cược' + rewardMsg;
             res.classList.remove('hidden');
-            if (j.prediction.settled) btn.disabled = true;
-            else btn.textContent = '🔄 CẬP NHẬT DỰ ĐOÁN';
+            if (p.settled) btn.disabled = true;
+            else btn.querySelector('span:last-child').textContent = 'Cập nhật cược';
+            calcWin();
           }
         })
         .catch(function(){});
 
+      // ═══ Submit ═══
       form.addEventListener('submit', function(e){
         e.preventDefault();
-        btn.disabled = true; btn.textContent = 'Đang gửi...';
+        var pickOU = (form.querySelector('input[name="pickOU"]:checked') || {}).value;
+        var pickAH = (form.querySelector('input[name="pickAH"]:checked') || {}).value;
+        if (!pickOU && !pickAH) {
+          res.className = 'mt-2 text-center text-[11px] text-live font-bold';
+          res.textContent = '⚠️ Chọn ít nhất 1 kèo (Tài/Xỉu hoặc Kèo chấp)';
+          res.classList.remove('hidden');
+          return;
+        }
+        var stake = parseInt(stakeInput && stakeInput.value, 10) || 50;
+        btn.disabled = true;
+        var btnText = btn.querySelector('span:last-child');
+        var origText = btnText.textContent;
+        btnText.textContent = 'Đang gửi...';
+
         var data = {
           matchId: matchId,
           home: <%- JSON.stringify(match.home) %>,
           away: <%- JSON.stringify(match.away) %>,
           league: <%- JSON.stringify(match.league || '') %>,
-          homeScore: parseInt(document.getElementById('predHome').value, 10),
-          awayScore: parseInt(document.getElementById('predAway').value, 10),
+          pickOU: pickOU || null,
+          pickAH: pickAH || null,
+          stake: stake,
+          oddsOU: pickOU === 'tai' ? oddsTai : (pickOU === 'xiu' ? oddsXiu : null),
+          oddsAH: pickAH === 'home' ? oddsAhHome : (pickAH === 'away' ? oddsAhAway : null),
           matchTime: matchTime ? +matchTime : null
         };
         fetch('/api/predict', {
@@ -648,17 +875,17 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
         .then(function(r){ return r.json(); })
         .then(function(j){
           btn.disabled = false;
-          res.className = 'mt-2 text-center text-[12px] font-bold ' + (j.ok ? 'text-emerald-300' : 'text-live');
+          res.className = 'mt-2 text-center text-[11px] font-bold ' + (j.ok ? 'text-emerald-300' : 'text-live');
           res.textContent = j.ok ? ('✅ ' + j.message) : ('❌ ' + (j.error || 'Lỗi'));
           res.classList.remove('hidden');
-          btn.textContent = j.ok ? '🔄 CẬP NHẬT DỰ ĐOÁN' : '🎯 THỬ LẠI';
+          btnText.textContent = j.ok ? 'Cập nhật cược' : origText;
           if (j.error && j.error.indexOf('đăng nhập') !== -1) {
             setTimeout(function(){ window.location.href = '/dang-nhap?redirect=' + encodeURIComponent(location.pathname); }, 1500);
           }
         })
-        .catch(function(e){
-          btn.disabled = false; btn.textContent = '🎯 DỰ ĐOÁN NGAY';
-          res.className = 'mt-2 text-center text-[12px] text-live font-bold';
+        .catch(function(){
+          btn.disabled = false; btnText.textContent = origText;
+          res.className = 'mt-2 text-center text-[11px] text-live font-bold';
           res.textContent = '❌ Lỗi kết nối';
           res.classList.remove('hidden');
         });

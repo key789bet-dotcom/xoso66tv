@@ -778,21 +778,32 @@ app.get('/live/:id', async function (req, res, next) {
     // 🎯 ODDS REAL-TIME từ thethaoviet.vip (Tài/Xỉu + Kèo Chấp + 1X2)
     // Chỉ fetch khi match là Soccer + có numeric ID (fixture API)
     let liveOdds = null;
+    let matchInsights = null;
     try {
       const _idNum = /^\d+$/.test(String(match.id || ''));
       if (_idNum && match.sport === 'Soccer') {
         const _oddsApi = require('./lib/odds-api');
         const _odds = await Promise.race([
           _oddsApi.getOdds(match.id),
-          new Promise(r => setTimeout(() => r(null), 3000))  // 3s timeout — không block render
+          new Promise(r => setTimeout(() => r(null), 3000))
         ]);
         if (_odds && (_odds.ah || _odds.ou || _odds.x12)) {
           liveOdds = _odds;
         }
+        // 📊 Match Insights (H2H + form + smart pick) — chỉ fetch khi có team IDs
+        if (match.homeId && match.awayId) {
+          try {
+            const _insights = require('./lib/match-insights');
+            matchInsights = await Promise.race([
+              _insights.getInsights(match.homeId, match.awayId, liveOdds),
+              new Promise(r => setTimeout(() => r(null), 4000))
+            ]);
+          } catch(e) { console.warn('[INSIGHTS] fail:', e.message); }
+        }
       }
     } catch(e) { console.warn('[ODDS] fetch fail:', e.message); }
 
-    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey, chatBanners: chatBanners, skinConfig: skinConfig, liveOdds: liveOdds });
+    res.render('tw-live', { active:'home', match:match, others:others, hasObs: hasObs, liveBlvs: liveBlvs, blvStreamKey: blvStreamKey, chatBanners: chatBanners, skinConfig: skinConfig, liveOdds: liveOdds, matchInsights: matchInsights });
   } catch (e) {
     console.error('[live/:id]', e.message);
     next(e);
@@ -2873,8 +2884,11 @@ app.post('/api/predict', pubAuth.requireLogin, function (req, res) {
       home: req.body.home,
       away: req.body.away,
       league: req.body.league,
-      homeScore: parseInt(req.body.homeScore, 10),
-      awayScore: parseInt(req.body.awayScore, 10),
+      pickOU: req.body.pickOU,            // 🆕 tai/xiu/null
+      pickAH: req.body.pickAH,            // 🆕 home/away/null
+      stake: parseInt(req.body.stake, 10),// 🆕 X COIN cược (10-1000)
+      oddsOU: parseFloat(req.body.oddsOU),// 🆕 lock odds Tài/Xỉu
+      oddsAH: parseFloat(req.body.oddsAH),// 🆕 lock odds Kèo chấp
       matchTime: req.body.matchTime ? +req.body.matchTime : null
     });
     res.json({ ok:true, prediction: item, message:'Dự đoán đã lưu! Theo dõi kết quả tại /cao-thu' });

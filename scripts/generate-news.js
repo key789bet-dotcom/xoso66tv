@@ -17,6 +17,8 @@ try {
 const ai = require('../lib/claude-ai');
 const newsStore = require('../lib/news-store');
 const api = require('../lib/api');
+const oddsApi = require('../lib/odds-api');
+const insights = require('../lib/match-insights');
 
 // Số bài tối thiểu mỗi lần chạy (default 10)
 const MIN_ARTICLES = parseInt(process.env.NEWS_MAX || '10', 10);
@@ -143,7 +145,23 @@ async function main() {
     const tag = isPriorityLeague(m.league) ? '🔥 PRIORITY' : '';
     console.log(`\n📝 [${i+1}/${newMatches.length}] ${tag} Đang sinh: ${m.home} vs ${m.away}...`);
     try {
-      const raw = await ai.generateMatchPreview(m);
+      // 🎯 Fetch odds + insights TRƯỚC khi gọi Claude (để feed vào prompt)
+      let odds = null, ins = null;
+      try {
+        if (m.id && /^\d+$/.test(String(m.id))) {
+          odds = await oddsApi.getOdds(m.id).catch(() => null);
+          if (m.homeId && m.awayId) {
+            ins = await insights.getInsights(m.homeId, m.awayId, odds).catch(() => null);
+          }
+        }
+      } catch(e) { console.warn('  ⚠️  odds/insights fail:', e.message); }
+      const hasOdds = odds && (odds.ah || odds.ou || odds.x12);
+      console.log('  📊 Data:', hasOdds ? '✅ odds' : '⚠️ no odds', ins && ins.h2h ? '✅ h2h' : '', ins && ins.formHome ? '✅ form' : '');
+
+      // Dùng version RICH nếu có odds, fallback bản cũ nếu không
+      const raw = hasOdds
+        ? await ai.generateMatchPreviewWithOdds(m, odds, ins)
+        : await ai.generateMatchPreview(m);
       const parsed = ai.parseGeneratedArticle(raw);
 
       const saved = newsStore.add({
