@@ -145,13 +145,25 @@ app.get(/^\/([a-f0-9]{8,128})\.txt$/, function(req, res) {
     const file = path.join(__dirname, 'public', key + '.txt');
     _fs.readFile(file, 'utf8', function(err, content) {
       if (err) return res.status(404).type('text/plain').send('Not found');
+      // Trim whitespace/newline để Bing match chính xác
       res.set('Cache-Control', 'public, max-age=86400');
-      res.type('text/plain').send(content);
+      res.type('text/plain').send(String(content).trim());
     });
   } catch(e) {
     console.error('[indexnow-key-route]', e.message);
     res.status(500).type('text/plain').send('Error');
   }
+});
+
+// 🔧 DEBUG: verify env có reach Express không (xoá sau khi fix xong)
+app.get('/_debug/env-check', function(req, res) {
+  res.json({
+    CLARITY_ID_locals: app.locals.CLARITY_ID,
+    CLARITY_PROJECT_ID_env: process.env.CLARITY_PROJECT_ID,
+    indexnow_key: require('./lib/indexnow').API_KEY || 'no-export',
+    node_env: process.env.NODE_ENV,
+    pid: process.pid
+  });
 });
 
 // (Cache-Control cho HTML page được set ở middleware bên dưới sau apiLimiter để tránh override)
