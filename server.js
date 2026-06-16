@@ -155,16 +155,18 @@ app.get(/^\/([a-f0-9]{8,128})\.txt$/, function(req, res) {
   }
 });
 
-// 🔧 DEBUG: verify env có reach Express không (xoá sau khi fix xong)
-app.get('/_debug/env-check', function(req, res) {
-  res.json({
-    CLARITY_ID_locals: app.locals.CLARITY_ID,
-    CLARITY_PROJECT_ID_env: process.env.CLARITY_PROJECT_ID,
-    indexnow_key: require('./lib/indexnow').API_KEY || 'no-export',
-    node_env: process.env.NODE_ENV,
-    pid: process.pid
+// 🔧 DEBUG env — chỉ enable khi DEBUG_ENV=1 trong .env (an toàn hơn)
+if (process.env.DEBUG_ENV === '1') {
+  app.get('/_debug/env-check', function(req, res) {
+    res.json({
+      CLARITY_ID_locals: app.locals.CLARITY_ID,
+      CLARITY_PROJECT_ID_env: process.env.CLARITY_PROJECT_ID,
+      indexnow_key: require('./lib/indexnow').API_KEY || 'no-export',
+      node_env: process.env.NODE_ENV,
+      pid: process.pid
+    });
   });
-});
+}
 
 // (Cache-Control cho HTML page được set ở middleware bên dưới sau apiLimiter để tránh override)
 
