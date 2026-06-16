@@ -98,11 +98,10 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
   </p>
 </header>
 
-<!-- Banner promo strip (slider) - dung opacity + GPU compositing -->
+<!-- Banner promo strip (slider) - dung opacity + GPU compositing + <img> object-contain để full fit mọi tỷ lệ -->
 <div class="relative rounded-xl overflow-hidden mb-3.5 h-[70px] md:h-[140px] bg-bg-card" id="heroBanner" style="contain:layout paint;will-change:contents">
   <% banners.forEach(function(b, i){ %>
-    <% var _bgStyle = 'background:'+b.bg+';' + (b.image ? 'background-image:url('+b.image+');background-size:contain;background-position:center;background-repeat:no-repeat;' : ''); %>
-    <div class="hero-slide absolute inset-0 flex items-center px-5 md:px-8 py-5 md:py-7 text-white" style="<%= _bgStyle %>opacity:<%= i===0?1:0 %>;transition:opacity 1s ease-in-out;pointer-events:<%= i===0?'auto':'none' %>;will-change:opacity;transform:translateZ(0)">
+    <div class="hero-slide absolute inset-0 flex items-center px-5 md:px-8 py-5 md:py-7 text-white" style="background:<%= b.bg %>;opacity:<%= i===0?1:0 %>;transition:opacity 1s ease-in-out;pointer-events:<%= i===0?'auto':'none' %>;will-change:opacity;transform:translateZ(0)">
       <% if (!b.image) { %>
         <!-- Khong co anh: hien text + radial spotlight + CTA -->
         <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 75% 50%,rgba(255,255,255,.18),transparent 60%);"></div>
@@ -112,12 +111,13 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
           <a href="<%= b.url %>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-white text-red-700 px-5 md:px-7 py-1.5 md:py-2.5 rounded-lg font-extrabold shadow-lg hover:scale-105 transition-transform text-xs md:text-sm"><%= b.cta %> &rarr;</a>
         </div>
       <% } else { %>
-        <!-- Co anh: KHONG do lop phu, anh hien thi 100% ro net + chi co link an len toan banner -->
-        <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0 z-[1]" aria-label="<%= b.title %>"></a>
+        <!-- Có ảnh: dùng <img> object-contain → KHÔNG BAO GIỜ CROP, auto fit mọi ratio -->
+        <img src="<%= b.image %>" alt="<%= b.title || 'XOSO66 TV banner' %>" class="absolute inset-0 w-full h-full object-contain block pointer-events-none" loading="<%= i===0?'eager':'lazy' %>" decoding="async">
+        <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0 z-[2]" aria-label="<%= b.title %>"></a>
       <% } %>
     </div>
   <% }); %>
-  <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-[2]" id="heroDots">
+  <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-[3]" id="heroDots">
     <% banners.forEach(function(b, i){ %><span class="w-1.5 h-1.5 rounded-full bg-white/40 cursor-pointer transition-all duration-500 <%= i===0?'!w-5 !bg-white':'' %>"></span><% }); %>
   </div>
 </div>
