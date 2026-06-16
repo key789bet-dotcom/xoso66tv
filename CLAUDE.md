@@ -181,3 +181,37 @@ Rollback Plan
 ```
 
 Tuân thủ định dạng này cho mọi yêu cầu code và fix bug.
+
+## 15. ĐỌC FULL FILE TRƯỚC KHI SỬA
+
+Trước khi sửa bất kỳ file nào:
+
+- Phải Read TOÀN BỘ file đó từ đầu đến cuối.
+- Phải Read các file liên quan trực tiếp (import/require, partial include, route handler).
+- KHÔNG sửa dựa trên suy đoán từ snippet ngắn.
+- KHÔNG sửa khi chỉ thấy 1 đoạn nhỏ qua Grep/search.
+
+Nếu file quá lớn (>2000 dòng):
+=> chia nhỏ Read theo offset, đảm bảo đọc HẾT các phần liên quan tới scope sửa.
+
+## 16. PATCH TỐI THIỂU — KHÔNG TRẢ FULL FILE
+
+Khi đề xuất sửa đổi:
+
+- KHÔNG BAO GIỜ trả về toàn bộ file nếu chỉ cần sửa vài dòng.
+- Luôn ưu tiên unified diff hoặc patch tối thiểu (dùng Edit tool với old_string/new_string ngắn nhất có thể).
+- Chỉ trả full file khi:
+  * Tạo file mới (Write tool)
+  * File cần rewrite hoàn toàn (>80% nội dung thay đổi) — phải giải thích lý do
+  * User yêu cầu rõ ràng "rewrite full file"
+
+Format patch tối thiểu:
+
+```
+FILE: path/to/file.js
+LINE: 123-145 (range chính xác)
+DIFF:
+- old line
++ new line
+LÝ DO: ...
+```
