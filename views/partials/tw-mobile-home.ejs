@@ -135,10 +135,11 @@ _cnt.all = _cards.length;
     <% if (banners && banners.length) { %>
     <div class="relative rounded-xl overflow-hidden mb-3 bg-bg-card" id="mhBanner" style="aspect-ratio:1400/240;">
       <% banners.forEach(function(b, i){ %>
-        <% var _bgStyle = b.image ? ('background-image:url('+b.image+');background-size:contain;background-position:center;background-repeat:no-repeat;background-color:'+b.bg+';') : ('background:'+b.bg+';'); %>
-        <div class="mh-slide absolute inset-0 flex items-center px-4 text-white" style="<%= _bgStyle %>opacity:<%= i===0?1:0 %>;transition:opacity .8s;pointer-events:<%= i===0?'auto':'none' %>">
+        <div class="mh-slide absolute inset-0 flex items-center px-4 text-white" style="background:<%= b.bg %>;opacity:<%= i===0?1:0 %>;transition:opacity .8s;pointer-events:<%= i===0?'auto':'none' %>">
           <% if (b.image) { %>
-            <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0" aria-label="<%= b.title %>"></a>
+            <!-- 🆕 <img> object-contain: KHÔNG BAO GIỜ CROP, auto fit mọi ratio -->
+            <img src="<%= b.image %>" alt="<%= b.title || 'XOSO66 TV banner' %>" class="absolute inset-0 w-full h-full object-contain block pointer-events-none" loading="<%= i===0?'eager':'lazy' %>" decoding="async">
+            <a href="<%= b.url %>" target="_blank" rel="noopener" class="absolute inset-0 z-[2]" aria-label="<%= b.title %>"></a>
           <% } else { %>
             <div class="relative z-[1] flex-1 min-w-0">
               <div class="text-base font-extrabold mb-1 truncate"><%= b.title %></div>
