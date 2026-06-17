@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v95-2026-06-17-prefer-svg-hero-when-match-data-exists';
+const VERSION = 'v96-2026-06-17-fix-500-article-hero-svg-parse-title-crash';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

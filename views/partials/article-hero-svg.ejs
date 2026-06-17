@@ -11,8 +11,8 @@
 var _uid = (typeof n.id !== 'undefined' && n.id)
   ? String(n.id).replace(/[^a-z0-9]/gi,'').slice(0,10)
   : ('a' + Math.random().toString(36).slice(2,8));
-var _home    = n.home || (n.title || '').split(/\bvs\b/i)[0].trim().split(/\s+/).slice(0,3).join(' ') || 'Đội nhà';
-var _away    = n.away || (n.title || '').split(/\bvs\b/i)[1] ? (n.title || '').split(/\bvs\b/i)[1].split(/[\d\-:|]/)[0].trim() : 'Đội khách';
+var _home    = n.home || 'Đội nhà';
+var _away    = n.away || 'Đội khách';
 var _homeBg  = n.homeBadge || '';
 var _awayBg  = n.awayBadge || '';
 var _league  = n.league || '';
