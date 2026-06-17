@@ -96,7 +96,10 @@ seo = {
 <article class="mb-6">
   <!-- ═══════════ COVER IMAGE ═══════════ -->
   <div class="relative w-full aspect-video md:aspect-[21/9] overflow-hidden rounded-xl mb-4 md:mb-6 bg-gradient-to-br from-[#1a2030] to-bg">
-    <% if (article.image) { %>
+    <% var _useSvgD = (article.home && article.away && (article.homeBadge || article.awayBadge || article.predictedScore)); %>
+    <% if (_useSvgD) { %>
+      <%- include('partials/article-hero-svg', { n: article, compact: false }) %>
+    <% } else if (article.image) { %>
       <img src="<%= article.image %>" alt="<%= article.title %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
     <% } else { %>
       <%- include('partials/article-hero-svg', { n: article, compact: false }) %>

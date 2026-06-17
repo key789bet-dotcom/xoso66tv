@@ -112,7 +112,10 @@ function _fmtDate(d){
   <article class="fr-card hover:border-emerald-500 transition-all" itemscope itemtype="https://schema.org/NewsArticle">
     <a href="/tin-tuc/<%= _hero.slug %>" itemprop="url" class="block">
       <div class="fr-hero-img">
-        <% if (_hero.image) { %>
+        <% var _useSvg1 = (_hero.home && _hero.away && (_hero.homeBadge || _hero.awayBadge || _hero.predictedScore)); %>
+        <% if (_useSvg1) { %>
+          <%- include('partials/article-hero-svg', { n: _hero, compact: false }) %>
+        <% } else if (_hero.image) { %>
           <img src="<%= _hero.image %>" alt="<%= _hero.title %>" itemprop="image">
         <% } else { %>
           <%- include('partials/article-hero-svg', { n: _hero, compact: false }) %>
@@ -142,7 +145,10 @@ function _fmtDate(d){
     <% (list.slice(1, 5)).forEach(function(n){ %>
       <a href="/tin-tuc/<%= n.slug %>" class="fr-sb-card" itemscope itemtype="https://schema.org/NewsArticle">
         <div class="fr-thumb">
-          <% if (n.image) { %>
+          <% var _useSvg2 = (n.home && n.away && (n.homeBadge || n.awayBadge || n.predictedScore)); %>
+          <% if (_useSvg2) { %>
+            <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
+          <% } else if (n.image) { %>
             <img src="<%= n.image %>" alt="<%= n.title %>" itemprop="image" loading="lazy">
           <% } else { %>
             <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
@@ -263,7 +269,10 @@ function _fmtDate(d){
         <article class="news-card" data-league="<%= n.league || 'Khác' %>" itemscope itemtype="https://schema.org/NewsArticle">
           <a href="/tin-tuc/<%= n.slug %>" class="fr-news-row" itemprop="url">
             <div class="fr-thumb-lg">
-              <% if (n.image) { %>
+              <% var _useSvg3 = (n.home && n.away && (n.homeBadge || n.awayBadge || n.predictedScore)); %>
+              <% if (_useSvg3) { %>
+                <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
+              <% } else if (n.image) { %>
                 <img src="<%= n.image %>" alt="<%= n.title %>" itemprop="image" loading="lazy">
               <% } else { %>
                 <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
@@ -398,7 +407,10 @@ function _fmtDate(d){
     <% var _hot = list[0]; %>
     <a href="/tin-tuc/<%= _hot.slug %>" class="block bg-bg-card border border-pri/40 rounded-xl overflow-hidden mb-3 shadow-lg shadow-pri/20">
       <div class="aspect-[16/9] relative bg-gradient-to-br from-[#1a2030] to-bg">
-        <% if (_hot.image) { %>
+        <% var _useSvg4 = (_hot.home && _hot.away && (_hot.homeBadge || _hot.awayBadge || _hot.predictedScore)); %>
+        <% if (_useSvg4) { %>
+          <%- include('partials/article-hero-svg', { n: _hot, compact: false }) %>
+        <% } else if (_hot.image) { %>
           <img src="<%= _hot.image %>" alt="<%= _hot.title %>" class="w-full h-full object-cover">
         <% } else { %>
           <%- include('partials/article-hero-svg', { n: _hot, compact: false }) %>
@@ -423,7 +435,10 @@ function _fmtDate(d){
       <% list.slice(1).forEach(function(n){ %>
       <a href="/tin-tuc/<%= n.slug %>" class="flex gap-2.5 bg-bg-card border border-line rounded-xl p-2 active:scale-[.98] transition-transform">
         <div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[#1a2030] to-bg grid place-items-center relative">
-          <% if (n.image) { %>
+          <% var _useSvg5 = (n.home && n.away && (n.homeBadge || n.awayBadge || n.predictedScore)); %>
+          <% if (_useSvg5) { %>
+            <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
+          <% } else if (n.image) { %>
             <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
           <% } else { %>
             <%- include('partials/article-hero-svg', { n: n, compact: true }) %>

@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v94-2026-06-17-article-hero-svg-inline-fallback-2teams-prediction';
+const VERSION = 'v95-2026-06-17-prefer-svg-hero-when-match-data-exists';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
