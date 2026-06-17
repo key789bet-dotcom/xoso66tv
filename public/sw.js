@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v97-2026-06-17-fix-500-ejs-comment-with-include-tag-conflict';
+const VERSION = 'v98-2026-06-17-csrf-auto-inject-fetch-fix-studio-go-live';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

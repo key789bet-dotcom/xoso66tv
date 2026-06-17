@@ -5,6 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <%# 🛡️ Mục 21: CSRF token — JS đọc qua document.querySelector('meta[name=csrf-token]').content %>
 <% if (typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
+<%# 🛡️ Auto-inject X-CSRF-Token vào MỌI fetch() POST/PUT/DELETE same-origin → fix studio go-live + tất cả API calls thiếu CSRF %>
+<script>
+(function(){
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  var token = meta && meta.content ? meta.content : '';
+  if (!token || !window.fetch || window.__csrfPatched) return;
+  window.__csrfPatched = true;
+  var origFetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    init = init || {};
+    var method = (init.method || (input && input.method) || 'GET').toUpperCase();
+    if (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') {
+      var url = (typeof input === 'string') ? input : (input && input.url) || '';
+      var isSameOrigin = url.indexOf('/') === 0 || url.indexOf(location.origin) === 0;
+      if (isSameOrigin) {
+        var headers = init.headers || {};
+        if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+          var plain = {}; headers.forEach(function(v,k){ plain[k]=v; }); headers = plain;
+        } else if (Array.isArray(headers)) {
+          var plain2 = {}; headers.forEach(function(p){ if(p && p.length===2) plain2[p[0]]=p[1]; }); headers = plain2;
+        } else if (typeof headers !== 'object' || headers === null) {
+          headers = {};
+        }
+        var hasToken = Object.keys(headers).some(function(k){ return k.toLowerCase() === 'x-csrf-token'; });
+        if (!hasToken) headers['X-CSRF-Token'] = token;
+        init.headers = headers;
+        if (!init.credentials) init.credentials = 'same-origin';
+      }
+    }
+    return origFetch(input, init);
+  };
+})();
+</script>
 <link rel="icon" type="image/webp" href="/static/img/favicon.webp">
 <link rel="apple-touch-icon" href="/static/img/favicon.webp">
 <!-- 🚀 LAZY LOAD - auto add loading="lazy" + decoding="async" cho TẤT CẢ <img> không có sẵn attribute (tiết kiệm bandwidth, tăng PageSpeed) -->
