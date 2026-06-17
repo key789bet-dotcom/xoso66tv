@@ -968,6 +968,34 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
         #liveChatAside { height: 640px !important; max-height: none !important; }
       }
     </style>
+    <!-- 🆕 MINI ICONS ROW (style xoilac/8xbet): stats / settings / share / chat / etc -->
+    <div class="flex border-b border-line bg-bg-deep px-2 py-1 gap-1 items-center">
+      <button type="button" class="dlr-mini-icon" title="Thống kê" aria-label="Thống kê">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </button>
+      <button type="button" class="dlr-mini-icon" title="Đội hình" aria-label="Đội hình">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+      <button type="button" class="dlr-mini-icon dlr-mini-active" title="Chat phòng" aria-label="Chat phòng">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button type="button" class="dlr-mini-icon" title="H2H" aria-label="H2H">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </button>
+      <button type="button" class="dlr-mini-icon" title="Tỷ lệ" aria-label="Tỷ lệ">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </button>
+      <button type="button" id="liveChatShareBtn" class="dlr-mini-icon" title="Chia sẻ" aria-label="Chia sẻ" onclick="if(navigator.share){navigator.share({title:document.title,url:location.href}).catch(()=>{})}else if(navigator.clipboard){navigator.clipboard.writeText(location.href)}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      </button>
+      <span class="ml-auto text-[10px] text-muted font-bold">CHAT</span>
+    </div>
+    <style>
+      .dlr-mini-icon { width:26px; height:26px; display:grid; place-items:center; background:transparent; border:1px solid transparent; border-radius:5px; color:#94a3b8; cursor:pointer; transition:all .15s; }
+      .dlr-mini-icon:hover { color:#fff; background:rgba(255,255,255,.06); }
+      .dlr-mini-icon.dlr-mini-active { color:#ff9a3a; background:rgba(255,122,24,.12); border-color:rgba(255,122,24,.3); }
+    </style>
+
     <%
       // 🎨 Render 1 chat tab: ảnh nếu admin đã upload, fallback emoji+text
       var _cti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};
