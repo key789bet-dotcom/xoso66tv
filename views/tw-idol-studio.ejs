@@ -797,8 +797,46 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   </div>
 </section>
 
+<!-- 🐛 DEBUG OVERLAY — hiển thị error/log mobile (KHÔNG cần DevTools) -->
+<div id="stuDbgOverlay" style="position:fixed; top:0; left:0; right:0; max-height:50vh; background:rgba(0,0,0,.92); color:#0ff; font:11px/1.4 'Courier New',monospace; padding:8px 10px; z-index:99999; overflow-y:auto; display:none; border-bottom:2px solid #ff7a18;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid #444;">
+    <strong style="color:#ff7a18;">🐛 DEBUG LOG</strong>
+    <span>
+      <button type="button" onclick="document.getElementById('stuDbgLog').innerHTML=''" style="background:#1f2937; color:#fff; border:1px solid #444; padding:2px 8px; border-radius:3px; font-size:10px; margin-right:4px;">Clear</button>
+      <button type="button" onclick="document.getElementById('stuDbgOverlay').style.display='none'" style="background:#dc2626; color:#fff; border:0; padding:2px 8px; border-radius:3px; font-size:10px;">✕ Close</button>
+    </span>
+  </div>
+  <div id="stuDbgLog" style="white-space:pre-wrap; word-break:break-all;"></div>
+</div>
 <script>
 (function(){
+  // ===== DEBUG HELPER =====
+  window.__dbg = function(msg, level) {
+    try {
+      var ov = document.getElementById('stuDbgOverlay');
+      var lg = document.getElementById('stuDbgLog');
+      if (!ov || !lg) return;
+      ov.style.display = 'block';
+      var col = level === 'err' ? '#ff5757' : (level === 'ok' ? '#10b981' : (level === 'warn' ? '#facc15' : '#0ff'));
+      var ts = new Date().toTimeString().slice(0,8);
+      var line = document.createElement('div');
+      line.style.color = col;
+      line.style.marginBottom = '2px';
+      line.textContent = '[' + ts + '] ' + (level==='err'?'❌ ':level==='ok'?'✅ ':level==='warn'?'⚠️ ':'• ') + String(msg);
+      lg.appendChild(line);
+      lg.scrollTop = lg.scrollHeight;
+      // Auto-show & console too
+      console.log('[__dbg]', msg);
+    } catch(e) {}
+  };
+  // Bắt window error toàn cục
+  window.addEventListener('error', function(ev){
+    window.__dbg('Window Error: ' + (ev.message || 'unknown') + ' @' + (ev.filename||'?') + ':' + (ev.lineno||'?'), 'err');
+  });
+  window.addEventListener('unhandledrejection', function(ev){
+    window.__dbg('Unhandled Promise: ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)), 'err');
+  });
+
   // ===== STATE =====
   var state = {
     identity: null, // { id, name, emoji }
@@ -1093,13 +1131,24 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
   // ===== SRS RTC PUBLISH (browser native live, support SRS 5 & 6) =====
   state.pc = null;
   async function whipPublish(streamKey){
+    window.__dbg('whipPublish START | streamKey=' + streamKey);
     // SRS native publish API (work với cả SRS 5/6) - JSON body
     var PUBLISH_URL = 'https://xoso66tv.com/rtc/v1/publish/';
     var STREAM_URL  = 'webrtc://xoso66tv.com/live/' + streamKey;
+    window.__dbg('PUBLISH_URL=' + PUBLISH_URL);
+    window.__dbg('STREAM_URL=' + STREAM_URL);
+    if (!state.mediaStream) {
+      window.__dbg('mediaStream is NULL — chưa bật camera!', 'err');
+      throw new Error('Camera chưa bật');
+    }
+    var tracks = state.mediaStream.getTracks();
+    window.__dbg('mediaStream tracks: ' + tracks.length + ' (video=' + tracks.filter(t=>t.kind==='video').length + ', audio=' + tracks.filter(t=>t.kind==='audio').length + ')');
     var pc = new RTCPeerConnection({
       iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }]
     });
-    state.mediaStream.getTracks().forEach(function(t){ pc.addTrack(t, state.mediaStream); });
+    window.__dbg('RTCPeerConnection created');
+    tracks.forEach(function(t){ pc.addTrack(t, state.mediaStream); });
+    window.__dbg('All tracks added to PC');
 
     // 🎬 FORCE codec H264 (SRS chỉ bridge H264 sang FLV, VP8/VP9 không work)
     try {
@@ -1119,22 +1168,49 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
       });
     } catch(e) { console.log('[WHIP] Codec preference not supported:', e.message); }
 
+    window.__dbg('Creating WebRTC offer...');
     var offer = await pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
+    window.__dbg('Offer created, length=' + (offer.sdp ? offer.sdp.length : 0));
     await pc.setLocalDescription(offer);
+    window.__dbg('LocalDescription set');
 
-    var resp = await fetch(PUBLISH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        api: PUBLISH_URL,
-        streamurl: STREAM_URL,
-        sdp: pc.localDescription.sdp
-      })
-    });
-    if (!resp.ok) throw new Error('SRS Publish HTTP ' + resp.status);
+    window.__dbg('POST → ' + PUBLISH_URL);
+    var resp;
+    try {
+      resp = await fetch(PUBLISH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api: PUBLISH_URL,
+          streamurl: STREAM_URL,
+          sdp: pc.localDescription.sdp
+        })
+      });
+    } catch (netErr) {
+      window.__dbg('Network ERR fetch publish: ' + netErr.message, 'err');
+      throw new Error('Network error: ' + netErr.message);
+    }
+    window.__dbg('SRS HTTP status: ' + resp.status + ' ' + resp.statusText);
+    if (!resp.ok) {
+      var errBody = '';
+      try { errBody = (await resp.text()).slice(0, 200); } catch(_){}
+      window.__dbg('SRS body: ' + errBody, 'err');
+      throw new Error('SRS Publish HTTP ' + resp.status + ' ' + errBody);
+    }
     var j = await resp.json();
-    if (j.code !== 0) throw new Error('SRS error code ' + j.code);
+    window.__dbg('SRS JSON code=' + j.code + ' sdp_len=' + (j.sdp ? j.sdp.length : 0));
+    if (j.code !== 0) {
+      window.__dbg('SRS reject với code=' + j.code, 'err');
+      throw new Error('SRS error code ' + j.code);
+    }
     await pc.setRemoteDescription({ type: 'answer', sdp: j.sdp });
+    window.__dbg('RemoteDescription set — WebRTC connection negotiated', 'ok');
+    pc.addEventListener('iceconnectionstatechange', function(){
+      window.__dbg('ICE state → ' + pc.iceConnectionState, pc.iceConnectionState === 'connected' ? 'ok' : (pc.iceConnectionState === 'failed' ? 'err' : 'warn'));
+    });
+    pc.addEventListener('connectionstatechange', function(){
+      window.__dbg('PC state → ' + pc.connectionState, pc.connectionState === 'connected' ? 'ok' : (pc.connectionState === 'failed' ? 'err' : 'warn'));
+    });
     console.log('[SRS] Stream published:', streamKey, '→', STREAM_URL);
     return pc;
   }
@@ -1249,12 +1325,17 @@ var myObs = (typeof myObs !== 'undefined') ? myObs : null;
     if (!title) { alert('Nhập tiêu đề buổi live'); document.getElementById('stuTitle').focus(); return; }
     if (!confirm('Bắt đầu lên sóng với tư cách ' + state.identity.name + '?\n\n📡 Stream sẽ phát qua WebRTC (browser native, latency ~1s)')) return;
 
+    window.__dbg('stuGoLive START | identity.id=' + state.identity.id);
     // STEP 1: Publish WebRTC stream lên SRS server
     try {
       state.pc = await whipPublish(state.identity.id);
+      window.__dbg('whipPublish OK — state.pc=' + (state.pc ? 'set' : 'null'), 'ok');
     } catch(e) {
-      alert('❌ Lỗi WebRTC: ' + e.message + '\n\n(SRS server có thể chưa sẵn sàng. Vẫn tiếp tục với mode demo)');
+      window.__dbg('whipPublish FAIL: ' + (e && e.message ? e.message : e), 'err');
+      alert('❌ Lỗi WebRTC: ' + e.message + '\n\nXem chi tiết ở thanh DEBUG LOG trên cùng màn hình.');
       console.error('[WHIP]', e);
+      // KHÔNG tiếp tục nếu publish fail — tránh fake-live (DB nói live nhưng SRS rỗng)
+      return;
     }
 
     // STEP 2: Call API to mark stream active (kèm category đang chọn)
