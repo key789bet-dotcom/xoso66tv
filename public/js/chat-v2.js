@@ -442,14 +442,23 @@ window.sendChat = function(inputId, containerId){
 window.setLoggedInUser = function(user){ try { localStorage.setItem(USER_KEY, JSON.stringify(user || {})); } catch(e){} };
 window.logoutChatUser  = function(){ try { localStorage.removeItem(USER_KEY); } catch(e){} };
 
-window.switchChatTab = function(btn){
-  document.querySelectorAll('.chat-tab').forEach(function(b){
-    b.classList.remove('bg-bg-card','text-pri-light','border-pri');
-    b.classList.add('bg-transparent','text-muted','border-transparent');
-  });
-  btn.classList.remove('bg-transparent','text-muted','border-transparent');
-  btn.classList.add('bg-bg-card','text-pri-light','border-pri');
-};
+// switchChatTab — CHỈ define nếu page chưa có (idol-room đã có version riêng nhận string)
+if (typeof window.switchChatTab !== 'function') {
+  window.switchChatTab = function(btn){
+    // Guard: nếu pass string thay vì element → tìm button theo data-tab
+    if (typeof btn === 'string') {
+      btn = document.querySelector('.chat-tab[data-tab="' + btn + '"]') ||
+            document.querySelector('button[data-tab="' + btn + '"]');
+    }
+    if (!btn || !btn.classList) return;
+    document.querySelectorAll('.chat-tab').forEach(function(b){
+      b.classList.remove('bg-bg-card','text-pri-light','border-pri');
+      b.classList.add('bg-transparent','text-muted','border-transparent');
+    });
+    btn.classList.remove('bg-transparent','text-muted','border-transparent');
+    btn.classList.add('bg-bg-card','text-pri-light','border-pri');
+  };
+}
 
 if (typeof window.showToast !== 'function') {
   window.showToast = function(msg, kind){
