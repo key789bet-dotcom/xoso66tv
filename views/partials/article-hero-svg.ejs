@@ -1,26 +1,24 @@
 <%
-/**
- * ARTICLE HERO SVG - render khi article.image rỗng
- * Args:
- *   n = article object có {home, away, homeBadge, awayBadge, league, predictedScore}
- *   compact = boolean (true cho sidebar nhỏ → ẩn brand text + tag)
- *
- * Usage:
- *   <%- include('partials/article-hero-svg', { n: article, compact: false }) %>
- */
-var _uid = (typeof n.id !== 'undefined' && n.id)
-  ? String(n.id).replace(/[^a-z0-9]/gi,'').slice(0,10)
-  : ('a' + Math.random().toString(36).slice(2,8));
-var _home    = n.home || 'Đội nhà';
-var _away    = n.away || 'Đội khách';
-var _homeBg  = n.homeBadge || '';
-var _awayBg  = n.awayBadge || '';
-var _league  = n.league || '';
-var _score   = n.predictedScore || '';
-var _isCompact = (typeof compact !== 'undefined') ? !!compact : false;
+// ARTICLE HERO SVG partial — render khi article.image rỗng
+// Args: n (article object) + compact (boolean)
+// GUARD: nếu n undefined/null → render empty placeholder thay vì crash
+var _n = (typeof n !== 'undefined' && n) ? n : {};
 function _ahEsc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+var _uid;
+try {
+  _uid = (_n.id != null && _n.id !== '')
+    ? String(_n.id).replace(/[^a-z0-9]/gi,'').slice(0,10) || ('a' + Math.random().toString(36).slice(2,8))
+    : ('a' + Math.random().toString(36).slice(2,8));
+} catch (e) { _uid = 'a' + Math.random().toString(36).slice(2,8); }
+var _home    = _n.home || 'Đội nhà';
+var _away    = _n.away || 'Đội khách';
+var _homeBg  = _n.homeBadge || '';
+var _awayBg  = _n.awayBadge || '';
+var _league  = _n.league || '';
+var _score   = _n.predictedScore || '';
+var _isCompact = (typeof compact !== 'undefined') ? !!compact : false;
 %>
 <svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%; display:block;">
   <defs>
