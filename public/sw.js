@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v100-2026-06-17-fix-streamkey-webrtc-prefix-mobile-live-display';
+const VERSION = 'v101-2026-06-17-fix-streamkey-suffix-force-idolid-mobile-live';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

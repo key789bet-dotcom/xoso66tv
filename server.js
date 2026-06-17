@@ -2931,8 +2931,12 @@ app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){
     };
     data.obs.push(obs);
   } else {
-    // 🆕 MIGRATE legacy streamKey với prefix 'webrtc_' → đổi về idolId plain
-    if (obs.streamKey && (obs.streamKey === 'webrtc_' + idolId || /^webrtc_/.test(obs.streamKey))) {
+    // 🆕 FORCE streamKey = idolId khi MOBILE WebRTC go-live, vì mobile JS hardcode
+    //    PUBLISH_URL = 'webrtc://xoso66tv.com/live/' + state.identity.id (plain idolId)
+    //    Bất kỳ key cũ nào (webrtc_<id>, <id>_<random suffix>) → ghi đè bằng idolId
+    //    OBS path đi route khác (/api/studio/get-key) nên không ảnh hưởng đến key suffix OBS
+    if (source !== 'obs' && obs.streamKey !== idolId) {
+      console.log('[go-live] migrate streamKey:', obs.streamKey, '→', idolId);
       obs.streamKey = idolId;
     }
     obs.streamActive = true;
