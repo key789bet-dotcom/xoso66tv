@@ -221,136 +221,137 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
     <!-- Mô phỏng trận đấu (stats) -->
     <div>
       <div class="dlr-section-h"><span></span><h3>MÔ PHỎNG <span>TRẬN ĐẤU</span></h3></div>
-      <!-- ═══ 3D PITCH (copy chính xác coords thesports01 + brand XOSO66TV.COM) ═══ -->
-      <div class="dlr-pitch-3d" style="position:relative; aspect-ratio:800/404; background:linear-gradient(180deg,#0a1628,#1a3a5c); border:1px solid #1a1f29; border-radius:8px; overflow:hidden; perspective:590.85px;">
+      <!-- ═══ 3D PITCH — NGUYÊN code SVG thesports01, CHỈ thay brand → xoso66tv ═══ -->
+      <div class="animate-svg" style="position:relative; transform:translateY(0px); perspective:590.85px; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden;">
 
-        <!-- Stadium PNG background (khán đài 3D) -->
+        <!-- Stadium PNG background -->
         <img src="https://cdn.thesports01.com/tracker/config/assets/2ac837bf6eceb392bb677fec829d8dc9.png!w800"
              alt="" loading="lazy"
-             style="position:absolute; inset:0; width:100%; height:50%; object-fit:cover; object-position:top; opacity:0.95; pointer-events:none;"
+             style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.85; pointer-events:none; z-index:1;"
              onerror="this.style.display='none'">
 
-        <!-- SVG overlay: field + lines + advert + score + ball -->
-        <svg viewBox="0 0 800 404" width="100%" height="100%" style="position:absolute; inset:0; z-index:2; pointer-events:none;" preserveAspectRatio="xMinYMin meet">
+        <!-- SVG 1: DEFS (theo thesports01) -->
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" viewBox="0 0 800 404" width="100%" height="auto" style="position:relative; z-index:2; pointer-events:none; display:block;">
           <defs>
-            <g id="dlrFlag">
-              <polygon fill="#FF7457" points="1 0 10 5 1 9"/>
-              <rect x="0" y="0" width="1.6" height="18" fill="#fff" rx="0.8"/>
+            <linearGradient id="dgradient-home"><stop offset="0%" stop-color="rgb(21,60,0)" stop-opacity="0.1"/><stop offset="100%" stop-color="rgb(9,28,0)" stop-opacity="0.45"/></linearGradient>
+            <linearGradient id="dgradient-away"><stop offset="0%" stop-color="rgb(9,28,0)" stop-opacity="0.45"/><stop offset="100%" stop-color="rgb(21,60,0)" stop-opacity="0.1"/></linearGradient>
+            <g id="dflag-defs">
+              <polygon fill="#FF7457" points="1 0 10 5.00646222 1 9"/>
+              <path d="M0.8,0 C1.2418278,-8.11624501e-17 1.6,0.3581722 1.6,0.8 L1.6,17.2 C1.6,17.6418278 1.2418278,18 0.8,18 C0.3581722,18 -5.01003212e-16,17.6418278 0,17.2 L0,0.8 C-5.41083001e-17,0.3581722 0.3581722,8.11624501e-17 0.8,0 Z" fill="#FFFFFF"/>
             </g>
-            <g id="dlrQm" fill-rule="evenodd"><g fill="#fff">
-              <polygon opacity="0.2" points="23.74 20.04 11.57 20.04 0.75 40.73 23.94 40.73"/>
-              <polygon opacity="0.1" points="0.75 40.73 19.54 20.17 28.43 0.80 11.57 20.04"/>
-              <polygon opacity="0.15" points="38.98 0.80 28.43 0.80 19.54 20.17 38.98 20.17"/>
-              <polygon opacity="0.15" points="23.49 20.04 38.98 0.80 28.43 0.80 11.57 20.04"/>
+            <g id="dqm-g" fill-rule="evenodd"><g fill="#fff">
+              <polygon opacity="0.2" points="23.741 20.0457821 11.5726356 20.0457821 0.758332737 40.7351071 23.9416045 40.7351071"/>
+              <polygon opacity="0.1" points="0.758332737 40.7351071 19.5413668 20.1756914 28.4357949 0.801607034 11.5726356 20.0457821"/>
+              <polygon opacity="0.15" points="38.9844875 0.801607034 28.4357949 0.801607034 19.5413668 20.1756914 38.9844875 20.1756914"/>
+              <polygon opacity="0.15" points="23.4997592 20.0457821 38.9844875 0.801607034 28.4357949 0.801607034 11.5726356 20.0457821"/>
             </g></g>
+            <!-- Center bar = rect cam + text XOSO66TV.COM (thay 4 image cdn.thesports01) -->
+            <g id="dcenter-bar">
+              <rect width="63.2" height="12" fill="#ff7a18" rx="0.5"/>
+              <text x="31.6" y="8.5" font-size="6" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.5">XOSO66TV.COM</text>
+            </g>
+            <!-- Ball SVG inline (thay /public/img/ball.svg) -->
+            <g id="dball-svg">
+              <circle cx="0" cy="0" r="9" fill="#fff" stroke="#000" stroke-width="0.5"/>
+              <polygon points="0,-5 4,-2 2,3 -2,3 -4,-2" fill="#000"/>
+              <line x1="0" y1="-5" x2="0" y2="-9" stroke="#000" stroke-width="0.4"/>
+              <line x1="4" y1="-2" x2="8" y2="-4" stroke="#000" stroke-width="0.4"/>
+              <line x1="-4" y1="-2" x2="-8" y2="-4" stroke="#000" stroke-width="0.4"/>
+              <line x1="2" y1="3" x2="5" y2="7" stroke="#000" stroke-width="0.4"/>
+              <line x1="-2" y1="3" x2="-5" y2="7" stroke="#000" stroke-width="0.4"/>
+            </g>
           </defs>
-
-          <!-- 3 advert bars XOSO66TV.COM (cam brand) ngay trên đầu sân -->
-          <g transform="translate(150 138)">
-            <rect width="500" height="14" fill="#ff7a18" rx="1"/>
-            <text x="83" y="10" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2.5">XOSO66TV.COM</text>
-            <text x="250" y="10" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2.5">XOSO66TV.COM</text>
-            <text x="417" y="10" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2.5">XOSO66TV.COM</text>
-          </g>
-
-          <!-- Field xanh -->
-          <path fill="#659F33" d="M 220,158 L 580,158 L 770,394 L 30,394 Z"/>
-
-          <!-- Outer perimeter -->
-          <path stroke="rgba(179,218,174,.5)" stroke-width="2" fill="none" d="M 220,158 L 580,158 L 770,394 L 30,394 Z"/>
-
-          <!-- Center line + circle + dot -->
-          <line x1="400" y1="158" x2="400" y2="394" stroke="rgba(179,218,174,.45)" stroke-width="2"/>
-          <ellipse cx="400" cy="276" rx="58" ry="22" stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none"/>
-          <ellipse cx="400" cy="276" rx="4" ry="2.4" fill="rgba(179,218,174,.6)"/>
-
-          <!-- Penalty box trái + 6-yard + spot + arc -->
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 220,200 L 175,200 L 130,330 L 245,330 Z"/>
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 220,235 L 200,235 L 178,290 L 232,290 Z"/>
-          <ellipse cx="195" cy="276" rx="3" ry="1.5" fill="rgba(179,218,174,.6)"/>
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 195,265 Q 215,276 195,287"/>
-
-          <!-- Penalty box phải + 6-yard + spot + arc -->
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 580,200 L 625,200 L 670,330 L 555,330 Z"/>
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 580,235 L 600,235 L 622,290 L 568,290 Z"/>
-          <ellipse cx="605" cy="276" rx="3" ry="1.5" fill="rgba(179,218,174,.6)"/>
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 605,265 Q 585,276 605,287"/>
-
-          <!-- 2 goals (khung thành) -->
-          <path stroke="rgba(179,218,174,.5)" stroke-width="2.5" fill="none" d="M 220,158 L 220,150 L 175,150 L 175,158"/>
-          <path stroke="rgba(179,218,174,.5)" stroke-width="2.5" fill="none" d="M 580,158 L 580,150 L 625,150 L 625,158"/>
-
-          <!-- 4 cờ phạt góc -->
-          <use xlink:href="#dlrFlag" transform="translate(220 140)"/>
-          <use xlink:href="#dlrFlag" transform="translate(578.4 140) scale(-1,1)"/>
-          <use xlink:href="#dlrFlag" transform="translate(770 376)"/>
-          <use xlink:href="#dlrFlag" transform="translate(28.4 376) scale(-1,1)"/>
-
-          <!-- 2 corner quarter marks (góc gần camera) -->
-          <use xlink:href="#dlrQm" transform="translate(0 354)"/>
-          <use xlink:href="#dlrQm" transform="translate(800 354) scale(-1,1)"/>
-
-          <!-- 4 corner arcs -->
-          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 220,162 Q 224,168 230,165 M 580,162 Q 576,168 570,165 M 30,392 Q 36,386 38,392 M 770,392 Q 764,386 762,392"/>
-
-          <!-- Score box giữa sân với foreignObject -->
-          <g transform="translate(331 168)">
-            <rect fill="rgba(21,32,64,1)" x="0" y="0" width="138" height="4"/>
-            <foreignObject width="138" height="50" x="0" y="4">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="background-color:rgba(21,32,64,0.9); color:#fff; padding:5px 12px; text-align:center; font-family:system-ui;">
-                <div style="font-size:8px; color:#94a3b8; margin-bottom:1px; letter-spacing:1.5px;">XOSO66TV.COM</div>
-                <div style="font-size:22px; font-weight:700; letter-spacing:5px; line-height:1; font-feature-settings:'tnum';">
-                  <span style="color:rgb(0,118,255);"><%= match.score ? match.score[0] : '0' %></span>
-                  <span style="color:#fff; margin:0 4px;">-</span>
-                  <span style="color:rgb(10,201,0);"><%= match.score ? match.score[1] : '0' %></span>
-                </div>
-              </div>
-            </foreignObject>
-          </g>
-
-          <!-- Ball với ripple animation -->
-          <g transform="translate(400 290)">
-            <ellipse stroke-width="0" rx="24" ry="14" fill="rgba(255,255,255,.15)">
-              <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" dur="2.6s" repeatCount="indefinite"/>
-              <animate attributeName="rx" values="18;30;30;30" keyTimes="0;.2;.35;1" dur="2.6s" repeatCount="indefinite"/>
-            </ellipse>
-            <ellipse stroke-width="0" rx="18" ry="10" fill="rgba(255,255,255,.25)">
-              <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" dur="2.6s" begin="0.55s" repeatCount="indefinite"/>
-              <animate attributeName="rx" values="8;22;22;8" keyTimes="0;.2;.35;1" dur="2.6s" begin="0.55s" repeatCount="indefinite"/>
-            </ellipse>
-            <ellipse stroke="#fff" fill="rgb(0,118,255)" stroke-width="2" rx="8" ry="5"/>
-          </g>
-
-          <!-- Watermark xoso66tv.com góc dưới phải -->
-          <text x="785" y="398" font-size="11" font-weight="700" fill="#fff" opacity="0.6" text-anchor="end" letter-spacing="1">xoso66tv.com</text>
         </svg>
 
-        <!-- Stats overlay góc dưới trái (KSB / TC / TC hiểm) - nếu API có data -->
-        <% if (_dPossession || _dAttacks || _dDangerAtk) { %>
-        <div style="position:absolute; bottom:8px; left:8px; z-index:3; background:rgba(10,13,18,.85); border:1px solid #1a1f29; border-radius:6px; padding:6px 10px; display:flex; gap:14px; font-size:11px;">
-          <% if (_dPossession) { %>
-          <div style="display:flex; align-items:center; gap:5px;">
-            <span style="color:rgb(0,118,255); font-weight:900;"><%= _dPossession.home %></span>
-            <span style="color:#94a3b8; font-size:9px;">KSB</span>
-            <span style="color:rgb(10,201,0); font-weight:900;"><%= _dPossession.away %></span>
-          </div>
-          <% } %>
-          <% if (_dAttacks) { %>
-          <div style="display:flex; align-items:center; gap:5px;">
-            <span style="color:rgb(0,118,255); font-weight:900;"><%= _dAttacks.home %></span>
-            <span style="color:#94a3b8; font-size:9px;">TC</span>
-            <span style="color:rgb(10,201,0); font-weight:900;"><%= _dAttacks.away %></span>
-          </div>
-          <% } %>
-          <% if (_dDangerAtk) { %>
-          <div style="display:flex; align-items:center; gap:5px;">
-            <span style="color:rgb(0,118,255); font-weight:900;"><%= _dDangerAtk.home %></span>
-            <span style="color:#94a3b8; font-size:9px;">TC HIỂM</span>
-            <span style="color:rgb(10,201,0); font-weight:900;"><%= _dDangerAtk.away %></span>
-          </div>
-          <% } %>
-        </div>
-        <% } %>
+        <!-- SVG 2: LINE BOX + LIVE BOX + SCORE BOX (NGUYÊN code thesports01) -->
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" viewBox="0 0 800 404" width="100%" height="auto" class="dzs-svg-box pointer-events-none" style="position:absolute; inset:0; z-index:3; display:block;">
+          <g class="g-line-box">
+            <g transform="translate(0 135)">
+              <g transform="translate(-116 0)">
+                <path fill="rgba(0,58,120,1)" d="M242.490174,5.68434189e-14 L791.913953,5.68434189e-14 C797.154057,7.36443957e-14 802.134027,2.28348675 805.553436,6.25417083 L1034.40413,272 L1034.40413,272 L0,272 L228.850691,6.25417083 C232.2701,2.28348675 237.25007,1.02641442e-13 242.490174,5.68434189e-14 Z"/>
+              </g>
+              <use xlink:href="#dcenter-bar" x="-23" y="103" transform="skewX(22) skewY(-40)"/>
+              <use xlink:href="#dcenter-bar" x="744" y="-569" transform="skewX(-22) skewY(40)"/>
+              <use xlink:href="#dcenter-bar" x="174.4" y="7"/>
+              <use xlink:href="#dcenter-bar" x="360.4" y="7"/>
+              <use xlink:href="#dcenter-bar" x="546.4" y="7"/>
+            </g>
+            <g transform="translate(-117 135)" fill-rule="evenodd">
+              <path fill="#659F33" d="M249.940567,26 L784.46356,26 C790.606244,26 796.408219,28.8227569 800.199541,33.6558142 L984.816724,269 L984.816724,269 L49.5874029,269 L234.204587,33.6558142 C237.995908,28.8227569 243.797884,26 249.940567,26 Z"/>
+            </g>
+            <path fill="rgba(0,0,0,.1)" vector-effect="non-scaling-stroke" stroke-width="0" d="M 149 175 l 33 0 l -110 190 l -51 0  M 220 175 l 35 0 l -74 190 l -53 0  M 292 175 l 35 0 l -37 190 l -53 0   M 364 175 l 35 0 l 0 190 l -53 0   M 438 175 l 35 0 l 37 190 l -53 0  M 511 175 l 35 0 l 73 190 l -53 0  M 584 175 l 35 0 l 109 190 l -53 0"/>
+            <path vector-effect="non-scaling-stroke" stroke-width="2" stroke="rgba(179, 218, 174, .35)" fill="none" d="M147 175 l 506 0 l 129 191 l -764 0 l 130 -192"/>
+            <path vector-effect="non-scaling-stroke" stroke-width="2" stroke="rgba(179, 218, 174, .35)" fill="none" d="M 191 233 c 7 0 22 22 -18 38 M 130 202 l 76 0 l -54 111 l -97 0 M 113 227 l 39 0 l -28 50 l -45 0"/>
+            <path vector-effect="non-scaling-stroke" stroke-width="2" stroke="rgba(179, 218, 174, .35)" fill="none" d="M 611 233 c -7 0 -25 22 18 38 M 672 202 l -77 0 l 54 111 l 98 0 M 688 227 l -39 0 l 30 50 l 43 0"/>
+            <g class="flag-g">
+              <g><g transform="translate(147 157)"><use xlink:href="#dflag-defs" transform="scale(-1,1)"/></g></g>
+              <g><use xlink:href="#dflag-defs" transform="translate(653 157)"/></g>
+              <g><use xlink:href="#dflag-defs" transform="translate(783 349)"/></g>
+              <g><g transform="translate(18 349)"><use xlink:href="#dflag-defs" transform="scale(-1,1)"/></g></g>
+            </g>
+            <use xlink:href="#dqm-g" transform="translate(65 218)"/>
+            <use xlink:href="#dqm-g" transform="translate(736 218) scale(-1,1)"/>
+            <path vector-effect="non-scaling-stroke" stroke-width="2" stroke="rgba(179, 218, 174, .35)" fill="none" d="M 400 176 l 0.01 190"/>
+            <ellipse cx="400" cy="253" rx="47" ry="24" stroke-width="2" stroke="rgba(179, 218, 174, .35)" fill="none"/>
+            <ellipse cx="401" cy="252" rx="4.2" ry="2.7" stroke-width="0" fill="rgba(179, 218, 174, 0.4)"/>
+            <ellipse cx="159" cy="252" rx="2.6" ry="1.4" stroke-width="0" fill="rgba(179, 218, 174, 0.4)"/>
+            <ellipse cx="642" cy="252" rx="2.6" ry="1.4" stroke-width="0" fill="rgba(179, 218, 174, 0.4)"/>
+            <path vector-effect="non-scaling-stroke" stroke-width="2" stroke="rgba(179, 218, 174, .35)" fill="none" d="M 145 180 c 2 1 7 0 8 -4 M 648 175 c 0 5 7 4.5 7 4 M 24 359 c 0 0 5 0 5 6 M 771 365 c 0 0 0 -5 7 -6"/>
+          </g>
+
+          <!-- Live box: customer logo + score (thay logo URL bằng text xoso66tv.com) -->
+          <g class="g-live-box">
+            <g transform="translate(644 337)">
+              <rect width="115" height="22" fill="#ff7a18" rx="3"/>
+              <text x="57.5" y="15" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="1">xoso66tv.com</text>
+            </g>
+            <g transform="translate(331 174)" class="tab-statistics-score-g">
+              <rect fill="rgba(21,32,64,1)" x="0" y="0" width="138" height="4"/>
+              <foreignObject width="138" height="56" x="0" y="4">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="background-color:rgba(21,32,64,0.65); color:rgb(255,255,255); text-align:center; padding:6px 0; font-family:system-ui;">
+                  <div style="font-size:9px; color:#94a3b8; letter-spacing:1.2px; margin-bottom:2px;">XOSO66TV.COM</div>
+                  <div style="font-size:22px; font-weight:700;">
+                    <span style="color:rgb(0, 118, 255);"><%= match.score ? match.score[0] : '0' %></span>
+                    <span> - </span>
+                    <span style="color:rgb(10, 201, 0);"><%= match.score ? match.score[1] : '0' %></span>
+                  </div>
+                </div>
+              </foreignObject>
+            </g>
+          </g>
+        </svg>
+
+        <!-- SVG 3: BALL với ripple animation (NGUYÊN code thesports01) -->
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" viewBox="0 0 800 404" width="100%" height="auto" class="dzs-svg-box pointer-events-none" style="position:absolute; inset:0; z-index:4; display:block;">
+          <g class="g-live-box">
+            <g class="tracing-line-box home">
+              <g transform="translate(400 269)" class="radius-g">
+                <g transform="translate(-.9, -2)">
+                  <g transform="translate(0 0)">
+                    <g>
+                      <use xlink:href="#dball-svg" class="ball-rotate">
+                        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite"/>
+                      </use>
+                    </g>
+                  </g>
+                  <g>
+                    <ellipse stroke-width="0" rx="24" ry="14" fill="rgba(255,255,255,.15)" opacity="0">
+                      <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                      <animate attributeName="rx" values="18;24;24;24" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                      <animate attributeName="ry" values="10;14;14;14" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                    </ellipse>
+                    <ellipse stroke-width="0" rx="18" ry="10" fill="rgba(255,255,255,.24)" opacity="0">
+                      <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" calcMode="linear" begin=".55s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                      <animate attributeName="rx" values="8;18;18;8" keyTimes="0;.2;.35;1" calcMode="linear" begin=".55s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                      <animate attributeName="ry" values="5;10;10;5" keyTimes="0;.2;.35;1" calcMode="linear" begin=".55s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                    </ellipse>
+                    <ellipse stroke="#fff" fill="rgba(0,118,255,1)" stroke-width="2" rx="8" ry="5"/>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
       </div>
     </div>
 
