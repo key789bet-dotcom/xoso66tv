@@ -115,9 +115,7 @@ function _fmtDate(d){
         <% if (_hero.image) { %>
           <img src="<%= _hero.image %>" alt="<%= _hero.title %>" itemprop="image">
         <% } else { %>
-          <div style="width:100%;height:100%;display:grid;place-items:center;color:#6b7280;">
-            <div style="text-align:center;"><div style="font-size:48px;margin-bottom:8px;">🖼️</div><div style="font-size:12px;">image not</div></div>
-          </div>
+          <%- include('partials/article-hero-svg', { n: _hero, compact: false }) %>
         <% } %>
         <span class="absolute top-3 left-3 bg-pri text-white text-[10px] font-black uppercase px-2 py-1 rounded z-10">📰 Nhận Định</span>
         <% if (_hero.predictedScore) { %>
@@ -147,7 +145,7 @@ function _fmtDate(d){
           <% if (n.image) { %>
             <img src="<%= n.image %>" alt="<%= n.title %>" itemprop="image" loading="lazy">
           <% } else { %>
-            <div style="width:100%;height:100%;display:grid;place-items:center;font-size:22px;color:#475569;">⚽</div>
+            <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
           <% } %>
         </div>
         <div style="min-width:0;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
@@ -268,7 +266,7 @@ function _fmtDate(d){
               <% if (n.image) { %>
                 <img src="<%= n.image %>" alt="<%= n.title %>" itemprop="image" loading="lazy">
               <% } else { %>
-                <div style="width:100%;height:100%;display:grid;place-items:center;font-size:30px;color:#475569;">⚽</div>
+                <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
               <% } %>
             </div>
             <div style="min-width:0;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
@@ -402,6 +400,8 @@ function _fmtDate(d){
       <div class="aspect-[16/9] relative bg-gradient-to-br from-[#1a2030] to-bg">
         <% if (_hot.image) { %>
           <img src="<%= _hot.image %>" alt="<%= _hot.title %>" class="w-full h-full object-cover">
+        <% } else { %>
+          <%- include('partials/article-hero-svg', { n: _hot, compact: false }) %>
         <% } %>
         <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent"></div>
         <% if (_hot.predictedScore) { %>
@@ -426,7 +426,7 @@ function _fmtDate(d){
           <% if (n.image) { %>
             <img src="<%= n.image %>" alt="<%= n.title %>" class="w-full h-full object-cover" onerror="this.style.display='none'">
           <% } else { %>
-            <span class="text-3xl opacity-60">⚽</span>
+            <%- include('partials/article-hero-svg', { n: n, compact: true }) %>
           <% } %>
           <% if (n.predictedScore) { %>
             <span class="absolute top-1 left-1 bg-pri text-white text-[9px] font-extrabold px-1 py-0.5 rounded"><%= n.predictedScore %></span>

@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v93-2026-06-17-sim-engine-animate-ball-tooltip-from-real-events';
+const VERSION = 'v94-2026-06-17-article-hero-svg-inline-fallback-2teams-prediction';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
