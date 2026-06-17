@@ -243,30 +243,34 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
     <div>
       <div class="dlr-section-h" style="display:flex; align-items:center; justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:8px;"><span></span><h3>MÔ PHỎNG <span>TRẬN ĐẤU</span></h3></div>
-        <div style="display:flex; gap:4px;">
-          <button type="button" id="dlrSimToggle1" class="dlr-sim-toggle active" data-mode="iframe" title="Live tracker realtime từ apistatscore (cần Internet)">⚡ LIVE TRACKER</button>
-          <button type="button" id="dlrSimToggle2" class="dlr-sim-toggle" data-mode="svg" title="Mô phỏng SVG (offline / fallback)">🎨 SVG</button>
+        <!-- Toggle button ẨN tạm thời cho đến khi đăng ký whitelist apistatscore.
+             Khi đã đăng ký + iframe load OK, đổi class="dlr-sim-toggle-row hidden" → "" -->
+        <div class="dlr-sim-toggle-row" style="display:none; gap:4px;">
+          <button type="button" id="dlrSimToggle1" class="dlr-sim-toggle" data-mode="iframe" title="Live tracker realtime từ apistatscore (cần whitelist)">⚡ LIVE TRACKER</button>
+          <button type="button" id="dlrSimToggle2" class="dlr-sim-toggle active" data-mode="svg" title="Mô phỏng SVG (mặc định)">🎨 SVG</button>
         </div>
       </div>
 
-      <!-- ═══ MODE 1: IFRAME LIVE TRACKER (apistatscore — Y CHANG xoilac) ═══ -->
-      <div id="dlrSimIframeWrap" style="position:relative; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden; aspect-ratio:16/9; min-height:380px;">
+      <!-- ═══ MODE 1: IFRAME LIVE TRACKER (apistatscore — bị block X-Frame-Options) ═══
+           Hiện apistatscore chỉ cho domain whitelist `xoilacz.co`. Domain xoso66tv chưa
+           được register → iframe trả "This content is blocked".
+           Giải pháp: liên hệ apistatscore đăng ký whitelist (free hoặc ~$200/tháng tùy plan)
+           rồi đổi `display:none` thành `display:''` + bật toggle button trên. -->
+      <div id="dlrSimIframeWrap" style="display:none; position:relative; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden; aspect-ratio:16/9; min-height:380px;">
         <iframe
           id="dlrSimIframe"
-          src="https://embed.apistatscore.com/embed/livescores?siteName=xoso66tv"
+          src="about:blank"
+          data-src="https://embed.apistatscore.com/embed/livescores?siteName=xoso66tv"
           style="position:absolute; inset:0; width:100%; height:100%; border:0; background:#0a1628;"
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
           allow="autoplay"
           scrolling="no"
           title="Tracker trận đấu live - XOSO66 TV"></iframe>
-        <noscript>
-          <div style="padding:20px; color:#94a3b8; text-align:center;">Bật JavaScript để xem mô phỏng trận đấu trực tiếp</div>
-        </noscript>
       </div>
 
-      <!-- ═══ MODE 2: SVG PITCH (fallback / offline) - ẨN MẶC ĐỊNH ═══ -->
-      <div id="dlrSimSvgWrap" class="animate-svg" style="display:none; position:relative; transform:translateY(0px); perspective:590.85px; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden;">
+      <!-- ═══ MODE 2: SVG PITCH (DEFAULT) — bóng di chuyển 24s/loop + spotlight cam ═══ -->
+      <div id="dlrSimSvgWrap" class="animate-svg" style="position:relative; transform:translateY(0px); perspective:590.85px; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden;">
 
         <!-- Stadium PNG background -->
         <img src="https://cdn.thesports01.com/tracker/config/assets/2ac837bf6eceb392bb677fec829d8dc9.png!w800"
@@ -937,27 +941,39 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
     });
   });
 
-  // ─── 4b. SIM TOGGLE (LIVE TRACKER iframe ↔ SVG fallback), persist localStorage ───
+  // ─── 4b. SIM TOGGLE (LIVE TRACKER iframe ↔ SVG fallback) ───
+  // Mặc định SVG vì apistatscore chỉ cho domain whitelist.
+  // Khi đăng ký whitelist thành công: set localStorage x66_sim_mode='iframe' để bật iframe.
   var simBtns = document.querySelectorAll('.dlr-sim-toggle');
   var simIframe = document.getElementById('dlrSimIframeWrap');
   var simSvg = document.getElementById('dlrSimSvgWrap');
+  var simFrame = document.getElementById('dlrSimIframe');
+  var simToggleRow = document.querySelector('.dlr-sim-toggle-row');
   function dlrApplySimMode(mode){
     if (!simIframe || !simSvg) return;
-    if (mode === 'svg') {
-      simIframe.style.display = 'none';
-      simSvg.style.display = '';
-    } else {
+    if (mode === 'iframe') {
+      // Lazy-load iframe src lần đầu chuyển sang
+      if (simFrame && simFrame.src === 'about:blank' && simFrame.dataset.src) {
+        simFrame.src = simFrame.dataset.src;
+      }
       simIframe.style.display = '';
       simSvg.style.display = 'none';
+    } else {
+      simIframe.style.display = 'none';
+      simSvg.style.display = '';
     }
     simBtns.forEach(function(b){
       b.classList.toggle('active', b.dataset.mode === mode);
     });
   }
-  try {
-    var savedMode = localStorage.getItem('x66_sim_mode') || 'iframe';
-    dlrApplySimMode(savedMode);
-  } catch(_) { dlrApplySimMode('iframe'); }
+  // Read mode từ localStorage, default 'svg'
+  var initialMode = 'svg';
+  try { initialMode = localStorage.getItem('x66_sim_mode') || 'svg'; } catch(_){}
+  // Nếu admin đã set iframe mode → show toggle row
+  if (initialMode === 'iframe' && simToggleRow) {
+    simToggleRow.style.display = 'flex';
+  }
+  dlrApplySimMode(initialMode);
   simBtns.forEach(function(btn){
     btn.addEventListener('click', function(){
       var m = btn.dataset.mode;
