@@ -87,7 +87,7 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 <!-- 🖥 DESKTOP LAYOUT (giữ nguyên cũ) — hiện từ ≥md (≥768px)    -->
 <!-- ════════════════════════════════════════════════════════════ -->
 <div class="hidden md:block">
-<article class="grid md:grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
+<article class="grid md:grid-cols-[2fr_1fr] gap-4">
   <div>
     <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
       <% var _hasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey); %>
@@ -957,7 +957,7 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
   <aside class="bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden mb-3 lg:mb-0" aria-label="Chat" id="liveChatAside"
          style="height:360px;max-height:55vh;">
     <style>
-      @media (min-width: 1024px) {
+      @media (min-width: 768px) {
         #liveChatAside { height: 640px !important; max-height: none !important; }
       }
     </style>
