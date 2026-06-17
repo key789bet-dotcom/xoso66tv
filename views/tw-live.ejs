@@ -1027,31 +1027,55 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
         var _sGoalsH = (match.score && match.score[0]) || 0;
         var _sGoalsA = (match.score && match.score[1]) || 0;
         function _v(k) { return _sStats && _sStats[k] || null; }
-        // Build rows: nếu có data đầy đủ thì hiện 10 bars (possession/shots/...), không thì 4 bars cơ bản
+        function _has(o) { return o && (Number(o.home) || Number(o.away)); }
+        // 18 chỉ số đầy đủ theo schema thật của thethaoviet, ưu tiên theo screenshot user
         var _sRows = [
           { label:'Bàn thắng', icon:'⚽', h:_sGoalsH, a:_sGoalsA }
         ];
         var _poss = _v('possession');
-        if (_poss && (_poss.home || _poss.away)) _sRows.push({ label:'Kiểm soát bóng', icon:'%', h:_poss.home, a:_poss.away, suffix:'%' });
+        if (_has(_poss)) _sRows.push({ label:'Kiểm soát bóng', icon:'%', h:_poss.home, a:_poss.away, suffix:'%' });
         var _shots = _v('shots');
-        if (_shots && (_shots.home || _shots.away)) _sRows.push({ label:'Tổng số cú sút', icon:'🎯', h:_shots.home, a:_shots.away });
+        if (_has(_shots)) _sRows.push({ label:'Tổng cú sút', icon:'🎯', h:_shots.home, a:_shots.away });
         var _shotsOn = _v('shotsOn');
-        if (_shotsOn && (_shotsOn.home || _shotsOn.away)) _sRows.push({ label:'Sút trúng đích', icon:'⊕', h:_shotsOn.home, a:_shotsOn.away });
+        if (_has(_shotsOn)) _sRows.push({ label:'Sút trúng đích', icon:'⊕', h:_shotsOn.home, a:_shotsOn.away });
         var _shotsOff = _v('shotsOff');
-        if (_shotsOff && (_shotsOff.home || _shotsOff.away)) _sRows.push({ label:'Sút chệch', icon:'⊘', h:_shotsOff.home, a:_shotsOff.away });
+        if (_has(_shotsOff)) _sRows.push({ label:'Sút trượt', icon:'⊘', h:_shotsOff.home, a:_shotsOff.away });
+        var _shotsBl = _v('shotsBlocked');
+        if (_has(_shotsBl)) _sRows.push({ label:'Sút bị chặn', icon:'⛔', h:_shotsBl.home, a:_shotsBl.away });
+        var _shotsIn = _v('shotsInBox');
+        if (_has(_shotsIn)) _sRows.push({ label:'Sút trong vòng cấm', icon:'▣', h:_shotsIn.home, a:_shotsIn.away });
+        var _shotsOut = _v('shotsOutBox');
+        if (_has(_shotsOut)) _sRows.push({ label:'Sút ngoài vòng cấm', icon:'▢', h:_shotsOut.home, a:_shotsOut.away });
         _sRows.push({ label:'Phạt góc', icon:'∟', h:_sCornersH, a:_sCornersA });
         var _fouls = _v('fouls');
-        if (_fouls && (_fouls.home || _fouls.away)) _sRows.push({ label:'Phạm lỗi', icon:'⚠', h:_fouls.home, a:_fouls.away });
+        if (_has(_fouls)) _sRows.push({ label:'Phạm lỗi', icon:'⚠', h:_fouls.home, a:_fouls.away });
         var _off = _v('offsides');
-        if (_off && (_off.home || _off.away)) _sRows.push({ label:'Việt vị', icon:'⚑', h:_off.home, a:_off.away });
+        if (_has(_off)) _sRows.push({ label:'Việt vị', icon:'⚑', h:_off.home, a:_off.away });
         _sRows.push({ label:'Thẻ vàng', icon:'🟨', h:_sCardsH.yellow, a:_sCardsA.yellow });
         _sRows.push({ label:'Thẻ đỏ', icon:'🟥', h:_sCardsH.red, a:_sCardsA.red });
-        var _passes = _v('passes');
-        if (_passes && (_passes.home || _passes.away)) _sRows.push({ label:'Đường chuyền', icon:'➥', h:_passes.home, a:_passes.away });
         var _saves = _v('saves');
-        if (_saves && (_saves.home || _saves.away)) _sRows.push({ label:'Thủ môn cứu', icon:'🧤', h:_saves.home, a:_saves.away });
+        if (_has(_saves)) _sRows.push({ label:'Thủ môn cứu thua', icon:'🧤', h:_saves.home, a:_saves.away });
+        var _passes = _v('passes');
+        if (_has(_passes)) _sRows.push({ label:'Tổng đường chuyền', icon:'➥', h:_passes.home, a:_passes.away });
+        var _passesAcc = _v('passesAccurate');
+        if (_has(_passesAcc)) _sRows.push({ label:'Chuyền chính xác', icon:'✓', h:_passesAcc.home, a:_passesAcc.away });
+        var _passesPct = _v('passesPct');
+        if (_has(_passesPct)) _sRows.push({ label:'Độ chính xác chuyền', icon:'%', h:_passesPct.home, a:_passesPct.away, suffix:'%' });
+        var _xg = _v('xG');
+        if (_has(_xg)) _sRows.push({ label:'Bàn thắng kỳ vọng (xG)', icon:'⭐', h:_xg.home, a:_xg.away });
+        var _gp = _v('goalsPrevented');
+        if (_has(_gp) || (_gp && (_gp.home !== 0 || _gp.away !== 0))) _sRows.push({ label:'Bàn ngăn chặn (xGP)', icon:'🛡', h:_gp.home, a:_gp.away });
         function _sBarPct(h,a){ var t=(Number(h)||0)+(Number(a)||0); return t>0?Math.round((Number(h)||0)/t*100):50; }
       %>
+
+      <!-- Legend events compact (giống xoilac) -->
+      <% var _sEvents = (typeof matchInsights !== 'undefined' && matchInsights && Array.isArray(matchInsights.events)) ? matchInsights.events : []; %>
+      <% if (_sEvents.length > 0) { %>
+        <div style="display:flex; flex-wrap:wrap; gap:4px 10px; padding:6px 0; font-size:10px; color:#94a3b8; border-bottom:1px dashed rgba(255,255,255,.08); margin-bottom:8px;">
+          <span>⚽ Ghi bàn</span><span>🅿 Penalty</span><span>🔄 Phản lưới</span>
+          <span>🟨 Vàng</span><span>🟥 Đỏ</span><span>🔁 Thay người</span><span>VAR</span>
+        </div>
+      <% } %>
       <% _sRows.forEach(function(r){ var pct = _sBarPct(r.h, r.a); var sfx = r.suffix || ''; %>
       <div class="dlr-stat-row-bar">
         <div class="dlr-stat-vals">
@@ -1065,6 +1089,47 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
         </div>
       </div>
       <% }); %>
+
+      <!-- ════ DIỄN BIẾN TRẬN ĐẤU ════ -->
+      <% if (_sEvents.length > 0) { %>
+        <h4 style="margin-top:14px;">📋 Diễn biến trận đấu</h4>
+        <div class="dlr-events-list">
+          <% _sEvents.forEach(function(e){
+               var icon = '⚪'; var iconColor = '#94a3b8'; var label = '';
+               if (e.type === 'goal') {
+                 if (e.subType === 'own')        { icon = '🔄'; iconColor = '#f97316'; label = 'Phản lưới'; }
+                 else if (e.subType === 'penalty'){ icon = '🅿'; iconColor = '#10b981'; label = 'Phạt đền'; }
+                 else if (e.subType === 'missed_pen') { icon = '❌'; iconColor = '#dc2626'; label = 'Hỏng pen'; }
+                 else                            { icon = '⚽'; iconColor = '#10b981'; label = 'Ghi bàn'; }
+               } else if (e.type === 'yellow')   { icon = '🟨'; iconColor = '#facc15'; label = 'Thẻ vàng'; }
+                 else if (e.type === 'red')     { icon = '🟥'; iconColor = '#dc2626'; label = 'Thẻ đỏ'; }
+                 else if (e.type === 'sub')     { icon = '🔁'; iconColor = '#3b82f6'; label = 'Thay người'; }
+                 else if (e.type === 'var')     { icon = '📺'; iconColor = '#a855f7'; label = 'VAR'; }
+               var minStr = e.minute + (e.extra ? '+' + e.extra : '') + "'";
+               var bgSide = e.team === 'home' ? 'rgba(0,118,255,.08)' : 'rgba(10,201,0,.08)';
+               var brdSide = e.team === 'home' ? '3px solid rgb(0,118,255)' : '3px solid rgb(10,201,0)';
+          %>
+            <div class="dlr-event-row" style="background:<%= bgSide %>; border-left:<%= brdSide %>;">
+              <span class="dlr-event-min"><%= minStr %></span>
+              <span class="dlr-event-icon" style="color:<%= iconColor %>;"><%= icon %></span>
+              <span class="dlr-event-body">
+                <% if (e.type === 'sub') { %>
+                  <b style="color:#dc2626;">⬇ <%= e.player %></b>
+                  <% if (e.assist) { %><br><b style="color:#10b981;">⬆ <%= e.assist %></b><% } %>
+                <% } else { %>
+                  <b><%= e.player %></b>
+                  <% if (e.assist) { %><br><span style="color:#94a3b8; font-size:10px;">Kiến tạo: <%= e.assist %></span><% } %>
+                <% } %>
+                <% if (e.type === 'goal' && e.subType !== 'normal') { %>
+                  <span style="color:<%= iconColor %>; font-size:9px; margin-left:4px;">(<%= label %>)</span>
+                <% } else if (e.type === 'var') { %>
+                  <span style="color:<%= iconColor %>; font-size:9px; display:block;"><%= e.detail %></span>
+                <% } %>
+              </span>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
 
       <h4 style="margin-top:14px;">📈 Phong độ 5 trận gần nhất</h4>
       <% var _sFormH = matchInsights && matchInsights.formHome; var _sFormA = matchInsights && matchInsights.formAway; %>
@@ -1102,6 +1167,15 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       .dlr-stat-vals span:nth-child(2) { flex:1; text-align:center; }
       .dlr-stat-bar { display:flex; height:6px; background:#0a0d12; border-radius:3px; overflow:hidden; gap:2px; }
       .dlr-stat-bar-l, .dlr-stat-bar-r { height:100%; transition:width .3s; }
+      /* Events list */
+      .dlr-events-list { display:flex; flex-direction:column; gap:4px; max-height:340px; overflow-y:auto; padding-right:2px; margin-top:6px; }
+      .dlr-events-list::-webkit-scrollbar { width:4px; }
+      .dlr-events-list::-webkit-scrollbar-thumb { background:#1a1f29; border-radius:2px; }
+      .dlr-event-row { display:grid; grid-template-columns:38px 22px 1fr; gap:6px; align-items:center; padding:5px 8px; border-radius:4px; font-size:11px; }
+      .dlr-event-min { color:#facc15; font-weight:900; font-size:11px; text-align:right; }
+      .dlr-event-icon { font-size:15px; text-align:center; }
+      .dlr-event-body { color:#e2e8f0; line-height:1.3; min-width:0; }
+      .dlr-event-body b { color:#fff; font-weight:700; }
     </style>
 
     <!-- ════ PANEL: LINEUP (schema thethaoviet: {formation, coach, startXI[], substitutes[]}) ════ -->
