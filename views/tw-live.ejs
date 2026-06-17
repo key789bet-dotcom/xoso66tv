@@ -76,6 +76,17 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 <%- include('partials/tw-skin-overlay') %>
 <%- include('partials/tw-breadcrumb') %>
 
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- 📱 MOBILE LAYOUT (mới - style xoilac/8xbet) — chỉ hiện <lg  -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section class="lg:hidden">
+  <%- include('partials/tw-live-mobile-room') %>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- 🖥 DESKTOP LAYOUT (giữ nguyên cũ) — chỉ hiện ≥lg           -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="hidden lg:block">
 <article class="grid lg:grid-cols-[1fr_340px] gap-4">
   <div>
     <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
@@ -1002,36 +1013,23 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     </div>
   </aside>
 </article>
+</div>
+<!-- ════ END DESKTOP LAYOUT ════ -->
 
 <script src="/static/js/chat-v2.js"></script>
 <script>
   // Flag để chat-v2 + gift-panel biết phòng có đang live thật không
   window.__x66HasObs = <%= hasObs ? 'true' : 'false' %>;
-  startChat('chatBody', { isLive: window.__x66HasObs });
-
-  // 📱 MOBILE: thứ tự = Video → Score row → Chat → Info → Phòng khác
-  (function moveChatMobile(){
-    var mql = window.matchMedia('(max-width: 1023px)');
-    var chat = document.getElementById('liveChatAside');
-    var scoreRow = document.getElementById('liveScoreRow');
-    if (!chat || !scoreRow) return;
-    function apply(){
-      if (mql.matches) {
-        // Mobile: chat NGAY SAU score row (video → score → chat → info)
-        if (scoreRow.nextElementSibling !== chat) {
-          scoreRow.parentNode.insertBefore(chat, scoreRow.nextElementSibling);
-        }
-      } else {
-        // Desktop: chat trở về <article> (right column)
-        var article = document.querySelector('article.grid');
-        if (article && chat.parentNode !== article) {
-          article.appendChild(chat);
-        }
-      }
+  // ─── Init chat panel theo viewport hiện tại ───
+  // Desktop ≥1024px → init #chatBody (aside).
+  // Mobile  <1024px → init #mobileChatBody (đã được init trong partial mobile khi load).
+  // KHÔNG init cả 2 cùng lúc để tránh duplicate polling + tốn bandwidth.
+  (function initChatByViewport(){
+    var isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    if (isDesktop && document.getElementById('chatBody')) {
+      try { startChat('chatBody', { isLive: window.__x66HasObs }); } catch(e){}
     }
-    apply();
-    if (mql.addEventListener) mql.addEventListener('change', apply);
-    else mql.addListener(apply); // Safari legacy
+    // Mobile: partial tw-live-mobile-room.ejs đã tự gọi startChat('mobileChatBody', ...)
   })();
 </script>
 

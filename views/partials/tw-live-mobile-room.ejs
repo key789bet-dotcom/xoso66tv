@@ -1,0 +1,726 @@
+<%
+// ═══════════════════════════════════════════════════════════════════
+// 📱 PARTIAL: PHÒNG LIVE BÓNG ĐÁ - LAYOUT MOBILE (style xoilac/8xbet)
+// Used by: tw-live.ejs - chỉ render khi viewport < 1024px (lg breakpoint)
+// Required vars from parent: match, partner, liveBlvs?, blvStreamKey?,
+//                            hasObs?, liveOdds?, matchInsights?, others?
+// ═══════════════════════════════════════════════════════════════════
+
+// Compute lại các biến predict (parent có nhưng partial cần local copy)
+var _mHasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey);
+var _mHasObs = (typeof hasObs !== 'undefined' && hasObs);
+var _mHasOdds = (typeof liveOdds !== 'undefined' && liveOdds && (liveOdds.ah || liveOdds.ou || liveOdds.x12));
+var _mOuLine = (_mHasOdds && liveOdds.ou && typeof liveOdds.ou.line === 'number') ? liveOdds.ou.line : 2.5;
+var _mAhLine = (_mHasOdds && liveOdds.ah && typeof liveOdds.ah.line === 'number') ? liveOdds.ah.line : 0.5;
+var _mOuTai = (_mHasOdds && liveOdds.ou && typeof liveOdds.ou.taiOdds === 'number') ? liveOdds.ou.taiOdds : null;
+var _mOuXiu = (_mHasOdds && liveOdds.ou && typeof liveOdds.ou.xiuOdds === 'number') ? liveOdds.ou.xiuOdds : null;
+var _mAhHome = (_mHasOdds && liveOdds.ah && typeof liveOdds.ah.homeOdds === 'number') ? liveOdds.ah.homeOdds : null;
+var _mAhAway = (_mHasOdds && liveOdds.ah && typeof liveOdds.ah.awayOdds === 'number') ? liveOdds.ah.awayOdds : null;
+var _mHomeShort = (match.home||'').slice(0, 3).toUpperCase();
+var _mAwayShort = (match.away||'').slice(0, 3).toUpperCase();
+var _mLiveBlvs = (typeof liveBlvs !== 'undefined' && Array.isArray(liveBlvs)) ? liveBlvs : [];
+var _mInsights = (typeof matchInsights !== 'undefined' && matchInsights) ? matchInsights : null;
+var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2000));
+%>
+
+<!-- ═══ TOP BANNER CTA CƯỢC ═══ -->
+<a href="<%= partner.sportbet %>" target="_blank" rel="noopener"
+   class="block bg-gradient-to-r from-pri via-orange-500 to-yellow-500 px-3 py-2 -mx-3 mb-2 sm:mx-0 sm:rounded-lg flex items-center gap-2 active:opacity-90">
+  <span class="text-base flex-shrink-0">🎓</span>
+  <span class="text-white text-xs font-extrabold flex-1 truncate uppercase tracking-wide">Đặt Cược XOSO66 Uy Tín Nhất Hiện Nay</span>
+  <span class="text-white/90 text-[10px] font-bold flex-shrink-0">CƯỢC NGAY →</span>
+</a>
+
+<!-- ═══ VIDEO PLAYER MOBILE — SLOT để JS move #livePlayer vào ═══ -->
+<!-- KHÔNG include partial tw-live-video-player ở đây (sẽ duplicate FLV instance).
+     Mobile dùng CHUNG #livePlayer element với desktop, JS sẽ TELEPORT vào slot này. -->
+<div id="mobilePlayerSlot" class="aspect-video relative rounded-xl overflow-hidden border border-line bg-black">
+  <!-- Score overlay top-left (đè lên video sau khi #livePlayer được move vào) -->
+  <div class="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur px-2 py-1 rounded flex items-center gap-1.5 text-white text-[11px] font-bold pointer-events-none z-[20]">
+    <span class="text-yellow-300 tabular-nums"><%= match.time || '--:--' %></span>
+    <% if (match.homeBadge) { %>
+      <img src="<%= match.homeBadge %>" alt="" class="w-4 h-4 rounded-full bg-white/90 p-px" onerror="this.style.display='none'">
+    <% } else { %>
+      <span class="w-4 h-4 rounded-full bg-pri grid place-items-center text-[7px] text-white"><%= _mHomeShort.slice(0,2) %></span>
+    <% } %>
+    <span class="tabular-nums"><%= match.score ? match.score[0] : '0' %></span>
+    <span class="text-yellow-300">-</span>
+    <span class="tabular-nums"><%= match.score ? match.score[1] : '0' %></span>
+    <% if (match.awayBadge) { %>
+      <img src="<%= match.awayBadge %>" alt="" class="w-4 h-4 rounded-full bg-white/90 p-px" onerror="this.style.display='none'">
+    <% } else { %>
+      <span class="w-4 h-4 rounded-full bg-indigo-600 grid place-items-center text-[7px] text-white"><%= _mAwayShort.slice(0,2) %></span>
+    <% } %>
+  </div>
+
+  <!-- Logo brand top-right -->
+  <div class="absolute top-1.5 right-1.5 bg-live text-white px-2 py-1 rounded text-[10px] font-black tracking-wider pointer-events-none z-10">XOSO66.TV</div>
+
+  <!-- LIVE badge bottom-left -->
+  <% if (_mHasBlvStream || _mHasObs) { %>
+  <div class="absolute bottom-1.5 left-1.5 bg-pri text-white px-2 py-0.5 rounded text-[9px] font-black tracking-wider pointer-events-none z-10 flex items-center gap-1">
+    <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>LIVE
+  </div>
+  <% } %>
+
+  <!-- Viewers bottom-right -->
+  <div class="absolute bottom-1.5 right-1.5 bg-black/65 text-white px-1.5 py-0.5 rounded text-[9px] font-bold pointer-events-none z-10 flex items-center gap-1 tabular-nums">
+    👁 <%= _mViewers.toLocaleString('vi-VN') %>
+  </div>
+</div>
+
+<!-- ═══ QUALITY SELECTOR BAR ═══ -->
+<div class="mt-1.5 flex gap-1 overflow-x-auto scrollbar-thin" id="mobileQualityBar">
+  <button type="button" data-quality="hd" data-key="<%= blvStreamKey || '' %>"
+          class="quality-btn-m active flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-extrabold whitespace-nowrap flex-shrink-0">
+    <span class="text-[10px]">⏸</span>HD MAX
+  </button>
+  <button type="button" data-quality="720" data-key="<%= blvStreamKey || '' %>"
+          class="quality-btn-m flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap flex-shrink-0">
+    <span class="text-[10px]">▶</span>720p
+  </button>
+  <button type="button" data-quality="480" data-key="<%= blvStreamKey || '' %>"
+          class="quality-btn-m flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap flex-shrink-0">
+    <span class="text-[10px]">▶</span>SD 480
+  </button>
+  <button type="button" data-quality="mobile" data-key="<%= blvStreamKey || '' %>"
+          class="quality-btn-m flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap flex-shrink-0">
+    <span class="text-[10px]">▶</span>Mobile
+  </button>
+  <button type="button" id="mobileShareBtn"
+          class="ml-auto flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap flex-shrink-0 bg-bg-card border border-pri text-pri-light">
+    🔗 CHIA SẺ
+  </button>
+</div>
+
+<!-- ═══ SCORE BAR (Home vs Away big) ═══ -->
+<div class="mt-1.5 bg-bg-card border border-line rounded-lg px-2.5 py-2 flex items-center gap-2">
+  <div class="flex items-center gap-1.5 flex-1 min-w-0">
+    <% if (match.homeBadge) { %>
+      <img src="<%= match.homeBadge %>" alt="<%= match.home %>" class="w-7 h-7 rounded-full bg-white p-0.5 flex-shrink-0" onerror="this.style.display='none'">
+    <% } else { %>
+      <span class="w-7 h-7 rounded-full bg-pri grid place-items-center text-white text-[10px] font-black flex-shrink-0"><%= _mHomeShort.slice(0,2) %></span>
+    <% } %>
+    <span class="text-white text-[12px] font-bold truncate"><%= match.home %></span>
+  </div>
+  <div class="text-lg font-black text-gold tabular-nums px-2 flex-shrink-0">
+    <%= match.score ? match.score[0] : '--' %> : <%= match.score ? match.score[1] : '--' %>
+  </div>
+  <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+    <span class="text-white text-[12px] font-bold truncate text-right"><%= match.away %></span>
+    <% if (match.awayBadge) { %>
+      <img src="<%= match.awayBadge %>" alt="<%= match.away %>" class="w-7 h-7 rounded-full bg-white p-0.5 flex-shrink-0" onerror="this.style.display='none'">
+    <% } else { %>
+      <span class="w-7 h-7 rounded-full bg-indigo-600 grid place-items-center text-white text-[10px] font-black flex-shrink-0"><%= _mAwayShort.slice(0,2) %></span>
+    <% } %>
+  </div>
+</div>
+
+<!-- ═══ BLV ROW (nếu có) ═══ -->
+<% if (_mLiveBlvs.length > 0) { %>
+<div class="mt-1.5 flex gap-1.5 overflow-x-auto scrollbar-thin py-1">
+  <% _mLiveBlvs.forEach(function(b, i){ %>
+    <div class="flex items-center gap-1.5 bg-bg-card border <%= i===0?'border-pri':'border-line' %> px-2 py-1 rounded-full text-[10px] font-bold whitespace-nowrap flex-shrink-0">
+      <% if (b.avatar) { %>
+        <img src="<%= b.avatar %>" alt="" class="w-4 h-4 rounded-full">
+      <% } else { %>
+        <span class="w-4 h-4 rounded-full bg-gradient-to-br from-pri to-rose-500 grid place-items-center text-[8px]">🎙️</span>
+      <% } %>
+      <span class="<%= i===0?'text-pri-light':'text-white' %>"><%= b.name %></span>
+      <% if (b.isLive) { %><span class="w-1 h-1 bg-live rounded-full animate-pulse"></span><% } %>
+    </div>
+  <% }); %>
+</div>
+<% } %>
+
+<!-- ═══ BANNER PARTNER ═══ -->
+<a href="<%= partner.register %>" target="_blank" rel="noopener"
+   class="mt-2 flex items-center gap-2 bg-bg-card border border-pri/50 rounded-lg px-2.5 py-1.5 active:opacity-90">
+  <div class="w-8 h-8 bg-pri rounded-md grid place-items-center text-white text-xs font-black flex-shrink-0">66</div>
+  <div class="flex-1 min-w-0">
+    <div class="text-pri-light text-[11px] font-extrabold">XOSO66</div>
+    <div class="text-white text-[10px]">Hoàn tiền 100% vé cược đầu tiên</div>
+  </div>
+  <span class="bg-pri text-white text-[10px] font-extrabold px-2.5 py-1 rounded">CƯỢC NGAY</span>
+</a>
+
+<!-- ═══ TAB NAVIGATION ═══ -->
+<div class="mt-2 bg-bg-deep border border-line rounded-lg overflow-hidden">
+  <div class="flex border-b border-line overflow-x-auto scrollbar-thin" id="mobileLiveTabs" role="tablist">
+    <button type="button" data-tab="chat" class="mobile-tab-btn active">
+      <span class="text-base">💬</span><span class="text-[9px]">CHAT</span>
+    </button>
+    <button type="button" data-tab="info" class="mobile-tab-btn">
+      <span class="text-base">📋</span><span class="text-[9px]">Thông tin</span>
+    </button>
+    <button type="button" data-tab="odds" class="mobile-tab-btn">
+      <span class="text-base">📊</span><span class="text-[9px]">Tỷ lệ</span>
+    </button>
+    <button type="button" data-tab="h2h" class="mobile-tab-btn">
+      <span class="text-base">⚔️</span><span class="text-[9px]">H2H</span>
+    </button>
+    <button type="button" data-tab="form" class="mobile-tab-btn">
+      <span class="text-base">📈</span><span class="text-[9px]">Phong độ</span>
+    </button>
+    <button type="button" data-tab="predict" class="mobile-tab-btn">
+      <span class="text-base">🎯</span><span class="text-[9px]">Dự đoán</span>
+    </button>
+    <button type="button" data-tab="other" class="mobile-tab-btn">
+      <span class="text-base">⚡</span><span class="text-[9px]">Trận khác</span>
+    </button>
+  </div>
+
+  <!-- ═══ TAB PANELS ═══ -->
+
+  <!-- TAB CHAT (default active) -->
+  <div class="mobile-tab-panel active" data-panel="chat">
+    <!-- Social buttons row -->
+    <div class="flex gap-1.5 p-2 border-b border-line bg-bg-soft">
+      <a href="https://t.me/xoso66tv" target="_blank" rel="noopener"
+         class="flex-1 bg-sky-500 hover:bg-sky-600 text-white py-1.5 rounded text-[10px] font-extrabold text-center flex items-center justify-center gap-1">
+        📨 TELEGRAM
+      </a>
+      <a href="https://facebook.com/xoso66tv" target="_blank" rel="noopener"
+         class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded text-[10px] font-extrabold text-center flex items-center justify-center gap-1">
+        📘 FACEBOOK
+      </a>
+      <button type="button" id="mobileChatToggleBtn"
+              class="bg-bg-card border border-line text-muted py-1.5 px-2.5 rounded text-[10px] font-bold whitespace-nowrap">
+        🔕 TẮT
+      </button>
+    </div>
+    <!-- Online counter -->
+    <div class="px-2.5 py-1.5 bg-bg-soft border-b border-line text-[10px] text-muted flex items-center justify-between">
+      <span class="text-emerald-400 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+        <span id="mobileOnlineCount"><%= ((Math.random()*3000|0)+1500).toLocaleString('vi-VN') %></span> online
+      </span>
+      <span>Bình luận: <b class="text-pri-light tabular-nums"><%= ((Math.random()*5000|0)+1000).toLocaleString('vi-VN') %></b></span>
+    </div>
+    <!-- Chat body -->
+    <div id="mobileChatBody" class="overflow-y-auto scrollbar-thin px-1" style="height:260px"></div>
+    <!-- Input -->
+    <div class="flex gap-1.5 p-2 border-t border-line bg-bg-soft">
+      <button type="button" class="text-yellow-400 text-lg leading-none" aria-label="Emoji">😊</button>
+      <input id="mobileChatInput" maxlength="200"
+             class="flex-1 bg-bg-deep border border-line text-gray-100 px-2.5 py-1.5 rounded-full text-[11px] outline-none focus:border-pri"
+             placeholder="Gõ tin nhắn..."
+             onkeydown="if(event.key==='Enter')sendChat('mobileChatInput','mobileChatBody')">
+      <button type="button" onclick="sendChat('mobileChatInput','mobileChatBody')"
+              class="bg-pri text-white px-3 rounded-full text-[11px] font-extrabold">Gửi</button>
+    </div>
+  </div>
+
+  <!-- TAB INFO -->
+  <div class="mobile-tab-panel" data-panel="info">
+    <div class="p-3 space-y-1.5 text-[12px]">
+      <div class="flex gap-2 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[100px]">🏆 Giải:</b> <%= match.league %></div>
+      <div class="flex gap-2 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[100px]">⚽ Môn:</b> <%= match.sport %></div>
+      <div class="flex gap-2 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[100px]">⏰ Giờ VN:</b> <%= match.date %> <%= match.time %></div>
+      <% if (match.venue) { %><div class="flex gap-2 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[100px]">🏟 Sân:</b> <%= match.venue %></div><% } %>
+      <% if (match.round) { %><div class="flex gap-2 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[100px]">🔢 Vòng:</b> <%= match.round %></div><% } %>
+      <% if (match.season) { %><div class="flex gap-2 text-muted py-1 border-b border-dashed border-line"><b class="text-white min-w-[100px]">📅 Mùa:</b> <%= match.season %></div><% } %>
+      <div class="flex gap-2 text-muted py-1"><b class="text-white min-w-[100px]">📺 Chất lượng:</b> Full HD 1080p, BLV tiếng Việt</div>
+    </div>
+  </div>
+
+  <!-- TAB ODDS (tỷ lệ kèo) -->
+  <div class="mobile-tab-panel" data-panel="odds">
+    <div class="p-2 space-y-2">
+      <% if (_mHasOdds) { %>
+        <!-- Tài / Xỉu -->
+        <% if (_mOuTai && _mOuXiu) { %>
+        <div class="bg-bg-card border border-line rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] text-pri-light font-bold uppercase">Tài/Xỉu</span>
+            <span class="text-[10px] text-yellow-300 font-bold">Mốc <%= _mOuLine %></span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-bg-deep border border-line rounded-md p-2 text-center">
+              <div class="text-[10px] text-muted mb-0.5">TÀI (&gt;<%= _mOuLine %>)</div>
+              <div class="text-emerald-400 font-black text-base tabular-nums"><%= _mOuTai.toFixed(2) %></div>
+            </div>
+            <div class="bg-bg-deep border border-line rounded-md p-2 text-center">
+              <div class="text-[10px] text-muted mb-0.5">XỈU (&lt;<%= _mOuLine %>)</div>
+              <div class="text-rose-400 font-black text-base tabular-nums"><%= _mOuXiu.toFixed(2) %></div>
+            </div>
+          </div>
+        </div>
+        <% } %>
+        <!-- Kèo chấp -->
+        <% if (_mAhHome && _mAhAway) { %>
+        <div class="bg-bg-card border border-line rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] text-pri-light font-bold uppercase">Kèo Chấp</span>
+            <span class="text-[10px] text-yellow-300 font-bold">Line <%= _mAhLine %></span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-bg-deep border border-line rounded-md p-2 text-center">
+              <div class="text-[10px] text-muted mb-0.5 truncate"><%= match.home %></div>
+              <div class="text-emerald-400 font-black text-base tabular-nums"><%= _mAhHome.toFixed(2) %></div>
+            </div>
+            <div class="bg-bg-deep border border-line rounded-md p-2 text-center">
+              <div class="text-[10px] text-muted mb-0.5 truncate"><%= match.away %></div>
+              <div class="text-rose-400 font-black text-base tabular-nums"><%= _mAhAway.toFixed(2) %></div>
+            </div>
+          </div>
+        </div>
+        <% } %>
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener"
+           class="block bg-gradient-to-r from-pri to-live text-white text-center py-2 rounded-md text-[11px] font-extrabold">💰 ĐẶT CƯỢC NGAY</a>
+      <% } else { %>
+        <div class="text-center text-muted text-[12px] py-6">
+          <div class="text-3xl mb-2 opacity-50">📊</div>
+          Tỷ lệ kèo đang cập nhật...
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- TAB H2H -->
+  <div class="mobile-tab-panel" data-panel="h2h">
+    <div class="p-2">
+      <% if (_mInsights && _mInsights.h2h && _mInsights.h2h.length > 0) { %>
+        <div class="text-[11px] text-pri-light font-bold uppercase mb-2 px-1">Đối đầu gần nhất</div>
+        <div class="space-y-1.5">
+          <% _mInsights.h2h.slice(0, 8).forEach(function(m){ %>
+            <div class="bg-bg-card border border-line rounded-md p-2 flex items-center text-[11px]">
+              <span class="text-muted flex-shrink-0 mr-2 tabular-nums"><%= m.date || '' %></span>
+              <span class="text-white truncate flex-1 text-right pr-1.5"><%= m.home %></span>
+              <span class="text-gold font-black tabular-nums px-1.5 flex-shrink-0"><%= m.score || '--:--' %></span>
+              <span class="text-white truncate flex-1 pl-1.5"><%= m.away %></span>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted text-[12px] py-6">
+          <div class="text-3xl mb-2 opacity-50">⚔️</div>
+          Chưa có dữ liệu đối đầu
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- TAB FORM (phong độ) -->
+  <div class="mobile-tab-panel" data-panel="form">
+    <div class="p-2 space-y-3">
+      <% if (_mInsights && (_mInsights.formHome || _mInsights.formAway)) { %>
+        <% if (_mInsights.formHome && _mInsights.formHome.length > 0) { %>
+        <div>
+          <div class="text-[11px] text-pri-light font-bold uppercase mb-1.5 px-1"><%= match.home %> - 5 trận gần nhất</div>
+          <div class="flex gap-1">
+            <% _mInsights.formHome.slice(0,5).forEach(function(r){
+              var color = r === 'W' ? 'bg-emerald-500' : (r === 'L' ? 'bg-rose-500' : 'bg-gray-500');
+              var label = r === 'W' ? 'T' : (r === 'L' ? 'B' : 'H'); %>
+              <span class="<%= color %> text-white text-[11px] font-black w-7 h-7 rounded-md grid place-items-center"><%= label %></span>
+            <% }); %>
+          </div>
+        </div>
+        <% } %>
+        <% if (_mInsights.formAway && _mInsights.formAway.length > 0) { %>
+        <div>
+          <div class="text-[11px] text-pri-light font-bold uppercase mb-1.5 px-1"><%= match.away %> - 5 trận gần nhất</div>
+          <div class="flex gap-1">
+            <% _mInsights.formAway.slice(0,5).forEach(function(r){
+              var color = r === 'W' ? 'bg-emerald-500' : (r === 'L' ? 'bg-rose-500' : 'bg-gray-500');
+              var label = r === 'W' ? 'T' : (r === 'L' ? 'B' : 'H'); %>
+              <span class="<%= color %> text-white text-[11px] font-black w-7 h-7 rounded-md grid place-items-center"><%= label %></span>
+            <% }); %>
+          </div>
+        </div>
+        <% } %>
+        <% if (_mInsights.pick) { %>
+        <div class="bg-pri/10 border border-pri/40 rounded-md p-2.5">
+          <div class="text-[10px] text-pri-light font-bold uppercase mb-1">🎯 Smart Pick</div>
+          <div class="text-white text-[12px]"><%= _mInsights.pick %></div>
+        </div>
+        <% } %>
+      <% } else { %>
+        <div class="text-center text-muted text-[12px] py-6">
+          <div class="text-3xl mb-2 opacity-50">📈</div>
+          Đang cập nhật phong độ...
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- TAB PREDICT (X COIN) -->
+  <div class="mobile-tab-panel" data-panel="predict">
+    <div class="p-2">
+      <% if (match.status !== 'finished') { %>
+      <form id="mobilePredictForm" class="space-y-2"
+            data-match-id="<%= match.id %>"
+            data-ou-line="<%= _mOuLine %>"
+            data-ah-line="<%= _mAhLine %>"
+            data-odds-tai="<%= _mOuTai || '' %>"
+            data-odds-xiu="<%= _mOuXiu || '' %>"
+            data-odds-ah-home="<%= _mAhHome || '' %>"
+            data-odds-ah-away="<%= _mAhAway || '' %>">
+
+        <div class="bg-bg-card border border-line rounded-lg p-2.5">
+          <div class="text-[10px] text-pri-light font-bold uppercase mb-1.5">Tài/Xỉu · Mốc <%= _mOuLine %></div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <label class="m-pick-btn">
+              <input type="radio" name="m_pickOU" value="tai" class="sr-only">
+              <span class="text-[11px] font-black text-white">TÀI</span>
+              <% if (_mOuTai) { %><span class="m-pick-odds"><%= _mOuTai.toFixed(2) %></span><% } %>
+            </label>
+            <label class="m-pick-btn">
+              <input type="radio" name="m_pickOU" value="xiu" class="sr-only">
+              <span class="text-[11px] font-black text-white">XỈU</span>
+              <% if (_mOuXiu) { %><span class="m-pick-odds"><%= _mOuXiu.toFixed(2) %></span><% } %>
+            </label>
+          </div>
+        </div>
+
+        <div class="bg-bg-card border border-line rounded-lg p-2.5">
+          <div class="text-[10px] text-pri-light font-bold uppercase mb-1.5">Kèo Chấp · Line <%= _mAhLine %></div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <label class="m-pick-btn">
+              <input type="radio" name="m_pickAH" value="home" class="sr-only">
+              <span class="text-[10px] font-bold text-white truncate"><%= match.home %></span>
+              <% if (_mAhHome) { %><span class="m-pick-odds"><%= _mAhHome.toFixed(2) %></span><% } %>
+            </label>
+            <label class="m-pick-btn">
+              <input type="radio" name="m_pickAH" value="away" class="sr-only">
+              <span class="text-[10px] font-bold text-white truncate"><%= match.away %></span>
+              <% if (_mAhAway) { %><span class="m-pick-odds"><%= _mAhAway.toFixed(2) %></span><% } %>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex gap-1.5">
+          <input type="number" id="mobileStakeInput" name="stake" value="50" min="10" max="10000" step="10"
+                 class="flex-1 bg-bg-deep border border-line text-white px-2.5 py-1.5 rounded text-[12px] outline-none focus:border-pri tabular-nums" placeholder="X COIN">
+          <button type="submit" class="bg-pri text-white px-3 rounded font-extrabold text-[11px]">🎯 ĐẶT</button>
+        </div>
+        <div id="mobilePredictRes" class="hidden text-center text-[11px] font-bold"></div>
+        <div class="text-[10px] text-muted text-center">Đoán đúng nhận X COIN · <a href="/cao-thu" class="text-pri-light">BXH cao thủ →</a></div>
+      </form>
+      <% } else { %>
+        <div class="text-center text-muted text-[12px] py-6">Trận đã kết thúc</div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- TAB OTHER (trận khác) -->
+  <div class="mobile-tab-panel" data-panel="other">
+    <div class="p-2">
+      <% if (typeof others !== 'undefined' && others && others.length > 0) { %>
+        <div class="grid grid-cols-2 gap-2">
+          <% others.slice(0, 8).forEach(function(o){ %>
+            <a href="/live/<%= o.slug || o.id %>" class="bg-bg-card border border-line hover:border-pri rounded-md p-2 block">
+              <div class="text-[9px] text-muted truncate mb-1"><%= o.league || '' %></div>
+              <div class="text-[10px] text-white truncate"><%= o.home || '' %></div>
+              <div class="text-[10px] text-white truncate"><%= o.away || '' %></div>
+              <div class="mt-1 flex items-center justify-between">
+                <span class="text-[9px] text-pri-light"><%= o.time || '' %></span>
+                <% if (o.isLive) { %>
+                  <span class="text-[8px] bg-live text-white px-1 rounded font-black">LIVE</span>
+                <% } %>
+              </div>
+            </a>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted text-[12px] py-6">
+          <div class="text-3xl mb-2 opacity-50">⚡</div>
+          Chưa có trận khác live
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEO ARTICLE BLOCK (giữ SEO mobile) ═══ -->
+<article class="mt-2.5 bg-bg-card border border-pri/20 rounded-xl p-3">
+  <h2 class="text-white text-base font-extrabold mb-2 leading-tight">
+    Trực tiếp <%= match.home %> vs <%= match.away %> - <%= match.league %>
+  </h2>
+  <p class="text-[12px] text-gray-300 leading-relaxed mb-2.5">
+    Xem <b class="text-white">trực tiếp <%= match.home %></b> đấu với <b class="text-white"><%= match.away %></b> lúc
+    <b class="text-pri-light"><%= match.time %></b> ngày <b class="text-pri-light"><%= match.date %></b> giải
+    <b class="text-white"><%= match.league %></b> Full HD 1080p, BLV tiếng Việt, miễn phí tại
+    <b class="text-pri-light">XOSO66 TV</b>.
+  </p>
+  <div class="flex flex-wrap gap-1 pt-2 border-t border-line">
+    <a href="/livescore" class="text-[9px] bg-bg-deep text-pri-light px-2 py-0.5 rounded">#TrucTiepBongDa</a>
+    <a href="/lich-phat-song" class="text-[9px] bg-bg-deep text-pri-light px-2 py-0.5 rounded">#<%= (match.home||'').replace(/\s+/g,'') %></a>
+    <a href="/lich-phat-song" class="text-[9px] bg-bg-deep text-pri-light px-2 py-0.5 rounded">#<%= (match.away||'').replace(/\s+/g,'') %></a>
+    <a href="/" class="text-[9px] bg-bg-deep text-pri-light px-2 py-0.5 rounded">#XOSO66TV</a>
+  </div>
+</article>
+
+<!-- ═══ CSS RIÊNG CHO MOBILE LIVE ROOM ═══ -->
+<style>
+  /* Quality button */
+  .quality-btn-m {
+    background: #13171f;
+    color: #cbd5e1;
+    border: 1px solid #1a1f29;
+    transition: all .15s;
+  }
+  .quality-btn-m.active {
+    background: #ff7a18;
+    color: #fff;
+    border-color: #ff7a18;
+    box-shadow: 0 2px 6px rgba(255,122,24,.3);
+  }
+  .quality-btn-m:active { transform: scale(.96); }
+
+  /* Tab button */
+  .mobile-tab-btn {
+    flex: 0 0 auto;
+    background: transparent;
+    color: #94a3b8;
+    border: none;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+    white-space: nowrap;
+    min-width: 64px;
+  }
+  .mobile-tab-btn.active {
+    color: #ff9a3a;
+    border-bottom-color: #ff7a18;
+    font-weight: 800;
+  }
+
+  /* Tab panel */
+  .mobile-tab-panel { display: none; }
+  .mobile-tab-panel.active { display: block; }
+
+  /* Predict pick button */
+  .m-pick-btn {
+    background: #13171f;
+    border: 1px solid #1a1f29;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    cursor: pointer;
+    transition: all .15s;
+    min-height: 32px;
+  }
+  .m-pick-btn:has(input:checked) {
+    background: rgba(255,122,24,.15);
+    border-color: #ff7a18;
+  }
+  .m-pick-odds {
+    background: rgba(255,122,24,.2);
+    color: #ff9a3a;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* Chat body styling reuse từ chat-v2.js — ensure messages render properly */
+  #mobileChatBody .msg { padding: 4px 8px; font-size: 11px; }
+</style>
+
+<!-- ═══ JS: TAB SWITCH + QUALITY SELECTOR + CHAT + PREDICT ═══ -->
+<script>
+(function(){
+  // ─── 0. TELEPORT #livePlayer (desktop) → #mobilePlayerSlot khi viewport mobile ───
+  // Lý do: tw-live-video-player.ejs render TRONG desktop layout (hidden lg:block),
+  // mobile layout cần CÙNG video element (không thể duplicate FLV.js instance).
+  // → MOVE DOM element giữa 2 wrappers theo viewport, KHÔNG restart player.
+  var mediaMobile = window.matchMedia('(max-width: 1023px)');
+  var __origPlayerParent = null;  // remember để move back lên desktop
+  function teleportPlayer(){
+    var player = document.getElementById('livePlayer');
+    var slot   = document.getElementById('mobilePlayerSlot');
+    if (!player || !slot) return;
+    if (mediaMobile.matches) {
+      // Mobile: move vào slot mobile (nếu chưa)
+      if (player.parentNode !== slot) {
+        if (!__origPlayerParent) __origPlayerParent = player.parentNode;
+        // remove aspect-video + bg-black class trên #livePlayer khi mobile
+        // (slot mobile đã có aspect-video → tránh double box)
+        player.classList.remove('aspect-video', 'rounded-xl', 'bg-black');
+        // make #livePlayer absolute fill slot
+        player.style.position = 'absolute';
+        player.style.inset = '0';
+        player.style.width = '100%';
+        player.style.height = '100%';
+        slot.appendChild(player);
+      }
+    } else {
+      // Desktop: move về wrapper gốc (nếu trước đó đã move sang mobile)
+      if (__origPlayerParent && player.parentNode !== __origPlayerParent) {
+        player.classList.add('aspect-video', 'rounded-xl', 'bg-black');
+        player.style.position = '';
+        player.style.inset = '';
+        player.style.width = '';
+        player.style.height = '';
+        // prepend để giữ đúng thứ tự (livePlayer là child đầu của container desktop)
+        __origPlayerParent.insertBefore(player, __origPlayerParent.firstChild);
+      }
+    }
+  }
+  // Run ngay, và lắng nghe resize/orientation
+  teleportPlayer();
+  if (mediaMobile.addEventListener) mediaMobile.addEventListener('change', teleportPlayer);
+  else if (mediaMobile.addListener) mediaMobile.addListener(teleportPlayer);
+
+  // ─── 1. TAB SWITCHING ───
+  var tabBtns = document.querySelectorAll('#mobileLiveTabs .mobile-tab-btn');
+  var tabPanels = document.querySelectorAll('.mobile-tab-panel');
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var key = btn.dataset.tab;
+      tabBtns.forEach(function(b){ b.classList.remove('active'); });
+      tabPanels.forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      var panel = document.querySelector('.mobile-tab-panel[data-panel="' + key + '"]');
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // ─── 2. QUALITY SELECTOR ───
+  var qBtns = document.querySelectorAll('.quality-btn-m');
+  qBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      qBtns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      // Trigger reload player nếu có api swap stream URL
+      var key = btn.dataset.key;
+      var quality = btn.dataset.quality;
+      if (key && window.x66SwapStreamQuality) {
+        window.x66SwapStreamQuality(key, quality);
+      }
+    });
+  });
+
+  // ─── 3. SHARE BUTTON ───
+  var shareBtn = document.getElementById('mobileShareBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', function(){
+      var url = location.href;
+      var title = document.title;
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(function(){});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function(){
+          shareBtn.innerHTML = '✓ ĐÃ COPY';
+          setTimeout(function(){ shareBtn.innerHTML = '🔗 CHIA SẺ'; }, 1500);
+        });
+      } else {
+        prompt('Copy link:', url);
+      }
+    });
+  }
+
+  // ─── 4. CHAT TOGGLE ───
+  var chatToggle = document.getElementById('mobileChatToggleBtn');
+  var chatBody = document.getElementById('mobileChatBody');
+  if (chatToggle && chatBody) {
+    var isOff = false;
+    chatToggle.addEventListener('click', function(){
+      isOff = !isOff;
+      if (isOff) {
+        chatBody.style.opacity = '.3';
+        chatBody.style.pointerEvents = 'none';
+        chatToggle.innerHTML = '🔔 BẬT';
+        chatToggle.classList.add('text-pri-light', 'border-pri');
+      } else {
+        chatBody.style.opacity = '1';
+        chatBody.style.pointerEvents = 'auto';
+        chatToggle.innerHTML = '🔕 TẮT';
+        chatToggle.classList.remove('text-pri-light', 'border-pri');
+      }
+    });
+  }
+
+  // ─── 5. PREDICT FORM ───
+  var pForm = document.getElementById('mobilePredictForm');
+  if (pForm) {
+    pForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var matchId = pForm.dataset.matchId;
+      var pickOU = (pForm.querySelector('input[name="m_pickOU"]:checked') || {}).value;
+      var pickAH = (pForm.querySelector('input[name="m_pickAH"]:checked') || {}).value;
+      var res = document.getElementById('mobilePredictRes');
+      if (!pickOU && !pickAH) {
+        res.className = 'text-center text-[11px] font-bold text-live';
+        res.textContent = '⚠️ Chọn ít nhất 1 kèo';
+        res.classList.remove('hidden');
+        return;
+      }
+      var stake = parseInt(document.getElementById('mobileStakeInput').value, 10) || 50;
+      var oddsTai = parseFloat(pForm.dataset.oddsTai) || null;
+      var oddsXiu = parseFloat(pForm.dataset.oddsXiu) || null;
+      var oddsAhHome = parseFloat(pForm.dataset.oddsAhHome) || null;
+      var oddsAhAway = parseFloat(pForm.dataset.oddsAhAway) || null;
+      var data = {
+        matchId: matchId,
+        home: <%- JSON.stringify(match.home||'') %>,
+        away: <%- JSON.stringify(match.away||'') %>,
+        league: <%- JSON.stringify(match.league||'') %>,
+        pickOU: pickOU || null,
+        pickAH: pickAH || null,
+        stake: stake,
+        oddsOU: pickOU === 'tai' ? oddsTai : (pickOU === 'xiu' ? oddsXiu : null),
+        oddsAH: pickAH === 'home' ? oddsAhHome : (pickAH === 'away' ? oddsAhAway : null)
+      };
+      res.textContent = 'Đang gửi...';
+      res.className = 'text-center text-[11px] font-bold text-muted';
+      res.classList.remove('hidden');
+      fetch('/api/predict', {
+        method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
+        body: JSON.stringify(data)
+      }).then(function(r){return r.json();}).then(function(j){
+        res.className = 'text-center text-[11px] font-bold ' + (j.ok ? 'text-emerald-300' : 'text-live');
+        res.textContent = j.ok ? ('✅ ' + j.message) : ('❌ ' + (j.error || 'Lỗi'));
+        if (j.error && j.error.indexOf('đăng nhập') !== -1) {
+          setTimeout(function(){ location.href = '/dang-nhap?redirect=' + encodeURIComponent(location.pathname); }, 1500);
+        }
+      }).catch(function(){
+        res.className = 'text-center text-[11px] font-bold text-live';
+        res.textContent = '❌ Lỗi kết nối';
+      });
+    });
+
+    // Load existing prediction
+    var mid = pForm.dataset.matchId;
+    if (mid) {
+      fetch('/api/predict/my/' + encodeURIComponent(mid), { credentials: 'same-origin' })
+        .then(function(r){return r.json();}).then(function(j){
+          if (j.ok && j.prediction) {
+            var p = j.prediction;
+            if (p.pickOU) { var r1 = pForm.querySelector('input[name="m_pickOU"][value="' + p.pickOU + '"]'); if (r1) r1.checked = true; }
+            if (p.pickAH) { var r2 = pForm.querySelector('input[name="m_pickAH"][value="' + p.pickAH + '"]'); if (r2) r2.checked = true; }
+            if (p.stake) document.getElementById('mobileStakeInput').value = p.stake;
+            var res = document.getElementById('mobilePredictRes');
+            res.className = 'text-center text-[11px] font-bold text-emerald-300';
+            res.textContent = '✅ Đã đặt cược ' + (p.stake || 0) + ' X COIN';
+            res.classList.remove('hidden');
+          }
+        }).catch(function(){});
+    }
+  }
+
+  // ─── 6. INIT CHAT cho mobileChatBody ───
+  // Wait for chat-v2.js loaded (it's already loaded by parent tw-live.ejs)
+  function tryInitMobileChat(retries){
+    if (typeof startChat === 'function') {
+      try {
+        startChat('mobileChatBody', { isLive: !!window.__x66HasObs });
+      } catch(e){}
+    } else if (retries > 0) {
+      setTimeout(function(){ tryInitMobileChat(retries - 1); }, 300);
+    }
+  }
+  // Chỉ init chat mobile nếu thực sự ở viewport mobile (tránh duplicate khi resize)
+  if (window.matchMedia('(max-width: 1023px)').matches) {
+    tryInitMobileChat(10);
+  }
+})();
+</script>
