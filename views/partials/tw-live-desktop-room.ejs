@@ -241,9 +241,32 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
 
     <!-- Mô phỏng trận đấu (stats) -->
     <div>
-      <div class="dlr-section-h"><span></span><h3>MÔ PHỎNG <span>TRẬN ĐẤU</span></h3></div>
-      <!-- ═══ 3D PITCH — NGUYÊN code SVG thesports01, CHỈ thay brand → xoso66tv ═══ -->
-      <div class="animate-svg" style="position:relative; transform:translateY(0px); perspective:590.85px; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden;">
+      <div class="dlr-section-h" style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;"><span></span><h3>MÔ PHỎNG <span>TRẬN ĐẤU</span></h3></div>
+        <div style="display:flex; gap:4px;">
+          <button type="button" id="dlrSimToggle1" class="dlr-sim-toggle active" data-mode="iframe" title="Live tracker realtime từ apistatscore (cần Internet)">⚡ LIVE TRACKER</button>
+          <button type="button" id="dlrSimToggle2" class="dlr-sim-toggle" data-mode="svg" title="Mô phỏng SVG (offline / fallback)">🎨 SVG</button>
+        </div>
+      </div>
+
+      <!-- ═══ MODE 1: IFRAME LIVE TRACKER (apistatscore — Y CHANG xoilac) ═══ -->
+      <div id="dlrSimIframeWrap" style="position:relative; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden; aspect-ratio:16/9; min-height:380px;">
+        <iframe
+          id="dlrSimIframe"
+          src="https://embed.apistatscore.com/embed/livescores?siteName=xoso66tv"
+          style="position:absolute; inset:0; width:100%; height:100%; border:0; background:#0a1628;"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allow="autoplay"
+          scrolling="no"
+          title="Tracker trận đấu live - XOSO66 TV"></iframe>
+        <noscript>
+          <div style="padding:20px; color:#94a3b8; text-align:center;">Bật JavaScript để xem mô phỏng trận đấu trực tiếp</div>
+        </noscript>
+      </div>
+
+      <!-- ═══ MODE 2: SVG PITCH (fallback / offline) - ẨN MẶC ĐỊNH ═══ -->
+      <div id="dlrSimSvgWrap" class="animate-svg" style="display:none; position:relative; transform:translateY(0px); perspective:590.85px; background:#0a1628; border:1px solid #1a1f29; border-radius:8px; overflow:hidden;">
 
         <!-- Stadium PNG background -->
         <img src="https://cdn.thesports01.com/tracker/config/assets/2ac837bf6eceb392bb677fec829d8dc9.png!w800"
@@ -637,6 +660,11 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
 .dlr-nav-tab.active { color:#ff9a3a; border-bottom-color:#ff7a18; font-weight:900; background:rgba(255,122,24,.08); }
 .dlr-nav-tab.active svg { opacity:1; transform:scale(1.08); color:#ff7a18; }
 .dlr-nav-tab:focus-visible { outline:2px solid #ff7a18; outline-offset:-2px; border-radius:4px; }
+
+/* Sim toggle buttons (LIVE TRACKER ↔ SVG) */
+.dlr-sim-toggle { background:transparent; color:#94a3b8; border:1px solid #1a1f29; padding:4px 10px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; transition:all .15s; letter-spacing:.3px; }
+.dlr-sim-toggle:hover { color:#fff; border-color:#ff7a18; }
+.dlr-sim-toggle.active { background:#ff7a18; color:#fff; border-color:#ff7a18; }
 @media (max-width: 640px) {
   .dlr-nav-tab { padding:8px 8px; font-size:10px; gap:4px; }
   .dlr-nav-tab svg { width:12px; height:12px; }
@@ -906,6 +934,35 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
       btn.classList.add('active');
       var quality = btn.dataset.quality;
       if (window.x66SwapStreamQuality) window.x66SwapStreamQuality(null, quality);
+    });
+  });
+
+  // ─── 4b. SIM TOGGLE (LIVE TRACKER iframe ↔ SVG fallback), persist localStorage ───
+  var simBtns = document.querySelectorAll('.dlr-sim-toggle');
+  var simIframe = document.getElementById('dlrSimIframeWrap');
+  var simSvg = document.getElementById('dlrSimSvgWrap');
+  function dlrApplySimMode(mode){
+    if (!simIframe || !simSvg) return;
+    if (mode === 'svg') {
+      simIframe.style.display = 'none';
+      simSvg.style.display = '';
+    } else {
+      simIframe.style.display = '';
+      simSvg.style.display = 'none';
+    }
+    simBtns.forEach(function(b){
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+  }
+  try {
+    var savedMode = localStorage.getItem('x66_sim_mode') || 'iframe';
+    dlrApplySimMode(savedMode);
+  } catch(_) { dlrApplySimMode('iframe'); }
+  simBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var m = btn.dataset.mode;
+      dlrApplySimMode(m);
+      try { localStorage.setItem('x66_sim_mode', m); } catch(_){}
     });
   });
 
