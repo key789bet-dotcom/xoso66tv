@@ -2911,13 +2911,17 @@ app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){
   let obs = data.obs.find(function(o){ return o.requesterType==='idol' && o.requesterId===idolId; });
   if (!obs) {
     // Auto-create entry for mobile webrtc (no OBS approval needed)
+    // ⚠️ streamKey PHẢI = idolId plain (KHÔNG prefix 'webrtc_') vì:
+    //   - Mobile WebRTC publish URL: webrtc://xoso66tv.com/live/<idolId>
+    //   - SRS bridge expose qua FLV cùng key: /live/<idolId>.flv
+    //   - Nếu prefix 'webrtc_' → viewer load webrtc_<id>.flv → SRS 404
     obs = {
       id: 'o_' + Date.now(),
       requesterType: 'idol',
       requesterId: idolId,
       requesterName: 'Idol ' + idolId,
       rtmpServer: '',
-      streamKey: 'webrtc_' + idolId,
+      streamKey: idolId,
       status: 'approved',
       createdAt: Date.now(),
       approvedAt: Date.now(),
@@ -2927,6 +2931,10 @@ app.post('/api/studio/go-live', pubAuth.requireStreamer, function (req, res){
     };
     data.obs.push(obs);
   } else {
+    // 🆕 MIGRATE legacy streamKey với prefix 'webrtc_' → đổi về idolId plain
+    if (obs.streamKey && (obs.streamKey === 'webrtc_' + idolId || /^webrtc_/.test(obs.streamKey))) {
+      obs.streamKey = idolId;
+    }
     obs.streamActive = true;
     obs.liveTitle = title;
     obs.liveStartedAt = Date.now();
