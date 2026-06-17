@@ -968,8 +968,8 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
         #liveChatAside { height: 640px !important; max-height: none !important; }
       }
     </style>
-    <!-- 🆕 MINI ICONS ROW = 7 TABS chuyển panel (Stats / Lineup / Chat / H2H / Odds / Predict / Share) -->
-    <div class="flex border-b border-line bg-bg-deep px-2 py-1 gap-1 items-center" id="liveMiniTabs">
+    <!-- 🆕 MINI ICONS ROW = 7 TABS chuyển panel (chia đều grid 7 cột) -->
+    <div class="grid border-b border-line bg-bg-deep px-1 py-1 gap-0.5 items-center" style="grid-template-columns:repeat(7,1fr);" id="liveMiniTabs">
       <button type="button" class="dlr-mini-icon" data-mtab="stats" title="Thống kê" aria-label="Thống kê">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </button>
@@ -991,10 +991,10 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       <button type="button" class="dlr-mini-icon" data-mtab="share" title="Chia sẻ" aria-label="Chia sẻ">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </button>
-      <span class="ml-auto text-[10px] text-muted font-bold uppercase" id="liveMiniTabLabel">CHAT</span>
     </div>
+    <div class="text-center text-[10px] text-pri-light font-bold uppercase border-b border-line bg-bg-deep py-1 tracking-widest" id="liveMiniTabLabel">CHAT</div>
     <style>
-      .dlr-mini-icon { width:26px; height:26px; display:grid; place-items:center; background:transparent; border:1px solid transparent; border-radius:5px; color:#94a3b8; cursor:pointer; transition:all .15s; }
+      .dlr-mini-icon { width:100%; height:28px; display:grid; place-items:center; background:transparent; border:1px solid transparent; border-radius:5px; color:#94a3b8; cursor:pointer; transition:all .15s; }
       .dlr-mini-icon:hover { color:#fff; background:rgba(255,255,255,.06); }
       .dlr-mini-icon.dlr-mini-active { color:#ff9a3a; background:rgba(255,122,24,.12); border-color:rgba(255,122,24,.3); }
       .dlr-side-panel { display:none; flex:1; overflow-y:auto; padding:12px; }
@@ -1103,16 +1103,13 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       <% } %>
     </div>
 
-    <!-- ════ PANEL: PREDICT (link đến widget X COIN ở dưới) ════ -->
+    <!-- ════ PANEL: PREDICT (#predictWidget JS sẽ teleport vào slot này) ════ -->
     <div class="dlr-side-panel" data-panel="predict">
       <h4>🎯 Dự đoán nhận X COIN</h4>
-      <p style="color:#cbd5e1; font-size:12px; line-height:1.6; margin:0 0 12px;">
-        Dự đoán tỷ số · Tài/Xỉu · Kèo chấp. Đúng nhận <b style="color:#facc15;">X COIN</b> tùy mức cược.
-      </p>
-      <button type="button" onclick="document.getElementById('predictWidget') && document.getElementById('predictWidget').scrollIntoView({behavior:'smooth', block:'center'})" style="display:block; width:100%; background:#ff7a18; color:#fff; text-align:center; padding:10px; border-radius:6px; font-size:12px; font-weight:900; border:none; cursor:pointer;">
-        🎯 ĐẶT CƯỢC DỰ ĐOÁN →
-      </button>
-      <a href="/cao-thu" style="display:block; text-align:center; margin-top:10px; color:#ff9a3a; font-size:11px; text-decoration:none;">🏆 BXH Cao Thủ →</a>
+      <div id="dlrPredictSlot" style="margin-top:8px;">
+        <p style="color:#94a3b8; font-size:11px; text-align:center; padding:20px 0;">Đang tải widget dự đoán...</p>
+      </div>
+      <a href="/cao-thu" style="display:block; text-align:center; margin-top:12px; color:#ff9a3a; font-size:11px; text-decoration:none; padding:6px; border:1px solid rgba(255,122,24,.3); border-radius:4px;">🏆 BXH Cao Thủ →</a>
     </div>
 
     <!-- ════ PANEL: SHARE ════ -->
@@ -1182,7 +1179,7 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
     </div>
     </div><!-- /dlr-side-panel data-panel="chat" -->
 
-    <!-- JS: switch panel khi click mini icon -->
+    <!-- JS: switch panel + teleport #predictWidget vào panel Dự đoán -->
     <script>
     (function(){
       var tabsRoot = document.getElementById('liveMiniTabs');
@@ -1203,6 +1200,21 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
           });
         });
       });
+
+      // Teleport #predictWidget từ article cũ → panel Dự đoán
+      function teleportPredict(){
+        var w = document.getElementById('predictWidget');
+        var slot = document.getElementById('dlrPredictSlot');
+        if (!w || !slot) return;
+        if (w.parentNode === slot) return; // đã teleport rồi
+        slot.innerHTML = ''; // bỏ placeholder "Đang tải..."
+        slot.appendChild(w);
+        // Compact lại padding/margin cho fit panel hẹp
+        w.style.marginTop = '0';
+        w.style.maxWidth = '100%';
+      }
+      if (document.readyState !== 'loading') teleportPredict();
+      else document.addEventListener('DOMContentLoaded', teleportPredict);
     })();
     </script>
   </aside>
