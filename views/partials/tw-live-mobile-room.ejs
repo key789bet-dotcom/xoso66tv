@@ -36,7 +36,7 @@ var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2
      Mobile dùng CHUNG #livePlayer element với desktop, JS sẽ TELEPORT vào slot này. -->
 <div id="mobilePlayerSlot" class="aspect-video relative rounded-xl overflow-hidden border border-line bg-black">
   <!-- Score overlay top-left (đè lên video sau khi #livePlayer được move vào) -->
-  <div class="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur px-2 py-1 rounded flex items-center gap-1.5 text-white text-[11px] font-bold pointer-events-none z-[20]">
+  <div class="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur px-2 py-1 rounded flex items-center gap-1.5 text-white text-[11px] font-bold pointer-events-none z-[20] m-player-overlay">
     <span class="text-yellow-300 tabular-nums"><%= match.time || '--:--' %></span>
     <% if (match.homeBadge) { %>
       <img src="<%= match.homeBadge %>" alt="" class="w-4 h-4 rounded-full bg-white/90 p-px" onerror="this.style.display='none'">
@@ -54,17 +54,36 @@ var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2
   </div>
 
   <!-- Logo brand top-right -->
-  <div class="absolute top-1.5 right-1.5 bg-live text-white px-2 py-1 rounded text-[10px] font-black tracking-wider pointer-events-none z-10">XOSO66.TV</div>
+  <div class="absolute top-1.5 right-1.5 bg-live text-white px-2 py-1 rounded text-[10px] font-black tracking-wider pointer-events-none z-10 m-player-overlay">XOSO66.TV</div>
+
+  <!-- 🎛 CUSTOM CONTROLS top-right (dưới brand): VOLUME + FULLSCREEN -->
+  <!-- Luôn visible, click được. Bổ sung cho native controls có thể bị che. -->
+  <div class="absolute top-9 right-1.5 z-[15] flex gap-1 m-player-overlay">
+    <button type="button" id="mobileVolumeBtn" aria-label="Bật/tắt âm thanh"
+            class="w-7 h-7 grid place-items-center bg-black/70 backdrop-blur text-white rounded-md hover:bg-black active:scale-95 transition">
+      <svg id="mobileVolumeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>
+    </button>
+    <button type="button" id="mobileFullscreenBtn" aria-label="Phóng to / Thu nhỏ"
+            class="w-7 h-7 grid place-items-center bg-black/70 backdrop-blur text-white rounded-md hover:bg-black active:scale-95 transition">
+      <svg id="mobileFullscreenIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+        <path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+      </svg>
+    </button>
+  </div>
 
   <!-- LIVE badge bottom-left -->
   <% if (_mHasBlvStream || _mHasObs) { %>
-  <div class="absolute bottom-1.5 left-1.5 bg-pri text-white px-2 py-0.5 rounded text-[9px] font-black tracking-wider pointer-events-none z-10 flex items-center gap-1">
+  <div class="absolute bottom-1.5 left-1.5 bg-pri text-white px-2 py-0.5 rounded text-[9px] font-black tracking-wider pointer-events-none z-10 flex items-center gap-1 m-player-overlay">
     <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>LIVE
   </div>
   <% } %>
 
   <!-- Viewers bottom-right -->
-  <div class="absolute bottom-1.5 right-1.5 bg-black/65 text-white px-1.5 py-0.5 rounded text-[9px] font-bold pointer-events-none z-10 flex items-center gap-1 tabular-nums">
+  <div class="absolute bottom-1.5 right-1.5 bg-black/65 text-white px-1.5 py-0.5 rounded text-[9px] font-bold pointer-events-none z-10 flex items-center gap-1 tabular-nums m-player-overlay">
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
     <%= _mViewers.toLocaleString('vi-VN') %>
   </div>
@@ -535,6 +554,13 @@ var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2
 
   /* Chat body styling reuse từ chat-v2.js — ensure messages render properly */
   #mobileChatBody .msg { padding: 4px 8px; font-size: 11px; }
+
+  /* Player overlay auto-hide animation */
+  .m-player-overlay { transition: opacity .25s ease, transform .25s ease; }
+  #mobilePlayerSlot.player-clean .m-player-overlay { opacity: 0; pointer-events: none; }
+  /* Khi fullscreen, slot fill toàn màn */
+  #mobilePlayerSlot:fullscreen { background: #000; }
+  #mobilePlayerSlot:fullscreen video { object-fit: contain; }
 </style>
 
 <!-- ═══ JS: TAB SWITCH + QUALITY SELECTOR + CHAT + PREDICT ═══ -->
@@ -581,6 +607,97 @@ var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2
   teleportPlayer();
   if (mediaMobile.addEventListener) mediaMobile.addEventListener('change', teleportPlayer);
   else if (mediaMobile.addListener) mediaMobile.addListener(teleportPlayer);
+
+  // ─── 0.5. CUSTOM PLAYER CONTROLS: VOLUME + FULLSCREEN + AUTO-HIDE OVERLAY ───
+  var slot = document.getElementById('mobilePlayerSlot');
+  var volBtn = document.getElementById('mobileVolumeBtn');
+  var volIcon = document.getElementById('mobileVolumeIcon');
+  var fsBtn = document.getElementById('mobileFullscreenBtn');
+  var fsIcon = document.getElementById('mobileFullscreenIcon');
+  // SVG paths
+  var VOL_MUTE_SVG = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+  var VOL_UP_SVG   = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>';
+  var FS_EXPAND_SVG  = '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>';
+  var FS_COLLAPSE_SVG = '<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/>';
+
+  // Helper lấy video element (có thể chưa render xong nếu FLV chưa attach)
+  function getVid(){ return document.getElementById('liveVideo'); }
+
+  // 🔊 VOLUME: toggle muted
+  if (volBtn) {
+    volBtn.addEventListener('click', function(e){
+      e.stopPropagation();  // không trigger overlay toggle
+      var v = getVid();
+      if (!v) return;
+      v.muted = !v.muted;
+      if (!v.muted && v.volume < 0.1) v.volume = 0.7;  // ensure hearable
+      volIcon.innerHTML = v.muted ? VOL_MUTE_SVG : VOL_UP_SVG;
+    });
+    // Sync icon trên load + khi video change muted state
+    var syncVolIcon = function(){
+      var v = getVid();
+      if (!v) return;
+      volIcon.innerHTML = v.muted ? VOL_MUTE_SVG : VOL_UP_SVG;
+    };
+    // Initial check sau 500ms (chờ video element render)
+    setTimeout(syncVolIcon, 500);
+    // Watch video muted change (e.g., user dùng native controls)
+    setInterval(syncVolIcon, 2000);
+  }
+
+  // ⛶ FULLSCREEN: toggle on slot
+  if (fsBtn && slot) {
+    fsBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var isFs = document.fullscreenElement === slot || document.webkitFullscreenElement === slot;
+      try {
+        if (!isFs) {
+          // iOS Safari: webkitEnterFullscreen trên video element (không phải slot)
+          var v = getVid();
+          if (v && typeof v.webkitEnterFullscreen === 'function') {
+            v.webkitEnterFullscreen();
+          } else if (slot.requestFullscreen) {
+            slot.requestFullscreen();
+          } else if (slot.webkitRequestFullscreen) {
+            slot.webkitRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+      } catch(err) { console.warn('[mobile-fs]', err.message); }
+    });
+    // Update icon khi fullscreen state thay đổi
+    var syncFsIcon = function(){
+      var isFs = document.fullscreenElement === slot || document.webkitFullscreenElement === slot;
+      fsIcon.innerHTML = isFs ? FS_COLLAPSE_SVG : FS_EXPAND_SVG;
+    };
+    document.addEventListener('fullscreenchange', syncFsIcon);
+    document.addEventListener('webkitfullscreenchange', syncFsIcon);
+  }
+
+  // 👆 AUTO-HIDE OVERLAY: tap vào slot → toggle .player-clean class
+  // Mặc định visible. Tap 1 lần → ẩn 4s rồi hiện lại. Tap khi đang ẩn → hiện ngay.
+  if (slot) {
+    var hideTimer = null;
+    function scheduleAutoHide(){
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(function(){ slot.classList.add('player-clean'); }, 4000);
+    }
+    slot.addEventListener('click', function(e){
+      // Bỏ qua click vào custom controls (đã có stopPropagation), check fallback
+      if (e.target.closest('#mobileVolumeBtn') || e.target.closest('#mobileFullscreenBtn')) return;
+      if (slot.classList.contains('player-clean')) {
+        slot.classList.remove('player-clean');
+        scheduleAutoHide();
+      } else {
+        slot.classList.add('player-clean');
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      }
+    });
+    // Bắt đầu countdown auto-hide ngay sau khi player ready
+    setTimeout(scheduleAutoHide, 1500);
+  }
 
   // ─── 1. TAB SWITCHING ───
   var tabBtns = document.querySelectorAll('#mobileLiveTabs .mobile-tab-btn');
