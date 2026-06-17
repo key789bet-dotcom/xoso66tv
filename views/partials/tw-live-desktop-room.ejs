@@ -351,12 +351,21 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" viewBox="0 0 800 404" width="100%" height="auto" class="dzs-svg-box pointer-events-none" style="position:absolute; inset:0; z-index:4; display:block;">
           <g class="g-live-box">
             <g class="tracing-line-box home">
-              <g transform="translate(400 269)" class="radius-g">
+              <!-- Bóng di chuyển quanh sân: 12 waypoints giả lập tấn công 2 chiều (24s/loop)
+                   Waypoints: giữa sân → vòng cấm home (trái) → giữa → vòng cấm away (phải) → giữa,
+                   bám chiều cao sân (y: 200-350) + chiều dài (x: 150-650) -->
+              <g class="radius-g" id="dlrBallGroup">
+                <animateTransform attributeName="transform" attributeType="XML" type="translate"
+                  dur="24s" repeatCount="indefinite"
+                  calcMode="spline"
+                  values="400,269; 320,230; 230,260; 180,310; 250,350; 400,330; 530,300; 620,260; 670,280; 600,330; 480,310; 400,269"
+                  keyTimes="0; 0.09; 0.18; 0.27; 0.36; 0.45; 0.54; 0.63; 0.72; 0.81; 0.9; 1"
+                  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"/>
                 <g transform="translate(-.9, -2)">
                   <g transform="translate(0 0)">
                     <g>
                       <use xlink:href="#dball-svg" class="ball-rotate">
-                        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0" to="360" dur="2.5s" repeatCount="indefinite"/>
                       </use>
                     </g>
                   </g>
@@ -369,6 +378,20 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
                     </ellipse>
                   </g>
                 </g>
+              </g>
+
+              <!-- Highlight spot — vòng tròn flash nhẹ đánh dấu vị trí "tấn công" hiện tại -->
+              <g opacity="0.6">
+                <animateTransform attributeName="transform" attributeType="XML" type="translate"
+                  dur="24s" repeatCount="indefinite"
+                  calcMode="spline"
+                  values="400,269; 320,230; 230,260; 180,310; 250,350; 400,330; 530,300; 620,260; 670,280; 600,330; 480,310; 400,269"
+                  keyTimes="0; 0.09; 0.18; 0.27; 0.36; 0.45; 0.54; 0.63; 0.72; 0.81; 0.9; 1"
+                  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"/>
+                <circle cx="0" cy="0" r="0" fill="none" stroke="#ff7a18" stroke-width="1.2" opacity="0">
+                  <animate attributeName="r" values="0;30;0" dur="2.5s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0;.5;0" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
               </g>
             </g>
           </g>

@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v89-2026-06-17-nav-tabs-svg-icons-click-handler-wired';
+const VERSION = 'v90-2026-06-17-pitch-ball-moves-around-field-24s-with-spotlight';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
