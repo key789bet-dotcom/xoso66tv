@@ -87,7 +87,7 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 <!-- 🖥 DESKTOP LAYOUT (giữ nguyên cũ) — chỉ hiện ≥lg           -->
 <!-- ════════════════════════════════════════════════════════════ -->
 <div class="hidden lg:block">
-<article class="grid lg:grid-cols-[1fr_340px] gap-4">
+<article class="grid lg:grid-cols-[2fr_1fr] gap-4">
   <div>
     <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
       <% var _hasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey); %>
