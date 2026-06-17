@@ -115,15 +115,36 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
     </div>
   </div>
 
-  <!-- ═══ 3. NAV TABS (Đội hình / Tỷ lệ / H2H / etc) ═══ -->
+  <!-- ═══ 3. NAV TABS (SVG icons, click → switch panel chat aside / scroll section) ═══ -->
   <div class="dlr-nav-tabs" role="tablist">
-    <button type="button" class="dlr-nav-tab" data-dtab="lineup">⚽ Đội hình</button>
-    <button type="button" class="dlr-nav-tab active" data-dtab="odds">📊 Tỷ lệ</button>
-    <button type="button" class="dlr-nav-tab" data-dtab="h2h">⚔️ Lịch sử đối đầu</button>
-    <button type="button" class="dlr-nav-tab" data-dtab="form">📈 Phong độ</button>
-    <button type="button" class="dlr-nav-tab" data-dtab="livescore">📡 Tỷ số trực tuyến</button>
-    <button type="button" class="dlr-nav-tab" data-dtab="bxh">🏆 BXH</button>
-    <button type="button" class="dlr-nav-tab" data-dtab="info">📋 Thông tin</button>
+    <button type="button" class="dlr-nav-tab" data-dtab="lineup" data-mtab-link="lineup" title="Sơ đồ chiến thuật 11 cầu thủ + HLV">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 12h18M12 3v18M8 9a4 4 0 1 0 0 6 4 4 0 0 0 0-6zM16 9a4 4 0 1 1 0 6 4 4 0 0 1 0-6z"/></svg>
+      Đội hình
+    </button>
+    <button type="button" class="dlr-nav-tab active" data-dtab="odds" data-mtab-link="odds" title="Tỷ lệ kèo realtime">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+      Tỷ lệ
+    </button>
+    <button type="button" class="dlr-nav-tab" data-dtab="h2h" data-mtab-link="h2h" title="10 trận đối đầu gần nhất">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/><path d="M9.5 6.5L6 3"/></svg>
+      Đối đầu
+    </button>
+    <button type="button" class="dlr-nav-tab" data-dtab="form" data-mtab-link="stats" title="Phong độ 5 trận + thống kê">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Phong độ
+    </button>
+    <button type="button" class="dlr-nav-tab" data-dtab="livescore" data-mtab-link="stats" title="Diễn biến trận đấu trực tiếp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M5 5a14 14 0 0 0 0 14M19 5a14 14 0 0 1 0 14M2 12a18 18 0 0 0 0 0M22 12a18 18 0 0 1 0 0"/></svg>
+      Trực tiếp
+    </button>
+    <button type="button" class="dlr-nav-tab" data-dtab="bxh" title="Bảng xếp hạng giải">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      BXH
+    </button>
+    <button type="button" class="dlr-nav-tab" data-dtab="info" data-section="dlrInfoSection" title="Thông tin trận đấu + bình luận">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Thông tin
+    </button>
   </div>
 
   <!-- ═══ 4. BANNER CTA PARTNER (đồng hành) ═══ -->
@@ -586,9 +607,17 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
 
 /* NAV TABS */
 .dlr-nav-tabs { background:#13171f; border:1px solid #1a1f29; border-radius:8px; padding:0 4px; display:flex; gap:0; overflow-x:auto; }
-.dlr-nav-tab { background:transparent; color:#94a3b8; border:none; padding:8px 14px; font-size:11px; font-weight:700; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .15s; }
-.dlr-nav-tab:hover { color:#fff; }
-.dlr-nav-tab.active { color:#ff9a3a; border-bottom-color:#ff7a18; font-weight:900; }
+.dlr-nav-tab { display:inline-flex; align-items:center; gap:6px; background:transparent; color:#94a3b8; border:none; padding:10px 14px; font-size:12px; font-weight:700; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .15s; user-select:none; -webkit-tap-highlight-color:transparent; }
+.dlr-nav-tab svg { flex-shrink:0; opacity:.75; transition:opacity .15s, transform .15s; }
+.dlr-nav-tab:hover { color:#fff; background:rgba(255,122,24,.06); }
+.dlr-nav-tab:hover svg { opacity:1; }
+.dlr-nav-tab.active { color:#ff9a3a; border-bottom-color:#ff7a18; font-weight:900; background:rgba(255,122,24,.08); }
+.dlr-nav-tab.active svg { opacity:1; transform:scale(1.08); color:#ff7a18; }
+.dlr-nav-tab:focus-visible { outline:2px solid #ff7a18; outline-offset:-2px; border-radius:4px; }
+@media (max-width: 640px) {
+  .dlr-nav-tab { padding:8px 8px; font-size:10px; gap:4px; }
+  .dlr-nav-tab svg { width:12px; height:12px; }
+}
 
 /* BANNER CTA */
 .dlr-banner-cta { background:linear-gradient(90deg,#1a3a5c,#0f2540); padding:8px 14px; border-radius:8px; border:1px solid #ff7a18; display:flex; align-items:center; gap:12px; text-decoration:none; transition:transform .15s; }
@@ -784,12 +813,56 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
   if (document.readyState !== 'loading') dlrTeleport();
   else document.addEventListener('DOMContentLoaded', dlrTeleport);
 
-  // ─── 2. NAV TABS (Đội hình / Tỷ lệ / etc) — visual only, scroll vào section tương ứng ───
+  // ─── 2. NAV TABS — click → switch panel chat aside (mini-tab tương ứng) + scroll vào view ───
   var navTabs = document.querySelectorAll('.dlr-nav-tab');
   navTabs.forEach(function(btn){
-    btn.addEventListener('click', function(){
+    btn.addEventListener('click', function(ev){
+      ev.preventDefault();
       navTabs.forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
+      var dtab = btn.dataset.dtab;
+      var mtabLink = btn.dataset.mtabLink;
+      var sectionId = btn.dataset.section;
+
+      // Case 1: BXH → open trang /bxh
+      if (dtab === 'bxh') {
+        window.open('/bxh', '_blank', 'noopener');
+        return;
+      }
+
+      // Case 2: section riêng (info → scroll xuống section bình luận / mô phỏng)
+      if (sectionId) {
+        var target = document.getElementById(sectionId) ||
+                     document.querySelector('.dlr-section-h h3') || // fallback
+                     document.querySelector('#dlrInfoSection');
+        if (target) {
+          target.scrollIntoView({ behavior:'smooth', block:'start' });
+        } else {
+          // Fallback: scroll xuống cuối player để thấy mô phỏng/bình luận
+          window.scrollTo({ top: window.innerHeight, behavior:'smooth' });
+        }
+        return;
+      }
+
+      // Case 3: mtabLink → trigger mini-tab tương ứng ở chat aside + scroll vào view
+      if (mtabLink) {
+        var miniBtn = document.querySelector('#liveMiniTabs button[data-mtab="' + mtabLink + '"]');
+        if (miniBtn) {
+          miniBtn.click();
+        }
+        // Scroll chat aside vào view (nếu out-of-viewport)
+        var aside = document.getElementById('liveChatAside') ||
+                    document.querySelector('.dlr-side-panel') ||
+                    document.querySelector('[data-panel]');
+        if (aside) {
+          // Smooth scroll, anchor về đầu chat aside
+          var rect = aside.getBoundingClientRect();
+          var inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+          if (!inView) {
+            aside.scrollIntoView({ behavior:'smooth', block:'start' });
+          }
+        }
+      }
     });
   });
 
