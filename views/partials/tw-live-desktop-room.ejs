@@ -374,30 +374,19 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
           </g>
         </svg>
 
-        <!-- SVG 3: BALL với ripple animation (NGUYÊN code thesports01) -->
+        <!-- SVG 3: BALL — JS-driven animation theo EVENTS THẬT của trận đấu -->
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" viewBox="0 0 800 404" width="100%" height="auto" class="dzs-svg-box pointer-events-none" style="position:absolute; inset:0; z-index:4; display:block;">
           <g class="g-live-box">
             <g class="tracing-line-box home">
-              <!-- Bóng di chuyển quanh sân: 12 waypoints giả lập tấn công 2 chiều (24s/loop)
-                   Waypoints: giữa sân → vòng cấm home (trái) → giữa → vòng cấm away (phải) → giữa,
-                   bám chiều cao sân (y: 200-350) + chiều dài (x: 150-650) -->
-              <g class="radius-g" id="dlrBallGroup">
-                <animateTransform attributeName="transform" attributeType="XML" type="translate"
-                  dur="24s" repeatCount="indefinite"
-                  calcMode="spline"
-                  values="400,269; 320,230; 230,260; 180,310; 250,350; 400,330; 530,300; 620,260; 670,280; 600,330; 480,310; 400,269"
-                  keyTimes="0; 0.09; 0.18; 0.27; 0.36; 0.45; 0.54; 0.63; 0.72; 0.81; 0.9; 1"
-                  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"/>
+              <!-- Bóng - JS sẽ set transform động theo event hiện tại -->
+              <g class="radius-g" id="dlrBallGroup" transform="translate(400 269)">
                 <g transform="translate(-.9, -2)">
-                  <g transform="translate(0 0)">
-                    <g>
-                      <use xlink:href="#dball-svg" class="ball-rotate">
-                        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0" to="360" dur="2.5s" repeatCount="indefinite"/>
-                      </use>
-                    </g>
+                  <g>
+                    <use xlink:href="#dball-svg" class="ball-rotate">
+                      <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0" to="360" dur="2.5s" repeatCount="indefinite"/>
+                    </use>
                   </g>
                   <g>
-                    <!-- Shadow ripple dưới bóng (2 ellipse mờ pulse) -->
                     <ellipse stroke-width="0" cy="10" rx="14" ry="3" fill="rgba(0,0,0,.4)"/>
                     <ellipse stroke-width="0" rx="22" ry="12" fill="rgba(255,255,255,.12)" opacity="0">
                       <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
@@ -407,23 +396,36 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
                 </g>
               </g>
 
-              <!-- Highlight spot — vòng tròn flash nhẹ đánh dấu vị trí "tấn công" hiện tại -->
-              <g opacity="0.6">
-                <animateTransform attributeName="transform" attributeType="XML" type="translate"
-                  dur="24s" repeatCount="indefinite"
-                  calcMode="spline"
-                  values="400,269; 320,230; 230,260; 180,310; 250,350; 400,330; 530,300; 620,260; 670,280; 600,330; 480,310; 400,269"
-                  keyTimes="0; 0.09; 0.18; 0.27; 0.36; 0.45; 0.54; 0.63; 0.72; 0.81; 0.9; 1"
-                  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"/>
-                <circle cx="0" cy="0" r="0" fill="none" stroke="#ff7a18" stroke-width="1.2" opacity="0">
-                  <animate attributeName="r" values="0;30;0" dur="2.5s" repeatCount="indefinite"/>
-                  <animate attributeName="opacity" values="0;.5;0" dur="2.5s" repeatCount="indefinite"/>
+              <!-- Highlight spot - JS sẽ set transform cùng bóng + đổi màu theo team -->
+              <g id="dlrSpotGroup" transform="translate(400 269)" opacity="0.7">
+                <circle cx="0" cy="0" r="0" fill="none" stroke="#ff7a18" stroke-width="1.5" id="dlrSpotCircle">
+                  <animate attributeName="r" values="0;28;0" dur="2.2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0;.7;0" dur="2.2s" repeatCount="indefinite"/>
                 </circle>
               </g>
             </g>
           </g>
         </svg>
+
+        <!-- ════ TOOLTIP OVERLAY (HTML absolute - hiện event hiện tại) ════ -->
+        <div id="dlrSimTooltip" style="position:absolute; left:50%; top:42%; transform:translate(-50%,-50%); z-index:6; background:rgba(15,26,47,.92); border:1px solid rgba(255,122,24,.5); border-radius:6px; padding:8px 12px; min-width:180px; max-width:280px; pointer-events:none; opacity:0; transition:opacity .3s, top .8s, left .8s; backdrop-filter:blur(4px); box-shadow:0 4px 12px rgba(0,0,0,.4);">
+          <div id="dlrSimTipTitle" style="color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;"></div>
+          <div id="dlrSimTipBody" style="color:#cbd5e1; font-size:11px; margin-top:3px; line-height:1.4;"></div>
+        </div>
+
+        <!-- ════ TIMER OVERLAY (góc trái trên - phút trận đấu hiện tại) ════ -->
+        <div id="dlrSimTimer" style="position:absolute; top:10px; left:10px; z-index:6; background:rgba(0,0,0,.6); color:#facc15; padding:3px 8px; border-radius:3px; font-size:11px; font-weight:900; font-family:'JetBrains Mono',monospace; letter-spacing:.5px;">--'</div>
       </div>
+
+      <!-- ════ DATA INJECT events + match info cho JS animation ════ -->
+      <script>
+        window.__dlrSimData = window.__dlrSimData || {};
+        window.__dlrSimData.events = <%- JSON.stringify(Array.isArray(_dEvents) ? _dEvents : []) %>;
+        window.__dlrSimData.matchStatus = <%- JSON.stringify(match.status || 'upcoming') %>;
+        window.__dlrSimData.elapsed = <%- JSON.stringify(Number(match.elapsed) || 0) %>;
+        window.__dlrSimData.homeName = <%- JSON.stringify(match.home || '') %>;
+        window.__dlrSimData.awayName = <%- JSON.stringify(match.away || '') %>;
+      </script>
 
       <!-- ═══ SCORE BAR DƯỚI PITCH (logo + tên + cards + timer + score) ═══ -->
       <%
@@ -998,5 +1000,188 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
   }
   var sb1 = document.getElementById('dlrShareBtn'); if (sb1) dlrShare(sb1);
   var sb2 = document.getElementById('dlrQualityShareBtn'); if (sb2) dlrShare(sb2);
+})();
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     SIM ENGINE: bóng + tooltip + timer di chuyển theo EVENTS THẬT
+     Data inject từ EJS: window.__dlrSimData = { events, matchStatus, elapsed, homeName, awayName }
+     ════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  function init() {
+    var data = window.__dlrSimData || {};
+    var events = Array.isArray(data.events) ? data.events.slice() : [];
+    var ballGroup = document.getElementById('dlrBallGroup');
+    var spotGroup = document.getElementById('dlrSpotGroup');
+    var spotCircle = document.getElementById('dlrSpotCircle');
+    var tooltipEl = document.getElementById('dlrSimTooltip');
+    var tipTitle  = document.getElementById('dlrSimTipTitle');
+    var tipBody   = document.getElementById('dlrSimTipBody');
+    var timerEl   = document.getElementById('dlrSimTimer');
+    if (!ballGroup || !spotGroup) return; // SVG chưa render (mode iframe)
+
+    // ─── Map event type → coords trên sân (SVG viewBox 800×404, field y:175-365, x:130-670) ───
+    function eventToPos(ev) {
+      var isHome = ev.team === 'home';
+      // Helper random in box
+      function rng(min, max) { return min + Math.random() * (max - min); }
+      var pos = { x: 400, y: 269 }; // center default
+      switch (ev.type) {
+        case 'goal':
+          // Đội home ghi → bóng bay vào khung thành away (phải, x=720)
+          // Đội away ghi → bóng bay vào khung thành home (trái, x=80)
+          pos = isHome ? { x: 700, y: 270 } : { x: 100, y: 270 };
+          break;
+        case 'yellow':
+        case 'red':
+          // Thẻ ở giữa sân, lệch về phía đội nhận thẻ
+          pos = isHome ? { x: rng(220, 380), y: rng(220, 330) }
+                       : { x: rng(420, 580), y: rng(220, 330) };
+          break;
+        case 'sub':
+          // Thay người ở đường biên
+          pos = isHome ? { x: rng(150, 350), y: 360 }
+                       : { x: rng(450, 650), y: 360 };
+          break;
+        case 'var':
+          // VAR check thường ở vòng cấm (đoán trung bình)
+          pos = isHome ? { x: 680, y: 270 } : { x: 120, y: 270 };
+          break;
+        default:
+          pos = { x: rng(200, 600), y: rng(220, 330) };
+      }
+      return pos;
+    }
+
+    // ─── Map event type → icon + label ───
+    function eventToMeta(ev) {
+      var iconMap = {
+        goal:   { ic:'⚽', txt:'Ghi bàn',     col:'#10b981', emoji:'⚽' },
+        yellow: { ic:'🟨', txt:'Thẻ vàng',    col:'#facc15', emoji:'🟨' },
+        red:    { ic:'🟥', txt:'Thẻ đỏ',      col:'#dc2626', emoji:'🟥' },
+        sub:    { ic:'🔁', txt:'Thay người',  col:'#3b82f6', emoji:'🔁' },
+        var:    { ic:'📺', txt:'VAR',          col:'#a855f7', emoji:'📺' }
+      };
+      var m = iconMap[ev.type] || { ic:'⚪', txt:'Sự kiện', col:'#94a3b8', emoji:'⚪' };
+      // Refine label theo subType
+      if (ev.type === 'goal') {
+        if (ev.subType === 'penalty')      m.txt = 'Ghi bàn (Penalty)';
+        else if (ev.subType === 'own')     m.txt = 'Phản lưới nhà';
+        else if (ev.subType === 'missed_pen') { m.txt = 'Hỏng Penalty'; m.col = '#dc2626'; }
+      }
+      return m;
+    }
+
+    // ─── Animate transform "translate(x y)" cho group qua requestAnimationFrame ───
+    function parseCurrentXY(group) {
+      var t = group.getAttribute('transform') || 'translate(400 269)';
+      var m = t.match(/translate\(\s*([-\d.]+)[\s,]+([-\d.]+)/);
+      if (!m) return { x: 400, y: 269 };
+      return { x: parseFloat(m[1]), y: parseFloat(m[2]) };
+    }
+    function animateTo(group, targetX, targetY, durMs) {
+      var startPos = parseCurrentXY(group);
+      var t0 = performance.now();
+      function step(t) {
+        var k = Math.min(1, (t - t0) / durMs);
+        var ease = 1 - Math.pow(1 - k, 3); // easeOutCubic
+        var x = startPos.x + (targetX - startPos.x) * ease;
+        var y = startPos.y + (targetY - startPos.y) * ease;
+        group.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        if (k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // ─── Show tooltip với position adaptive theo bóng ───
+    function showTooltip(ev, meta) {
+      if (!tooltipEl) return;
+      var teamName = ev.team === 'home' ? (data.homeName || 'Đội nhà') : (data.awayName || 'Đội khách');
+      var minStr = ev.minute + (ev.extra ? '+' + ev.extra : '') + "'";
+      tipTitle.innerHTML = '<span style="color:' + meta.col + '; font-size:14px;">' + meta.emoji + '</span> ' +
+                           '<span style="color:#facc15;">' + minStr + '</span> ' +
+                           '<span>' + meta.txt + '</span>';
+      var body = '<div style="color:#fff; font-weight:600;">' + (ev.player || teamName) + '</div>';
+      if (ev.assist) {
+        if (ev.type === 'sub') {
+          body += '<div style="color:#10b981; font-size:10px; margin-top:2px;">⬆ ' + ev.assist + ' vào sân</div>';
+        } else if (ev.type === 'goal') {
+          body += '<div style="color:#94a3b8; font-size:10px; margin-top:2px;">Kiến tạo: ' + ev.assist + '</div>';
+        }
+      }
+      body += '<div style="color:#94a3b8; font-size:10px; margin-top:3px;">' + teamName + '</div>';
+      tipBody.innerHTML = body;
+      tooltipEl.style.opacity = '1';
+      // Position adaptive: nếu bóng bên trái → tooltip phải, ngược lại
+      // Tóm tắt: tooltip cố định top 28% center cho đơn giản
+    }
+    function hideTooltip() {
+      if (tooltipEl) tooltipEl.style.opacity = '0';
+    }
+
+    // ─── Spot color theo team (home xanh dương / away xanh lá) ───
+    function setSpotColor(team) {
+      if (!spotCircle) return;
+      var col = team === 'home' ? 'rgb(0,118,255)' : 'rgb(10,201,0)';
+      spotCircle.setAttribute('stroke', col);
+    }
+
+    // ─── Timer overlay update theo elapsed ───
+    var simElapsed = Number(data.elapsed) || 0;
+    var isLive = data.matchStatus === 'live';
+    function updateTimer() {
+      if (!timerEl) return;
+      if (isLive) {
+        // Live: count up từ elapsed
+        timerEl.textContent = simElapsed + "'";
+        simElapsed += 1/60; // tăng 1' mỗi 60s
+        timerEl.style.color = '#facc15';
+      } else if (data.matchStatus === 'finished') {
+        timerEl.textContent = "FT";
+        timerEl.style.color = '#94a3b8';
+      } else {
+        timerEl.textContent = "Sắp đá";
+        timerEl.style.color = '#10b981';
+      }
+    }
+    updateTimer();
+    setInterval(updateTimer, 1000);
+
+    // ─── Cycle events: nếu có events thật → loop, nếu không → demo waypoints ───
+    var demoEvents = [
+      { type:'other', team:'home', minute:5,  player:'Tấn công', assist:'' },
+      { type:'other', team:'away', minute:12, player:'Phản công', assist:'' },
+      { type:'other', team:'home', minute:23, player:'Đường biên', assist:'' },
+      { type:'other', team:'away', minute:35, player:'Vòng cấm', assist:'' },
+      { type:'other', team:'home', minute:48, player:'Giữa sân', assist:'' },
+      { type:'other', team:'away', minute:62, player:'Sút xa', assist:'' },
+      { type:'other', team:'home', minute:78, player:'Tấn công cuối', assist:'' }
+    ];
+    var pool = events.length > 0 ? events : demoEvents;
+    var idx = 0;
+    function tick() {
+      var ev = pool[idx % pool.length];
+      idx++;
+      if (!ev) return;
+      var pos = eventToPos(ev);
+      animateTo(ballGroup, pos.x, pos.y, 1500);
+      animateTo(spotGroup, pos.x, pos.y, 1500);
+      setSpotColor(ev.team);
+      if (ev.type !== 'other') {
+        var meta = eventToMeta(ev);
+        showTooltip(ev, meta);
+        // Auto-hide tooltip sau 3.5s nếu là event thật, để trống cho event tiếp
+        setTimeout(hideTooltip, 3500);
+      } else {
+        hideTooltip();
+      }
+    }
+    // Tick đầu sau 1s, sau đó mỗi 5s
+    setTimeout(function(){ tick(); setInterval(tick, 5000); }, 1000);
+  }
+
+  if (document.readyState !== 'loading') init();
+  else document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
