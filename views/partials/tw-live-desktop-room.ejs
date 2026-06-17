@@ -353,6 +353,141 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
           </g>
         </svg>
       </div>
+
+      <!-- ═══ SCORE BAR DƯỚI PITCH (logo + tên + cards + timer + score) ═══ -->
+      <%
+        var _dStatsObj = (_dInsights && _dInsights.stats) ? _dInsights.stats : {};
+        var _dCardsHome = (_dStatsObj.cards && _dStatsObj.cards.home) || { yellow:0, red:0 };
+        var _dCardsAway = (_dStatsObj.cards && _dStatsObj.cards.away) || { yellow:0, red:0 };
+        var _dCornersHome = (_dStatsObj.corners && _dStatsObj.corners.home) || 0;
+        var _dCornersAway = (_dStatsObj.corners && _dStatsObj.corners.away) || 0;
+        var _dHomeShortS = (match.home||'').slice(0,2).toUpperCase();
+        var _dAwayShortS = (match.away||'').slice(0,2).toUpperCase();
+        var _dHtScore = (_dStatsObj.htScore || (match.score ? (Math.max(0,(match.score[0]||0)-1) + ':' + Math.max(0,(match.score[1]||0)-1)) : '0:0'));
+      %>
+      <div class="dlr-sim-scorebar">
+        <div class="dlr-sb-team dlr-sb-home">
+          <% if (match.homeBadge) { %>
+            <img src="<%= match.homeBadge %>" alt="<%= match.home %>" class="dlr-sb-logo" onerror="this.style.display='none'">
+          <% } else { %>
+            <span class="dlr-sb-logo-fb" style="background:rgb(0,118,255)"><%= _dHomeShortS %></span>
+          <% } %>
+          <div class="dlr-sb-info">
+            <div class="dlr-sb-name"><%= match.home %></div>
+            <div class="dlr-sb-cards">
+              <span class="dlr-card dlr-card-yellow"><%= _dCardsHome.yellow %></span>
+              <span class="dlr-card dlr-card-red"><%= _dCardsHome.red %></span>
+              <span class="dlr-card dlr-card-corner"><%= _dCornersHome %></span>
+            </div>
+          </div>
+        </div>
+        <div class="dlr-sb-center">
+          <div class="dlr-sb-timer"><%= match.time || '--:--' %></div>
+          <div class="dlr-sb-score">
+            <span style="color:rgb(0,118,255);"><%= match.score ? match.score[0] : '0' %></span>
+            <span style="color:#fff; margin:0 6px;">:</span>
+            <span style="color:rgb(10,201,0);"><%= match.score ? match.score[1] : '0' %></span>
+            <% if (match.status === 'live') { %><span class="dlr-sb-live-dot"></span><% } %>
+          </div>
+          <div class="dlr-sb-ht">HT <%= _dHtScore %></div>
+        </div>
+        <div class="dlr-sb-team dlr-sb-away">
+          <div class="dlr-sb-info" style="text-align:right;">
+            <div class="dlr-sb-name"><%= match.away %></div>
+            <div class="dlr-sb-cards" style="justify-content:flex-end;">
+              <span class="dlr-card dlr-card-corner"><%= _dCornersAway %></span>
+              <span class="dlr-card dlr-card-yellow"><%= _dCardsAway.yellow %></span>
+              <span class="dlr-card dlr-card-red"><%= _dCardsAway.red %></span>
+            </div>
+          </div>
+          <% if (match.awayBadge) { %>
+            <img src="<%= match.awayBadge %>" alt="<%= match.away %>" class="dlr-sb-logo" onerror="this.style.display='none'">
+          <% } else { %>
+            <span class="dlr-sb-logo-fb" style="background:rgb(10,201,0)"><%= _dAwayShortS %></span>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ═══ TIMELINE CHART (cường độ tấn công 2 đội) + EVENT MARKERS ═══ -->
+      <%
+        var _dEvents = (_dInsights && Array.isArray(_dInsights.events)) ? _dInsights.events : [];
+        var _dAttackTl = (_dInsights && Array.isArray(_dInsights.attackTimeline)) ? _dInsights.attackTimeline : null;
+      %>
+      <div class="dlr-sim-timeline">
+        <div class="dlr-tl-header">
+          <span class="dlr-tl-team-label"><%= match.home %></span>
+        </div>
+        <div class="dlr-tl-chart-wrap">
+          <% if (_dEvents.length > 0) { %>
+          <div class="dlr-tl-markers">
+            <% _dEvents.forEach(function(ev){
+              var leftPct = Math.min(100, Math.max(0, (ev.minute / 90) * 100));
+              var isHome = ev.team === 'home';
+              var color = isHome ? 'rgb(0,118,255)' : 'rgb(10,201,0)';
+              var label = ev.type === 'goal' ? 'Bàn thắng' : ev.type === 'yellow' ? 'Thẻ vàng' : ev.type === 'red' ? 'Thẻ đỏ' : ev.type === 'corner' ? 'Phạt góc' : (ev.type||'');
+              var teamName = isHome ? match.home : match.away;
+              var iconSvg = '';
+              if (ev.type === 'goal') iconSvg = '<svg viewBox="0 0 24 24" width="10" height="10"><circle cx="12" cy="12" r="9" fill="#fff" stroke="#000" stroke-width="1"/><polygon points="12,6 16,9 14,14 10,14 8,9" fill="#000"/></svg>';
+              else if (ev.type === 'yellow') iconSvg = '<svg viewBox="0 0 24 24" width="8" height="11"><rect x="7" y="4" width="10" height="16" fill="#facc15" rx="1"/></svg>';
+              else if (ev.type === 'red') iconSvg = '<svg viewBox="0 0 24 24" width="8" height="11"><rect x="7" y="4" width="10" height="16" fill="#dc2626" rx="1"/></svg>';
+              else iconSvg = '<svg viewBox="0 0 24 24" width="10" height="10"><line x1="6" y1="20" x2="6" y2="4" stroke="#fff" stroke-width="2"/><polygon points="6,4 16,8 6,11" fill="#fff"/></svg>';
+            %>
+            <div class="dlr-tl-marker" style="left:<%= leftPct.toFixed(2) %>%;" title="<%= ev.minute %>' <%= label %> - <%= teamName %>">
+              <div class="dlr-tl-marker-icon" style="background:<%= color %>;"><%- iconSvg %></div>
+              <div class="dlr-tl-marker-tooltip">
+                <strong><%= ev.minute %>'</strong> <%= label %><br><span style="opacity:.7"><%= teamName %></span>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } %>
+          <div class="dlr-tl-canvas-wrap">
+            <canvas id="dlrTimelineCanvas" role="img" aria-label="Cường độ tấn công 2 đội theo phút"></canvas>
+          </div>
+          <div class="dlr-tl-axis">
+            <span>0'</span><span>15'</span><span>30'</span><span style="color:#facc15;">HT</span><span>60'</span><span>75'</span><span>90'</span>
+          </div>
+        </div>
+        <div class="dlr-tl-footer">
+          <span class="dlr-tl-team-label"><%= match.away %></span>
+        </div>
+      </div>
+
+      <script>
+      (function(){
+        function initDlrTl(){
+          var c = document.getElementById('dlrTimelineCanvas');
+          if (!c) return;
+          if (!window.Chart) {
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+            s.onload = initDlrTl;
+            document.head.appendChild(s);
+            return;
+          }
+          var apiTl = <%- JSON.stringify(_dAttackTl) %>;
+          var labels = ['0','5','10','15','20','25','30','35','40','HT','50','55','60','65','70','75','80','85','90'];
+          var home, away;
+          if (apiTl && apiTl.home && apiTl.away) {
+            home = apiTl.home; away = apiTl.away;
+          } else {
+            // Fallback random-ish (chỉ visual demo - sẽ thay khi API có data)
+            home = [10,18,25,32,28,40,55,45,42,50,38,52,60,68,55,50,42,38,30];
+            away = [8,12,28,20,18,22,28,25,22,18,30,28,25,32,28,25,20,22,18];
+          }
+          new Chart(c, {
+            type: 'line',
+            data: { labels: labels, datasets: [
+              { data: home, borderColor:'rgb(0,118,255)', backgroundColor:'rgba(0,118,255,.1)', tension:0.35, borderWidth:2, pointRadius:0, fill:true },
+              { data: away, borderColor:'rgb(10,201,0)', backgroundColor:'rgba(10,201,0,.1)', tension:0.35, borderWidth:2, pointRadius:0, fill:true }
+            ]},
+            options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{enabled:false} }, scales:{ x:{display:false}, y:{display:false, beginAtZero:true} } }
+          });
+        }
+        if (document.readyState !== 'loading') initDlrTl();
+        else document.addEventListener('DOMContentLoaded', initDlrTl);
+      })();
+      </script>
     </div>
 
     <!-- TOP NHÀ CÁI / CTA bên phải -->
@@ -560,6 +695,40 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
 .dlr-tags-label { font-size:10px; color:#94a3b8; }
 .dlr-tag { font-size:10px; background:#13171f; color:#ff9a3a; padding:2px 8px; border-radius:3px; text-decoration:none; }
 .dlr-tag:hover { background:rgba(255,122,24,.2); }
+
+/* ════ SCORE BAR DƯỚI PITCH ════ */
+.dlr-sim-scorebar { background:#152040; border:1px solid #1a1f29; border-top:none; padding:8px 14px; display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:center; }
+.dlr-sb-team { display:flex; align-items:center; gap:10px; min-width:0; }
+.dlr-sb-away { justify-content:flex-end; }
+.dlr-sb-logo { width:34px; height:34px; border-radius:50%; background:#fff; padding:2px; flex-shrink:0; }
+.dlr-sb-logo-fb { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:11px; font-weight:900; flex-shrink:0; }
+.dlr-sb-info { min-width:0; flex:1; }
+.dlr-sb-name { color:#fff; font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dlr-sb-cards { display:flex; gap:4px; margin-top:3px; }
+.dlr-card { font-size:10px; font-weight:900; padding:2px 6px; border-radius:3px; min-width:18px; text-align:center; line-height:1.1; }
+.dlr-card-yellow { background:#facc15; color:#1a0f08; }
+.dlr-card-red { background:#dc2626; color:#fff; }
+.dlr-card-corner { background:#1a1f29; color:#cbd5e1; }
+.dlr-sb-center { text-align:center; min-width:110px; }
+.dlr-sb-timer { color:#facc15; font-size:12px; font-weight:700; font-feature-settings:'tnum'; }
+.dlr-sb-score { color:#fff; font-size:22px; font-weight:900; line-height:1.1; font-feature-settings:'tnum'; }
+.dlr-sb-live-dot { display:inline-block; width:8px; height:8px; background:#dc2626; border-radius:50%; vertical-align:middle; margin-left:4px; animation:dlrPulse 1.5s infinite; }
+.dlr-sb-ht { color:#94a3b8; font-size:10px; font-weight:700; }
+
+/* ════ TIMELINE CHART ════ */
+.dlr-sim-timeline { background:#0a0d12; border:1px solid #1a1f29; border-top:none; padding:10px 14px; border-radius:0 0 8px 8px; }
+.dlr-tl-header, .dlr-tl-footer { color:#cbd5e1; font-size:11px; font-weight:700; margin-bottom:4px; }
+.dlr-tl-footer { margin-top:4px; margin-bottom:0; }
+.dlr-tl-header .dlr-tl-team-label { color:rgb(0,118,255); }
+.dlr-tl-footer .dlr-tl-team-label { color:rgb(10,201,0); }
+.dlr-tl-chart-wrap { position:relative; }
+.dlr-tl-markers { position:relative; height:22px; margin-bottom:2px; }
+.dlr-tl-marker { position:absolute; top:0; transform:translateX(-50%); cursor:pointer; }
+.dlr-tl-marker-icon { width:18px; height:18px; border-radius:50%; border:2px solid #152040; display:grid; place-items:center; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+.dlr-tl-marker-tooltip { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); background:#152040; color:#fff; font-size:10px; padding:5px 8px; border-radius:4px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .15s; z-index:5; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+.dlr-tl-marker:hover .dlr-tl-marker-tooltip { opacity:1; }
+.dlr-tl-canvas-wrap { position:relative; height:90px; }
+.dlr-tl-axis { display:flex; justify-content:space-between; padding-top:4px; color:#94a3b8; font-size:10px; font-weight:700; }
 
 /* Responsive fallback dưới 1024 */
 @media (max-width: 1023px) {
