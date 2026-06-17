@@ -968,33 +968,167 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
         #liveChatAside { height: 640px !important; max-height: none !important; }
       }
     </style>
-    <!-- 🆕 MINI ICONS ROW (style xoilac/8xbet): stats / settings / share / chat / etc -->
-    <div class="flex border-b border-line bg-bg-deep px-2 py-1 gap-1 items-center">
-      <button type="button" class="dlr-mini-icon" title="Thống kê" aria-label="Thống kê">
+    <!-- 🆕 MINI ICONS ROW = 7 TABS chuyển panel (Stats / Lineup / Chat / H2H / Odds / Predict / Share) -->
+    <div class="flex border-b border-line bg-bg-deep px-2 py-1 gap-1 items-center" id="liveMiniTabs">
+      <button type="button" class="dlr-mini-icon" data-mtab="stats" title="Thống kê" aria-label="Thống kê">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </button>
-      <button type="button" class="dlr-mini-icon" title="Đội hình" aria-label="Đội hình">
+      <button type="button" class="dlr-mini-icon" data-mtab="lineup" title="Đội hình" aria-label="Đội hình">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </button>
-      <button type="button" class="dlr-mini-icon dlr-mini-active" title="Chat phòng" aria-label="Chat phòng">
+      <button type="button" class="dlr-mini-icon dlr-mini-active" data-mtab="chat" title="Chat phòng" aria-label="Chat phòng">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </button>
-      <button type="button" class="dlr-mini-icon" title="H2H" aria-label="H2H">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <button type="button" class="dlr-mini-icon" data-mtab="h2h" title="Đối đầu" aria-label="Đối đầu">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/></svg>
       </button>
-      <button type="button" class="dlr-mini-icon" title="Tỷ lệ" aria-label="Tỷ lệ">
+      <button type="button" class="dlr-mini-icon" data-mtab="odds" title="Tỷ lệ" aria-label="Tỷ lệ">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
       </button>
-      <button type="button" id="liveChatShareBtn" class="dlr-mini-icon" title="Chia sẻ" aria-label="Chia sẻ" onclick="if(navigator.share){navigator.share({title:document.title,url:location.href}).catch(()=>{})}else if(navigator.clipboard){navigator.clipboard.writeText(location.href)}">
+      <button type="button" class="dlr-mini-icon" data-mtab="predict" title="Dự đoán" aria-label="Dự đoán">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      </button>
+      <button type="button" class="dlr-mini-icon" data-mtab="share" title="Chia sẻ" aria-label="Chia sẻ">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </button>
-      <span class="ml-auto text-[10px] text-muted font-bold">CHAT</span>
+      <span class="ml-auto text-[10px] text-muted font-bold uppercase" id="liveMiniTabLabel">CHAT</span>
     </div>
     <style>
       .dlr-mini-icon { width:26px; height:26px; display:grid; place-items:center; background:transparent; border:1px solid transparent; border-radius:5px; color:#94a3b8; cursor:pointer; transition:all .15s; }
       .dlr-mini-icon:hover { color:#fff; background:rgba(255,255,255,.06); }
       .dlr-mini-icon.dlr-mini-active { color:#ff9a3a; background:rgba(255,122,24,.12); border-color:rgba(255,122,24,.3); }
+      .dlr-side-panel { display:none; flex:1; overflow-y:auto; padding:12px; }
+      .dlr-side-panel.active { display:block; }
+      .dlr-side-panel h4 { color:#ff9a3a; font-size:11px; font-weight:700; margin:12px 0 6px; text-transform:uppercase; letter-spacing:1px; }
+      .dlr-side-panel h4:first-child { margin-top:0; }
+      .dlr-side-empty { color:#94a3b8; text-align:center; padding:30px 0; font-size:12px; }
+      .dlr-side-row { display:flex; gap:8px; align-items:center; padding:6px 8px; background:rgba(255,255,255,.03); border-radius:4px; margin-bottom:4px; font-size:11px; color:#cbd5e1; }
+      .dlr-side-row b { color:#fff; }
+      .dlr-side-stat { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; padding:6px 0; }
+      .dlr-side-stat-l { text-align:right; color:rgb(0,118,255); font-weight:900; font-size:14px; }
+      .dlr-side-stat-r { color:rgb(10,201,0); font-weight:900; font-size:14px; }
+      .dlr-side-stat-label { color:#94a3b8; font-size:10px; text-align:center; }
+      .dlr-side-odds-row { display:grid; grid-template-columns:1fr auto 1fr; gap:6px; align-items:center; padding:5px 8px; background:rgba(255,255,255,.04); border-radius:4px; margin-bottom:4px; }
+      .dlr-side-odds-cell { background:#0a0d12; padding:3px 8px; border-radius:3px; font-size:11px; font-weight:700; text-align:center; color:#fff; font-feature-settings:'tnum'; }
+      .dlr-side-odds-line { background:#ff7a18; color:#fff; font-weight:900; }
+      /* Style chat panel: giữ display flex column khi active */
+      .dlr-side-panel[data-panel="chat"].active { display:flex; flex-direction:column; padding:0; overflow:hidden; }
     </style>
+
+    <!-- ════ PANEL: STATS (matchInsights.stats) ════ -->
+    <div class="dlr-side-panel" data-panel="stats">
+      <h4>📊 Thống kê trận đấu</h4>
+      <%
+        var _sStats = (typeof matchInsights !== 'undefined' && matchInsights && matchInsights.stats) ? matchInsights.stats : null;
+        var _sPoss = _sStats && _sStats.possession;
+        var _sAtk = _sStats && _sStats.attacks;
+        var _sDng = _sStats && _sStats.dangerAtk;
+      %>
+      <% if (_sPoss || _sAtk || _sDng) { %>
+        <% if (_sPoss) { %><div class="dlr-side-stat"><span class="dlr-side-stat-l"><%= _sPoss.home %>%</span><span class="dlr-side-stat-label">Giữ bóng</span><span class="dlr-side-stat-r"><%= _sPoss.away %>%</span></div><% } %>
+        <% if (_sAtk) { %><div class="dlr-side-stat"><span class="dlr-side-stat-l"><%= _sAtk.home %></span><span class="dlr-side-stat-label">Tấn công</span><span class="dlr-side-stat-r"><%= _sAtk.away %></span></div><% } %>
+        <% if (_sDng) { %><div class="dlr-side-stat"><span class="dlr-side-stat-l"><%= _sDng.home %></span><span class="dlr-side-stat-label">Tấn công hiểm</span><span class="dlr-side-stat-r"><%= _sDng.away %></span></div><% } %>
+      <% } else { %>
+        <div class="dlr-side-empty">📊<br>Đang cập nhật thống kê...</div>
+      <% } %>
+    </div>
+
+    <!-- ════ PANEL: LINEUP ════ -->
+    <div class="dlr-side-panel" data-panel="lineup">
+      <h4>⚽ Đội hình ra sân</h4>
+      <% var _sLineup = (typeof matchInsights !== 'undefined' && matchInsights && matchInsights.lineup) ? matchInsights.lineup : null; %>
+      <% if (_sLineup && (_sLineup.home || _sLineup.away)) { %>
+        <% if (_sLineup.home) { %>
+          <h4><%= match.home %></h4>
+          <% (_sLineup.home || []).forEach(function(p){ %><div class="dlr-side-row"><b><%= p.number || '?' %></b> <%= p.name %></div><% }); %>
+        <% } %>
+        <% if (_sLineup.away) { %>
+          <h4><%= match.away %></h4>
+          <% (_sLineup.away || []).forEach(function(p){ %><div class="dlr-side-row"><b><%= p.number || '?' %></b> <%= p.name %></div><% }); %>
+        <% } %>
+      <% } else { %>
+        <div class="dlr-side-empty">⚽<br>Đội hình sẽ cập nhật<br>15 phút trước trận</div>
+      <% } %>
+    </div>
+
+    <!-- ════ PANEL: H2H ════ -->
+    <div class="dlr-side-panel" data-panel="h2h">
+      <h4>⚔ Lịch sử đối đầu</h4>
+      <% var _sH2H = (typeof matchInsights !== 'undefined' && matchInsights && Array.isArray(matchInsights.h2h)) ? matchInsights.h2h : []; %>
+      <% if (_sH2H.length > 0) { %>
+        <% _sH2H.slice(0, 8).forEach(function(m){ %>
+          <div class="dlr-side-row">
+            <span style="color:#94a3b8; flex-shrink:0;"><%= m.date || '' %></span>
+            <span style="flex:1; text-align:right;"><%= m.home || '' %></span>
+            <b style="color:#facc15; padding:0 6px;"><%= m.score || '0-0' %></b>
+            <span style="flex:1;"><%= m.away || '' %></span>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="dlr-side-empty">⚔<br>Chưa có dữ liệu đối đầu</div>
+      <% } %>
+    </div>
+
+    <!-- ════ PANEL: ODDS (live odds) ════ -->
+    <div class="dlr-side-panel" data-panel="odds">
+      <% var _sHasOdds = (typeof liveOdds !== 'undefined' && liveOdds && (liveOdds.ah || liveOdds.ou || liveOdds.x12)); %>
+      <% if (_sHasOdds) { %>
+        <% if (liveOdds.x12) { %>
+          <h4>📊 Châu Âu (1X2)</h4>
+          <div class="dlr-side-odds-row">
+            <span class="dlr-side-odds-cell"><%= liveOdds.x12.homeOdds ? liveOdds.x12.homeOdds.toFixed(2) : '—' %></span>
+            <span class="dlr-side-odds-cell"><%= liveOdds.x12.drawOdds ? liveOdds.x12.drawOdds.toFixed(2) : '—' %></span>
+            <span class="dlr-side-odds-cell"><%= liveOdds.x12.awayOdds ? liveOdds.x12.awayOdds.toFixed(2) : '—' %></span>
+          </div>
+        <% } %>
+        <% if (liveOdds.ah) { %>
+          <h4>⚖ Châu Á (Chấp)</h4>
+          <div class="dlr-side-odds-row">
+            <span class="dlr-side-odds-cell"><%= liveOdds.ah.homeOdds ? liveOdds.ah.homeOdds.toFixed(2) : '—' %></span>
+            <span class="dlr-side-odds-cell dlr-side-odds-line"><%= liveOdds.ah.line %></span>
+            <span class="dlr-side-odds-cell"><%= liveOdds.ah.awayOdds ? liveOdds.ah.awayOdds.toFixed(2) : '—' %></span>
+          </div>
+        <% } %>
+        <% if (liveOdds.ou) { %>
+          <h4>📈 Tài/Xỉu</h4>
+          <div class="dlr-side-odds-row">
+            <span class="dlr-side-odds-cell"><%= liveOdds.ou.taiOdds ? liveOdds.ou.taiOdds.toFixed(2) : '—' %></span>
+            <span class="dlr-side-odds-cell dlr-side-odds-line"><%= liveOdds.ou.line %></span>
+            <span class="dlr-side-odds-cell"><%= liveOdds.ou.xiuOdds ? liveOdds.ou.xiuOdds.toFixed(2) : '—' %></span>
+          </div>
+        <% } %>
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" style="display:block; background:#ff7a18; color:#fff; text-align:center; padding:8px; border-radius:4px; font-size:11px; font-weight:900; text-decoration:none; margin-top:10px;">💰 CƯỢC NGAY</a>
+      <% } else { %>
+        <div class="dlr-side-empty">📈<br>Tỷ lệ đang cập nhật...</div>
+      <% } %>
+    </div>
+
+    <!-- ════ PANEL: PREDICT (link đến widget X COIN ở dưới) ════ -->
+    <div class="dlr-side-panel" data-panel="predict">
+      <h4>🎯 Dự đoán nhận X COIN</h4>
+      <p style="color:#cbd5e1; font-size:12px; line-height:1.6; margin:0 0 12px;">
+        Dự đoán tỷ số · Tài/Xỉu · Kèo chấp. Đúng nhận <b style="color:#facc15;">X COIN</b> tùy mức cược.
+      </p>
+      <button type="button" onclick="document.getElementById('predictWidget') && document.getElementById('predictWidget').scrollIntoView({behavior:'smooth', block:'center'})" style="display:block; width:100%; background:#ff7a18; color:#fff; text-align:center; padding:10px; border-radius:6px; font-size:12px; font-weight:900; border:none; cursor:pointer;">
+        🎯 ĐẶT CƯỢC DỰ ĐOÁN →
+      </button>
+      <a href="/cao-thu" style="display:block; text-align:center; margin-top:10px; color:#ff9a3a; font-size:11px; text-decoration:none;">🏆 BXH Cao Thủ →</a>
+    </div>
+
+    <!-- ════ PANEL: SHARE ════ -->
+    <div class="dlr-side-panel" data-panel="share">
+      <h4>🔗 Chia sẻ trận đấu</h4>
+      <p style="color:#cbd5e1; font-size:12px; margin:0 0 10px;">Sao chép link hoặc chia sẻ qua mạng xã hội:</p>
+      <input type="text" readonly value="" id="dlrShareUrl" style="width:100%; background:#0a0d12; border:1px solid #1a1f29; padding:6px 8px; border-radius:4px; color:#fff; font-size:11px; margin-bottom:8px;" onclick="this.select()">
+      <button type="button" onclick="(function(){var u=location.href;if(navigator.share){navigator.share({title:document.title,url:u}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){alert('✓ Đã copy link!')})}else{prompt('Copy link:',u)}})()" style="display:block; width:100%; background:#ff7a18; color:#fff; padding:8px; border-radius:4px; font-size:12px; font-weight:900; border:none; cursor:pointer;">📤 Chia sẻ ngay</button>
+      <div style="display:flex; gap:6px; margin-top:10px;">
+        <a href="https://t.me/share/url?url=https://xoso66tv.com<%= match.slug ? '/live/'+match.slug : '' %>" target="_blank" rel="noopener" style="flex:1; background:#0088cc; color:#fff; text-align:center; padding:6px; border-radius:4px; font-size:10px; font-weight:700; text-decoration:none;">Telegram</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://xoso66tv.com<%= match.slug ? '/live/'+match.slug : '' %>" target="_blank" rel="noopener" style="flex:1; background:#1877f2; color:#fff; text-align:center; padding:6px; border-radius:4px; font-size:10px; font-weight:700; text-decoration:none;">Facebook</a>
+      </div>
+    </div>
+
+    <!-- ════ PANEL: CHAT (default active) - wrap content cũ ════ -->
+    <div class="dlr-side-panel active" data-panel="chat">
 
     <%
       // 🎨 Render 1 chat tab: ảnh nếu admin đã upload, fallback emoji+text
@@ -1046,6 +1180,31 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
       <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
       <button id="chatBtn" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-md font-bold text-xs min-w-[64px] tabular-nums" onclick="sendChat('chatInput','chatBody')">Gửi</button>
     </div>
+    </div><!-- /dlr-side-panel data-panel="chat" -->
+
+    <!-- JS: switch panel khi click mini icon -->
+    <script>
+    (function(){
+      var tabsRoot = document.getElementById('liveMiniTabs');
+      var label = document.getElementById('liveMiniTabLabel');
+      var shareUrlInput = document.getElementById('dlrShareUrl');
+      if (shareUrlInput) shareUrlInput.value = location.href;
+      if (!tabsRoot) return;
+      var LABELS = { stats:'THỐNG KÊ', lineup:'ĐỘI HÌNH', chat:'CHAT', h2h:'ĐỐI ĐẦU', odds:'TỶ LỆ', predict:'DỰ ĐOÁN', share:'CHIA SẺ' };
+      var icons = tabsRoot.querySelectorAll('.dlr-mini-icon[data-mtab]');
+      icons.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var key = btn.dataset.mtab;
+          icons.forEach(function(b){ b.classList.remove('dlr-mini-active'); });
+          btn.classList.add('dlr-mini-active');
+          if (label) label.textContent = LABELS[key] || key.toUpperCase();
+          document.querySelectorAll('#liveChatAside .dlr-side-panel').forEach(function(p){
+            p.classList.toggle('active', p.dataset.panel === key);
+          });
+        });
+      });
+    })();
+    </script>
   </aside>
 </article>
 </div>
