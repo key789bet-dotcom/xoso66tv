@@ -84,10 +84,17 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 </section>
 
 <!-- ════════════════════════════════════════════════════════════ -->
-<!-- 🖥 DESKTOP LAYOUT (giữ nguyên cũ) — hiện từ ≥md (≥768px)    -->
+<!-- 🖥 DESKTOP LAYOUT (mới - mockup xoilac/8xbet) — ≥md (≥768px) -->
 <!-- ════════════════════════════════════════════════════════════ -->
 <div class="hidden md:block">
-<article class="md:grid gap-4" style="grid-template-columns: 2fr 1fr;">
+
+<!-- 🎨 LAYOUT MỚI (mockup): header + odds + tabs + banner + player/chat + mô phỏng + SEO -->
+<%- include('partials/tw-live-desktop-room') %>
+
+<!-- ═══ Phần CŨ vẫn render (chứa predict widget X COIN, AI Insights, info aside, others) ═══ -->
+<!-- #livePlayer + #liveChatAside sẽ được JS teleport ra slot của partial desktop ở trên -->
+<!-- Article cũ giờ chỉ là 1 cột (chat đã teleport ra ngoài) -->
+<article class="grid grid-cols-1 gap-4 mt-4" data-old-article>
   <div>
     <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
       <% var _hasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey); %>

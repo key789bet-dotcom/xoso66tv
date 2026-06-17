@@ -1,0 +1,550 @@
+<%
+// ════════════════════════════════════════════════════════════════════
+// 🖥 PARTIAL: PHÒNG LIVE BÓNG ĐÁ - LAYOUT DESKTOP (style xoilac/8xbet)
+// Hiện ≥ 768px (md). Mobile dùng partial tw-live-mobile-room.ejs.
+// Required vars: match, partner, liveBlvs?, blvStreamKey?, hasObs?,
+//                liveOdds?, matchInsights?, others?, leagueBgs?
+// ════════════════════════════════════════════════════════════════════
+
+// Compute biến local
+var _dHasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey);
+var _dHasObs       = (typeof hasObs !== 'undefined' && hasObs);
+var _dHasOdds      = (typeof liveOdds !== 'undefined' && liveOdds && (liveOdds.ah || liveOdds.ou || liveOdds.x12));
+var _dOuLine       = (_dHasOdds && liveOdds.ou && typeof liveOdds.ou.line === 'number') ? liveOdds.ou.line : 2.5;
+var _dAhLine       = (_dHasOdds && liveOdds.ah && typeof liveOdds.ah.line === 'number') ? liveOdds.ah.line : 0.5;
+var _dOuTai        = (_dHasOdds && liveOdds.ou && typeof liveOdds.ou.taiOdds === 'number') ? liveOdds.ou.taiOdds : null;
+var _dOuXiu        = (_dHasOdds && liveOdds.ou && typeof liveOdds.ou.xiuOdds === 'number') ? liveOdds.ou.xiuOdds : null;
+var _dAhHome       = (_dHasOdds && liveOdds.ah && typeof liveOdds.ah.homeOdds === 'number') ? liveOdds.ah.homeOdds : null;
+var _dAhAway       = (_dHasOdds && liveOdds.ah && typeof liveOdds.ah.awayOdds === 'number') ? liveOdds.ah.awayOdds : null;
+var _dX12Home      = (_dHasOdds && liveOdds.x12 && typeof liveOdds.x12.homeOdds === 'number') ? liveOdds.x12.homeOdds : null;
+var _dX12Draw      = (_dHasOdds && liveOdds.x12 && typeof liveOdds.x12.drawOdds === 'number') ? liveOdds.x12.drawOdds : null;
+var _dX12Away      = (_dHasOdds && liveOdds.x12 && typeof liveOdds.x12.awayOdds === 'number') ? liveOdds.x12.awayOdds : null;
+var _dHomeShort    = (match.home||'').slice(0, 3).toUpperCase();
+var _dAwayShort    = (match.away||'').slice(0, 3).toUpperCase();
+var _dInsights     = (typeof matchInsights !== 'undefined' && matchInsights) ? matchInsights : null;
+var _dLiveBlvs     = (typeof liveBlvs !== 'undefined' && Array.isArray(liveBlvs)) ? liveBlvs : [];
+var _dViewers      = (match.viewers || match.viewerCount || (Math.random()*15000|0)+5000);
+
+// Stats trận đấu - lấy từ matchInsights nếu có, không có thì hide
+var _dStats = (_dInsights && _dInsights.stats) ? _dInsights.stats : null;
+var _dPossession = _dStats ? (_dStats.possession || null) : null;
+var _dAttacks    = _dStats ? (_dStats.attacks    || null) : null;
+var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
+%>
+
+<!-- ════════ DESKTOP LIVE ROOM ════════ -->
+<div class="dlr-wrap">
+
+  <!-- ═══ 1. TOP HEADER BAR: score widgets | teams | navigation ═══ -->
+  <div class="dlr-top-bar">
+    <div class="dlr-mini-scores">
+      <% if (_dLiveBlvs.length > 0) { _dLiveBlvs.slice(0,2).forEach(function(b){ %>
+        <div class="dlr-chip-blv">
+          <% if (b.avatar) { %><img src="<%= b.avatar %>" alt=""><% } else { %><span class="dlr-blv-emoji">🎙</span><% } %>
+          <span><%= (b.name||'').slice(0,8) %></span>
+          <% if (b.isLive) { %><span class="dlr-live-dot"></span><% } %>
+        </div>
+      <% }); } else { %>
+        <span class="dlr-mini-label">XOSO66 TV · LIVE</span>
+      <% } %>
+    </div>
+
+    <div class="dlr-teams-center">
+      <div class="dlr-team-info dlr-team-home">
+        <span class="dlr-team-name"><%= match.home %></span>
+        <% if (match.homeBadge) { %>
+          <img src="<%= match.homeBadge %>" alt="<%= match.home %>" class="dlr-team-logo" onerror="this.style.display='none'">
+        <% } else { %>
+          <span class="dlr-team-logo-fb" style="background:#dc2626"><%= _dHomeShort.slice(0,2) %></span>
+        <% } %>
+      </div>
+      <div class="dlr-score-box">
+        <div class="dlr-score-status">
+          <% if (match.status === 'finished') { %>HẾT TRẬN
+          <% } else if (match.status === 'live') { %>ĐANG ĐÁ
+          <% } else { %><%= match.time || '--:--' %><% } %>
+        </div>
+        <div class="dlr-score-nums">
+          <%= match.score ? match.score[0] : '-' %> : <%= match.score ? match.score[1] : '-' %>
+        </div>
+      </div>
+      <div class="dlr-team-info dlr-team-away">
+        <% if (match.awayBadge) { %>
+          <img src="<%= match.awayBadge %>" alt="<%= match.away %>" class="dlr-team-logo" onerror="this.style.display='none'">
+        <% } else { %>
+          <span class="dlr-team-logo-fb" style="background:#3b82f6"><%= _dAwayShort.slice(0,2) %></span>
+        <% } %>
+        <span class="dlr-team-name"><%= match.away %></span>
+      </div>
+    </div>
+
+    <div class="dlr-nav-right">
+      <span class="dlr-nav-label"><%= match.league %></span>
+    </div>
+  </div>
+
+  <!-- ═══ 2. ODDS ROW: 4 cột (1X2 / AH / OU / Phạt góc) ═══ -->
+  <% if (_dHasOdds) { %>
+  <div class="dlr-odds-row">
+    <div class="dlr-odds-head">
+      <div class="dlr-odds-bookmaker-label">Nhà cái</div>
+      <div class="dlr-odds-col-label">CHÂU ÂU (1X2)</div>
+      <div class="dlr-odds-col-label">CHÂU Á (Chấp)</div>
+      <div class="dlr-odds-col-label">TÀI/XỈU</div>
+      <div class="dlr-odds-col-label">PHẠT GÓC</div>
+    </div>
+    <div class="dlr-odds-body">
+      <div class="dlr-odds-bookmaker">XOSO66</div>
+      <div class="dlr-odds-cells">
+        <span class="dlr-odd-cell"><%= _dX12Home ? _dX12Home.toFixed(2) : '—' %></span>
+        <span class="dlr-odd-cell"><%= _dX12Draw ? _dX12Draw.toFixed(2) : '—' %></span>
+        <span class="dlr-odd-cell"><%= _dX12Away ? _dX12Away.toFixed(2) : '—' %></span>
+      </div>
+      <div class="dlr-odds-cells">
+        <span class="dlr-odd-cell"><%= _dAhHome ? _dAhHome.toFixed(2) : '—' %></span>
+        <span class="dlr-odd-cell dlr-odd-line"><%= _dAhLine %></span>
+        <span class="dlr-odd-cell"><%= _dAhAway ? _dAhAway.toFixed(2) : '—' %></span>
+      </div>
+      <div class="dlr-odds-cells">
+        <span class="dlr-odd-cell"><%= _dOuTai ? _dOuTai.toFixed(2) : '—' %></span>
+        <span class="dlr-odd-cell dlr-odd-line"><%= _dOuLine %></span>
+        <span class="dlr-odd-cell"><%= _dOuXiu ? _dOuXiu.toFixed(2) : '—' %></span>
+      </div>
+      <div class="dlr-odds-cells dlr-odds-empty">
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="dlr-odd-cta">Cược ngay</a>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- ═══ 3. NAV TABS (Đội hình / Tỷ lệ / H2H / etc) ═══ -->
+  <div class="dlr-nav-tabs" role="tablist">
+    <button type="button" class="dlr-nav-tab" data-dtab="lineup">⚽ Đội hình</button>
+    <button type="button" class="dlr-nav-tab active" data-dtab="odds">📊 Tỷ lệ</button>
+    <button type="button" class="dlr-nav-tab" data-dtab="h2h">⚔️ Lịch sử đối đầu</button>
+    <button type="button" class="dlr-nav-tab" data-dtab="form">📈 Phong độ</button>
+    <button type="button" class="dlr-nav-tab" data-dtab="livescore">📡 Tỷ số trực tuyến</button>
+    <button type="button" class="dlr-nav-tab" data-dtab="bxh">🏆 BXH</button>
+    <button type="button" class="dlr-nav-tab" data-dtab="info">📋 Thông tin</button>
+  </div>
+
+  <!-- ═══ 4. BANNER CTA PARTNER (đồng hành) ═══ -->
+  <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="dlr-banner-cta">
+    <span class="dlr-banner-brand">XOSO66</span>
+    <span class="dlr-banner-icons">⚽ ⚽ ⚽</span>
+    <span class="dlr-banner-text">Đồng hành chính thức · Hoàn 100% vé cược đầu tiên</span>
+    <span class="dlr-banner-btn">CƯỢC NGAY →</span>
+  </a>
+
+  <!-- ═══ 5. MAIN GRID 2/3 + 1/3: PLAYER + CHAT ═══ -->
+  <div class="dlr-main-grid">
+
+    <!-- ── LEFT COLUMN: PLAYER ── -->
+    <div class="dlr-player-col">
+      <!-- Tabs row (Trực tiếp / Mô phỏng / Chia sẻ) -->
+      <div class="dlr-player-tabs">
+        <button type="button" class="dlr-pt active" data-ptab="live">▶ TRỰC TIẾP</button>
+        <button type="button" class="dlr-pt" data-ptab="sim">🏟 MÔ PHỎNG</button>
+        <button type="button" id="dlrShareBtn" class="dlr-pt dlr-pt-share">🔗 CHIA SẺ</button>
+      </div>
+
+      <!-- Status strip -->
+      <div class="dlr-status-strip">
+        <span>Phát sóng trực tiếp <b><%= match.home %> vs <%= match.away %></b> lúc <b><%= match.time %></b> ngày <b><%= match.date %></b></span>
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="dlr-status-cta">⭐ Đặt cược XOSO66</a>
+      </div>
+
+      <!-- PLAYER SLOT: JS sẽ TELEPORT #livePlayer (từ render trong tw-live.ejs) vào đây -->
+      <div id="dlrPlayerSlot" class="dlr-player-slot">
+        <!-- Overlay info top-left -->
+        <div class="dlr-ov-score">
+          <span class="dlr-ov-time"><%= match.time || '--:--' %></span>
+          <% if (match.homeBadge) { %><img src="<%= match.homeBadge %>" alt=""><% } %>
+          <span><%= match.score ? match.score[0] : '0' %></span>
+          <span class="dlr-ov-sep">-</span>
+          <span><%= match.score ? match.score[1] : '0' %></span>
+          <% if (match.awayBadge) { %><img src="<%= match.awayBadge %>" alt=""><% } %>
+        </div>
+        <div class="dlr-ov-brand">XOSO66.TV</div>
+        <% if (_dHasBlvStream || _dHasObs) { %>
+        <div class="dlr-ov-live"><span></span>LIVE</div>
+        <% } %>
+        <div class="dlr-ov-viewers">👁 <%= _dViewers.toLocaleString('vi-VN') %></div>
+      </div>
+
+      <!-- Banner WC mini -->
+      <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="dlr-wc-banner">
+        <span class="dlr-wc-brand">XOSO66</span>
+        <span class="dlr-wc-icons">⚽⚽⚽</span>
+        <span class="dlr-wc-text">WORLD CUP 2026 · THAM GIA VÀO CUỘC VUI</span>
+        <span class="dlr-wc-btn">CƯỢC NGAY</span>
+      </a>
+
+      <!-- Quality bar: chỉ 4 quality thực (MAX/HD/SD/Mobile) + CHIA SẺ -->
+      <div class="dlr-quality-bar" id="dlrQualityBar">
+        <button type="button" class="dlr-qbtn active" data-quality="max">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          MAX (1080p)
+        </button>
+        <button type="button" class="dlr-qbtn" data-quality="720">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+          HD MAX (720p)
+        </button>
+        <button type="button" class="dlr-qbtn" data-quality="480">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+          SD (480p)
+        </button>
+        <button type="button" class="dlr-qbtn" data-quality="mobile">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+          Mobile (360p)
+        </button>
+        <button type="button" id="dlrQualityShareBtn" class="dlr-qbtn dlr-qbtn-share">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          CHIA SẺ
+        </button>
+      </div>
+    </div>
+
+    <!-- ── RIGHT COLUMN: CHAT SLOT (JS teleport #liveChatAside vào) ── -->
+    <div id="dlrChatSlot" class="dlr-chat-slot"></div>
+
+  </div>
+
+  <!-- ═══ 6. BANNER PARTNER LẦN 2 ═══ -->
+  <a href="<%= partner.register %>" target="_blank" rel="noopener" class="dlr-banner-cta dlr-banner-cta-2">
+    <span class="dlr-banner-brand">XOSO66</span>
+    <span class="dlr-banner-text">🎁 Đăng ký nhận 100% tiền thưởng · Cào game cực hấp dẫn</span>
+    <span class="dlr-banner-btn">ĐĂNG KÝ →</span>
+  </a>
+
+  <!-- ═══ 7. GRID 2/3 + 1/3: MÔ PHỎNG TRẬN ĐẤU + TOP CTA ═══ -->
+  <div class="dlr-sim-grid">
+
+    <!-- Mô phỏng trận đấu (stats) -->
+    <div>
+      <div class="dlr-section-h"><span></span><h3>MÔ PHỎNG <span>TRẬN ĐẤU</span></h3></div>
+      <div class="dlr-sim-pitch">
+        <div class="dlr-pitch-bg"></div>
+        <div class="dlr-pitch-line-mid"></div>
+        <div class="dlr-pitch-circle"></div>
+        <div class="dlr-sim-stats">
+          <h4>THÔNG SỐ TRẬN ĐẤU</h4>
+          <% if (_dPossession || _dAttacks || _dDangerAtk) { %>
+            <% if (_dPossession) { %>
+            <div class="dlr-stat-row">
+              <span class="dlr-stat-l"><%= _dPossession.home || '—' %></span>
+              <span class="dlr-stat-label">🏆 KIỂM SOÁT BÓNG %</span>
+              <span class="dlr-stat-r"><%= _dPossession.away || '—' %></span>
+            </div>
+            <% } %>
+            <% if (_dAttacks) { %>
+            <div class="dlr-stat-row">
+              <span class="dlr-stat-l"><%= _dAttacks.home || '—' %></span>
+              <span class="dlr-stat-label">⚔ TẤN CÔNG</span>
+              <span class="dlr-stat-r"><%= _dAttacks.away || '—' %></span>
+            </div>
+            <% } %>
+            <% if (_dDangerAtk) { %>
+            <div class="dlr-stat-row">
+              <span class="dlr-stat-l"><%= _dDangerAtk.home || '—' %></span>
+              <span class="dlr-stat-label">🔥 TẤN CÔNG HIỂM</span>
+              <span class="dlr-stat-r"><%= _dDangerAtk.away || '—' %></span>
+            </div>
+            <% } %>
+          <% } else { %>
+            <p class="dlr-stat-empty">Đang cập nhật thống kê trận đấu...</p>
+          <% } %>
+        </div>
+        <div class="dlr-pitch-wm">XOSO66.TV</div>
+      </div>
+    </div>
+
+    <!-- TOP NHÀ CÁI / CTA bên phải -->
+    <div>
+      <div class="dlr-section-h"><span></span><h3>NHÀ CÁI <span>TOP 1</span></h3></div>
+      <div class="dlr-top-bookie">
+        <div class="dlr-tb-head">
+          <div class="dlr-tb-rank">1</div>
+          <div class="dlr-tb-brand">XOSO66</div>
+        </div>
+        <p class="dlr-tb-desc">Đặt cược thể thao đầu hoàn 100% · BLV tiếng Việt 24/7 · Rút tiền nhanh 5 phút</p>
+        <a href="<%= partner.sportbet %>" target="_blank" rel="noopener" class="dlr-tb-btn">💰 Đặt cược ngay</a>
+      </div>
+
+      <% if (typeof others !== 'undefined' && others && others.length > 0) { %>
+      <div class="dlr-other-matches">
+        <div class="dlr-other-head">⚡ Trận khác LIVE</div>
+        <% others.slice(0, 4).forEach(function(o){ %>
+          <a href="/live/<%= o.slug || o.id %>" class="dlr-other-item">
+            <span class="dlr-other-time"><%= o.time || '' %></span>
+            <span class="dlr-other-match"><%= o.home || '' %> vs <%= o.away || '' %></span>
+            <% if (o.isLive) { %><span class="dlr-other-live">LIVE</span><% } %>
+          </a>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ═══ 8. BÌNH LUẬN (SEO ARTICLE) ═══ -->
+  <div class="dlr-comment-section">
+    <div class="dlr-section-h"><span></span><h3>BÌNH <span>LUẬN</span></h3></div>
+    <article class="dlr-seo">
+      <h4>Đường link xem trực tuyến trận đấu <%= match.home %> vs <%= match.away %> chuẩn nhất</h4>
+      <p>Tường thuật trận đấu <b><%= match.home %> vs <%= match.away %></b> miễn phí hôm nay tại giải <b><%= match.league %></b>. Xem ngay <%= match.home %> vs <%= match.away %> trên <b>XOSO66 TV Official</b> với đường truyền tốc độ cao, không giật lag, không quảng cáo gây phiền. Trang xem trực tiếp này được tối ưu cho mọi thiết bị (điện thoại, máy tính, smart TV).</p>
+
+      <h4>Địa chỉ xem trận đấu <%= match.home %> vs <%= match.away %> ở đâu?</h4>
+      <p>Cập nhật tỷ số, dữ liệu bóng đá, đội hình xuất phát, link trực tiếp sẽ được cập nhật sớm trước 15 phút.
+        <% if (match.score) { %>Tỷ số hiện tại là <b class="dlr-gold"><%= match.score[0] %> - <%= match.score[1] %></b>.<% } %>
+        Cập nhật <a href="/livescore">livescore</a>, <a href="/bxh">bảng xếp hạng</a>, <a href="/ty-le-keo">tỷ lệ kèo</a> ngay tại trang chủ.</p>
+
+      <h4>Cách xem <%= match.home %> vs <%= match.away %> miễn phí</h4>
+      <p>Để xem trực tiếp trận <b><%= match.home %> vs <%= match.away %></b>, bạn chỉ cần truy cập <b>xoso66tv.com</b>, không cần đăng ký tài khoản. Nếu muốn chat cùng BLV và cộng đồng, hãy <a href="/dang-ky">đăng ký tài khoản miễn phí</a> để tham gia bình luận trực tiếp, săn X COIN và đổi quà tặng giá trị.</p>
+
+      <div class="dlr-tags">
+        <span class="dlr-tags-label">Tags:</span>
+        <a href="/lich-phat-song" class="dlr-tag">#<%= (match.home||'').replace(/\s+/g,'') %></a>
+        <a href="/lich-phat-song" class="dlr-tag">#<%= (match.away||'').replace(/\s+/g,'') %></a>
+        <a href="/lich-phat-song" class="dlr-tag">#<%= (match.league||'').replace(/\s+/g,'') %></a>
+        <a href="/livescore" class="dlr-tag">#TrucTiepBongDa</a>
+        <a href="/ty-le-keo" class="dlr-tag">#XOSO66TV</a>
+        <a href="/" class="dlr-tag">#XemBongDaHD</a>
+      </div>
+    </article>
+  </div>
+
+</div>
+
+<!-- ════════ CSS ════════ -->
+<style>
+.dlr-wrap { display:flex; flex-direction:column; gap:8px; }
+
+/* TOP HEADER */
+.dlr-top-bar { background:linear-gradient(180deg,#1a1f29,#13171f); border:1px solid #1a1f29; border-radius:8px; padding:10px 14px; display:grid; grid-template-columns:200px 1fr 200px; gap:14px; align-items:center; }
+.dlr-mini-scores { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.dlr-mini-label { font-size:10px; color:#94a3b8; font-weight:700; }
+.dlr-chip-blv { background:#0a0d12; border:1px solid #1a1f29; padding:4px 8px; border-radius:4px; font-size:10px; color:#fff; font-weight:700; display:flex; align-items:center; gap:5px; }
+.dlr-chip-blv img { width:14px; height:14px; border-radius:50%; }
+.dlr-blv-emoji { width:14px; height:14px; background:linear-gradient(135deg,#ff7a18,#dc2626); border-radius:50%; display:grid; place-items:center; font-size:7px; }
+.dlr-live-dot { width:5px; height:5px; background:#ef4444; border-radius:50%; animation:dlrPulse 1.5s infinite; }
+@keyframes dlrPulse { 50% { opacity:.4 } }
+
+.dlr-teams-center { display:flex; align-items:center; justify-content:center; gap:18px; }
+.dlr-team-info { display:flex; align-items:center; gap:8px; }
+.dlr-team-name { font-size:13px; color:#fff; font-weight:800; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dlr-team-logo { width:32px; height:32px; border-radius:50%; background:#fff; padding:2px; flex-shrink:0; }
+.dlr-team-logo-fb { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:11px; font-weight:900; flex-shrink:0; }
+.dlr-score-box { text-align:center; min-width:90px; }
+.dlr-score-status { font-size:10px; color:#94a3b8; font-weight:700; }
+.dlr-score-nums { font-size:22px; font-weight:900; color:#facc15; line-height:1.2; font-feature-settings:'tnum'; }
+.dlr-nav-right { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.dlr-nav-label { font-size:11px; color:#94a3b8; font-weight:700; }
+
+/* ODDS ROW */
+.dlr-odds-row { background:#13171f; border:1px solid #1a1f29; border-radius:8px; padding:8px 10px; }
+.dlr-odds-head, .dlr-odds-body { display:grid; grid-template-columns:100px 1fr 1fr 1fr 1fr; gap:8px; align-items:center; }
+.dlr-odds-head { padding-bottom:4px; border-bottom:1px solid #1a1f29; margin-bottom:6px; }
+.dlr-odds-bookmaker-label { font-size:10px; color:#94a3b8; }
+.dlr-odds-col-label { font-size:10px; color:#94a3b8; text-align:center; font-weight:700; }
+.dlr-odds-bookmaker { background:linear-gradient(90deg,#ff7a18,#f59e0b); color:#fff; font-weight:900; padding:6px 4px; border-radius:4px; font-size:11px; text-align:center; letter-spacing:1px; }
+.dlr-odds-cells { display:flex; gap:4px; align-items:center; justify-content:center; }
+.dlr-odd-cell { background:#0a0d12; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700; font-feature-settings:'tnum'; min-width:42px; text-align:center; }
+.dlr-odd-line { background:#ff7a18; color:#fff; font-weight:900; }
+.dlr-odd-cta { background:#10b981; color:#fff; padding:4px 10px; border-radius:4px; font-size:10px; font-weight:900; text-decoration:none; }
+.dlr-odds-empty { justify-content:center; }
+
+/* NAV TABS */
+.dlr-nav-tabs { background:#13171f; border:1px solid #1a1f29; border-radius:8px; padding:0 4px; display:flex; gap:0; overflow-x:auto; }
+.dlr-nav-tab { background:transparent; color:#94a3b8; border:none; padding:8px 14px; font-size:11px; font-weight:700; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .15s; }
+.dlr-nav-tab:hover { color:#fff; }
+.dlr-nav-tab.active { color:#ff9a3a; border-bottom-color:#ff7a18; font-weight:900; }
+
+/* BANNER CTA */
+.dlr-banner-cta { background:linear-gradient(90deg,#1a3a5c,#0f2540); padding:8px 14px; border-radius:8px; border:1px solid #ff7a18; display:flex; align-items:center; gap:12px; text-decoration:none; transition:transform .15s; }
+.dlr-banner-cta:hover { transform:translateY(-1px); }
+.dlr-banner-cta-2 { background:linear-gradient(90deg,#7c3aed,#dc2626); border-color:#facc15; }
+.dlr-banner-brand { background:#ff7a18; color:#fff; font-weight:900; padding:4px 10px; border-radius:4px; font-size:11px; letter-spacing:1px; flex-shrink:0; }
+.dlr-banner-cta-2 .dlr-banner-brand { background:#facc15; color:#1a0f08; }
+.dlr-banner-icons { font-size:10px; color:#94a3b8; flex-shrink:0; }
+.dlr-banner-text { flex:1; color:#fff; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
+.dlr-banner-btn { background:#ff7a18; color:#fff; padding:5px 12px; border-radius:4px; font-size:11px; font-weight:900; flex-shrink:0; }
+.dlr-banner-cta-2 .dlr-banner-btn { background:#facc15; color:#1a0f08; }
+
+/* MAIN GRID */
+.dlr-main-grid { display:grid; grid-template-columns:2fr 1fr; gap:10px; }
+
+/* PLAYER TABS */
+.dlr-player-tabs { display:flex; gap:0; border-bottom:1px solid #1a1f29; }
+.dlr-pt { background:transparent; color:#94a3b8; border:none; padding:8px 16px; font-size:11px; font-weight:700; cursor:pointer; }
+.dlr-pt.active { background:#13171f; color:#ff9a3a; border-top:2px solid #ff7a18; font-weight:900; border-radius:6px 6px 0 0; }
+.dlr-pt-share { margin-left:auto; color:#ff9a3a; }
+
+/* STATUS STRIP */
+.dlr-status-strip { background:#13171f; border:1px solid #1a1f29; border-bottom:none; padding:6px 12px; display:flex; align-items:center; gap:10px; font-size:11px; }
+.dlr-status-strip span { color:#fff; }
+.dlr-status-strip b { color:#ff9a3a; }
+.dlr-status-cta { margin-left:auto; color:#facc15; font-weight:700; text-decoration:none; font-size:11px; }
+
+/* PLAYER SLOT */
+.dlr-player-slot { position:relative; aspect-ratio:16/9; background:#000; border:1px solid #1a1f29; overflow:hidden; }
+.dlr-ov-score { position:absolute; top:10px; left:10px; background:rgba(0,0,0,.75); padding:5px 10px; border-radius:4px; display:flex; align-items:center; gap:6px; color:#fff; font-size:12px; font-weight:700; pointer-events:none; z-index:20; }
+.dlr-ov-time { color:#facc15; font-feature-settings:'tnum'; }
+.dlr-ov-score img { width:18px; height:18px; border-radius:50%; background:#fff; padding:1px; }
+.dlr-ov-sep { color:#facc15; }
+.dlr-ov-brand { position:absolute; top:10px; right:10px; background:#dc2626; color:#fff; padding:4px 10px; border-radius:4px; font-size:12px; font-weight:900; letter-spacing:1px; pointer-events:none; z-index:10; }
+.dlr-ov-live { position:absolute; bottom:50px; left:10px; background:#ff7a18; color:#fff; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:900; display:flex; align-items:center; gap:5px; pointer-events:none; z-index:10; }
+.dlr-ov-live span { width:6px; height:6px; background:#fff; border-radius:50%; animation:dlrPulse 1.5s infinite; }
+.dlr-ov-viewers { position:absolute; bottom:50px; right:10px; background:rgba(0,0,0,.65); color:#fff; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:700; font-feature-settings:'tnum'; pointer-events:none; z-index:10; }
+
+/* WC BANNER */
+.dlr-wc-banner { background:linear-gradient(90deg,#0f2540,#1a3a5c); padding:6px 12px; display:flex; align-items:center; gap:8px; border:1px solid #1a1f29; border-top:none; text-decoration:none; }
+.dlr-wc-brand { background:#ff7a18; color:#fff; padding:3px 8px; border-radius:3px; font-size:10px; font-weight:900; }
+.dlr-wc-icons { font-size:11px; }
+.dlr-wc-text { flex:1; color:#fff; font-size:11px; font-weight:700; }
+.dlr-wc-btn { background:#ff7a18; color:#fff; padding:3px 10px; border-radius:3px; font-size:10px; font-weight:900; }
+
+/* QUALITY BAR */
+.dlr-quality-bar { background:#0a0d12; border:1px solid #1a1f29; border-top:none; padding:6px; display:flex; gap:4px; flex-wrap:wrap; border-radius:0 0 8px 8px; }
+.dlr-qbtn { background:#13171f; color:#cbd5e1; border:1px solid #1a1f29; padding:6px 12px; border-radius:5px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all .15s; }
+.dlr-qbtn:hover { color:#fff; border-color:#ff7a18; }
+.dlr-qbtn.active { background:#ff7a18; color:#fff; border-color:#ff7a18; font-weight:900; box-shadow:0 2px 6px rgba(255,122,24,.3); }
+.dlr-qbtn-share { margin-left:auto; color:#ff9a3a; border-color:#ff7a18; }
+
+/* CHAT SLOT (chat aside JS teleport vào) */
+.dlr-chat-slot { min-height:480px; }
+.dlr-chat-slot > aside { width:100%; height:100% !important; max-height:none !important; }
+
+/* SIM GRID 2fr/1fr */
+.dlr-sim-grid { display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-top:6px; }
+.dlr-section-h { display:flex; align-items:center; gap:8px; padding:8px 0; }
+.dlr-section-h span { width:4px; height:18px; background:#ff7a18; border-radius:2px; }
+.dlr-section-h h3 { color:#fff; font-size:15px; font-weight:900; margin:0; }
+.dlr-section-h h3 span { width:auto; height:auto; background:transparent; color:#ff9a3a; }
+
+/* SIM PITCH */
+.dlr-sim-pitch { background:linear-gradient(180deg,#0f3a1f,#0a2515); border:1px solid #1a1f29; border-radius:8px; padding:14px; min-height:240px; position:relative; overflow:hidden; }
+.dlr-pitch-bg { position:absolute; inset:10px; border:2px solid rgba(255,255,255,.18); border-radius:4px; pointer-events:none; }
+.dlr-pitch-line-mid { position:absolute; top:50%; left:10px; right:10px; height:1px; background:rgba(255,255,255,.18); pointer-events:none; }
+.dlr-pitch-circle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80px; height:80px; border:2px solid rgba(255,255,255,.18); border-radius:50%; pointer-events:none; }
+.dlr-sim-stats { position:relative; z-index:2; }
+.dlr-sim-stats h4 { color:#fff; font-size:13px; font-weight:900; text-align:center; margin:0 0 12px; }
+.dlr-stat-row { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; max-width:520px; margin:0 auto 8px; }
+.dlr-stat-l { text-align:right; color:#fff; font-size:22px; font-weight:900; }
+.dlr-stat-r { color:#fff; font-size:22px; font-weight:900; }
+.dlr-stat-label { background:rgba(19,23,31,.85); color:#ff9a3a; padding:5px 14px; border-radius:6px; font-size:10px; font-weight:900; white-space:nowrap; }
+.dlr-stat-empty { text-align:center; color:#94a3b8; font-size:12px; padding:24px 0; }
+.dlr-pitch-wm { position:absolute; bottom:10px; right:14px; color:rgba(255,255,255,.18); font-size:16px; font-weight:900; letter-spacing:2px; pointer-events:none; }
+
+/* TOP BOOKIE */
+.dlr-top-bookie { background:#0a0d12; border:1px solid #1a1f29; border-radius:8px; padding:14px; }
+.dlr-tb-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.dlr-tb-rank { width:28px; height:28px; background:#facc15; color:#1a0f08; border-radius:50%; display:grid; place-items:center; font-weight:900; font-size:13px; }
+.dlr-tb-brand { background:linear-gradient(90deg,#ff7a18,#f59e0b); color:#fff; padding:6px 16px; border-radius:6px; font-size:14px; font-weight:900; letter-spacing:1px; }
+.dlr-tb-desc { color:#94a3b8; font-size:11px; line-height:1.5; margin:0 0 10px; }
+.dlr-tb-btn { display:block; background:#10b981; color:#fff; padding:8px 0; border-radius:6px; text-align:center; font-size:12px; font-weight:900; text-decoration:none; }
+
+/* OTHER MATCHES */
+.dlr-other-matches { background:#0a0d12; border:1px solid #1a1f29; border-radius:8px; padding:10px; margin-top:6px; }
+.dlr-other-head { color:#ff9a3a; font-size:11px; font-weight:900; margin-bottom:6px; }
+.dlr-other-item { display:flex; align-items:center; gap:6px; padding:6px 4px; border-bottom:1px solid rgba(255,255,255,.04); color:#fff; font-size:11px; text-decoration:none; }
+.dlr-other-item:hover { background:rgba(255,122,24,.05); }
+.dlr-other-time { color:#ff9a3a; font-weight:700; font-feature-settings:'tnum'; }
+.dlr-other-match { flex:1; color:#cbd5e1; }
+.dlr-other-live { background:#ef4444; color:#fff; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:900; }
+
+/* COMMENT/SEO */
+.dlr-comment-section { margin-top:6px; }
+.dlr-seo { background:#0a0d12; border:1px solid #1a1f29; border-radius:8px; padding:16px; }
+.dlr-seo h4 { color:#fff; font-size:13px; font-weight:900; margin:0 0 8px; }
+.dlr-seo p { color:#94a3b8; font-size:12px; line-height:1.7; margin:0 0 12px; }
+.dlr-seo b { color:#fff; }
+.dlr-seo a { color:#ff9a3a; font-weight:700; text-decoration:none; }
+.dlr-seo .dlr-gold { color:#facc15; }
+.dlr-tags { display:flex; flex-wrap:wrap; gap:5px; padding-top:10px; border-top:1px solid #1a1f29; }
+.dlr-tags-label { font-size:10px; color:#94a3b8; }
+.dlr-tag { font-size:10px; background:#13171f; color:#ff9a3a; padding:2px 8px; border-radius:3px; text-decoration:none; }
+.dlr-tag:hover { background:rgba(255,122,24,.2); }
+
+/* Responsive fallback dưới 1024 */
+@media (max-width: 1023px) {
+  .dlr-top-bar { grid-template-columns:1fr 2fr 1fr; gap:8px; padding:8px; }
+  .dlr-team-name { font-size:11px; max-width:80px; }
+  .dlr-odds-head, .dlr-odds-body { grid-template-columns:70px 1fr 1fr 1fr 1fr; font-size:9px; }
+  .dlr-main-grid { grid-template-columns:1.6fr 1fr; gap:6px; }
+  .dlr-sim-grid { grid-template-columns:1fr; }
+}
+</style>
+
+<!-- ════════ JS: TELEPORT + TABS + QUALITY + SHARE ════════ -->
+<script>
+(function dlrInit(){
+  // ─── 1. TELEPORT #livePlayer → #dlrPlayerSlot, #liveChatAside → #dlrChatSlot ───
+  function dlrTeleport(){
+    var player = document.getElementById('livePlayer');
+    var slot   = document.getElementById('dlrPlayerSlot');
+    var chat   = document.getElementById('liveChatAside');
+    var cslot  = document.getElementById('dlrChatSlot');
+    if (player && slot && player.parentNode !== slot) {
+      // Player chứa video element + overlays nội bộ
+      player.classList.remove('aspect-video','rounded-xl','bg-black');
+      player.style.position = 'absolute';
+      player.style.inset = '0';
+      player.style.width = '100%';
+      player.style.height = '100%';
+      slot.appendChild(player);
+    }
+    if (chat && cslot && chat.parentNode !== cslot) {
+      cslot.appendChild(chat);
+    }
+  }
+  // Run sau khi DOM ready
+  if (document.readyState !== 'loading') dlrTeleport();
+  else document.addEventListener('DOMContentLoaded', dlrTeleport);
+
+  // ─── 2. NAV TABS (Đội hình / Tỷ lệ / etc) — visual only, scroll vào section tương ứng ───
+  var navTabs = document.querySelectorAll('.dlr-nav-tab');
+  navTabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      navTabs.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+
+  // ─── 3. PLAYER TABS (Trực tiếp / Mô phỏng / Chia sẻ) ───
+  var pTabs = document.querySelectorAll('.dlr-pt:not(.dlr-pt-share)');
+  pTabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      pTabs.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+
+  // ─── 4. QUALITY BAR ───
+  var qBtns = document.querySelectorAll('.dlr-qbtn:not(.dlr-qbtn-share)');
+  qBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      qBtns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var quality = btn.dataset.quality;
+      if (window.x66SwapStreamQuality) window.x66SwapStreamQuality(null, quality);
+    });
+  });
+
+  // ─── 5. SHARE BUTTONS (2 buttons) ───
+  function dlrShare(btn){
+    btn.addEventListener('click', function(){
+      var url = location.href, title = document.title;
+      if (navigator.share) navigator.share({ title:title, url:url }).catch(function(){});
+      else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function(){
+          var orig = btn.innerHTML;
+          btn.innerHTML = '✓ ĐÃ COPY';
+          setTimeout(function(){ btn.innerHTML = orig; }, 1500);
+        });
+      } else prompt('Copy link:', url);
+    });
+  }
+  var sb1 = document.getElementById('dlrShareBtn'); if (sb1) dlrShare(sb1);
+  var sb2 = document.getElementById('dlrQualityShareBtn'); if (sb2) dlrShare(sb2);
+})();
+</script>
