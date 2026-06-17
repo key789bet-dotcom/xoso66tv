@@ -221,39 +221,136 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
     <!-- Mô phỏng trận đấu (stats) -->
     <div>
       <div class="dlr-section-h"><span></span><h3>MÔ PHỎNG <span>TRẬN ĐẤU</span></h3></div>
-      <div class="dlr-sim-pitch">
-        <div class="dlr-pitch-bg"></div>
-        <div class="dlr-pitch-line-mid"></div>
-        <div class="dlr-pitch-circle"></div>
-        <div class="dlr-sim-stats">
-          <h4>THÔNG SỐ TRẬN ĐẤU</h4>
-          <% if (_dPossession || _dAttacks || _dDangerAtk) { %>
-            <% if (_dPossession) { %>
-            <div class="dlr-stat-row">
-              <span class="dlr-stat-l"><%= _dPossession.home || '—' %></span>
-              <span class="dlr-stat-label">🏆 KIỂM SOÁT BÓNG %</span>
-              <span class="dlr-stat-r"><%= _dPossession.away || '—' %></span>
-            </div>
-            <% } %>
-            <% if (_dAttacks) { %>
-            <div class="dlr-stat-row">
-              <span class="dlr-stat-l"><%= _dAttacks.home || '—' %></span>
-              <span class="dlr-stat-label">⚔ TẤN CÔNG</span>
-              <span class="dlr-stat-r"><%= _dAttacks.away || '—' %></span>
-            </div>
-            <% } %>
-            <% if (_dDangerAtk) { %>
-            <div class="dlr-stat-row">
-              <span class="dlr-stat-l"><%= _dDangerAtk.home || '—' %></span>
-              <span class="dlr-stat-label">🔥 TẤN CÔNG HIỂM</span>
-              <span class="dlr-stat-r"><%= _dDangerAtk.away || '—' %></span>
-            </div>
-            <% } %>
-          <% } else { %>
-            <p class="dlr-stat-empty">Đang cập nhật thống kê trận đấu...</p>
+      <!-- ═══ 3D PITCH (copy chính xác coords thesports01 + brand XOSO66TV.COM) ═══ -->
+      <div class="dlr-pitch-3d" style="position:relative; aspect-ratio:800/404; background:linear-gradient(180deg,#0a1628,#1a3a5c); border:1px solid #1a1f29; border-radius:8px; overflow:hidden; perspective:590.85px;">
+
+        <!-- Stadium PNG background (khán đài 3D) -->
+        <img src="https://cdn.thesports01.com/tracker/config/assets/2ac837bf6eceb392bb677fec829d8dc9.png!w800"
+             alt="" loading="lazy"
+             style="position:absolute; inset:0; width:100%; height:50%; object-fit:cover; object-position:top; opacity:0.95; pointer-events:none;"
+             onerror="this.style.display='none'">
+
+        <!-- SVG overlay: field + lines + advert + score + ball -->
+        <svg viewBox="0 0 800 404" width="100%" height="100%" style="position:absolute; inset:0; z-index:2; pointer-events:none;" preserveAspectRatio="xMinYMin meet">
+          <defs>
+            <g id="dlrFlag">
+              <polygon fill="#FF7457" points="1 0 10 5 1 9"/>
+              <rect x="0" y="0" width="1.6" height="18" fill="#fff" rx="0.8"/>
+            </g>
+            <g id="dlrQm" fill-rule="evenodd"><g fill="#fff">
+              <polygon opacity="0.2" points="23.74 20.04 11.57 20.04 0.75 40.73 23.94 40.73"/>
+              <polygon opacity="0.1" points="0.75 40.73 19.54 20.17 28.43 0.80 11.57 20.04"/>
+              <polygon opacity="0.15" points="38.98 0.80 28.43 0.80 19.54 20.17 38.98 20.17"/>
+              <polygon opacity="0.15" points="23.49 20.04 38.98 0.80 28.43 0.80 11.57 20.04"/>
+            </g></g>
+          </defs>
+
+          <!-- 3 advert bars XOSO66TV.COM (cam brand) ngay trên đầu sân -->
+          <g transform="translate(150 138)">
+            <rect width="500" height="14" fill="#ff7a18" rx="1"/>
+            <text x="83" y="10" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2.5">XOSO66TV.COM</text>
+            <text x="250" y="10" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2.5">XOSO66TV.COM</text>
+            <text x="417" y="10" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2.5">XOSO66TV.COM</text>
+          </g>
+
+          <!-- Field xanh -->
+          <path fill="#659F33" d="M 220,158 L 580,158 L 770,394 L 30,394 Z"/>
+
+          <!-- Outer perimeter -->
+          <path stroke="rgba(179,218,174,.5)" stroke-width="2" fill="none" d="M 220,158 L 580,158 L 770,394 L 30,394 Z"/>
+
+          <!-- Center line + circle + dot -->
+          <line x1="400" y1="158" x2="400" y2="394" stroke="rgba(179,218,174,.45)" stroke-width="2"/>
+          <ellipse cx="400" cy="276" rx="58" ry="22" stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none"/>
+          <ellipse cx="400" cy="276" rx="4" ry="2.4" fill="rgba(179,218,174,.6)"/>
+
+          <!-- Penalty box trái + 6-yard + spot + arc -->
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 220,200 L 175,200 L 130,330 L 245,330 Z"/>
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 220,235 L 200,235 L 178,290 L 232,290 Z"/>
+          <ellipse cx="195" cy="276" rx="3" ry="1.5" fill="rgba(179,218,174,.6)"/>
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 195,265 Q 215,276 195,287"/>
+
+          <!-- Penalty box phải + 6-yard + spot + arc -->
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 580,200 L 625,200 L 670,330 L 555,330 Z"/>
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 580,235 L 600,235 L 622,290 L 568,290 Z"/>
+          <ellipse cx="605" cy="276" rx="3" ry="1.5" fill="rgba(179,218,174,.6)"/>
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 605,265 Q 585,276 605,287"/>
+
+          <!-- 2 goals (khung thành) -->
+          <path stroke="rgba(179,218,174,.5)" stroke-width="2.5" fill="none" d="M 220,158 L 220,150 L 175,150 L 175,158"/>
+          <path stroke="rgba(179,218,174,.5)" stroke-width="2.5" fill="none" d="M 580,158 L 580,150 L 625,150 L 625,158"/>
+
+          <!-- 4 cờ phạt góc -->
+          <use xlink:href="#dlrFlag" transform="translate(220 140)"/>
+          <use xlink:href="#dlrFlag" transform="translate(578.4 140) scale(-1,1)"/>
+          <use xlink:href="#dlrFlag" transform="translate(770 376)"/>
+          <use xlink:href="#dlrFlag" transform="translate(28.4 376) scale(-1,1)"/>
+
+          <!-- 2 corner quarter marks (góc gần camera) -->
+          <use xlink:href="#dlrQm" transform="translate(0 354)"/>
+          <use xlink:href="#dlrQm" transform="translate(800 354) scale(-1,1)"/>
+
+          <!-- 4 corner arcs -->
+          <path stroke="rgba(179,218,174,.4)" stroke-width="2" fill="none" d="M 220,162 Q 224,168 230,165 M 580,162 Q 576,168 570,165 M 30,392 Q 36,386 38,392 M 770,392 Q 764,386 762,392"/>
+
+          <!-- Score box giữa sân với foreignObject -->
+          <g transform="translate(331 168)">
+            <rect fill="rgba(21,32,64,1)" x="0" y="0" width="138" height="4"/>
+            <foreignObject width="138" height="50" x="0" y="4">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="background-color:rgba(21,32,64,0.9); color:#fff; padding:5px 12px; text-align:center; font-family:system-ui;">
+                <div style="font-size:8px; color:#94a3b8; margin-bottom:1px; letter-spacing:1.5px;">XOSO66TV.COM</div>
+                <div style="font-size:22px; font-weight:700; letter-spacing:5px; line-height:1; font-feature-settings:'tnum';">
+                  <span style="color:rgb(0,118,255);"><%= match.score ? match.score[0] : '0' %></span>
+                  <span style="color:#fff; margin:0 4px;">-</span>
+                  <span style="color:rgb(10,201,0);"><%= match.score ? match.score[1] : '0' %></span>
+                </div>
+              </div>
+            </foreignObject>
+          </g>
+
+          <!-- Ball với ripple animation -->
+          <g transform="translate(400 290)">
+            <ellipse stroke-width="0" rx="24" ry="14" fill="rgba(255,255,255,.15)">
+              <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" dur="2.6s" repeatCount="indefinite"/>
+              <animate attributeName="rx" values="18;30;30;30" keyTimes="0;.2;.35;1" dur="2.6s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse stroke-width="0" rx="18" ry="10" fill="rgba(255,255,255,.25)">
+              <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" dur="2.6s" begin="0.55s" repeatCount="indefinite"/>
+              <animate attributeName="rx" values="8;22;22;8" keyTimes="0;.2;.35;1" dur="2.6s" begin="0.55s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse stroke="#fff" fill="rgb(0,118,255)" stroke-width="2" rx="8" ry="5"/>
+          </g>
+
+          <!-- Watermark xoso66tv.com góc dưới phải -->
+          <text x="785" y="398" font-size="11" font-weight="700" fill="#fff" opacity="0.6" text-anchor="end" letter-spacing="1">xoso66tv.com</text>
+        </svg>
+
+        <!-- Stats overlay góc dưới trái (KSB / TC / TC hiểm) - nếu API có data -->
+        <% if (_dPossession || _dAttacks || _dDangerAtk) { %>
+        <div style="position:absolute; bottom:8px; left:8px; z-index:3; background:rgba(10,13,18,.85); border:1px solid #1a1f29; border-radius:6px; padding:6px 10px; display:flex; gap:14px; font-size:11px;">
+          <% if (_dPossession) { %>
+          <div style="display:flex; align-items:center; gap:5px;">
+            <span style="color:rgb(0,118,255); font-weight:900;"><%= _dPossession.home %></span>
+            <span style="color:#94a3b8; font-size:9px;">KSB</span>
+            <span style="color:rgb(10,201,0); font-weight:900;"><%= _dPossession.away %></span>
+          </div>
+          <% } %>
+          <% if (_dAttacks) { %>
+          <div style="display:flex; align-items:center; gap:5px;">
+            <span style="color:rgb(0,118,255); font-weight:900;"><%= _dAttacks.home %></span>
+            <span style="color:#94a3b8; font-size:9px;">TC</span>
+            <span style="color:rgb(10,201,0); font-weight:900;"><%= _dAttacks.away %></span>
+          </div>
+          <% } %>
+          <% if (_dDangerAtk) { %>
+          <div style="display:flex; align-items:center; gap:5px;">
+            <span style="color:rgb(0,118,255); font-weight:900;"><%= _dDangerAtk.home %></span>
+            <span style="color:#94a3b8; font-size:9px;">TC HIỂM</span>
+            <span style="color:rgb(10,201,0); font-weight:900;"><%= _dDangerAtk.away %></span>
+          </div>
           <% } %>
         </div>
-        <div class="dlr-pitch-wm">XOSO66.TV</div>
+        <% } %>
       </div>
     </div>
 
