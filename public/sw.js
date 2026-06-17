@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v85-2026-06-17-wire-api-football-lineup-stats-events';
+const VERSION = 'v86-2026-06-17-wire-thethaoviet-lineups-stats-events-h2h-proxy';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

@@ -588,6 +588,134 @@ if (process.env.NODE_APP_INSTANCE === '0' || !process.env.NODE_APP_INSTANCE) {
   }, 6 * 60 * 60 * 1000); // 6 giờ
 }
 
+// ════════════════════════════════════════════════════════════════════
+// ═══ PROXY ROUTES → api.thethaoviet.vip ═══════════════════════════
+// Cho frontend gọi AJAX live update (lineups, statistics, events, h2h, odds)
+// Cache in-memory 30s — không hardcode key, không cần auth upstream
+// ════════════════════════════════════════════════════════════════════
+const _proxyCache = new Map();
+const PROXY_CACHE_TTL = 30 * 1000;
+const PROXY_BASE = 'https://api.thethaoviet.vip/api';
+
+// GET /api/proxy/fixture/:id/detail — chi tiết trận (lineup, stats, events, odds, summary)
+app.get('/api/proxy/fixture/:id/detail', async function (req, res) {
+  try {
+    const fixtureId = req.params.id;
+    if (!fixtureId || !/^\d+$/.test(fixtureId)) return res.status(400).json({ error: 'invalid id' });
+    const cacheKey = 'detail:' + fixtureId;
+    const hit = _proxyCache.get(cacheKey);
+    if (hit && Date.now() - hit.t < PROXY_CACHE_TTL) return res.json(hit.v);
+    const url = PROXY_BASE + '/p/fixtures/' + fixtureId + '/detail';
+    const r = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'xoso66tv/1.0' },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!r.ok) {
+      console.warn('[proxy] detail', r.status, fixtureId);
+      return res.status(r.status).json({ error: 'upstream ' + r.status });
+    }
+    const data = await r.json();
+    _proxyCache.set(cacheKey, { t: Date.now(), v: data });
+    res.json(data);
+  } catch (e) {
+    console.error('[proxy] detail err:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/proxy/fixture/:id/:section — section ∈ {events, statistics, lineups, h2h}
+app.get('/api/proxy/fixture/:id/:section', async function (req, res) {
+  try {
+    const fixtureId = req.params.id;
+    const section = req.params.section;
+    const allowed = ['events', 'statistics', 'lineups', 'h2h'];
+    if (!fixtureId || !/^\d+$/.test(fixtureId)) return res.status(400).json({ error: 'invalid id' });
+    if (!allowed.includes(section)) return res.status(400).json({ error: 'invalid section' });
+    const cacheKey = section + ':' + fixtureId;
+    const hit = _proxyCache.get(cacheKey);
+    if (hit && Date.now() - hit.t < PROXY_CACHE_TTL) return res.json(hit.v);
+    const url = PROXY_BASE + '/fixtures/' + fixtureId + '/' + section;
+    const r = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'xoso66tv/1.0' },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!r.ok) {
+      console.warn('[proxy]', section, r.status, fixtureId);
+      return res.status(r.status).json({ error: 'upstream ' + r.status });
+    }
+    const data = await r.json();
+    _proxyCache.set(cacheKey, { t: Date.now(), v: data });
+    res.json(data);
+  } catch (e) {
+    console.error('[proxy]', req.params.section, 'err:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/proxy/fixtures?date=YYYY-MM-DD
+app.get('/api/proxy/fixtures', async function (req, res) {
+  try {
+    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'invalid date' });
+    const cacheKey = 'fixtures:' + date;
+    const hit = _proxyCache.get(cacheKey);
+    if (hit && Date.now() - hit.t < PROXY_CACHE_TTL) return res.json(hit.v);
+    const url = PROXY_BASE + '/fixtures?date=' + date;
+    const r = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'xoso66tv/1.0' },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!r.ok) {
+      console.warn('[proxy] fixtures', r.status, date);
+      return res.status(r.status).json({ error: 'upstream ' + r.status });
+    }
+    const data = await r.json();
+    _proxyCache.set(cacheKey, { t: Date.now(), v: data });
+    res.json(data);
+  } catch (e) {
+    console.error('[proxy] fixtures err:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/proxy/odds/:type — type ∈ {prematch, live}
+app.get('/api/proxy/odds/:type', async function (req, res) {
+  try {
+    const type = req.params.type;
+    if (!['prematch', 'live'].includes(type)) return res.status(400).json({ error: 'invalid type' });
+    const fixtureId = req.query.fixture;
+    const bet = req.query.bet || '4';
+    if (type === 'prematch' && !fixtureId) return res.status(400).json({ error: 'missing fixture' });
+    const qs = type === 'prematch' ? '?fixture=' + fixtureId + '&bet=' + bet : '?bet=' + bet;
+    const cacheKey = 'odds:' + type + ':' + (fixtureId || 'all') + ':' + bet;
+    const hit = _proxyCache.get(cacheKey);
+    if (hit && Date.now() - hit.t < PROXY_CACHE_TTL) return res.json(hit.v);
+    const url = PROXY_BASE + '/odds/' + type + qs;
+    const r = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'xoso66tv/1.0' },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!r.ok) {
+      console.warn('[proxy] odds', r.status, type, fixtureId);
+      return res.status(r.status).json({ error: 'upstream ' + r.status });
+    }
+    const data = await r.json();
+    _proxyCache.set(cacheKey, { t: Date.now(), v: data });
+    res.json(data);
+  } catch (e) {
+    console.error('[proxy] odds err:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Cleanup proxy cache mỗi 5 phút (xoá entry cũ > 2 phút)
+setInterval(function () {
+  const now = Date.now();
+  for (const [k, v] of _proxyCache) {
+    if (now - v.t > 2 * 60 * 1000) _proxyCache.delete(k);
+  }
+}, 5 * 60 * 1000);
+
 // ═══ HEALTH CHECK — monitor SQLite + Redis + Backup ═══
 app.get('/api/health', async function (req, res) {
   const redis = require('./lib/redis');
@@ -834,7 +962,7 @@ app.get('/live/:id', async function (req, res, next) {
           try {
             const _insights = require('./lib/match-insights');
             matchInsights = await Promise.race([
-              _insights.getInsights(match.homeId, match.awayId, liveOdds),
+              _insights.getInsights(match.homeId, match.awayId, liveOdds, match.id),
               new Promise(r => setTimeout(() => r(null), 4000))
             ]);
           } catch(e) { console.warn('[INSIGHTS] fail:', e.message); }
