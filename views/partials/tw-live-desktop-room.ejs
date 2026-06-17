@@ -250,15 +250,20 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
               <rect width="63.2" height="12" fill="#ff7a18" rx="0.5"/>
               <text x="31.6" y="8.5" font-size="6" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.5">XOSO66TV.COM</text>
             </g>
-            <!-- Ball SVG inline (thay /public/img/ball.svg) -->
+            <!-- Ball SVG inline (quả bóng đá thật: trắng + 6 pentagons đen) -->
             <g id="dball-svg">
-              <circle cx="0" cy="0" r="9" fill="#fff" stroke="#000" stroke-width="0.5"/>
-              <polygon points="0,-5 4,-2 2,3 -2,3 -4,-2" fill="#000"/>
-              <line x1="0" y1="-5" x2="0" y2="-9" stroke="#000" stroke-width="0.4"/>
-              <line x1="4" y1="-2" x2="8" y2="-4" stroke="#000" stroke-width="0.4"/>
-              <line x1="-4" y1="-2" x2="-8" y2="-4" stroke="#000" stroke-width="0.4"/>
-              <line x1="2" y1="3" x2="5" y2="7" stroke="#000" stroke-width="0.4"/>
-              <line x1="-2" y1="3" x2="-5" y2="7" stroke="#000" stroke-width="0.4"/>
+              <circle cx="0" cy="0" r="11" fill="#fff" stroke="#222" stroke-width="0.5"/>
+              <polygon points="0,-4.5 4.3,-1.4 2.6,3.6 -2.6,3.6 -4.3,-1.4" fill="#000"/>
+              <polygon points="0,-10.5 3.2,-7.8 0,-4.5 -3.2,-7.8" fill="#000"/>
+              <polygon points="4.3,-1.4 9.5,-2.5 10.5,1.5 6.5,4" fill="#000"/>
+              <polygon points="-4.3,-1.4 -9.5,-2.5 -10.5,1.5 -6.5,4" fill="#000"/>
+              <polygon points="2.6,3.6 6.5,4 5.5,9 1,8.5" fill="#000"/>
+              <polygon points="-2.6,3.6 -6.5,4 -5.5,9 -1,8.5" fill="#000"/>
+              <line x1="0" y1="-4.5" x2="0" y2="-10.5" stroke="#000" stroke-width="0.4"/>
+              <line x1="4.3" y1="-1.4" x2="9.5" y2="-2.5" stroke="#000" stroke-width="0.4"/>
+              <line x1="-4.3" y1="-1.4" x2="-9.5" y2="-2.5" stroke="#000" stroke-width="0.4"/>
+              <line x1="2.6" y1="3.6" x2="6.5" y2="4" stroke="#000" stroke-width="0.4"/>
+              <line x1="-2.6" y1="3.6" x2="-6.5" y2="4" stroke="#000" stroke-width="0.4"/>
             </g>
           </defs>
         </svg>
@@ -335,17 +340,12 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
                     </g>
                   </g>
                   <g>
-                    <ellipse stroke-width="0" rx="24" ry="14" fill="rgba(255,255,255,.15)" opacity="0">
+                    <!-- Shadow ripple dưới bóng (2 ellipse mờ pulse) -->
+                    <ellipse stroke-width="0" cy="10" rx="14" ry="3" fill="rgba(0,0,0,.4)"/>
+                    <ellipse stroke-width="0" rx="22" ry="12" fill="rgba(255,255,255,.12)" opacity="0">
                       <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
-                      <animate attributeName="rx" values="18;24;24;24" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
-                      <animate attributeName="ry" values="10;14;14;14" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
+                      <animate attributeName="rx" values="14;22;22;22" keyTimes="0;.2;.35;1" calcMode="linear" begin=".66s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
                     </ellipse>
-                    <ellipse stroke-width="0" rx="18" ry="10" fill="rgba(255,255,255,.24)" opacity="0">
-                      <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.2;.35;1" calcMode="linear" begin=".55s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
-                      <animate attributeName="rx" values="8;18;18;8" keyTimes="0;.2;.35;1" calcMode="linear" begin=".55s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
-                      <animate attributeName="ry" values="5;10;10;5" keyTimes="0;.2;.35;1" calcMode="linear" begin=".55s" dur="2.6s" repeatCount="indefinite" fill="freeze"/>
-                    </ellipse>
-                    <ellipse stroke="#fff" fill="rgba(0,118,255,1)" stroke-width="2" rx="8" ry="5"/>
                   </g>
                 </g>
               </g>
