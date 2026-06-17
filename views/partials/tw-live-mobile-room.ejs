@@ -570,7 +570,7 @@ var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2
   // Lý do: tw-live-video-player.ejs render TRONG desktop layout (hidden lg:block),
   // mobile layout cần CÙNG video element (không thể duplicate FLV.js instance).
   // → MOVE DOM element giữa 2 wrappers theo viewport, KHÔNG restart player.
-  var mediaMobile = window.matchMedia('(max-width: 1023px)');
+  var mediaMobile = window.matchMedia('(max-width: 767px)');
   var __origPlayerParent = null;  // remember để move back lên desktop
   function teleportPlayer(){
     var player = document.getElementById('livePlayer');
@@ -857,7 +857,7 @@ var _mViewers = ((match.viewers || match.viewerCount || (Math.random()*8000|0)+2
     }
   }
   // Chỉ init chat mobile nếu thực sự ở viewport mobile (tránh duplicate khi resize)
-  if (window.matchMedia('(max-width: 1023px)').matches) {
+  if (window.matchMedia('(max-width: 767px)').matches) {
     tryInitMobileChat(10);
   }
 })();

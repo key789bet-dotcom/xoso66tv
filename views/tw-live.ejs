@@ -77,17 +77,17 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 <%- include('partials/tw-breadcrumb') %>
 
 <!-- ════════════════════════════════════════════════════════════ -->
-<!-- 📱 MOBILE LAYOUT (mới - style xoilac/8xbet) — chỉ hiện <lg  -->
+<!-- 📱 MOBILE LAYOUT (mới - style xoilac/8xbet) — chỉ hiện <md (<768px)  -->
 <!-- ════════════════════════════════════════════════════════════ -->
-<section class="lg:hidden">
+<section class="md:hidden">
   <%- include('partials/tw-live-mobile-room') %>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════ -->
-<!-- 🖥 DESKTOP LAYOUT (giữ nguyên cũ) — chỉ hiện ≥lg           -->
+<!-- 🖥 DESKTOP LAYOUT (giữ nguyên cũ) — hiện từ ≥md (≥768px)    -->
 <!-- ════════════════════════════════════════════════════════════ -->
-<div class="hidden lg:block">
-<article class="grid lg:grid-cols-[2fr_1fr] gap-4">
+<div class="hidden md:block">
+<article class="grid md:grid-cols-[2fr_1fr] gap-4">
   <div>
     <div id="livePlayer" class="bg-black aspect-video rounded-xl relative overflow-hidden grid place-items-center">
       <% var _hasBlvStream = (typeof blvStreamKey !== 'undefined' && blvStreamKey); %>
@@ -957,7 +957,7 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
   <aside class="bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden mb-3 lg:mb-0" aria-label="Chat" id="liveChatAside"
          style="height:360px;max-height:55vh;">
     <style>
-      @media (min-width: 1024px) {
+      @media (min-width: 768px) {
         #liveChatAside { height: 640px !important; max-height: none !important; }
       }
     </style>
@@ -1021,11 +1021,11 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
   // Flag để chat-v2 + gift-panel biết phòng có đang live thật không
   window.__x66HasObs = <%= hasObs ? 'true' : 'false' %>;
   // ─── Init chat panel theo viewport hiện tại ───
-  // Desktop ≥1024px → init #chatBody (aside).
-  // Mobile  <1024px → init #mobileChatBody (đã được init trong partial mobile khi load).
+  // Desktop ≥768px → init #chatBody (aside).
+  // Mobile  <768px → init #mobileChatBody (đã được init trong partial mobile khi load).
   // KHÔNG init cả 2 cùng lúc để tránh duplicate polling + tốn bandwidth.
   (function initChatByViewport(){
-    var isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    var isDesktop = window.matchMedia('(min-width: 768px)').matches;
     if (isDesktop && document.getElementById('chatBody')) {
       try { startChat('chatBody', { isLive: window.__x66HasObs }); } catch(e){}
     }
