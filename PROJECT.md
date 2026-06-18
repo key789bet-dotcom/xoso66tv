@@ -132,6 +132,36 @@ okwin-clone/
 | Lazy load `<img>` dưới viewport via JS | Tiết kiệm bandwidth, tăng PageSpeed |
 | Auto-compress upload (sharp 82 quality) | Giảm size 30-70% |
 
+### ⚠️ LESSONS LEARNED — tránh lặp lỗi
+
+**Layout `tw-idol-room.ejs` — Grid 2 cột (player+quality bar) | chat aside:**
+
+- **VẤN ĐỀ HAY GẶP**: Chat aside có nhiều messages → kéo dài height → tràn ra khỏi khung 480px → đè section info dưới.
+- **NGUYÊN NHÂN**: Grid `align-items: start` (hoặc default) khi grid không có `height` fixed → chat aside tự stretch theo content (messages).
+- **FIX ĐÚNG**:
+  ```css
+  @media (min-width: 768px) {
+    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; height: 528px; }
+    .idol-room-chat { height: 100%; max-height: 100%; overflow: hidden; }
+    /* Messages container BÊN TRONG chat phải overflow-y: auto để scroll */
+  }
+  ```
+  - `height: 528px` = player 480 + quality bar ~40 + gap 8
+  - Chat `overflow: hidden` + `max-height: 100%` → bounded theo grid cell
+  - Messages list bên trong CHAT cần `overflow-y: auto` để scroll bên trong panel
+- **KHÔNG fix bằng** `align-items: stretch` đơn thuần (chat vẫn expand theo content nếu grid không fixed height).
+- **KHÔNG dùng** `min-height: 480px` cho section (chat content > 480 → grid expand).
+
+**Quality bar dưới player (giống BLV):**
+
+- Wrap player + quality bar trong `<div class="idol-player-col">` (flex column) để giữ trong 1 grid col.
+- KHÔNG để quality bar làm child trực tiếp của section grid (sẽ chiếm cột chat).
+
+**Khi thay đổi layout idol-room, PHẢI test cả 2 viewport:**
+
+- Mobile <768px (stack 1 col)
+- Desktop ≥768px (2 cols ngang)
+
 ---
 
 ## 7. PENDING TASKS (chưa làm)

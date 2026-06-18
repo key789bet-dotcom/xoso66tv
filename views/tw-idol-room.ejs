@@ -64,21 +64,23 @@ var _obsMode = (idol.streamMethod === 'obs');
 <%- include('partials/tw-idol-mobile', { idol: idol, idolId: idolId, viewers: viewers, follow: follow, tipsToday: tipsToday, allIdols: (typeof allIdols !== 'undefined' ? allIdols : []), ALBUM: ALBUM, VIDEOS: VIDEOS }) %>
 <% } %>
 
-<!-- CSS responsive cho layout idol-room: mobile stack dọc, desktop ngang
-     ⚠️ Áp dụng cho CẢ 2 mode (obs + non-obs) để consistent + responsive đúng
-     - Mobile: stack 1 col, chat 60vh height (bounded scroll bên trong)
-     - Desktop: 2 cols, chat STRETCH theo player col height, KHÔNG tràn ngoài khung -->
+<!-- ⚠️ LESSON LEARNED (xem PROJECT.md section 6): Chat aside hay tràn ngoài khung khi messages dài.
+     FIX ĐÚNG: Grid `height: 528px` FIXED (KHÔNG min-height) + chat `overflow: hidden`
+     - 528px = player 480 + quality bar 40 + gap 8
+     - Mobile <768px: stack 1 col, chat 60vh bounded
+     - Desktop ≥768px: 2 cols, grid fixed 528px → chat cell bounded → KHÔNG expand theo chat content -->
 <style>
-  .idol-room-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: start; }
+  .idol-room-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
   .idol-player-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
   .idol-room-player { width: 100%; aspect-ratio: 16/9; height: auto; }
   .idol-room-chat { height: 60vh; min-height: 380px; overflow: hidden; }
   @media (min-width: 768px) {
-    /* Desktop: grid stretch các cells → chat tự match height của player col */
-    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; align-items: stretch; }
+    /* Desktop: grid FIXED height 528px (player 480 + quality bar 40 + gap 8) */
+    /* → chat cell bounded → KHÔNG tự expand theo messages content */
+    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; height: 528px; align-items: stretch; }
     .idol-room-player { height: 480px; width: auto; aspect-ratio: 16/9; margin-left: auto; max-width: 100%; }
-    /* Chat: 100% height của grid row → bounded theo player col (player + quality bar) */
-    .idol-room-chat { height: 100%; min-height: 0; max-height: 100%; }
+    /* Chat 100% grid cell height = 528px, overflow hidden để messages list scroll bên trong */
+    .idol-room-chat { height: 100%; max-height: 100%; min-height: 0; overflow: hidden; }
   }
 </style>
 
