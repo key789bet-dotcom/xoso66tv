@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v105-2026-06-17-fix-latency-badge-keep-after-hidePlaceholder';
+const VERSION = 'v106-2026-06-18-smart-flv-error-no-reconnect-overlay-on-first-attach';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

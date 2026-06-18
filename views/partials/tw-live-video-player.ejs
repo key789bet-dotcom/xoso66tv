@@ -343,13 +343,32 @@ try {
       showEl('liveVideo'); hidePlaceholder(); showEl('liveUnmute');
     });
 
+    // FLV error: SMART handling tránh false-positive "Đang khôi phục" lúc vừa F5 vào phòng
+    var __errStreak = 0; var __lastErrAt = 0;
     flvPlayer.on(flvjs.Events.ERROR, function(type, detail){
-      console.log('[LIVE] FLV error:', type, detail);
-      // 🔄 BẤT KỲ error nào → coi như stream bị mất → reconnect mode
-      // (FLV.js báo nhiều type: NetworkError, MediaError, OtherError, hoặc qua loader error)
-      hideEl('liveVideo');
-      hideEl('liveLoading');
-      hideEl('liveOffline');  // tắt overlay offline (sẽ chỉ hiện sau khi reconnect hết)
+      console.log('[LIVE] FLV error:', type, detail, 'isPlaying=' + isPlaying);
+      var now = Date.now();
+      // Debounce: nếu error cách nhau >10s → reset streak (recent only)
+      if (now - __lastErrAt > 10000) __errStreak = 0;
+      __errStreak++;
+      __lastErrAt = now;
+
+      // 🟢 CASE 1: User MỚI VÀO TRANG, chưa từng play (isPlaying=false)
+      //    → Đây có thể chỉ là transient error trong lúc FLV.js attach lần đầu (network slow, buffer chưa đủ)
+      //    → KHÔNG show reconnect overlay (đỡ user khó chịu). Silently retry attach sau 2s.
+      //    Chỉ show reconnect overlay sau 3 lần fail liên tiếp.
+      if (!isPlaying && __errStreak < 3) {
+        console.log('[LIVE] Silent retry attach (streak=' + __errStreak + ')');
+        if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
+        hideEl('liveReconnect'); hideEl('liveOffline');
+        showEl('liveLoading');
+        setTimeout(function(){ try { attachStream(); } catch(e){} }, 2000);
+        return;
+      }
+
+      // 🔴 CASE 2: Đã từng play THẬT (isPlaying=true) → stream gián đoạn → show "Đang khôi phục"
+      // 🔴 CASE 3: Mới vào trang nhưng đã fail 3 lần → coi như offline thật
+      hideEl('liveVideo'); hideEl('liveLoading'); hideEl('liveOffline');
       showEl('liveReconnect');
       if (flvPlayer) try{ flvPlayer.destroy(); flvPlayer=null; }catch(e){}
       isPlaying = false;
