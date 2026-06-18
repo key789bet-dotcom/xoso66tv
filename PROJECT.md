@@ -157,6 +157,16 @@ okwin-clone/
 - Wrap player + quality bar trong `<div class="idol-player-col">` (flex column) để giữ trong 1 grid col.
 - KHÔNG để quality bar làm child trực tiếp của section grid (sẽ chiếm cột chat).
 
+**Switch tab Chat ↔ TOP GIF làm phình khung chat (v121):**
+
+- **VẤN ĐỀ**: Bấm TOP GIF (🎁 Quà) → khung chat tự cao theo content gift panel (top tippers + log + CTA + sticky bottom) → vượt khỏi grid 528px.
+- **NGUYÊN NHÂN**: `chatBody` và `giftLog` chỉ có `flex-1` mà KHÔNG có `min-h-0` → mặc định `min-height: auto` (= content size) → panel không co nhỏ hơn content → flex parent buộc phải stretch.
+- **FIX ĐÚNG**:
+  - Cả `chatBody` và `giftLog` thêm `min-h-0` ngoài `flex-1 overflow-y-auto`
+  - Tab nav (đầu), CTA register (giữa), input bar (cuối) thêm `flex-shrink-0` để không bị co khi panel scroll
+  - Giữ `<aside class="idol-room-chat flex flex-col overflow-hidden min-h-0">` đầy đủ
+- **Quy tắc tổng quát flex column scroll**: parent `flex flex-col` + child fixed `flex-shrink-0` + child scroll `flex-1 min-h-0 overflow-y-auto`. Thiếu `min-h-0` là root cause của 90% bug "khung tự phình".
+
 **Khi thay đổi layout idol-room, PHẢI test cả 2 viewport:**
 
 - Mobile <768px (stack 1 col)

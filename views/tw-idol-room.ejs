@@ -776,7 +776,7 @@ var _obsMode = (idol.streamMethod === 'obs');
         // 🎨 Render tab idol chat/gift: ảnh nếu admin upload, fallback emoji+text
         var _iti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};
       %>
-      <div class="flex border-b border-line bg-bg-soft">
+      <div class="flex border-b border-line bg-bg-soft flex-shrink-0">
         <!-- TAB CHAT PHÒNG -->
         <% if (_iti.idol_chat) { %>
           <button class="cp-tab flex-1 flex items-center justify-center bg-bg-card border-b-2 border-pri p-1 h-12" data-tab="chat" onclick="switchChatTab('chat')" aria-label="Chat phòng">
@@ -799,14 +799,14 @@ var _obsMode = (idol.streamMethod === 'obs');
           </button>
         <% } %>
       </div>
-      <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between">
+      <div class="px-3 py-2 bg-bg-soft border-b border-line text-xs text-muted flex items-center justify-between flex-shrink-0">
         <span class="text-emerald-500 flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-live"></span><%= Math.floor(viewers/10).toLocaleString('vi-VN') %> online</span>
         <span id="cpStatLabel">Bình luận: <b class="text-pri-light" id="cpStatNum"><%= (Math.random()*5000|0)+1000 %></b></span>
       </div>
       <!-- TAB CHAT -->
-      <div class="flex-1 overflow-y-auto py-1 scrollbar-thin" id="chatBody" data-panel="chat"></div>
+      <div class="flex-1 min-h-0 overflow-y-auto py-1 scrollbar-thin" id="chatBody" data-panel="chat"></div>
       <!-- TAB QUÀ (initially hidden) -->
-      <div class="hidden flex-1 overflow-y-auto scrollbar-thin bg-bg" id="giftLog" data-panel="gift">
+      <div class="hidden flex-1 min-h-0 overflow-y-auto scrollbar-thin bg-bg" id="giftLog" data-panel="gift">
         <!-- Top tippers compact -->
         <div class="px-3 py-2.5 border-b border-line bg-gradient-to-b from-pri/10 to-transparent">
           <div class="flex items-center justify-between mb-1.5">
@@ -845,11 +845,11 @@ var _obsMode = (idol.streamMethod === 'obs');
         </div>
       </div>
       <% if (_iti.cta_register_xoso66) { %>
-        <a href="<%= partner.register %>" target="_blank" rel="noopener" class="block mx-2 mt-2 mb-1 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+        <a href="<%= partner.register %>" target="_blank" rel="noopener" class="flex-shrink-0 block mx-2 mt-2 mb-1 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
           <img src="<%= _iti.cta_register_xoso66 %>" alt="Đăng ký tài khoản XOSO66" class="w-full h-auto object-cover">
         </a>
       <% } else { %>
-        <a href="<%= partner.register %>" target="_blank" rel="noopener" class="x66-cta-reg group relative mx-2 mt-2 mb-1 px-2 py-2.5 rounded-lg overflow-hidden flex items-center justify-center gap-1.5 text-white text-[11px] font-extrabold text-center cursor-pointer">
+        <a href="<%= partner.register %>" target="_blank" rel="noopener" class="x66-cta-reg flex-shrink-0 group relative mx-2 mt-2 mb-1 px-2 py-2.5 rounded-lg overflow-hidden flex items-center justify-center gap-1.5 text-white text-[11px] font-extrabold text-center cursor-pointer">
           <span class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400"></span>
           <span class="absolute inset-0 x66-cta-shine"></span>
           <span class="relative flex items-center gap-1.5 drop-shadow-md">
@@ -859,7 +859,7 @@ var _obsMode = (idol.streamMethod === 'obs');
           </span>
         </a>
       <% } %>
-      <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft">
+      <div class="flex gap-1.5 p-2.5 border-t border-line bg-bg-soft flex-shrink-0">
         <input id="chatInput" maxlength="200" class="flex-1 bg-bg-deep border border-line text-gray-100 px-3 py-2 rounded-md outline-none text-[13px] focus:border-pri" placeholder="Gõ tin nhắn..." onkeydown="if(event.key==='Enter')sendChat('chatInput','chatBody')">
         <button onclick="sendChat('chatInput','chatBody')" class="bg-gradient-to-br from-pri to-live text-white px-4 rounded-md font-bold text-xs">Gửi</button>
       </div>
