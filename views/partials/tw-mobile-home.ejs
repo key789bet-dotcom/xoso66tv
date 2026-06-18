@@ -441,9 +441,12 @@ _cnt.all = _cards.length;
         var dx = t.clientX - touchX0;
         var dy = t.clientY - touchY0;
         var dt = Date.now() - touchT0;
-        // Ngang hẳn (|dx|>2*|dy|) + đủ xa (>50px) + đủ nhanh (<800ms)
+        // 🆕 Bất kỳ touch nào di chuyển >10px đều CHẶN click (kể cả vuốt nhẹ/xéo
+        // không đủ ngưỡng đổi slide) — tránh vô tình navigate vào phòng khi đang vuốt.
+        // Chỉ TAP thật (gần như không move) mới được navigate.
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) swiped = true;
+        // Swipe đủ ngưỡng → đổi slide
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)*2 && dt < 800) {
-          swiped = true;
           if (dx < 0) goSlide(currentIdx + 1, 'swipe');
           else        goSlide(currentIdx - 1, 'swipe');
         }
