@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v130-2026-06-18-full-site-light-mode-overrides-text-palette-100-400';
+const VERSION = 'v131-safe-cache-wrappers';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
@@ -28,25 +28,47 @@ const PRECACHE = [
   '/manifest.json'
 ];
 
+// Global flag — set khi CacheStorage bị corrupt/quota fail
+// Khi true, mọi cache op trả null thay vì throw → fetch vẫn tiếp tục bình thường
+let _cacheBroken = false;
+
+// ─── Safe wrappers: KHÔNG BAO GIỜ throw ───
+async function safeCacheOpen(name) {
+  if (_cacheBroken) return null;
+  try { return await caches.open(name); }
+  catch (e) { _cacheBroken = true; console.warn('[SW] caches.open failed:', e); return null; }
+}
+async function safeMatch(req) {
+  if (_cacheBroken) return null;
+  try { return await caches.match(req); }
+  catch (e) { _cacheBroken = true; return null; }
+}
+function safePut(cache, req, res) {
+  if (!cache || _cacheBroken) return;
+  try { cache.put(req, res).catch(function(){}); } catch (e) {}
+}
+
 // ─── Install ───
 self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then(function(cache) {
-      return cache.addAll(PRECACHE).catch(function(){});
-    }).then(function() { return self.skipWaiting(); })
+    caches.open(STATIC_CACHE)
+      .then(function(cache) { return cache.addAll(PRECACHE).catch(function(){}); })
+      .catch(function(){})  // cache broken → skip precache, vẫn install OK
+      .then(function() { return self.skipWaiting(); })
   );
 });
 
-// ─── Activate: cleanup old versions ───
+// ─── Activate: cleanup old versions + reset broken flag ───
 self.addEventListener('activate', function(event) {
+  _cacheBroken = false;
   event.waitUntil(
     caches.keys().then(function(keys) {
       return Promise.all(keys.map(function(k) {
         if (k !== STATIC_CACHE && k !== HTML_CACHE && k !== API_CACHE && k.startsWith('x66')) {
-          return caches.delete(k);
+          return caches.delete(k).catch(function(){});
         }
       }));
-    }).then(function() { return self.clients.claim(); })
+    }).catch(function(){}).then(function() { return self.clients.claim(); })
   );
 });
 
@@ -66,42 +88,47 @@ function isApiGet(req, url) {
 }
 
 async function cacheFirst(req) {
-  const cache = await caches.open(STATIC_CACHE);
-  const cached = await cache.match(req);
-  if (cached) return cached;
+  const cache = await safeCacheOpen(STATIC_CACHE);
+  if (cache) {
+    const cached = await cache.match(req).catch(function(){ return null; });
+    if (cached) return cached;
+  }
   try {
     const fresh = await fetch(req);
-    if (fresh.ok) cache.put(req, fresh.clone());
+    if (fresh.ok) safePut(cache, req, fresh.clone());
     return fresh;
-  } catch (e) { return cached || new Response('', { status: 503 }); }
+  } catch (e) { return new Response('', { status: 503 }); }
 }
 
 async function staleWhileRevalidate(req, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(req);
+  const cache = await safeCacheOpen(cacheName);
+  const cached = cache ? await cache.match(req).catch(function(){ return null; }) : null;
   const fetchPromise = fetch(req).then(function(res) {
-    if (res && res.ok && req.method === 'GET') {
-      cache.put(req, res.clone()).catch(function(){});
-    }
+    if (res && res.ok && req.method === 'GET') safePut(cache, req, res.clone());
     return res;
   }).catch(function() { return null; });
-  return cached || fetchPromise || new Response('Offline', { status: 503 });
+  if (cached) return cached;
+  const fresh = await fetchPromise;
+  return fresh || new Response('Offline', { status: 503 });
 }
 
 async function networkFirstNav(req) {
   try {
     const fresh = await fetch(req);
+    // Cache là optimization — KHÔNG để cache fail làm hỏng response chính
     if (fresh.ok) {
-      const cache = await caches.open(HTML_CACHE);
-      cache.put(req, fresh.clone()).catch(function(){});
+      const cache = await safeCacheOpen(HTML_CACHE);
+      safePut(cache, req, fresh.clone());
     }
     return fresh;
   } catch (e) {
-    const cached = await caches.match(req);
+    const cached = await safeMatch(req);
     if (cached) return cached;
-    return caches.match('/') || new Response(
+    const home = await safeMatch(new Request('/'));
+    if (home) return home;
+    return new Response(
       '<h1>📵 Offline</h1><p>Vui lòng kết nối mạng.</p><a href="/">← Thử lại</a>',
-      { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 503 }
     );
   }
 }
