@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v123-2026-06-18-chat-overflow-JS-RUNTIME-force-bypass-cache';
+const VERSION = 'v124-2026-06-18-fix-tab-button-TOP-GIF-phinh-classList-toggle';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

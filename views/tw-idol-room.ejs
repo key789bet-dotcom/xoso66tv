@@ -78,6 +78,9 @@ var _obsMode = (idol.streamMethod === 'obs');
   .idol-room-chat > *:not(#chatBody):not(#giftLog) { flex-shrink: 0 !important; }
   .idol-room-chat #chatBody,
   .idol-room-chat #giftLog { flex: 1 1 0 !important; min-height: 0 !important; overflow-y: auto !important; }
+  /* TAB nav buttons: FIXED kích thước, KHÔNG phình khi click — bug v124 */
+  .idol-room-chat .cp-tab { height: 48px !important; max-height: 48px !important; min-height: 48px !important; overflow: hidden !important; }
+  .idol-room-chat .cp-tab > img { max-height: 100% !important; width: auto !important; max-width: 100% !important; object-fit: contain !important; }
   @media (min-width: 768px) {
     /* Desktop: grid FIXED height 528px (player 480 + quality bar 40 + gap 8) */
     /* → chat cell bounded → KHÔNG tự expand theo messages content */
@@ -1138,11 +1141,16 @@ var _obsMode = (idol.streamMethod === 'obs');
 // ===== TAB CHAT / QUÀ trong khung chat phong idol =====
 window.switchChatTab = function(tab){
   if (window.__forceChatHeight) window.__forceChatHeight();
+  /* CHỈ toggle ACTIVE STATE (border, bg, text color) — KHÔNG ghi đè className
+     để giữ nguyên kích thước button cho cả 2 mode: TEXT và ICON IMAGE */
   document.querySelectorAll('.cp-tab').forEach(function(t){
-    if (t.getAttribute('data-tab') === tab) {
-      t.className = 'cp-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri' + (t.getAttribute('data-tab')==='gift'?' relative':'');
+    var isActive = t.getAttribute('data-tab') === tab;
+    if (isActive) {
+      t.classList.add('bg-bg-card', 'text-pri-light', 'border-pri');
+      t.classList.remove('bg-transparent', 'text-muted', 'border-transparent', 'hover:text-white');
     } else {
-      t.className = 'cp-tab flex-1 py-3 bg-transparent text-muted hover:text-white font-bold text-xs border-b-2 border-transparent' + (t.getAttribute('data-tab')==='gift'?' relative':'');
+      t.classList.add('bg-transparent', 'text-muted', 'border-transparent', 'hover:text-white');
+      t.classList.remove('bg-bg-card', 'text-pri-light', 'border-pri');
     }
   });
   document.querySelectorAll('[data-panel="chat"],[data-panel="gift"]').forEach(function(p){
