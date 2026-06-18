@@ -189,7 +189,7 @@ try {
 
   // Helper: element có giữ lại không (theo id whitelist hoặc class skin-*)
   function _keepEl(el){
-    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay'];
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay','liveLatencyBadgeWrap','livePipBtn'];
     if (keepIds.indexOf(el.id) !== -1) return true;
     // 🎨 SKIN OVERLAY: giữ mọi element class skin-* (player-frame, logo-overlay, ...)
     if (el.className && typeof el.className === 'string' && /\bskin-/.test(el.className)) return true;
