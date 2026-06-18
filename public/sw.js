@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v126-2026-06-18-chat-msg-effects-name-glow-vip-svip-frame';
+const VERSION = 'v128-2026-06-18-chat-text-readable-no-blur-strong-bg';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

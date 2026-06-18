@@ -141,9 +141,10 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   CHAT MESSAGE EFFECTS — gradient name + glow theo rank,
-   slide-in + bubble cho message, frame riêng cho VIP/SVIP.
-   Renderer: chat-v2.js pushMsg() gắn class msg-row + msg-tierN/vip/svip
+   CHAT MESSAGE EFFECTS — v2 READABILITY FIRST
+   - Tên gradient SOLID (không glow blur)
+   - Message: WHITE 100% + text-shadow sharp đen — đọc cực rõ trên mọi nền
+   - Frame VIP/SVIP: bg đậm hơn để text bên trong nổi bật
    ══════════════════════════════════════════════════════════════════ */
 
 /* ---- Base row ---- */
@@ -153,203 +154,167 @@
   border-radius: 10px;
   font-size: 13px;
   line-height: 1.55;
-  color: #e5e7eb;
+  color: #ffffff;
   word-break: break-word;
-  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
-  border: 1px solid rgba(255,255,255,.06);
-  animation: msg-slide-in .32s cubic-bezier(.2,.7,.3,1) both;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  animation: msg-slide-in .28s ease-out both;
   transition: background .18s ease;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
-.msg-row:hover{
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
-}
+.msg-row:hover{ background: rgba(255,255,255,.07); }
 
 @keyframes msg-slide-in{
-  0%   { opacity: 0; transform: translateX(-10px); }
-  60%  { opacity: 1; }
+  0%   { opacity: 0; transform: translateX(-8px); }
   100% { opacity: 1; transform: translateX(0); }
 }
 
-/* ---- Name & text base ---- */
+/* ---- Name & text base — chữ rõ là ưu tiên ---- */
 .msg-name{
   font-weight: 800;
-  margin-right: 5px;
-  letter-spacing: .2px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+  margin-right: 6px;
+  letter-spacing: .1px;
+  /* Stroke đen viền chữ giúp tên đọc rõ trên mọi nền */
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.85),
+    0 0 3px rgba(0,0,0,.7);
 }
 .msg-text{
-  color: #f1f5f9;
-  text-shadow: 0 1px 1px rgba(0,0,0,.55);
+  color: #ffffff;
+  font-weight: 500;
+  /* Sharp dark shadow — KHÔNG blur, chỉ tạo viền tách text khỏi nền */
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.85),
+    0 0 2px rgba(0,0,0,.5);
 }
 
-/* ---- Per-tier name gradient + glow (TĨNH, đọc rõ) ---- */
+/* ---- Per-tier name SOLID color (đậm + bão hòa, viền đen sharp) ---- */
+/* KHÔNG dùng gradient + transparent fill nữa vì blur khó đọc */
 
-/* tier 1 (LV 1-9) — slate */
-.msg-row.msg-tier1 .msg-name{
-  color: #cbd5e1;
-  text-shadow: 0 0 6px rgba(148,163,184,.3), 0 1px 2px rgba(0,0,0,.7);
-}
-
-/* tier 2 (LV 10-19) — amber */
-.msg-row.msg-tier2 .msg-name{
-  background: linear-gradient(135deg, #fde68a, #fbbf24, #f59e0b);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 6px rgba(251,191,36,.5));
-}
-
-/* tier 3 (LV 20-29) — sky/cyan */
-.msg-row.msg-tier3 .msg-name{
-  background: linear-gradient(135deg, #93c5fd, #3b82f6, #06b6d4);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 6px rgba(59,130,246,.55));
-}
-
-/* tier 4 (LV 30-39) — gold */
-.msg-row.msg-tier4 .msg-name{
-  background: linear-gradient(135deg, #fef3c7, #fde047, #f59e0b);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 7px rgba(253,224,71,.6));
-}
-
-/* tier 5 (LV 40-49) — emerald */
-.msg-row.msg-tier5 .msg-name{
-  background: linear-gradient(135deg, #a7f3d0, #34d399, #10b981);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 6px rgba(52,211,153,.55));
-}
-
-/* tier 6 (LV 50-59) — cyan-aqua */
-.msg-row.msg-tier6 .msg-name{
-  background: linear-gradient(135deg, #cffafe, #67e8f9, #06b6d4);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 7px rgba(6,182,212,.6));
-}
-
-/* tier 7 (LV 60-69) — violet */
-.msg-row.msg-tier7 .msg-name{
-  background: linear-gradient(135deg, #ddd6fe, #a855f7, #7c3aed);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 7px rgba(168,85,247,.6));
-}
-
-/* tier 8 (LV 70-79) — pink/rose */
-.msg-row.msg-tier8 .msg-name{
-  background: linear-gradient(135deg, #fbcfe8, #f472b6, #ec4899);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 7px rgba(236,72,153,.6));
-}
-
-/* tier 9 (LV 80-89) — red-orange */
-.msg-row.msg-tier9 .msg-name{
-  background: linear-gradient(135deg, #fed7aa, #fb923c, #ef4444);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 8px rgba(239,68,68,.65));
-}
-
-/* tier 10 (LV 90-99) — multi-warm (tĩnh) */
-.msg-row.msg-tier10 .msg-name{
-  background: linear-gradient(135deg, #fbbf24 0%, #f43f5e 50%, #a855f7 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 9px rgba(244,63,94,.7));
-}
-
-/* tier 11 (LV 100+) — rainbow (tĩnh, không animate để dễ đọc) */
+.msg-row.msg-tier1 .msg-name{ color: #e2e8f0; }
+.msg-row.msg-tier2 .msg-name{ color: #fcd34d; }
+.msg-row.msg-tier3 .msg-name{ color: #60a5fa; }
+.msg-row.msg-tier4 .msg-name{ color: #fde047; }
+.msg-row.msg-tier5 .msg-name{ color: #4ade80; }
+.msg-row.msg-tier6 .msg-name{ color: #22d3ee; }
+.msg-row.msg-tier7 .msg-name{ color: #c084fc; }
+.msg-row.msg-tier8 .msg-name{ color: #f472b6; }
+.msg-row.msg-tier9 .msg-name{ color: #fb923c; }
+.msg-row.msg-tier10 .msg-name{ color: #f472b6; }
 .msg-row.msg-tier11 .msg-name{
-  background: linear-gradient(135deg, #ff006e, #fb5607, #ffbe0b, #06ffa5, #3a86ff, #8338ec);
+  /* Tier max riêng có gradient nhẹ + drop-shadow CỰC NHỎ để vẫn đọc rõ */
+  background: linear-gradient(90deg, #ff006e, #fb5607, #ffbe0b, #06ffa5, #3a86ff, #8338ec);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 10px rgba(131,56,236,.7));
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.9)) drop-shadow(0 0 1px rgba(0,0,0,.6));
 }
+.msg-row.msg-cskh .msg-name{ color: #4ade80; }
 
-/* CSKH — xanh lá */
-.msg-row.msg-cskh .msg-name{
-  background: linear-gradient(135deg, #86efac, #16a34a, #15803d);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 7px rgba(22,163,74,.6));
-}
-
-/* ---- VIP frame: gradient VÀNG ---- */
+/* ---- VIP frame: VÀNG, bg đậm hơn để chữ trắng nổi ---- */
 .msg-row.msg-vip{
   padding: 7px 12px;
   margin: 5px 6px;
   border-radius: 12px;
   background:
-    linear-gradient(180deg, rgba(120,53,15,.05), rgba(120,53,15,.02)),
-    linear-gradient(135deg, rgba(252,211,77,.20), rgba(245,158,11,.10), rgba(252,211,77,.20));
-  border: 1px solid rgba(252,211,77,.55);
+    linear-gradient(135deg, rgba(180,83,9,.35), rgba(120,53,15,.45), rgba(180,83,9,.35));
+  border: 1px solid rgba(252,211,77,.7);
   box-shadow:
-    0 0 18px rgba(245,158,11,.18),
-    inset 0 1px 0 rgba(255,255,255,.06),
-    inset 0 0 0 1px rgba(252,211,77,.12);
+    0 0 0 1px rgba(252,211,77,.15),
+    0 2px 12px rgba(245,158,11,.18);
 }
 .msg-row.msg-vip .msg-name{
-  background: linear-gradient(135deg, #fef9c3, #fde047, #f59e0b, #fbbf24);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 8px rgba(245,158,11,.65));
+  color: #fde047;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.9),
+    0 0 4px rgba(0,0,0,.6);
 }
 .msg-row.msg-vip .msg-text{
-  color: #fff7ed;
-  text-shadow: 0 0 8px rgba(245,158,11,.25), 0 1px 1px rgba(0,0,0,.6);
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 1px 0 rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6);
 }
 
-/* ---- SVIP frame: gradient TÍM ---- */
+/* ---- SVIP frame: TÍM, bg đậm hơn ---- */
 .msg-row.msg-svip{
   padding: 7px 12px;
   margin: 5px 6px;
   border-radius: 12px;
   background:
-    linear-gradient(180deg, rgba(76,29,149,.05), rgba(76,29,149,.02)),
-    linear-gradient(135deg, rgba(192,132,252,.22), rgba(124,58,237,.12), rgba(192,132,252,.22));
-  border: 1px solid rgba(192,132,252,.6);
+    linear-gradient(135deg, rgba(91,33,182,.4), rgba(76,29,149,.5), rgba(91,33,182,.4));
+  border: 1px solid rgba(192,132,252,.75);
   box-shadow:
-    0 0 18px rgba(168,85,247,.22),
-    inset 0 1px 0 rgba(255,255,255,.06),
-    inset 0 0 0 1px rgba(192,132,252,.14);
+    0 0 0 1px rgba(192,132,252,.18),
+    0 2px 12px rgba(168,85,247,.2);
 }
 .msg-row.msg-svip .msg-name{
-  background: linear-gradient(135deg, #f3e8ff, #d8b4fe, #a855f7, #c084fc);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 8px rgba(168,85,247,.7));
+  color: #e9d5ff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.9),
+    0 0 4px rgba(0,0,0,.6);
 }
 .msg-row.msg-svip .msg-text{
-  color: #faf5ff;
-  text-shadow: 0 0 8px rgba(168,85,247,.25), 0 1px 1px rgba(0,0,0,.6);
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 1px 0 rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6);
 }
 
-/* Mobile: thu padding/font tí */
+/* ---- CSKH bg xanh dịu ---- */
+.msg-row.msg-cskh{
+  background:
+    linear-gradient(135deg, rgba(22,101,52,.3), rgba(20,83,45,.4), rgba(22,101,52,.3));
+  border: 1px solid rgba(74,222,128,.5);
+}
+
+/* Mobile */
 @media (max-width: 480px){
-  .msg-row{ padding: 5px 8px; font-size: 12.5px; margin: 2px 4px; }
+  .msg-row{ padding: 6px 9px; font-size: 13px; margin: 3px 4px; }
   .msg-row.msg-vip,
-  .msg-row.msg-svip{ padding: 6px 10px; margin: 4px 4px; }
+  .msg-row.msg-svip,
+  .msg-row.msg-cskh{ padding: 7px 11px; margin: 4px 4px; }
 }
 
-/* Light mode: tăng contrast text + đậm border frame */
+/* ---- Light mode: invert contrast, text đen ---- */
 :root[data-theme="light"] .msg-row{
-  color: #1f2937;
-  background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.01));
-  border-color: rgba(0,0,0,.06);
+  color: #0f172a;
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.08);
 }
+:root[data-theme="light"] .msg-row:hover{ background: rgba(0,0,0,.07); }
+:root[data-theme="light"] .msg-name{ text-shadow: 0 1px 0 rgba(255,255,255,.6); }
 :root[data-theme="light"] .msg-text{
   color: #0f172a;
-  text-shadow: none;
+  text-shadow: 0 1px 0 rgba(255,255,255,.6);
 }
-:root[data-theme="light"] .msg-name{ text-shadow: 0 1px 1px rgba(0,0,0,.12); }
-:root[data-theme="light"] .msg-row.msg-vip{ border-color: rgba(180,83,9,.55); }
-:root[data-theme="light"] .msg-row.msg-svip{ border-color: rgba(124,58,237,.55); }
-:root[data-theme="light"] .msg-row.msg-vip .msg-text,
-:root[data-theme="light"] .msg-row.msg-svip .msg-text{
-  color: #111827; text-shadow: none;
+:root[data-theme="light"] .msg-row.msg-tier1 .msg-name{ color: #475569; }
+:root[data-theme="light"] .msg-row.msg-tier2 .msg-name{ color: #b45309; }
+:root[data-theme="light"] .msg-row.msg-tier3 .msg-name{ color: #1d4ed8; }
+:root[data-theme="light"] .msg-row.msg-tier4 .msg-name{ color: #a16207; }
+:root[data-theme="light"] .msg-row.msg-tier5 .msg-name{ color: #15803d; }
+:root[data-theme="light"] .msg-row.msg-tier6 .msg-name{ color: #0e7490; }
+:root[data-theme="light"] .msg-row.msg-tier7 .msg-name{ color: #7e22ce; }
+:root[data-theme="light"] .msg-row.msg-tier8 .msg-name{ color: #be185d; }
+:root[data-theme="light"] .msg-row.msg-tier9 .msg-name{ color: #c2410c; }
+:root[data-theme="light"] .msg-row.msg-tier10 .msg-name{ color: #be185d; }
+:root[data-theme="light"] .msg-row.msg-cskh .msg-name{ color: #15803d; }
+:root[data-theme="light"] .msg-row.msg-vip{
+  background: linear-gradient(135deg, rgba(254,243,199,.95), rgba(253,230,138,.85), rgba(254,243,199,.95));
+  border-color: rgba(180,83,9,.65);
+  box-shadow: 0 0 0 1px rgba(180,83,9,.15), 0 2px 8px rgba(180,83,9,.12);
 }
+:root[data-theme="light"] .msg-row.msg-vip .msg-name{ color: #78350f; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+:root[data-theme="light"] .msg-row.msg-vip .msg-text{ color: #422006; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+:root[data-theme="light"] .msg-row.msg-svip{
+  background: linear-gradient(135deg, rgba(243,232,255,.95), rgba(216,180,254,.85), rgba(243,232,255,.95));
+  border-color: rgba(124,58,237,.65);
+  box-shadow: 0 0 0 1px rgba(124,58,237,.15), 0 2px 8px rgba(124,58,237,.12);
+}
+:root[data-theme="light"] .msg-row.msg-svip .msg-name{ color: #581c87; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+:root[data-theme="light"] .msg-row.msg-svip .msg-text{ color: #3b0764; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+:root[data-theme="light"] .msg-row.msg-cskh{
+  background: linear-gradient(135deg, rgba(220,252,231,.95), rgba(187,247,208,.85), rgba(220,252,231,.95));
+  border-color: rgba(22,101,52,.6);
+}
+:root[data-theme="light"] .msg-row.msg-cskh .msg-text{ color: #064e3b; }
