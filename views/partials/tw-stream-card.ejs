@@ -65,7 +65,16 @@
     </div>
   </div>
   <div class="px-3 pt-2.5 pb-3 flex flex-col gap-1.5 flex-1">
-    <div class="text-[11px] text-pri-light font-bold uppercase tracking-wider flex items-center gap-1.5"><span><%- sportIcon %></span> <%= m.league %></div>
+    <div class="text-[11px] text-pri-light font-bold uppercase tracking-wider flex items-center gap-1.5">
+      <% if (m.leagueLogo) { %>
+        <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+          <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+        </span>
+      <% } else { %>
+        <span><%- sportIcon %></span>
+      <% } %>
+      <span class="truncate"><%= m.league %></span>
+    </div>
     <div class="text-[13px] font-bold text-white leading-snug line-clamp-2"><%= m.home %> <%= m.score ? m.score[0]+'-'+m.score[1] : 'vs' %> <%= m.away %></div>
     <div class="flex items-center justify-between text-[11px] text-dim mt-0.5">
       <span class="flex items-center gap-1">&#127908; <%= m.blvName || 'Đang chờ BLV' %></span>
