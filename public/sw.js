@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v109-2026-06-18-pip-fs-mobile-only-not-overlap-live-badge';
+const VERSION = 'v110-2026-06-18-idol-quality-bar-bottom-like-blv-room';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

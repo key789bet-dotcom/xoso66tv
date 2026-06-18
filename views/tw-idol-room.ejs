@@ -497,6 +497,74 @@ var _obsMode = (idol.streamMethod === 'obs');
       </div>
     </div>
 
+    <!-- ═══ QUALITY BAR (giống BLV room): MAX/HD/SD/Mobile + CHIA SẺ ═══ -->
+    <% var _idolQ = (typeof idol !== 'undefined' && idol && idol.quality) ? idol.quality : ((typeof dbIdol !== 'undefined' && dbIdol && dbIdol.quality) ? dbIdol.quality : '360p'); %>
+    <div class="idol-quality-bar" style="margin-top:8px; padding:8px 10px; background:#0f1318; border:1px solid #1a1f29; border-radius:10px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+      <button type="button" class="iq-btn<%= _idolQ === '1080p' ? ' iq-active' : '' %>" data-q="1080p">
+        <% if (_idolQ === '1080p') { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <% } else { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <% } %>
+        MAX (1080p)
+      </button>
+      <button type="button" class="iq-btn<%= _idolQ === '720p' ? ' iq-active' : '' %>" data-q="720p">
+        <% if (_idolQ === '720p') { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <% } else { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <% } %>
+        HD MAX (720p)
+      </button>
+      <button type="button" class="iq-btn<%= _idolQ === '480p' ? ' iq-active' : '' %>" data-q="480p">
+        <% if (_idolQ === '480p') { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <% } else { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <% } %>
+        SD (480p)
+      </button>
+      <button type="button" class="iq-btn<%= _idolQ === '360p' ? ' iq-active' : '' %>" data-q="360p">
+        <% if (_idolQ === '360p') { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <% } else { %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <% } %>
+        Mobile (360p)
+      </button>
+      <button type="button" class="iq-share" id="iqShareBtn" onclick="(function(){var u=location.href,t=document.title;if(navigator.share){navigator.share({title:t,url:u}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){var b=document.getElementById('iqShareBtn');if(b){var o=b.innerHTML;b.innerHTML='✓ ĐÃ COPY';setTimeout(function(){b.innerHTML=o},1500)}})}else{prompt('Copy link:',u)}})()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        CHIA SẺ
+      </button>
+    </div>
+    <style>
+      .iq-btn { display:inline-flex; align-items:center; gap:6px; background:#1a1f29; color:#cbd5e1; border:1px solid #2a2f39; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; transition:all .15s; user-select:none; -webkit-tap-highlight-color:transparent; }
+      .iq-btn:hover { background:#252a35; color:#fff; }
+      .iq-btn.iq-active { background:#ff7a18; color:#fff; border-color:#ff7a18; box-shadow:0 2px 8px rgba(255,122,24,0.3); cursor:default; }
+      .iq-btn:not(.iq-active):active { transform:scale(0.97); }
+      .iq-share { margin-left:auto; display:inline-flex; align-items:center; gap:6px; background:transparent; color:#ff9a3a; border:1px solid #ff7a18; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; transition:all .15s; }
+      .iq-share:hover { background:rgba(255,122,24,0.1); color:#fff; }
+      @media (max-width: 640px) {
+        .idol-quality-bar { gap:4px; padding:6px 8px; }
+        .iq-btn, .iq-share { padding:5px 9px; font-size:10px; }
+        .iq-share { margin-left:auto; }
+      }
+    </style>
+    <script>
+    (function(){
+      // Click button quality khác → show toast (idol chỉ stream 1 quality, không switch được)
+      var btns = document.querySelectorAll('.iq-btn:not(.iq-active)');
+      btns.forEach(function(b){
+        b.addEventListener('click', function(){
+          var q = b.dataset.q;
+          var label = b.textContent.trim();
+          var ww = (window.showToast ? showToast : function(m){ alert(m); });
+          ww('Idol đang stream chất lượng cố định. Bạn cần idol đổi sang ' + label + ' từ Studio.', 'info');
+        });
+      });
+    })();
+    </script>
+
     <!-- CHAT: cùng row grid với player, auto stretch theo aspect-video -->
     <aside class="<%= _obsMode ? 'idol-room-chat' : 'h-full' %> bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden" aria-label="Chat" id="chatPanelTop">
       <%

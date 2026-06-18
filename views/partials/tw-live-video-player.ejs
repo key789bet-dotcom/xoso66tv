@@ -23,17 +23,10 @@ try {
 <!-- VIDEO ELEMENT - autoplay muted để vượt qua chính sách autoplay browser -->
 <video id="liveVideo" class="hidden absolute inset-0 w-full h-full object-contain bg-black z-[5]" playsinline autoplay muted controls></video>
 
-<!-- Quality badge (HD/SD - hiện khi stream live) -->
-<% var _qBadge = (typeof dbIdol !== 'undefined' && dbIdol && dbIdol.quality) ? dbIdol.quality : null;
-   var _qLabel = _qBadge === '1080p' ? 'FULL HD' : _qBadge === '720p' ? 'HD' : _qBadge === '480p' ? 'SD' : _qBadge === '360p' ? 'LOW' : '';
-   var _qColor = _qBadge === '1080p' ? '#10b981' : _qBadge === '720p' ? '#3b82f6' : _qBadge === '480p' ? '#f59e0b' : '#ef4444';
-%>
-<% if (_qBadge) { %>
-<span id="liveQualityBadge" class="hidden absolute top-3 right-16 z-[6] text-white text-[10px] font-extrabold px-2 py-1 rounded shadow-lg flex items-center gap-1" style="background:<%= _qColor %>">
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-  <%= _qLabel %> · <%= _qBadge %>
-</span>
-<% } %>
+<%# Quality badge OLD top-right → đã chuyển thành QUALITY BAR dưới video (xem cuối partial)
+   Giữ _qBadge cho data-active button + có thể dùng JS sau %>
+<% var _qBadge = (typeof dbIdol !== 'undefined' && dbIdol && dbIdol.quality) ? dbIdol.quality : '360p';
+   var _qActive = _qBadge === '1080p' ? '1080p' : _qBadge === '720p' ? '720p' : _qBadge === '480p' ? '480p' : '360p'; %>
 
 <!-- ⏱ Latency badge (live) — hiện độ trễ video so với mốc live thực -->
 <span id="liveLatencyBadgeWrap" title="Độ trễ video (idol → bạn)"
