@@ -364,6 +364,7 @@ window.startChat = function(containerId, opts){
   sys.style.cssText = 'padding:8px 10px;margin:4px 8px;background:rgba(255,122,24,.08);border:1px dashed rgba(255,122,24,.3);border-radius:6px;color:#ffd9a8;font-size:11px;font-weight:600;text-align:center;';
 
   if (!isLive) {
+    sys.className = 'chat-sys-offline';
     sys.style.background = '#1a1f29';
     sys.style.borderColor = '#2a3344';
     sys.style.color = '#9ca3af';

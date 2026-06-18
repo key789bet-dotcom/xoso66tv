@@ -471,3 +471,16 @@ html:not(.dark) #dlrSimIframe{
   background:#ffffff !important;
 }
 /* Tooltip mô phỏng giữ tối — đè lên sân cỏ nên cần contrast */
+
+/* ══════════════════════════════════════════════════════════════════
+   v5 — Chat system "Phòng chưa lên sóng" (chat-v2.js)
+   JS hard-code #1a1f29 + #fff (dark) → override sang tone light
+   ══════════════════════════════════════════════════════════════════ */
+html:not(.dark) .chat-sys-offline{
+  background:#f3f4f6 !important;
+  border-color:#d1d5db !important;
+  color:#4b5563 !important;
+}
+html:not(.dark) .chat-sys-offline b{ color:#111827 !important; }
+html:not(.dark) .chat-sys-offline span{ color:#6b7280 !important; }
+
