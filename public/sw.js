@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v117-2026-06-18-hide-pgBtn-giftFab-floating-buttons-desktop-mobile';
+const VERSION = 'v118-2026-06-18-album-carousel-slider-autoplay-thumb-strip-dots';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

@@ -383,6 +383,160 @@ var _obsMode = (idol.streamMethod === 'obs');
   75% { transform: translateX(8px); }
 }
 .pin-shake { animation: pinShake .3s ease-in-out 2; }
+
+/* ╔══════ ALBUM CAROUSEL (chuyên nghiệp) ══════╗ */
+.alb-slider { position: relative; }
+.alb-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0b0e16;
+  box-shadow: 0 12px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.alb-slide {
+  position: absolute; inset: 0;
+  border: 0; padding: 0; margin: 0; cursor: pointer;
+  display: grid; place-items: center;
+  opacity: 0; transform: scale(1.06);
+  transition: opacity .55s ease, transform 6s ease-out;
+  pointer-events: none;
+  background-size: cover; background-position: center;
+}
+.alb-slide.is-active { opacity: 1; transform: scale(1); pointer-events: auto; }
+.alb-glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 80% at 50% 35%, rgba(255,255,255,.18), transparent 70%),
+    linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.78) 100%);
+  pointer-events: none;
+}
+.alb-emoji {
+  font-size: clamp(72px, 14vw, 140px);
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,.55));
+  animation: albFloat 4s ease-in-out infinite;
+}
+@keyframes albFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.alb-caption {
+  position: absolute; left: 18px; bottom: 16px; right: 18px;
+  display: flex; align-items: baseline; gap: 12px;
+  color: #fff; text-align: left; pointer-events: none;
+}
+.alb-num {
+  font: 800 22px/1 ui-monospace,Menlo,monospace;
+  background: linear-gradient(135deg, #ff7a18, #ffd166);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 2px 12px rgba(255,122,24,.4);
+}
+.alb-title {
+  font-size: 18px; font-weight: 800;
+  text-shadow: 0 2px 12px rgba(0,0,0,.7);
+  letter-spacing: .2px;
+}
+.alb-badge {
+  position: absolute; top: 12px; left: 12px;
+  background: linear-gradient(135deg, #ff3b3b, #ff7a18);
+  color: #fff; font-size: 11px; font-weight: 900;
+  padding: 5px 10px; border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(255,59,59,.5);
+  letter-spacing: .5px;
+}
+.alb-zoom {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+  border-radius: 8px; display: grid; place-items: center;
+  color: #fff; font-size: 16px;
+  opacity: 0; transform: translateY(-4px);
+  transition: opacity .25s, transform .25s;
+}
+.alb-slide.is-active:hover .alb-zoom { opacity: 1; transform: translateY(0); }
+
+.alb-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #fff; font-size: 28px; line-height: 1;
+  border-radius: 999px;
+  display: grid; place-items: center; cursor: pointer;
+  transition: background .2s, transform .2s;
+  z-index: 5;
+}
+.alb-arrow:hover { background: rgba(255,122,24,.85); transform: translateY(-50%) scale(1.08); }
+.alb-prev { left: 12px; }
+.alb-next { right: 12px; }
+
+.alb-counter {
+  position: absolute; top: 12px; right: 52px;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(8px);
+  color: #fff; font: 700 12px/1 ui-monospace,Menlo,monospace;
+  padding: 6px 10px; border-radius: 999px;
+  z-index: 5;
+}
+.alb-play {
+  background: transparent; border: 0; color: #fff;
+  cursor: pointer; font-size: 12px; line-height: 1;
+  padding: 0 0 0 6px; border-left: 1px solid rgba(255,255,255,.2);
+}
+
+.alb-progress {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 3px; background: rgba(255,255,255,.08);
+  z-index: 5;
+}
+.alb-progress > span {
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, #ff7a18, #ffd166);
+  transition: width .15s linear;
+  box-shadow: 0 0 12px rgba(255,122,24,.7);
+}
+
+.alb-thumbs {
+  display: flex; gap: 8px; margin-top: 10px;
+  overflow-x: auto; scroll-behavior: smooth;
+  padding: 2px 2px 6px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent;
+}
+.alb-thumbs::-webkit-scrollbar { height: 4px; }
+.alb-thumbs::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
+.alb-thumb {
+  flex: 0 0 72px; height: 56px;
+  border: 2px solid transparent;
+  border-radius: 8px; cursor: pointer;
+  display: grid; place-items: center;
+  font-size: 28px;
+  opacity: .55; transition: opacity .2s, transform .2s, border-color .2s;
+  position: relative; overflow: hidden;
+}
+.alb-thumb:hover { opacity: .85; transform: translateY(-2px); }
+.alb-thumb.is-active {
+  opacity: 1; border-color: #ff7a18;
+  box-shadow: 0 0 0 1px rgba(255,122,24,.4), 0 6px 16px rgba(255,122,24,.35);
+}
+.alb-thumb > span { filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+
+.alb-dots {
+  display: flex; justify-content: center; gap: 6px; margin-top: 6px;
+}
+.alb-dot {
+  width: 6px; height: 6px; border-radius: 999px;
+  background: rgba(255,255,255,.25); border: 0; cursor: pointer;
+  padding: 0; transition: width .25s, background .25s;
+}
+.alb-dot.is-active { width: 22px; background: linear-gradient(90deg, #ff7a18, #ffd166); }
+
+@media (max-width: 640px) {
+  .alb-stage { aspect-ratio: 4/3; border-radius: 12px; }
+  .alb-arrow { width: 36px; height: 36px; font-size: 22px; }
+  .alb-title { font-size: 14px; }
+  .alb-num { font-size: 18px; }
+  .alb-thumb { flex-basis: 60px; height: 48px; font-size: 22px; }
+  .alb-counter { top: 8px; right: 44px; font-size: 11px; padding: 4px 8px; }
+}
+/* ╚══════ END ALBUM CAROUSEL ══════╝ */
 </style>
 <script>
 (function(){
@@ -778,17 +932,57 @@ var _obsMode = (idol.streamMethod === 'obs');
         <span class="ml-auto text-[10px] text-muted">Click để xem fullscreen</span>
       </header>
 
-      <!-- Photo grid -->
+      <!-- ╔═══ Photo SLIDE (carousel chuyên nghiệp) ═══╗ -->
       <div class="ab-panel p-3" data-panel="photo">
-        <div class="grid grid-cols-3 gap-2">
-          <% ALBUM.forEach(function(p, i){ %>
-            <button class="aspect-square rounded-lg overflow-hidden relative group hover:scale-105 transition-transform" style="background:<%= p.color %>" onclick="openLightbox('photo', <%= i %>)">
-              <div class="absolute inset-0 grid place-items-center text-5xl text-white/90"><%- p.emoji %></div>
-              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors"></div>
-              <div class="absolute bottom-1 left-1 right-1 text-[10px] font-bold text-white text-left bg-black/50 backdrop-blur px-1.5 py-0.5 rounded truncate opacity-0 group-hover:opacity-100 transition-opacity"><%= p.caption %></div>
-              <% if (i === 0) { %><span class="absolute top-1 left-1 bg-pri text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">HOT</span><% } %>
-            </button>
-          <% }); %>
+        <div id="albSlider" class="alb-slider" data-count="<%= ALBUM.length %>">
+          <!-- Main stage -->
+          <div class="alb-stage">
+            <% ALBUM.forEach(function(p, i){ %>
+              <button class="alb-slide<%= i===0 ? ' is-active' : '' %>" data-idx="<%= i %>"
+                style="background:<%= p.color %>"
+                onclick="openLightbox('photo', <%= i %>)" aria-label="Xem <%= p.caption %>">
+                <span class="alb-glow"></span>
+                <span class="alb-emoji"><%- p.emoji %></span>
+                <span class="alb-caption">
+                  <span class="alb-num"><%= (i+1).toString().padStart(2,'0') %></span>
+                  <span class="alb-title"><%= p.caption %></span>
+                </span>
+                <% if (i === 0) { %><span class="alb-badge">🔥 HOT</span><% } %>
+                <span class="alb-zoom" aria-hidden="true">⤢</span>
+              </button>
+            <% }); %>
+
+            <!-- Nav arrows -->
+            <button type="button" class="alb-arrow alb-prev" onclick="albGo(-1)" aria-label="Ảnh trước">‹</button>
+            <button type="button" class="alb-arrow alb-next" onclick="albGo(1)" aria-label="Ảnh kế">›</button>
+
+            <!-- Counter + autoplay status -->
+            <div class="alb-counter">
+              <span id="albCurr">1</span><span class="opacity-50"> / <%= ALBUM.length %></span>
+              <button type="button" class="alb-play" id="albPlayBtn" onclick="albToggle()" aria-label="Tạm dừng/Phát">⏸</button>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="alb-progress"><span id="albProgFill"></span></div>
+          </div>
+
+          <!-- Thumbnail strip -->
+          <div class="alb-thumbs" id="albThumbs">
+            <% ALBUM.forEach(function(p, i){ %>
+              <button class="alb-thumb<%= i===0 ? ' is-active' : '' %>" data-idx="<%= i %>"
+                style="background:<%= p.color %>" onclick="albJump(<%= i %>)"
+                aria-label="<%= p.caption %>">
+                <span><%- p.emoji %></span>
+              </button>
+            <% }); %>
+          </div>
+
+          <!-- Dots indicator -->
+          <div class="alb-dots" id="albDots">
+            <% ALBUM.forEach(function(p, i){ %>
+              <button class="alb-dot<%= i===0 ? ' is-active' : '' %>" data-idx="<%= i %>" onclick="albJump(<%= i %>)" aria-label="Slide <%= i+1 %>"></button>
+            <% }); %>
+          </div>
         </div>
       </div>
 
@@ -927,6 +1121,104 @@ document.querySelectorAll('.ab-tab').forEach(function(t){
     });
   });
 });
+
+/* ╔══════ ALBUM CAROUSEL controller ══════╗ */
+(function(){
+  var root = document.getElementById('albSlider');
+  if (!root) return;
+  var COUNT = parseInt(root.getAttribute('data-count'), 10) || 0;
+  if (COUNT < 2) return; // không cần autoplay
+
+  var slides   = root.querySelectorAll('.alb-slide');
+  var thumbs   = root.querySelectorAll('.alb-thumb');
+  var dots     = root.querySelectorAll('.alb-dot');
+  var curEl    = document.getElementById('albCurr');
+  var progFill = document.getElementById('albProgFill');
+  var playBtn  = document.getElementById('albPlayBtn');
+  var stage    = root.querySelector('.alb-stage');
+  var thumbBox = document.getElementById('albThumbs');
+
+  var idx = 0;
+  var playing = true;
+  var DURATION = 4500;   // 4.5s per slide
+  var TICK = 50;
+  var elapsed = 0;
+  var timer = null;
+
+  function setActive(n){
+    n = ((n % COUNT) + COUNT) % COUNT;
+    idx = n;
+    slides.forEach(function(s, i){ s.classList.toggle('is-active', i === n); });
+    thumbs.forEach(function(s, i){ s.classList.toggle('is-active', i === n); });
+    dots.forEach(function(s, i){ s.classList.toggle('is-active', i === n); });
+    curEl.textContent = (n + 1);
+    elapsed = 0; progFill.style.width = '0%';
+    // Scroll thumb into view
+    var t = thumbs[n];
+    if (t && thumbBox) {
+      var tLeft = t.offsetLeft, tRight = tLeft + t.offsetWidth;
+      var bLeft = thumbBox.scrollLeft, bRight = bLeft + thumbBox.clientWidth;
+      if (tLeft < bLeft) thumbBox.scrollLeft = tLeft - 8;
+      else if (tRight > bRight) thumbBox.scrollLeft = tRight - thumbBox.clientWidth + 8;
+    }
+  }
+
+  function tick(){
+    if (!playing) return;
+    elapsed += TICK;
+    progFill.style.width = (elapsed / DURATION * 100) + '%';
+    if (elapsed >= DURATION) setActive(idx + 1);
+  }
+
+  function start(){ if (timer) return; timer = setInterval(tick, TICK); }
+  function stop(){ if (timer) { clearInterval(timer); timer = null; } }
+
+  window.albGo = function(delta){ setActive(idx + delta); };
+  window.albJump = function(n){ setActive(n); };
+  window.albToggle = function(){
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸' : '▶';
+    if (!playing) { progFill.style.width = '0%'; elapsed = 0; }
+  };
+
+  // Hover-pause (desktop only)
+  stage.addEventListener('mouseenter', function(){ stop(); });
+  stage.addEventListener('mouseleave', function(){ if (playing) start(); });
+
+  // Pause when document hidden
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) stop(); else if (playing) start();
+  });
+
+  // Keyboard nav khi focus trong slider
+  root.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft')  { setActive(idx - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { setActive(idx + 1); e.preventDefault(); }
+    if (e.key === ' ')          { window.albToggle(); e.preventDefault(); }
+  });
+  root.setAttribute('tabindex', '0');
+
+  // Touch swipe trên mobile
+  var tX = 0, tY = 0, swiping = false;
+  stage.addEventListener('touchstart', function(e){
+    if (!e.touches.length) return;
+    tX = e.touches[0].clientX; tY = e.touches[0].clientY; swiping = true;
+    stop();
+  }, { passive: true });
+  stage.addEventListener('touchend', function(e){
+    if (!swiping || !e.changedTouches.length) { if (playing) start(); return; }
+    var dx = e.changedTouches[0].clientX - tX;
+    var dy = e.changedTouches[0].clientY - tY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      setActive(idx + (dx < 0 ? 1 : -1));
+    }
+    swiping = false;
+    if (playing) start();
+  }, { passive: true });
+
+  start();
+})();
+/* ╚══════ END ALBUM CAROUSEL ══════╝ */
 
 window.openLightbox = function(type, idx){
   LB.type = type; LB.idx = idx;
