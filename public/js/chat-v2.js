@@ -205,6 +205,26 @@ function getLevelTierClass(lvl, badge){
   if (n >= 10)  return 'lv-tier2';
   return 'lv-tier1';
 }
+
+/* ════ Message row tier class — phân biệt VIP/SVIP/CSKH + 11 tier LV ════ */
+function getMsgRowClass(lvl, badge){
+  if (badge === 'SVIP') return 'msg-svip';
+  if (badge === 'VIP')  return 'msg-vip';
+  if (badge === 'CSKH') return 'msg-cskh';
+  if (badge === 'ADMIN' || badge === 'BLV' || badge === 'IDOL') return 'msg-svip';
+  var n = parseInt(lvl, 10) || 1;
+  if (n >= 100) return 'msg-tier11';
+  if (n >= 90)  return 'msg-tier10';
+  if (n >= 80)  return 'msg-tier9';
+  if (n >= 70)  return 'msg-tier8';
+  if (n >= 60)  return 'msg-tier7';
+  if (n >= 50)  return 'msg-tier6';
+  if (n >= 40)  return 'msg-tier5';
+  if (n >= 30)  return 'msg-tier4';
+  if (n >= 20)  return 'msg-tier3';
+  if (n >= 10)  return 'msg-tier2';
+  return 'msg-tier1';
+}
 // SVG icon ngôi sao (text dùng cho innerHTML)
 var LV_STAR_SVG = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9.2l-5 4.8 1.4 7L12 17.5 6.6 21l1.4-7-5-4.8 6.4-.8L12 2z"/></svg>';
 var LV_CROWN_SVG = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M5 18h14v2H5zM3 7l4 5 5-7 5 7 4-5v9H3V7z"/></svg>';
@@ -231,19 +251,22 @@ function esc(s){
   });
 }
 
-// ===== RENDER 1 DÒNG với BADGE 12 TIER xịn xò =====
+// ===== RENDER 1 DÒNG với BADGE 12 TIER + HIỆU ỨNG NAME/TEXT/FRAME =====
 function pushMsg(container, m){
   var nameColor = colorFromName(m.name);
   var time = m.time || nowHHMM();
+  var rowTier = getMsgRowClass(m.lvl, m.badge);
 
   var el = document.createElement('div');
-  el.className = 'msg-row';
-  el.style.cssText = 'padding:4px 10px;font-size:13px;line-height:1.55;color:#e5e7eb;word-break:break-word;';
+  el.className = 'msg-row ' + rowTier;
+  // Note: padding/bg/border-radius/animation đều ở CSS .msg-row (level-badges.css)
+  // CSS gradient name sẽ override màu khi tier >= 2 hoặc vip/svip; tier1 fallback dùng nameColor
+  el.style.setProperty('--name-color', nameColor);
 
   // Badge LV (12 tier, có shimmer + pulse)
   var lvlHtml = getLevelBadgeHTML(m.lvl, m.badge);
-  var nameHtml = '<span style="font-weight:700;color:' + nameColor + ';margin-right:5px">' + esc(m.name) + ':</span>';
-  var textHtml = '<span style="color:#e2e8f0">' + esc(m.text) + '</span>';
+  var nameHtml = '<span class="msg-name" style="color:' + nameColor + '">' + esc(m.name) + ':</span>';
+  var textHtml = '<span class="msg-text">' + esc(m.text) + '</span>';
 
   el.innerHTML = lvlHtml + nameHtml + textHtml;
 

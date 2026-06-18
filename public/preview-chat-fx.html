@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Preview Chat FX — XOSO66 TV</title>
+<link rel="stylesheet" href="/static/css/level-badges.css?v=2-chat-fx">
+<style>
+  body{ margin:0; background:#0d111a; color:#e5e7eb; font:14px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif; }
+  .wrap{ max-width:520px; margin:30px auto; padding:0 14px; }
+  h1{ font-size:18px; margin:0 0 14px; color:#fff; }
+  .note{ background:#161a22; border-left:3px solid #ff7a18; padding:10px 14px; border-radius:6px; margin-bottom:18px; font-size:12.5px; color:#cbd5e1; }
+  .chat{ background:#0f1420; border:1px solid #1f2533; border-radius:14px; overflow:hidden; }
+  .chat-head{ padding:10px 14px; border-bottom:1px solid #1f2533; display:flex; gap:8px; align-items:center; font-weight:700; }
+  .chat-head .dot{ width:8px; height:8px; border-radius:50%; background:#10b981; }
+  .chat-body{ padding:6px 0 10px; max-height:560px; overflow:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Preview hiệu ứng chat phòng idol</h1>
+  <div class="note">
+    Hiệu ứng đã apply: <b>gradient + glow tĩnh theo rank</b> cho tên,
+    <b>slide-in + bubble</b> cho từng tin nhắn,
+    <b>frame vàng cho VIP / tím cho SVIP</b>. Mở file này để xem live preview trước khi deploy.
+  </div>
+
+  <div class="chat">
+    <div class="chat-head"><span class="dot"></span> Phòng chat &middot; <span style="color:#94a3b8;font-weight:500">478 online</span></div>
+    <div class="chat-body" id="cb"></div>
+  </div>
+</div>
+
+<script>
+// ── 12 demo users phủ hết các tier ──
+var DEMO = [
+  { lvl: 8,   badge: '',     name: 'Cờ Hó',         text: '@Tuyết chắc chắn' },
+  { lvl: 5,   badge: '',     name: 'Tý Cute',       text: 'hí hí' },
+  { lvl: 12,  badge: '',     name: 'Le_HoaiAnh',    text: 'đang xem trận' },
+  { lvl: 30,  badge: 'VIP',  name: 'Hắc Báo',       text: 'khó đỡ thật' },
+  { lvl: 4,   badge: '',     name: 'Bé Mỡ',         text: 'hí hí' },
+  { lvl: 50,  badge: 'SVIP', name: 'Chiến Thần',    text: 'xạo lol' },
+  { lvl: 11,  badge: '',     name: 'Mộc Lan',       text: 'smile của idol đáng yêu quá' },
+  { lvl: 65,  badge: '',     name: 'Phượng Hoàng',  text: 'top form tối nay' },
+  { lvl: 88,  badge: 'SVIP', name: 'Phong Vũ',      text: 'tặng quà thật mạnh tay' },
+  { lvl: 99,  badge: '',     name: 'Tuấn Bự',       text: 'lên đỉnh nóc luôn' },
+  { lvl: 105, badge: '',     name: 'Lý Tiểu Long',  text: 'tier max rainbow' },
+  { lvl: 30,  badge: 'CSKH', name: 'Thao_CSKH',     text: 'Chào cả nhà 👋' },
+];
+
+function colorFromName(name){
+  var h = 0; for (var i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) & 0xffff;
+  return 'hsl(' + (h%360) + ', 80%, 70%)';
+}
+function getMsgRowClass(lvl, badge){
+  if (badge === 'SVIP') return 'msg-svip';
+  if (badge === 'VIP')  return 'msg-vip';
+  if (badge === 'CSKH') return 'msg-cskh';
+  var n = parseInt(lvl,10)||1;
+  if (n>=100) return 'msg-tier11'; if (n>=90)  return 'msg-tier10';
+  if (n>=80)  return 'msg-tier9';  if (n>=70)  return 'msg-tier8';
+  if (n>=60)  return 'msg-tier7';  if (n>=50)  return 'msg-tier6';
+  if (n>=40)  return 'msg-tier5';  if (n>=30)  return 'msg-tier4';
+  if (n>=20)  return 'msg-tier3';  if (n>=10)  return 'msg-tier2';
+  return 'msg-tier1';
+}
+function getLevelTierClass(lvl, badge){
+  if (badge === 'CSKH') return 'lv-cskh';
+  if (badge === 'VIP' || badge === 'SVIP') return 'lv-vip';
+  var n = parseInt(lvl,10)||1;
+  if (n>=100) return 'lv-tier11'; if (n>=90)  return 'lv-tier10';
+  if (n>=80)  return 'lv-tier9';  if (n>=70)  return 'lv-tier8';
+  if (n>=60)  return 'lv-tier7';  if (n>=50)  return 'lv-tier6';
+  if (n>=40)  return 'lv-tier5';  if (n>=30)  return 'lv-tier4';
+  if (n>=20)  return 'lv-tier3';  if (n>=10)  return 'lv-tier2';
+  return 'lv-tier1';
+}
+var LV_STAR  = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9.2l-5 4.8 1.4 7L12 17.5 6.6 21l1.4-7-5-4.8 6.4-.8L12 2z"/></svg>';
+var LV_CROWN = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M5 18h14v2H5zM3 7l4 5 5-7 5 7 4-5v9H3V7z"/></svg>';
+
+function badgeHTML(lvl, badge){
+  var t = getLevelTierClass(lvl, badge);
+  var special = (t==='lv-vip'||t==='lv-cskh');
+  var label = special ? (badge||'VIP') : ('LV '+(parseInt(lvl,10)||1));
+  var icon  = (t==='lv-vip') ? LV_CROWN : LV_STAR;
+  return '<span class="lv '+t+'">'+icon+'<span class="lv-num">'+label+'</span></span>';
+}
+function render(){
+  var cb = document.getElementById('cb');
+  DEMO.forEach(function(m, i){
+    var nc = colorFromName(m.name);
+    var div = document.createElement('div');
+    div.className = 'msg-row ' + getMsgRowClass(m.lvl, m.badge);
+    div.style.setProperty('--name-color', nc);
+    div.style.animationDelay = (i*0.05)+'s';
+    div.innerHTML = badgeHTML(m.lvl, m.badge)
+      + '<span class="msg-name" style="color:'+nc+'">'+m.name+':</span>'
+      + '<span class="msg-text">'+m.text+'</span>';
+    cb.appendChild(div);
+  });
+}
+render();
+</script>
+</body>
+</html>

@@ -139,3 +139,217 @@
   .lv .lv-num { font-size: 9px; }
   .lv .lv-ico { width: 9px; height: 9px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   CHAT MESSAGE EFFECTS — gradient name + glow theo rank,
+   slide-in + bubble cho message, frame riêng cho VIP/SVIP.
+   Renderer: chat-v2.js pushMsg() gắn class msg-row + msg-tierN/vip/svip
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ---- Base row ---- */
+.msg-row{
+  padding: 6px 10px;
+  margin: 3px 6px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #e5e7eb;
+  word-break: break-word;
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+  border: 1px solid rgba(255,255,255,.06);
+  animation: msg-slide-in .32s cubic-bezier(.2,.7,.3,1) both;
+  transition: background .18s ease;
+  position: relative;
+}
+.msg-row:hover{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
+}
+
+@keyframes msg-slide-in{
+  0%   { opacity: 0; transform: translateX(-10px); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- Name & text base ---- */
+.msg-name{
+  font-weight: 800;
+  margin-right: 5px;
+  letter-spacing: .2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+}
+.msg-text{
+  color: #f1f5f9;
+  text-shadow: 0 1px 1px rgba(0,0,0,.55);
+}
+
+/* ---- Per-tier name gradient + glow (TĨNH, đọc rõ) ---- */
+
+/* tier 1 (LV 1-9) — slate */
+.msg-row.msg-tier1 .msg-name{
+  color: #cbd5e1;
+  text-shadow: 0 0 6px rgba(148,163,184,.3), 0 1px 2px rgba(0,0,0,.7);
+}
+
+/* tier 2 (LV 10-19) — amber */
+.msg-row.msg-tier2 .msg-name{
+  background: linear-gradient(135deg, #fde68a, #fbbf24, #f59e0b);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 6px rgba(251,191,36,.5));
+}
+
+/* tier 3 (LV 20-29) — sky/cyan */
+.msg-row.msg-tier3 .msg-name{
+  background: linear-gradient(135deg, #93c5fd, #3b82f6, #06b6d4);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 6px rgba(59,130,246,.55));
+}
+
+/* tier 4 (LV 30-39) — gold */
+.msg-row.msg-tier4 .msg-name{
+  background: linear-gradient(135deg, #fef3c7, #fde047, #f59e0b);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 7px rgba(253,224,71,.6));
+}
+
+/* tier 5 (LV 40-49) — emerald */
+.msg-row.msg-tier5 .msg-name{
+  background: linear-gradient(135deg, #a7f3d0, #34d399, #10b981);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 6px rgba(52,211,153,.55));
+}
+
+/* tier 6 (LV 50-59) — cyan-aqua */
+.msg-row.msg-tier6 .msg-name{
+  background: linear-gradient(135deg, #cffafe, #67e8f9, #06b6d4);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 7px rgba(6,182,212,.6));
+}
+
+/* tier 7 (LV 60-69) — violet */
+.msg-row.msg-tier7 .msg-name{
+  background: linear-gradient(135deg, #ddd6fe, #a855f7, #7c3aed);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 7px rgba(168,85,247,.6));
+}
+
+/* tier 8 (LV 70-79) — pink/rose */
+.msg-row.msg-tier8 .msg-name{
+  background: linear-gradient(135deg, #fbcfe8, #f472b6, #ec4899);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 7px rgba(236,72,153,.6));
+}
+
+/* tier 9 (LV 80-89) — red-orange */
+.msg-row.msg-tier9 .msg-name{
+  background: linear-gradient(135deg, #fed7aa, #fb923c, #ef4444);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 8px rgba(239,68,68,.65));
+}
+
+/* tier 10 (LV 90-99) — multi-warm (tĩnh) */
+.msg-row.msg-tier10 .msg-name{
+  background: linear-gradient(135deg, #fbbf24 0%, #f43f5e 50%, #a855f7 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 9px rgba(244,63,94,.7));
+}
+
+/* tier 11 (LV 100+) — rainbow (tĩnh, không animate để dễ đọc) */
+.msg-row.msg-tier11 .msg-name{
+  background: linear-gradient(135deg, #ff006e, #fb5607, #ffbe0b, #06ffa5, #3a86ff, #8338ec);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 10px rgba(131,56,236,.7));
+}
+
+/* CSKH — xanh lá */
+.msg-row.msg-cskh .msg-name{
+  background: linear-gradient(135deg, #86efac, #16a34a, #15803d);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 7px rgba(22,163,74,.6));
+}
+
+/* ---- VIP frame: gradient VÀNG ---- */
+.msg-row.msg-vip{
+  padding: 7px 12px;
+  margin: 5px 6px;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(120,53,15,.05), rgba(120,53,15,.02)),
+    linear-gradient(135deg, rgba(252,211,77,.20), rgba(245,158,11,.10), rgba(252,211,77,.20));
+  border: 1px solid rgba(252,211,77,.55);
+  box-shadow:
+    0 0 18px rgba(245,158,11,.18),
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 0 0 1px rgba(252,211,77,.12);
+}
+.msg-row.msg-vip .msg-name{
+  background: linear-gradient(135deg, #fef9c3, #fde047, #f59e0b, #fbbf24);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 8px rgba(245,158,11,.65));
+}
+.msg-row.msg-vip .msg-text{
+  color: #fff7ed;
+  text-shadow: 0 0 8px rgba(245,158,11,.25), 0 1px 1px rgba(0,0,0,.6);
+}
+
+/* ---- SVIP frame: gradient TÍM ---- */
+.msg-row.msg-svip{
+  padding: 7px 12px;
+  margin: 5px 6px;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(76,29,149,.05), rgba(76,29,149,.02)),
+    linear-gradient(135deg, rgba(192,132,252,.22), rgba(124,58,237,.12), rgba(192,132,252,.22));
+  border: 1px solid rgba(192,132,252,.6);
+  box-shadow:
+    0 0 18px rgba(168,85,247,.22),
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 0 0 1px rgba(192,132,252,.14);
+}
+.msg-row.msg-svip .msg-name{
+  background: linear-gradient(135deg, #f3e8ff, #d8b4fe, #a855f7, #c084fc);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 8px rgba(168,85,247,.7));
+}
+.msg-row.msg-svip .msg-text{
+  color: #faf5ff;
+  text-shadow: 0 0 8px rgba(168,85,247,.25), 0 1px 1px rgba(0,0,0,.6);
+}
+
+/* Mobile: thu padding/font tí */
+@media (max-width: 480px){
+  .msg-row{ padding: 5px 8px; font-size: 12.5px; margin: 2px 4px; }
+  .msg-row.msg-vip,
+  .msg-row.msg-svip{ padding: 6px 10px; margin: 4px 4px; }
+}
+
+/* Light mode: tăng contrast text + đậm border frame */
+:root[data-theme="light"] .msg-row{
+  color: #1f2937;
+  background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.01));
+  border-color: rgba(0,0,0,.06);
+}
+:root[data-theme="light"] .msg-text{
+  color: #0f172a;
+  text-shadow: none;
+}
+:root[data-theme="light"] .msg-name{ text-shadow: 0 1px 1px rgba(0,0,0,.12); }
+:root[data-theme="light"] .msg-row.msg-vip{ border-color: rgba(180,83,9,.55); }
+:root[data-theme="light"] .msg-row.msg-svip{ border-color: rgba(124,58,237,.55); }
+:root[data-theme="light"] .msg-row.msg-vip .msg-text,
+:root[data-theme="light"] .msg-row.msg-svip .msg-text{
+  color: #111827; text-shadow: none;
+}
