@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" class="dark">
 <head>
 <meta charset="utf-8">
-<title>Preview Chat FX — XOSO66 TV</title>
+<title>Preview Chat FX — XOSO66 TV (Dark + Light)</title>
 <style>
-/* ════ CSS NHÚNG INLINE (bản copy của /static/css/level-badges.css) ════
-   File này mở trực tiếp từ ổ cứng (file://) nên không thể load CSS từ
-   /static/... — đành nhúng vào để preview chuẩn xác. ═══════════════════ */
+/* ════ CSS NHÚNG INLINE (bản copy của /static/css/level-badges.css v4) ════
+   File này mở trực tiếp từ ổ cứng nên CSS phải inline.
+   Selector light mode dùng html:not(.dark) — KHỚP với site thật. ═════════ */
 
 /* === LEVEL BADGES (12 tier shimmer + pulse) === */
 .lv{display:inline-flex;align-items:center;gap:4px;padding:2px 7px 2px 5px;border-radius:999px;font:800 10px/1 ui-monospace,Menlo,monospace;color:#fff;letter-spacing:.3px;white-space:nowrap;border:1.5px solid rgba(255,255,255,.6);position:relative;user-select:none;vertical-align:middle;text-shadow:0 1px 2px rgba(0,0,0,.4);margin-right:5px;overflow:hidden;animation:lv-pulse 2s ease-in-out infinite;}
@@ -34,7 +34,7 @@
 @keyframes lv-shift{0%,100%{background-position:0 0;}50%{background-position:100% 0;}}
 @keyframes lv-rainbow{0%{background-position:0 0;}100%{background-position:400% 0;}}
 
-/* === CHAT MESSAGE EFFECTS — v3 READABILITY FIRST === */
+/* === DARK MODE chat (default) === */
 .msg-row{padding:6px 10px;margin:3px 6px;border-radius:10px;font-size:13px;line-height:1.55;color:#fff;word-break:break-word;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);animation:msg-slide-in .28s ease-out both;transition:background .18s ease;position:relative;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
 .msg-row:hover{background:rgba(255,255,255,.07);}
 @keyframes msg-slide-in{0%{opacity:0;transform:translateX(-8px);}100%{opacity:1;transform:translateX(0);}}
@@ -60,29 +60,75 @@
 .msg-row.msg-svip .msg-text{color:#fff;font-weight:500;text-shadow:0 1px 0 rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6);}
 .msg-row.msg-cskh{background:linear-gradient(135deg,rgba(22,101,52,.3),rgba(20,83,45,.4),rgba(22,101,52,.3));border:1px solid rgba(74,222,128,.5);}
 
+/* === LIGHT MODE — html:not(.dark) === */
+html:not(.dark) .msg-row{color:#1a1f2e !important;background:rgba(15,23,42,.04) !important;border-color:rgba(15,23,42,.10) !important;}
+html:not(.dark) .msg-row:hover{background:rgba(15,23,42,.07) !important;}
+html:not(.dark) .msg-name{text-shadow:0 1px 0 rgba(255,255,255,.7) !important;}
+html:not(.dark) .msg-text{color:#1a1f2e !important;text-shadow:0 1px 0 rgba(255,255,255,.7) !important;}
+html:not(.dark) .msg-row.msg-tier1 .msg-name{color:#334155 !important;}
+html:not(.dark) .msg-row.msg-tier2 .msg-name{color:#b45309 !important;}
+html:not(.dark) .msg-row.msg-tier3 .msg-name{color:#1d4ed8 !important;}
+html:not(.dark) .msg-row.msg-tier4 .msg-name{color:#a16207 !important;}
+html:not(.dark) .msg-row.msg-tier5 .msg-name{color:#15803d !important;}
+html:not(.dark) .msg-row.msg-tier6 .msg-name{color:#0e7490 !important;}
+html:not(.dark) .msg-row.msg-tier7 .msg-name{color:#7e22ce !important;}
+html:not(.dark) .msg-row.msg-tier8 .msg-name{color:#be185d !important;}
+html:not(.dark) .msg-row.msg-tier9 .msg-name{color:#c2410c !important;}
+html:not(.dark) .msg-row.msg-tier10 .msg-name{color:#be185d !important;}
+html:not(.dark) .msg-row.msg-cskh .msg-name{color:#15803d !important;}
+html:not(.dark) .msg-row.msg-tier11 .msg-name{background:linear-gradient(90deg,#c2185b,#d84315,#c9851d,#00838f,#1565c0,#6a1b9a) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important;filter:drop-shadow(0 1px 0 rgba(255,255,255,.6)) !important;}
+html:not(.dark) .msg-row.msg-vip{background:linear-gradient(135deg,#fef3c7,#fde68a,#fef3c7) !important;border:1.5px solid #d97706 !important;box-shadow:0 1px 0 rgba(217,119,6,.15),0 2px 8px rgba(217,119,6,.12) !important;}
+html:not(.dark) .msg-row.msg-vip .msg-name{color:#78350f !important;text-shadow:0 1px 0 rgba(255,255,255,.6) !important;}
+html:not(.dark) .msg-row.msg-vip .msg-text{color:#422006 !important;text-shadow:0 1px 0 rgba(255,255,255,.5) !important;}
+html:not(.dark) .msg-row.msg-svip{background:linear-gradient(135deg,#f3e8ff,#e9d5ff,#f3e8ff) !important;border:1.5px solid #9333ea !important;box-shadow:0 1px 0 rgba(147,51,234,.15),0 2px 8px rgba(147,51,234,.12) !important;}
+html:not(.dark) .msg-row.msg-svip .msg-name{color:#581c87 !important;text-shadow:0 1px 0 rgba(255,255,255,.6) !important;}
+html:not(.dark) .msg-row.msg-svip .msg-text{color:#3b0764 !important;text-shadow:0 1px 0 rgba(255,255,255,.5) !important;}
+html:not(.dark) .msg-row.msg-cskh{background:linear-gradient(135deg,#dcfce7,#bbf7d0,#dcfce7) !important;border:1.5px solid #16a34a !important;box-shadow:0 1px 0 rgba(22,163,74,.15),0 2px 8px rgba(22,163,74,.12) !important;}
+html:not(.dark) .msg-row.msg-cskh .msg-name{color:#14532d !important;text-shadow:0 1px 0 rgba(255,255,255,.6) !important;}
+html:not(.dark) .msg-row.msg-cskh .msg-text{color:#052e16 !important;text-shadow:0 1px 0 rgba(255,255,255,.5) !important;}
+
 /* === Layout preview === */
-html,body{margin:0;background:#0d111a;color:#e5e7eb;font:14px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif;}
-.wrap{max-width:520px;margin:30px auto;padding:0 14px;}
-h1{font-size:18px;margin:0 0 14px;color:#fff;}
-.note{background:#161a22;border-left:3px solid #ff7a18;padding:10px 14px;border-radius:6px;margin-bottom:18px;font-size:12.5px;color:#cbd5e1;}
-.chat{background:#0f1420;border:1px solid #1f2533;border-radius:14px;overflow:hidden;}
-.chat-head{padding:10px 14px;border-bottom:1px solid #1f2533;display:flex;gap:8px;align-items:center;font-weight:700;color:#fff;}
+html,body{margin:0;font:14px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif;transition:background .25s ease,color .25s ease;}
+html.dark body{background:#0d111a;color:#e5e7eb;}
+html:not(.dark) body{background:#f5f7fb;color:#1a1f2e;}
+.wrap{max-width:540px;margin:24px auto;padding:0 14px;}
+h1{font-size:18px;margin:0 0 14px;}
+html.dark h1{color:#fff;}
+html:not(.dark) h1{color:#1a1f2e;}
+.toolbar{display:flex;gap:8px;margin:0 0 14px;align-items:center;flex-wrap:wrap;}
+.tg{padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:1px solid currentColor;background:transparent;}
+html.dark .tg{color:#fcd34d;}
+html:not(.dark) .tg{color:#1d4ed8;}
+.tg:hover{background:rgba(127,127,127,.1);}
+.note{padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid #ff7a18;}
+html.dark .note{background:#161a22;color:#cbd5e1;}
+html:not(.dark) .note{background:#fff;color:#475569;border-color:#d6dce6;border:1px solid #d6dce6;border-left:3px solid #ff7a18;}
+.chat{border-radius:14px;overflow:hidden;}
+html.dark .chat{background:#0f1420;border:1px solid #1f2533;}
+html:not(.dark) .chat{background:#fff;border:1px solid #d6dce6;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.chat-head{padding:10px 14px;display:flex;gap:8px;align-items:center;font-weight:700;}
+html.dark .chat-head{border-bottom:1px solid #1f2533;color:#fff;}
+html:not(.dark) .chat-head{border-bottom:1px solid #d6dce6;color:#1a1f2e;}
 .chat-head .dot{width:8px;height:8px;border-radius:50%;background:#10b981;}
 .chat-body{padding:6px 0 10px;max-height:600px;overflow:auto;}
+.meta{font-weight:500;}
+html.dark .meta{color:#94a3b8;}
+html:not(.dark) .meta{color:#5a6573;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Preview hiệu ứng chat phòng idol</h1>
+  <h1>Preview hiệu ứng chat — Dark + Light mode</h1>
+  <div class="toolbar">
+    <button class="tg" onclick="document.documentElement.classList.toggle('dark')">🌓 Toggle Dark / Light</button>
+    <span class="meta">Click để xem cả 2 chế độ. Mode hiện tại: <b id="curMode">dark</b></span>
+  </div>
   <div class="note">
-    Hiệu ứng đã apply: <b>gradient + glow tĩnh theo rank</b> cho tên,
-    <b>slide-in + bubble</b> cho từng tin nhắn,
-    <b>frame vàng cho VIP / tím cho SVIP</b>.
-    CSS đã được nhúng inline để mở trực tiếp được từ ổ cứng.
+    v4 fix: chuyển selector từ <code>:root[data-theme="light"]</code> sang <code>html:not(.dark)</code> để khớp với toggle thật của site (Tailwind dark class). Mọi rule có <code>!important</code> để override CSS dark base.
   </div>
 
   <div class="chat">
-    <div class="chat-head"><span class="dot"></span> Phòng chat &middot; <span style="color:#94a3b8;font-weight:500">478 online</span></div>
+    <div class="chat-head"><span class="dot"></span> Phòng chat &middot; <span class="meta">478 online</span></div>
     <div class="chat-body" id="cb"></div>
   </div>
 </div>
@@ -93,14 +139,14 @@ var DEMO = [
   { lvl: 5,   badge: '',     name: 'Tý Cute',       text: 'hí hí' },
   { lvl: 12,  badge: '',     name: 'Le_HoaiAnh',    text: 'đang xem trận đỉnh nóc' },
   { lvl: 22,  badge: '',     name: 'Trà Sữa',       text: 'idol xinh quá trời' },
-  { lvl: 30,  badge: 'VIP',  name: 'Hắc Báo',       text: 'khó đỡ thật sự' },
+  { lvl: 30,  badge: 'VIP',  name: 'Hắc Báo',       text: 'khó đỡ thật sự đó các bác' },
   { lvl: 4,   badge: '',     name: 'Bé Mỡ',         text: 'hí hí' },
-  { lvl: 50,  badge: 'SVIP', name: 'Chiến Thần',    text: 'xạo lol mà' },
+  { lvl: 50,  badge: 'SVIP', name: 'Chiến Thần',    text: 'xạo lol mà nói thật cũng đỉnh' },
   { lvl: 11,  badge: '',     name: 'Mộc Lan',       text: 'smile của idol đáng yêu quá' },
   { lvl: 65,  badge: '',     name: 'Phượng Hoàng',  text: 'top form tối nay' },
-  { lvl: 88,  badge: 'SVIP', name: 'Phong Vũ',      text: 'tặng quà mạnh tay luôn' },
+  { lvl: 88,  badge: 'SVIP', name: 'Phong Vũ',      text: 'tặng quà mạnh tay luôn anh em' },
   { lvl: 99,  badge: '',     name: 'Tuấn Bự',       text: 'lên đỉnh nóc luôn' },
-  { lvl: 105, badge: '',     name: 'Lý Tiểu Long',  text: 'tier max rainbow đây' },
+  { lvl: 105, badge: '',     name: 'Lý Tiểu Long',  text: 'tier max rainbow đây các bro' },
   { lvl: 30,  badge: 'CSKH', name: 'Thao_CSKH',     text: 'Chào cả nhà, có gì support cứ ping nhé' },
 ];
 
@@ -131,7 +177,6 @@ function getLevelTierClass(lvl, badge){
   if (n>=20)  return 'lv-tier3';  if (n>=10)  return 'lv-tier2';
   return 'lv-tier1';
 }
-// SVG có width/height attribute để fallback khi CSS chưa load
 var LV_STAR  = '<svg class="lv-ico" width="10" height="10" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9.2l-5 4.8 1.4 7L12 17.5 6.6 21l1.4-7-5-4.8 6.4-.8L12 2z"/></svg>';
 var LV_CROWN = '<svg class="lv-ico" width="10" height="10" viewBox="0 0 24 24"><path d="M5 18h14v2H5zM3 7l4 5 5-7 5 7 4-5v9H3V7z"/></svg>';
 
@@ -144,19 +189,26 @@ function badgeHTML(lvl, badge){
 }
 function render(){
   var cb = document.getElementById('cb');
+  cb.innerHTML = '';
   DEMO.forEach(function(m, i){
     var nc = colorFromName(m.name);
     var div = document.createElement('div');
     div.className = 'msg-row ' + getMsgRowClass(m.lvl, m.badge);
     div.style.setProperty('--name-color', nc);
-    div.style.animationDelay = (i*0.05)+'s';
+    div.style.animationDelay = (i*0.04)+'s';
     div.innerHTML = badgeHTML(m.lvl, m.badge)
-      + '<span class="msg-name" style="color:'+nc+'">'+m.name+':</span>'
+      + '<span class="msg-name">'+m.name+':</span>'
       + '<span class="msg-text">'+m.text+'</span>';
     cb.appendChild(div);
   });
 }
 render();
+
+// Mode label live update
+new MutationObserver(function(){
+  document.getElementById('curMode').textContent =
+    document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}).observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
 </script>
 </body>
 </html>

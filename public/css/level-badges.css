@@ -276,45 +276,92 @@
   .msg-row.msg-cskh{ padding: 7px 11px; margin: 4px 4px; }
 }
 
-/* ---- Light mode: invert contrast, text đen ---- */
-:root[data-theme="light"] .msg-row{
-  color: #0f172a;
-  background: rgba(0,0,0,.04);
-  border-color: rgba(0,0,0,.08);
+/* ══════════════════════════════════════════════════════════════════
+   LIGHT MODE — site dùng html:not(.dark) (Tailwind dark class)
+   Mọi override cần !important vì CSS dark được set với specificity bằng nhau
+   Palette nhất quán với tailwind-input.css của site:
+     body bg #f5f7fb, card #fff, soft #eef2f7, text #1a1f2e
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Base row trên light mode: nền trắng dịu + viền nhạt, KHÔNG dùng dark text-shadow */
+html:not(.dark) .msg-row{
+  color: #1a1f2e !important;
+  background: rgba(15,23,42,.04) !important;
+  border-color: rgba(15,23,42,.10) !important;
 }
-:root[data-theme="light"] .msg-row:hover{ background: rgba(0,0,0,.07); }
-:root[data-theme="light"] .msg-name{ text-shadow: 0 1px 0 rgba(255,255,255,.6); }
-:root[data-theme="light"] .msg-text{
-  color: #0f172a;
-  text-shadow: 0 1px 0 rgba(255,255,255,.6);
+html:not(.dark) .msg-row:hover{ background: rgba(15,23,42,.07) !important; }
+
+/* Name + text base — KHÔNG có dark shadow nữa, dùng white shadow nhẹ */
+html:not(.dark) .msg-name{
+  text-shadow: 0 1px 0 rgba(255,255,255,.7) !important;
 }
-:root[data-theme="light"] .msg-row.msg-tier1 .msg-name{ color: #475569; }
-:root[data-theme="light"] .msg-row.msg-tier2 .msg-name{ color: #b45309; }
-:root[data-theme="light"] .msg-row.msg-tier3 .msg-name{ color: #1d4ed8; }
-:root[data-theme="light"] .msg-row.msg-tier4 .msg-name{ color: #a16207; }
-:root[data-theme="light"] .msg-row.msg-tier5 .msg-name{ color: #15803d; }
-:root[data-theme="light"] .msg-row.msg-tier6 .msg-name{ color: #0e7490; }
-:root[data-theme="light"] .msg-row.msg-tier7 .msg-name{ color: #7e22ce; }
-:root[data-theme="light"] .msg-row.msg-tier8 .msg-name{ color: #be185d; }
-:root[data-theme="light"] .msg-row.msg-tier9 .msg-name{ color: #c2410c; }
-:root[data-theme="light"] .msg-row.msg-tier10 .msg-name{ color: #be185d; }
-:root[data-theme="light"] .msg-row.msg-cskh .msg-name{ color: #15803d; }
-:root[data-theme="light"] .msg-row.msg-vip{
-  background: linear-gradient(135deg, rgba(254,243,199,.95), rgba(253,230,138,.85), rgba(254,243,199,.95));
-  border-color: rgba(180,83,9,.65);
-  box-shadow: 0 0 0 1px rgba(180,83,9,.15), 0 2px 8px rgba(180,83,9,.12);
+html:not(.dark) .msg-text{
+  color: #1a1f2e !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.7) !important;
 }
-:root[data-theme="light"] .msg-row.msg-vip .msg-name{ color: #78350f; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
-:root[data-theme="light"] .msg-row.msg-vip .msg-text{ color: #422006; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
-:root[data-theme="light"] .msg-row.msg-svip{
-  background: linear-gradient(135deg, rgba(243,232,255,.95), rgba(216,180,254,.85), rgba(243,232,255,.95));
-  border-color: rgba(124,58,237,.65);
-  box-shadow: 0 0 0 1px rgba(124,58,237,.15), 0 2px 8px rgba(124,58,237,.12);
+
+/* Tier name color — chọn stop ĐẬM (700-800) để contrast tốt trên nền sáng */
+html:not(.dark) .msg-row.msg-tier1  .msg-name{ color: #334155 !important; } /* slate-700 */
+html:not(.dark) .msg-row.msg-tier2  .msg-name{ color: #b45309 !important; } /* amber-700 */
+html:not(.dark) .msg-row.msg-tier3  .msg-name{ color: #1d4ed8 !important; } /* blue-700 */
+html:not(.dark) .msg-row.msg-tier4  .msg-name{ color: #a16207 !important; } /* yellow-700 */
+html:not(.dark) .msg-row.msg-tier5  .msg-name{ color: #15803d !important; } /* green-700 */
+html:not(.dark) .msg-row.msg-tier6  .msg-name{ color: #0e7490 !important; } /* cyan-700 */
+html:not(.dark) .msg-row.msg-tier7  .msg-name{ color: #7e22ce !important; } /* purple-700 */
+html:not(.dark) .msg-row.msg-tier8  .msg-name{ color: #be185d !important; } /* pink-700 */
+html:not(.dark) .msg-row.msg-tier9  .msg-name{ color: #c2410c !important; } /* orange-700 */
+html:not(.dark) .msg-row.msg-tier10 .msg-name{ color: #be185d !important; }
+html:not(.dark) .msg-row.msg-cskh   .msg-name{ color: #15803d !important; }
+
+/* Tier 11 rainbow trên light mode: bỏ drop-shadow đen, đậm hơn để rõ */
+html:not(.dark) .msg-row.msg-tier11 .msg-name{
+  background: linear-gradient(90deg, #c2185b, #d84315, #c9851d, #00838f, #1565c0, #6a1b9a) !important;
+  -webkit-background-clip: text !important; background-clip: text !important;
+  -webkit-text-fill-color: transparent !important; color: transparent !important;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.6)) !important;
 }
-:root[data-theme="light"] .msg-row.msg-svip .msg-name{ color: #581c87; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
-:root[data-theme="light"] .msg-row.msg-svip .msg-text{ color: #3b0764; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
-:root[data-theme="light"] .msg-row.msg-cskh{
-  background: linear-gradient(135deg, rgba(220,252,231,.95), rgba(187,247,208,.85), rgba(220,252,231,.95));
-  border-color: rgba(22,101,52,.6);
+
+/* ---- VIP frame light: nền vàng dịu, text nâu đậm dễ đọc ---- */
+html:not(.dark) .msg-row.msg-vip{
+  background: linear-gradient(135deg, #fef3c7, #fde68a, #fef3c7) !important;
+  border: 1.5px solid #d97706 !important;
+  box-shadow: 0 1px 0 rgba(217,119,6,.15), 0 2px 8px rgba(217,119,6,.12) !important;
 }
-:root[data-theme="light"] .msg-row.msg-cskh .msg-text{ color: #064e3b; }
+html:not(.dark) .msg-row.msg-vip .msg-name{
+  color: #78350f !important; /* amber-900 — gần đen, đọc cực rõ */
+  text-shadow: 0 1px 0 rgba(255,255,255,.6) !important;
+}
+html:not(.dark) .msg-row.msg-vip .msg-text{
+  color: #422006 !important; /* amber-950 */
+  text-shadow: 0 1px 0 rgba(255,255,255,.5) !important;
+}
+
+/* ---- SVIP frame light: nền tím dịu ---- */
+html:not(.dark) .msg-row.msg-svip{
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff, #f3e8ff) !important;
+  border: 1.5px solid #9333ea !important;
+  box-shadow: 0 1px 0 rgba(147,51,234,.15), 0 2px 8px rgba(147,51,234,.12) !important;
+}
+html:not(.dark) .msg-row.msg-svip .msg-name{
+  color: #581c87 !important; /* purple-900 */
+  text-shadow: 0 1px 0 rgba(255,255,255,.6) !important;
+}
+html:not(.dark) .msg-row.msg-svip .msg-text{
+  color: #3b0764 !important; /* purple-950 */
+  text-shadow: 0 1px 0 rgba(255,255,255,.5) !important;
+}
+
+/* ---- CSKH frame light: nền xanh lá dịu ---- */
+html:not(.dark) .msg-row.msg-cskh{
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0, #dcfce7) !important;
+  border: 1.5px solid #16a34a !important;
+  box-shadow: 0 1px 0 rgba(22,163,74,.15), 0 2px 8px rgba(22,163,74,.12) !important;
+}
+html:not(.dark) .msg-row.msg-cskh .msg-name{
+  color: #14532d !important; /* green-900 */
+  text-shadow: 0 1px 0 rgba(255,255,255,.6) !important;
+}
+html:not(.dark) .msg-row.msg-cskh .msg-text{
+  color: #052e16 !important; /* green-950 */
+  text-shadow: 0 1px 0 rgba(255,255,255,.5) !important;
+}
