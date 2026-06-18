@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v121-2026-06-18-fix-chat-overflow-when-switch-top-gif-tab';
+const VERSION = 'v122-2026-06-18-chat-overflow-hardcode-CSS-force-528-fixed';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

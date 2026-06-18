@@ -73,14 +73,18 @@ var _obsMode = (idol.streamMethod === 'obs');
   .idol-room-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
   .idol-player-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
   .idol-room-player { width: 100%; aspect-ratio: 16/9; height: auto; }
-  .idol-room-chat { height: 60vh; min-height: 380px; overflow: hidden; }
+  .idol-room-chat { height: 60vh; min-height: 380px; max-height: 70vh; overflow: hidden !important; contain: layout size; }
+  /* Chat aside flex-col children layout (CRITICAL — NEVER REMOVE) */
+  .idol-room-chat > *:not(#chatBody):not(#giftLog) { flex-shrink: 0 !important; }
+  .idol-room-chat #chatBody,
+  .idol-room-chat #giftLog { flex: 1 1 0 !important; min-height: 0 !important; overflow-y: auto !important; }
   @media (min-width: 768px) {
     /* Desktop: grid FIXED height 528px (player 480 + quality bar 40 + gap 8) */
     /* → chat cell bounded → KHÔNG tự expand theo messages content */
-    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; height: 528px; align-items: stretch; }
+    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; height: 528px !important; align-items: stretch; grid-template-rows: 528px; }
     .idol-room-player { height: 480px; width: auto; aspect-ratio: 16/9; margin-left: auto; max-width: 100%; }
-    /* Chat 100% grid cell height = 528px, overflow hidden để messages list scroll bên trong */
-    .idol-room-chat { height: 100%; max-height: 100%; min-height: 0; overflow: hidden; }
+    /* Chat 100% grid cell height = 528px FIXED, overflow hidden để messages list scroll bên trong */
+    .idol-room-chat { height: 528px !important; max-height: 528px !important; min-height: 0 !important; overflow: hidden !important; }
   }
 </style>
 
