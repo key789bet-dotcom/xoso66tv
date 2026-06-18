@@ -225,9 +225,9 @@ function getMsgRowClass(lvl, badge){
   if (n >= 10)  return 'msg-tier2';
   return 'msg-tier1';
 }
-// SVG icon ngôi sao (text dùng cho innerHTML)
-var LV_STAR_SVG = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9.2l-5 4.8 1.4 7L12 17.5 6.6 21l1.4-7-5-4.8 6.4-.8L12 2z"/></svg>';
-var LV_CROWN_SVG = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M5 18h14v2H5zM3 7l4 5 5-7 5 7 4-5v9H3V7z"/></svg>';
+// SVG icon ngôi sao — có width/height attribute fallback phòng CSS chưa load (tránh icon phình to)
+var LV_STAR_SVG = '<svg class="lv-ico" width="10" height="10" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9.2l-5 4.8 1.4 7L12 17.5 6.6 21l1.4-7-5-4.8 6.4-.8L12 2z"/></svg>';
+var LV_CROWN_SVG = '<svg class="lv-ico" width="10" height="10" viewBox="0 0 24 24"><path d="M5 18h14v2H5zM3 7l4 5 5-7 5 7 4-5v9H3V7z"/></svg>';
 
 function getLevelBadgeHTML(lvl, badge){
   var tierClass = getLevelTierClass(lvl, badge);
