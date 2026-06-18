@@ -472,11 +472,12 @@ var _obsMode = (idol.streamMethod === 'obs');
 <article class="mb-6 <%= _obsMode ? 'block' : 'hidden md:block' %>" style="max-width:1200px;margin-left:auto;margin-right:auto;width:100%;<%= _obsMode ? 'padding:0 8px;' : '' %>">
 
   <!-- TOP ROW: Player + Chat — responsive cho OBS mode -->
-  <section class="<%= _obsMode ? 'idol-room-grid' : '' %> mb-4" <% if (!_obsMode) { %>style="display:grid;grid-template-columns:minmax(0,1fr) 320px;align-items:start;height:480px;gap:1rem;"<% } %>>
+  <section class="<%= _obsMode ? 'idol-room-grid' : '' %> mb-4" <% if (!_obsMode) { %>style="display:grid;grid-template-columns:minmax(0,1fr) 320px;align-items:start;gap:1rem;"<% } %>>
     <!-- Player aspect-video -->
 
-    <!-- WRAPPER cột 1: player + quality bar (xếp dọc cùng cột grid) -->
-    <div class="idol-player-col" style="display:flex; flex-direction:column; gap:8px; min-width:0;">
+    <!-- WRAPPER cột 1: player + quality bar (xếp dọc cùng cột grid)
+         align-self:start để không stretch cả height của row → tránh đè section info dưới -->
+    <div class="idol-player-col" style="display:flex; flex-direction:column; gap:8px; min-width:0; align-self:start;">
 
     <!-- Player — OBS mode dùng class responsive, mobile mode giữ style cũ -->
     <div id="livePlayer" class="<%= _obsMode ? 'idol-room-player' : '' %> bg-black rounded-xl relative overflow-hidden grid place-items-center" <% if (!_obsMode) { %>style="height:480px;aspect-ratio:16/9;max-width:100%;margin-left:auto;background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))"<% } else { %>style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))"<% } %>>
