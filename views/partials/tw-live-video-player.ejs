@@ -36,10 +36,11 @@ try {
 <% } %>
 
 <!-- ⏱ Latency badge (live) — hiện độ trễ video so với mốc live thực -->
-<span class="hidden md:inline-flex absolute top-3 left-3 z-[6] items-center gap-1 bg-black/70 backdrop-blur text-[10px] font-mono font-bold px-2 py-1 rounded shadow-lg border border-white/10" id="liveLatencyBadgeWrap" title="Độ trễ video (idol → bạn)">
-  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-  <span style="color:#94a3b8">Trễ:</span>
-  <span id="liveLatencyBadge" style="color:#10b981; min-width:34px; text-align:right;">--</span>
+<span id="liveLatencyBadgeWrap" title="Độ trễ video (idol → bạn)"
+  style="position:absolute; top:12px; left:12px; z-index:6; display:inline-flex; align-items:center; gap:4px; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); color:#fff; font-size:11px; font-family:'JetBrains Mono','Courier New',monospace; font-weight:700; padding:4px 10px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); pointer-events:none;">
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+  <span style="color:#94a3b8; font-weight:500;">Trễ</span>
+  <span id="liveLatencyBadge" style="color:#10b981; min-width:32px; text-align:right;">--</span>
 </span>
 
 <!-- Nút BẬT TIẾNG đã bỏ theo yêu cầu — user dùng nút loa trong native video controls để unmute -->

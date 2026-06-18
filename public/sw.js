@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v103-2026-06-17-smooth-latency-playback-rate-catchup-badge';
+const VERSION = 'v104-2026-06-17-fix-latency-badge-inline-style-always-visible';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
