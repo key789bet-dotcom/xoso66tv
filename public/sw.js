@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v112-2026-06-18-fix-section-height-quality-bar-not-overlap-idol-info';
+const VERSION = 'v113-2026-06-18-revert-section-height-to-min-height-480px';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
