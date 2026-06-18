@@ -292,3 +292,182 @@ html:not(.dark) [style*="color: #34d399"]{
 }
 /* #fb923c (orange-400) → giữ nguyên, OK trên trắng */
 /* #fff đã có rule ở trên */
+
+/* ══════════════════════════════════════════════════════════════════
+   PHÒNG LIVE DESKTOP — partials/tw-live-desktop-room.ejs (.dlr-*)
+   Toàn bộ class hardcode bg đen/xanh đậm (#0a0d12, #13171f, #1a1f29,
+   #152040, #0a1628) — cần override sạch để light mode trông sáng sủa.
+   GIỮ NGUYÊN: sân bóng .dlr-sim-pitch (xanh cỏ), banner cam (.dlr-banner-cta),
+   bookie gradient cam (.dlr-tb-brand, .dlr-odds-bookmaker).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Surface chính: top-bar, odds-row, nav-tabs, status-strip ── */
+html:not(.dark) .dlr-top-bar{
+  background:linear-gradient(180deg,#ffffff,#f6f8fc) !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-odds-row,
+html:not(.dark) .dlr-nav-tabs,
+html:not(.dark) .dlr-status-strip{
+  background:#ffffff !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-status-strip{ border-bottom:none !important; }
+html:not(.dark) .dlr-odds-head{ border-bottom-color:#e0e6ee !important; }
+
+/* ── Chip BLV, mini-scores ── */
+html:not(.dark) .dlr-chip-blv{
+  background:#f1f5f9 !important;
+  border-color:#d6dce6 !important;
+  color:#1f2937 !important;
+}
+html:not(.dark) .dlr-mini-label,
+html:not(.dark) .dlr-nav-label,
+html:not(.dark) .dlr-odds-bookmaker-label,
+html:not(.dark) .dlr-odds-col-label,
+html:not(.dark) .dlr-banner-icons,
+html:not(.dark) .dlr-tags-label,
+html:not(.dark) .dlr-tb-desc,
+html:not(.dark) .dlr-stat-empty,
+html:not(.dark) .dlr-sb-ht{
+  color:#475569 !important;
+}
+
+/* ── Score box, team names ── */
+html:not(.dark) .dlr-team-name{ color:#0f172a !important; }
+html:not(.dark) .dlr-score-status{ color:#475569 !important; }
+html:not(.dark) .dlr-score-nums{ color:#c2410c !important; } /* cam thay vàng cho contrast */
+
+/* ── Odds cells ── */
+html:not(.dark) .dlr-odd-cell{
+  background:#f1f5f9 !important;
+  color:#0f172a !important;
+}
+/* .dlr-odd-line giữ nguyên cam */
+/* .dlr-odd-cta giữ nguyên xanh emerald */
+
+/* ── Nav tabs ── */
+html:not(.dark) .dlr-nav-tab{ color:#475569 !important; }
+html:not(.dark) .dlr-nav-tab:hover{
+  color:#c2410c !important;
+  background:rgba(255,122,24,.08) !important;
+}
+html:not(.dark) .dlr-nav-tab.active{
+  color:#c2410c !important;
+  background:rgba(255,122,24,.12) !important;
+}
+
+/* ── SIM toggle ── */
+html:not(.dark) .dlr-sim-toggle{
+  color:#475569 !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-sim-toggle:hover{ color:#c2410c !important; }
+
+/* ── Section header H3 ── */
+html:not(.dark) .dlr-section-h h3{ color:#0f172a !important; }
+html:not(.dark) .dlr-section-h h3 span{ color:#c2410c !important; }
+
+/* ── Status strip text ── */
+html:not(.dark) .dlr-status-strip span{ color:#1f2937 !important; }
+html:not(.dark) .dlr-status-strip b{ color:#c2410c !important; }
+html:not(.dark) .dlr-status-cta{ color:#b45309 !important; }
+
+/* ── Player tabs ── */
+html:not(.dark) .dlr-player-tabs{ border-bottom-color:#d6dce6 !important; }
+html:not(.dark) .dlr-pt{ color:#475569 !important; }
+html:not(.dark) .dlr-pt.active{
+  background:#ffffff !important;
+  color:#c2410c !important;
+}
+
+/* ── Quality bar ── */
+html:not(.dark) .dlr-quality-bar{
+  background:#ffffff !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-qbtn{
+  background:#f1f5f9 !important;
+  color:#1f2937 !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-qbtn:hover{ color:#c2410c !important; }
+/* .dlr-qbtn.active giữ nguyên cam */
+
+/* ── Score bar dưới pitch (đang là #152040 — xanh navy đậm) ── */
+html:not(.dark) .dlr-sim-scorebar{
+  background:linear-gradient(180deg,#f8fafc,#eef2f7) !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-sb-name{ color:#0f172a !important; }
+html:not(.dark) .dlr-sb-timer{ color:#c2410c !important; }
+html:not(.dark) .dlr-sb-score{ color:#0f172a !important; }
+html:not(.dark) .dlr-card-corner{
+  background:#e0e6ee !important;
+  color:#334155 !important;
+}
+
+/* ── Timeline biểu đồ momentum ── */
+html:not(.dark) .dlr-sim-timeline{
+  background:#ffffff !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-tl-header,
+html:not(.dark) .dlr-tl-footer{ color:#475569 !important; }
+html:not(.dark) .dlr-tl-axis{ color:#475569 !important; }
+html:not(.dark) .dlr-tl-marker-icon{ border-color:#ffffff !important; }
+html:not(.dark) .dlr-tl-marker-tooltip{
+  background:#1f2937 !important;
+  color:#ffffff !important;
+}
+
+/* ── Bookie panel + Other matches + SEO box ── */
+html:not(.dark) .dlr-top-bookie,
+html:not(.dark) .dlr-other-matches,
+html:not(.dark) .dlr-seo{
+  background:#ffffff !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .dlr-other-head{ color:#c2410c !important; }
+html:not(.dark) .dlr-other-item{
+  color:#1f2937 !important;
+  border-bottom-color:#e0e6ee !important;
+}
+html:not(.dark) .dlr-other-item:hover{ background:rgba(255,122,24,.06) !important; }
+html:not(.dark) .dlr-other-time{ color:#b45309 !important; }
+html:not(.dark) .dlr-other-match{ color:#334155 !important; }
+
+/* ── SEO article text ── */
+html:not(.dark) .dlr-seo h4{ color:#0f172a !important; }
+html:not(.dark) .dlr-seo p{ color:#1f2937 !important; }
+html:not(.dark) .dlr-seo b{ color:#0f172a !important; }
+html:not(.dark) .dlr-seo a{ color:#c2410c !important; }
+html:not(.dark) .dlr-seo .dlr-gold{ color:#b45309 !important; }
+
+/* ── Tags ── */
+html:not(.dark) .dlr-tags{ border-top-color:#e0e6ee !important; }
+html:not(.dark) .dlr-tag{
+  background:#f1f5f9 !important;
+  color:#c2410c !important;
+}
+html:not(.dark) .dlr-tag:hover{ background:rgba(255,122,24,.15) !important; }
+
+/* ── Stats panel (overlay trên pitch — giữ xanh cỏ) ── */
+html:not(.dark) .dlr-sim-stats h4{ color:#ffffff !important; } /* trên nền cỏ vẫn cần trắng */
+html:not(.dark) .dlr-stat-l,
+html:not(.dark) .dlr-stat-r{ color:#ffffff !important; }
+html:not(.dark) .dlr-stat-label{
+  background:rgba(255,255,255,.92) !important;
+  color:#c2410c !important;
+}
+
+/* ── Inline-styled wrappers (SVG sim, iframe, tooltip) ── */
+html:not(.dark) #dlrSimSvgWrap,
+html:not(.dark) #dlrSimIframeWrap{
+  background:#ffffff !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) #dlrSimIframe{
+  background:#ffffff !important;
+}
+/* Tooltip mô phỏng giữ tối — đè lên sân cỏ nên cần contrast */
