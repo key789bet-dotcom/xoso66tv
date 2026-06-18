@@ -35,6 +35,13 @@ try {
 </span>
 <% } %>
 
+<!-- ⏱ Latency badge (live) — hiện độ trễ video so với mốc live thực -->
+<span class="hidden md:inline-flex absolute top-3 left-3 z-[6] items-center gap-1 bg-black/70 backdrop-blur text-[10px] font-mono font-bold px-2 py-1 rounded shadow-lg border border-white/10" id="liveLatencyBadgeWrap" title="Độ trễ video (idol → bạn)">
+  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+  <span style="color:#94a3b8">Trễ:</span>
+  <span id="liveLatencyBadge" style="color:#10b981; min-width:34px; text-align:right;">--</span>
+</span>
+
 <!-- Nút BẬT TIẾNG đã bỏ theo yêu cầu — user dùng nút loa trong native video controls để unmute -->
 
 <!-- 🎬 Mục 16: Picture-in-Picture button (ẩn nếu browser không support) -->
@@ -305,13 +312,16 @@ try {
     flvPlayer = flvjs.createPlayer({
       type: 'flv', url: STREAM_URL, isLive: true, hasAudio: true, hasVideo: true
     }, {
-      // ⚡ Config TỐI THIỂU SAFE (low latency từ SRS server)
-      // Bỏ liveBufferLatencyChasing vì FLV.js v1.6.2 bug remove negative range gây lag
+      // ⚡ Config low-latency + ÍT LAG hơn (giảm reset decoder)
       enableWorker: false,
       enableStashBuffer: false,
-      stashInitialSize: 128,
+      stashInitialSize: 384,           // tăng từ 128 → 384: ít flush hơn, mượt hơn
       lazyLoad: false,
-      fixAudioTimestampGap: false
+      fixAudioTimestampGap: true,      // bật để smooth audio (giảm pop/click)
+      reuseRedirectedURL: true,
+      autoCleanupSourceBuffer: true,   // tự clean MSE buffer cũ tránh memory creep
+      autoCleanupMaxBackwardDuration: 12,
+      autoCleanupMinBackwardDuration: 8
     });
     flvPlayer.attachMediaElement(video);
     flvPlayer.load();
@@ -497,21 +507,50 @@ try {
 
   // Stop previous guard interval khi destroy/reload
   var __latencyGuardId = null;
+  var __latencyStatId  = null;
   function startLatencyGuard(){
     if (__latencyGuardId) clearInterval(__latencyGuardId);
+    if (__latencyStatId)  clearInterval(__latencyStatId);
+
+    // 1️⃣ Seek về live — chỉ khi drift QUÁ CAO (>10s), playbackRate trick khi drift 4-10s
+    //    Cách playbackRate mượt hơn seek (không giật, không hard reset decoder)
     __latencyGuardId = setInterval(function(){
       if (!video || video.paused || video.readyState < 2) return;
       var b = video.buffered;
       if (!b || b.length === 0) return;
       var bufferEnd = b.end(b.length - 1);
       var drift = bufferEnd - video.currentTime;
-      // Skip về live khi drift > 6s (giữ 1s buffer cho mượt)
-      if (drift > 6) {
-        var target = bufferEnd - 1;
-        console.log('[LIVE] ⚡ Drift', drift.toFixed(1) + 's → seek về live (target=' + target.toFixed(1) + ')');
-        try { video.currentTime = target; } catch(e) { console.warn('[LIVE] seek fail:', e.message); }
+      if (drift > 10) {
+        // Drift quá lớn → HARD seek (không có cách khác, đành chịu giật 1 lần)
+        var target = bufferEnd - 1.5;
+        console.log('[LIVE] ⚡ HARD seek drift=' + drift.toFixed(1) + 's → target=' + target.toFixed(1));
+        try { video.currentTime = target; video.playbackRate = 1.0; } catch(e){}
+      } else if (drift > 4) {
+        // Drift trung bình → tăng playbackRate nhẹ (1.06x) để catchup mượt, không giật
+        if (video.playbackRate < 1.05) {
+          video.playbackRate = 1.06;
+          console.log('[LIVE] ⏩ Soft catchup playbackRate=1.06 (drift=' + drift.toFixed(1) + 's)');
+        }
+      } else if (drift < 2.5) {
+        // Đã catch up → về tốc độ bình thường
+        if (video.playbackRate > 1.0) {
+          video.playbackRate = 1.0;
+        }
       }
-    }, 5000);
+    }, 8000); // check mỗi 8s (giảm tần suất từ 5s → ít can thiệp hơn)
+
+    // 2️⃣ Update latency badge realtime mỗi 1s (cho user thấy độ trễ thật)
+    var badge = document.getElementById('liveLatencyBadge');
+    if (badge) {
+      __latencyStatId = setInterval(function(){
+        if (!video || video.paused || video.readyState < 2) { badge.textContent = '--'; return; }
+        var b = video.buffered;
+        if (!b || b.length === 0) { badge.textContent = '--'; return; }
+        var d = b.end(b.length - 1) - video.currentTime;
+        badge.textContent = d.toFixed(1) + 's';
+        badge.style.color = d < 3 ? '#10b981' : d < 6 ? '#facc15' : '#ef4444';
+      }, 1000);
+    }
   }
 
   // Đếm lần check fail liên tiếp khi CHƯA từng play (để decide show offline)
