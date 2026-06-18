@@ -224,3 +224,71 @@ html:not(.dark) .prose h2,
 html:not(.dark) .prose h3{
   color:#0f172a !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   TRANG /tin-tuc — custom class .fr-* hardcode màu đen trong <style>
+   inline của tw-tin-tuc.ejs (#171c28, #1a2030, #232a3a)
+   ══════════════════════════════════════════════════════════════════ */
+html:not(.dark) .fr-card,
+html:not(.dark) .fr-sb-card{
+  background:#ffffff !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .fr-sb-card:hover{
+  background:#f8fafc !important;
+  border-color:#10b981 !important;
+}
+html:not(.dark) .fr-news-row{
+  border-bottom-color:#e0e6ee !important;
+}
+html:not(.dark) .fr-news-row:hover{
+  background:#f8fafc !important;
+}
+/* Thumb wrapper: giữ nền xám rất nhạt (bao quanh SVG hero tối) */
+html:not(.dark) .fr-thumb,
+html:not(.dark) .fr-thumb-lg,
+html:not(.dark) .fr-hero-img{
+  background:#eef2f7 !important;
+}
+/* Chip filter chuyên mục/giải đấu */
+html:not(.dark) .fr-chip{
+  background:#eef2f7 !important;
+  color:#1f2937 !important;
+  border-color:#d6dce6 !important;
+}
+html:not(.dark) .fr-chip:hover{
+  background:#dde4ee !important;
+}
+html:not(.dark) .fr-chip.active{
+  color:#ffffff !important;  /* giữ trắng trên gradient xanh */
+}
+html:not(.dark) .fr-chip .cnt{
+  color:#047857 !important;  /* số đếm xanh emerald đậm */
+}
+/* fr-widget-head: GIỮ gradient xanh emerald — header section design đẹp */
+
+/* News-flt button (chip filter chính) khi KHÔNG active */
+html:not(.dark) .news-flt:not(.active){
+  background:#eef2f7 !important;
+  color:#1f2937 !important;
+  border-color:#d6dce6 !important;
+}
+
+/* ───── Inline color hex phổ biến cần đậm hơn cho light ───── */
+/* #94a3b8 (slate-400 muted) → #475569 cho readable */
+html:not(.dark) [style*="color:#94a3b8"],
+html:not(.dark) [style*="color: #94a3b8"]{
+  color:#475569 !important;
+}
+/* #cbd5e1 (slate-300) → #334155 */
+html:not(.dark) [style*="color:#cbd5e1"],
+html:not(.dark) [style*="color: #cbd5e1"]{
+  color:#334155 !important;
+}
+/* #34d399 (emerald-400) → #047857 đậm hơn cho contrast trên nền trắng */
+html:not(.dark) [style*="color:#34d399"],
+html:not(.dark) [style*="color: #34d399"]{
+  color:#047857 !important;
+}
+/* #fb923c (orange-400) → giữ nguyên, OK trên trắng */
+/* #fff đã có rule ở trên */
