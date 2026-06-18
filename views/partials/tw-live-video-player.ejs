@@ -46,10 +46,19 @@ try {
 <!-- Nút BẬT TIẾNG đã bỏ theo yêu cầu — user dùng nút loa trong native video controls để unmute -->
 
 <!-- 🎬 Mục 16: Picture-in-Picture button (ẩn nếu browser không support) -->
-<button id="livePipBtn" class="hidden absolute top-3 right-3 z-[7] bg-black/70 hover:bg-black border border-white/20 text-white w-9 h-9 rounded-lg grid place-items-center transition-all hover:scale-110 backdrop-blur" type="button" title="Picture-in-Picture (mở video ra cửa sổ nổi)" aria-label="Picture-in-Picture">
+<button id="livePipBtn" type="button" title="Hình trong hình (PiP)" aria-label="Picture-in-Picture"
+  style="display:none; position:absolute; top:12px; right:12px; z-index:7; background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.2); color:#fff; width:38px; height:38px; border-radius:8px; align-items:center; justify-content:center; backdrop-filter:blur(4px); cursor:pointer; transition:transform .15s;">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
     <rect x="12" y="9" width="8" height="6" rx="1" ry="1" fill="currentColor" stroke="none"/>
+  </svg>
+</button>
+
+<!-- 📱 Fullscreen landscape button (xoay ngang full màn hình - quan trọng cho mobile) -->
+<button id="liveFsBtn" type="button" title="Toàn màn hình (xoay ngang)" aria-label="Toàn màn hình"
+  style="display:none; position:absolute; top:12px; right:60px; z-index:7; background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.2); color:#fff; width:38px; height:38px; border-radius:8px; align-items:center; justify-content:center; backdrop-filter:blur(4px); cursor:pointer; transition:transform .15s;">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
   </svg>
 </button>
 
@@ -149,9 +158,9 @@ try {
       pipBtn.style.display = 'none';
       return;
     }
-    // Show button (chỉ khi video có stream)
-    function showPipBtn(){ pipBtn.classList.remove('hidden'); }
-    function hidePipBtn(){ pipBtn.classList.add('hidden'); }
+    // Show button (chỉ khi video có stream) — dùng inline style để override Tailwind class
+    function showPipBtn(){ pipBtn.style.display = 'inline-flex'; }
+    function hidePipBtn(){ pipBtn.style.display = 'none'; }
     // Hook vào event 'playing' của video → show button
     v.addEventListener('playing', showPipBtn);
     v.addEventListener('emptied', hidePipBtn);
@@ -189,12 +198,59 @@ try {
     console.log('[PIP] ✅ Initialized (' + (WEBKIT ? 'webkit' : 'standard') + ')');
   })();
 
+  /* ═══════════════════════════════════════════════════════════════
+     📱 FULLSCREEN LANDSCAPE (xoay ngang full màn hình - mobile)
+     ─────────────────────────────────────────────────────────────── */
+  (function initFs(){
+    var fsBtn = document.getElementById('liveFsBtn');
+    var v = document.getElementById('liveVideo');
+    if (!fsBtn || !v) return;
+    // Show button khi video bắt đầu play
+    function showFsBtn(){ fsBtn.style.display = 'inline-flex'; }
+    function hideFsBtn(){ fsBtn.style.display = 'none'; }
+    v.addEventListener('playing', showFsBtn);
+    v.addEventListener('emptied', hideFsBtn);
+    v.addEventListener('error',   hideFsBtn);
+
+    // Click handler — enter fullscreen + lock landscape
+    fsBtn.addEventListener('click', async function(){
+      try {
+        // 🍎 iOS Safari: dùng video native fullscreen (auto landscape)
+        if (typeof v.webkitEnterFullscreen === 'function') {
+          v.webkitEnterFullscreen();
+          return;
+        }
+        // 🌐 Standard: fullscreen video element trước (audio đi cùng video)
+        var target = v;
+        if (target.requestFullscreen)         await target.requestFullscreen();
+        else if (target.webkitRequestFullscreen)  target.webkitRequestFullscreen();
+        else if (target.msRequestFullscreen)      target.msRequestFullscreen();
+        // 📱 Force landscape (Android Chrome support, iOS không support orientation.lock)
+        if (screen && screen.orientation && typeof screen.orientation.lock === 'function') {
+          try { await screen.orientation.lock('landscape'); } catch(e) { /* desktop ignore */ }
+        }
+      } catch (err) {
+        console.warn('[FS] error:', err && err.message);
+      }
+    });
+
+    // Khi exit fullscreen → unlock orientation
+    document.addEventListener('fullscreenchange', function(){
+      if (!document.fullscreenElement) {
+        if (screen && screen.orientation && typeof screen.orientation.unlock === 'function') {
+          try { screen.orientation.unlock(); } catch(e){}
+        }
+      }
+    });
+    console.log('[FS] ✅ Initialized fullscreen-landscape button');
+  })();
+
   function showEl(id){ var e=document.getElementById(id); if(e)e.classList.remove('hidden'); }
   function hideEl(id){ var e=document.getElementById(id); if(e)e.classList.add('hidden'); }
 
   // Helper: element có giữ lại không (theo id whitelist hoặc class skin-*)
   function _keepEl(el){
-    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay','liveLatencyBadgeWrap','livePipBtn'];
+    var keepIds = ['liveVideo','liveUnmute','liveOffline','liveLoading','liveReconnect','liveQualityBadge','liveStatsOverlay','liveLatencyBadgeWrap','livePipBtn','liveFsBtn'];
     if (keepIds.indexOf(el.id) !== -1) return true;
     // 🎨 SKIN OVERLAY: giữ mọi element class skin-* (player-frame, logo-overlay, ...)
     if (el.className && typeof el.className === 'string' && /\bskin-/.test(el.className)) return true;
