@@ -11,6 +11,20 @@
 
 /* ───── Tailwind 100-400 light shades → 700-800 dark shades cho contrast WCAG AA ───── */
 
+/* CRITICAL: text-white + shade 50 — class phổ biến nhất, vô hình trên bg trắng */
+html:not(.dark) .text-white,
+html:not(.dark) .text-zinc-50,
+html:not(.dark) .text-slate-50,
+html:not(.dark) .text-gray-50,
+html:not(.dark) .text-neutral-50,
+html:not(.dark) .text-stone-50    { color:#1a1f2e !important; }
+
+/* GRAY scale 100-400 (Tailwind default gray, không phải zinc/slate) */
+html:not(.dark) .text-gray-100,
+html:not(.dark) .text-gray-200   { color:#1f2937 !important; }
+html:not(.dark) .text-gray-300   { color:#374151 !important; }
+html:not(.dark) .text-gray-400   { color:#4b5563 !important; }
+
 html:not(.dark) .text-gray-500   { color:#5a6573 !important; }
 html:not(.dark) .text-slate-100,
 html:not(.dark) .text-slate-200  { color:#1e293b !important; }
@@ -188,3 +202,25 @@ html:not(.dark) .bg-bg-card\/80 { background-color: rgba(255,255,255,.95) !impor
 
 /* ───── Scrollbar light ───── */
 html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb { background:#cbd5e1 !important; }
+
+/* ───── Fallback: <strong>/<b> không có class color → đậm cam thương hiệu ───── */
+html:not(.dark) strong:not([class*="text-"]):not([style*="color"]),
+html:not(.dark) b:not([class*="text-"]):not([style*="color"]){
+  color:#c2410c !important;
+}
+
+/* ───── Article body trên light (trang giới thiệu/policy) ───── */
+html:not(.dark) article p,
+html:not(.dark) .prose p,
+html:not(.dark) .article-body p,
+html:not(.dark) .seo-content p{
+  color:#1f2937 !important;
+}
+html:not(.dark) article h1,
+html:not(.dark) article h2,
+html:not(.dark) article h3,
+html:not(.dark) .prose h1,
+html:not(.dark) .prose h2,
+html:not(.dark) .prose h3{
+  color:#0f172a !important;
+}
