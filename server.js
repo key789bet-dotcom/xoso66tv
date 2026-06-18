@@ -3036,6 +3036,44 @@ app.post('/api/idol/verify-pin', function (req, res){
 app.get('/api/live',     async function (req, res) { res.json({ updatedAt: Date.now(), list: await api.getLiveStreams(req.query.mon || null) }); });
 app.get('/api/upcoming', async function (req, res) { res.json({ updatedAt: Date.now(), list: await api.getUpcomingStreams(req.query.mon || null, 20) }); });
 
+// 🆕 Trận đang LIVE (BLV streamActive) — phục vụ swipe-to-next trên /live/:id
+app.get('/api/live-now-rooms', function (req, res) {
+  res.set('Cache-Control', 'no-store, must-revalidate, max-age=0');
+  try {
+    const _sched = require('./lib/schedule-store');
+    const _now = Date.now();
+    const allApproved = _sched.listAll({ status: 'approved', userType: 'blv', limit: 500 });
+    const active = (allApproved || []).filter(function (s) {
+      return s && s.streamActive && s.matchId &&
+        _now >= (s.startTime - 30 * 60 * 1000) &&
+        _now <= (s.endTime + 3 * 3600 * 1000);
+    });
+    const seen = Object.create(null);
+    const list = [];
+    for (let i = 0; i < active.length; i++) {
+      const s = active[i];
+      const mid = String(s.matchId);
+      if (seen[mid]) continue;
+      seen[mid] = 1;
+      const title = s.matchTitle || ('Trận ' + mid);
+      const slug = title.toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      list.push({
+        id: mid,
+        slug: slug + '-' + mid,
+        title: title,
+        league: s.matchLeague || '',
+        blvName: s.username || 'BLV'
+      });
+    }
+    res.json({ updatedAt: _now, list: list });
+  } catch (e) {
+    console.warn('[API live-now-rooms] fail:', e && e.message);
+    res.json({ updatedAt: Date.now(), list: [] });
+  }
+});
+
 app.get('/dang-nhap',     function (req, res) { res.render('tw-dang-nhap',     { active:'auth' }); });
 app.get('/dang-ky',       function (req, res) { res.render('tw-dang-ky',       { active:'auth' }); });
 app.get('/quen-mat-khau', function (req, res) { res.render('tw-quen-mat-khau', { active:'auth' }); });

@@ -1427,6 +1427,8 @@ var _matchStatus = match.status === 'live' ? 'EventInProgress' : (match.status =
 <!-- ════ END DESKTOP LAYOUT ════ -->
 
 <script src="/static/js/chat-v2.js?v=8c-chat-sys-class"></script>
+<!-- 🆕 Swipe / Arrow nav giữa các trận đang LIVE (mobile vuốt + desktop phím ← →) -->
+<script src="/static/js/live-swipe.js?v=1" defer></script>
 <script>
   // Flag để chat-v2 + gift-panel biết phòng có đang live thật không
   window.__x66HasObs = <%= hasObs ? 'true' : 'false' %>;
