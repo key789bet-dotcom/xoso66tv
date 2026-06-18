@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v110-2026-06-18-idol-quality-bar-bottom-like-blv-room';
+const VERSION = 'v111-2026-06-18-wrap-player-quality-bar-same-grid-col';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
