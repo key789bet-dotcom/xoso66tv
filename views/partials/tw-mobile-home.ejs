@@ -171,9 +171,11 @@ _cnt.all = _cards.length;
         <!-- Decorative orange radial glow -->
         <div class="absolute inset-0 opacity-15 pointer-events-none" style="background:radial-gradient(ellipse at center,#ff7a18 0%,transparent 65%);"></div>
         <!-- League name TOP -->
-        <div class="relative z-10 text-center pt-3 px-3">
+        <div class="relative z-10 text-center pt-3 px-3 inline-flex items-center justify-center gap-1.5 w-full">
           <% if (_featured.leagueLogo) { %>
-            <img src="<%= _featured.leagueLogo %>" alt="<%= _featured.league %>" class="inline-block w-4 h-4 align-middle mr-1 rounded bg-white/90 p-0.5" onerror="this.style.display='none'">
+            <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+              <img src="<%= _featured.leagueLogo %>" alt="<%= _featured.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+            </span>
           <% } %>
           <span class="text-pri-light text-[11px] font-bold uppercase tracking-[2px] align-middle"><%= _featured.league || 'Sự kiện' %></span>
         </div>

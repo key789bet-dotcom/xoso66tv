@@ -209,7 +209,13 @@ _idolList.forEach(function(i){
         <article class="m-match-card bg-bg-card border border-line rounded-xl overflow-hidden" data-cat="<%= card.cat %>" data-date="<%= card.isoDate %>" data-status="<%= m.status %>">
           <header class="flex items-center justify-between px-3 py-2 bg-bg-soft/40 border-b border-line">
             <div class="flex items-center gap-1.5 min-w-0">
-              <span class="bg-pri/20 text-pri-light w-5 h-5 rounded grid place-items-center text-[11px] shrink-0"><%= _leagueIcon %></span>
+              <% if (m.leagueLogo) { %>
+                <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+                  <img src="<%= m.leagueLogo %>" alt="<%= m.league || '' %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+                </span>
+              <% } else { %>
+                <span class="bg-pri/20 text-pri-light w-5 h-5 rounded grid place-items-center text-[11px] shrink-0"><%= _leagueIcon %></span>
+              <% } %>
               <span class="text-white text-[12px] font-bold truncate"><%= m.league || m.sport %></span>
             </div>
             <% if (m.status==='live') { %>

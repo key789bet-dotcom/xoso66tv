@@ -61,7 +61,14 @@ var _dates = Object.keys(_grouped).sort().reverse();
           <% _grouped[d].forEach(function(m){ %>
             <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri transition-all">
               <div class="flex items-center justify-between mb-2.5">
-                <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1 flex-1">⚽ <%= m.league %></span>
+                <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1 flex-1 inline-flex items-center gap-1.5">
+                  <% if (m.leagueLogo) { %>
+                    <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+                      <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+                    </span>
+                  <% } else { %><span>⚽</span><% } %>
+                  <span class="truncate"><%= m.league %></span>
+                </span>
                 <span class="bg-black/60 text-gray-300 text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>
               </div>
               <div class="flex items-center justify-between gap-2">

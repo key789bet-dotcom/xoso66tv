@@ -1,0 +1,33 @@
+<%
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║ LEAGUE BADGE PARTIAL — logo 24x24 trên nền tròn trắng + tên giải ║
+// ║                                                                    ║
+// ║ Props (truyền qua locals khi include):                            ║
+// ║   - league      : tên giải (string, bắt buộc)                    ║
+// ║   - leagueLogo  : URL logo từ API (string, optional — đã enrich  ║
+// ║                   sẵn bằng getLeagueLogo() trong lib/api.js)     ║
+// ║   - compact     : true = chỉ logo, không tên (boolean, optional) ║
+// ║   - size        : kích thước logo px (number, default 24)        ║
+// ║   - cls         : extra class cho wrapper (string, optional)     ║
+// ║                                                                    ║
+// ║ Usage:                                                              ║
+// ║   <%- include('partials/tw-league-badge', {                       ║
+// ║         league: m.league, leagueLogo: m.leagueLogo               ║
+// ║   }) %>                                                            ║
+// ╚══════════════════════════════════════════════════════════════════*/
+var _lbName = String(typeof league !== 'undefined' ? league : '').trim();
+var _lbLogo = String(typeof leagueLogo !== 'undefined' ? leagueLogo : '').trim();
+var _lbCompact = typeof compact !== 'undefined' ? !!compact : false;
+var _lbSize = typeof size !== 'undefined' && Number(size) > 0 ? Number(size) : 24;
+var _lbCls = String(typeof cls !== 'undefined' ? cls : '').trim();
+if (_lbName || _lbLogo) {
+%><span class="inline-flex items-center gap-1.5 align-middle <%= _lbCls %>">
+  <% if (_lbLogo) { %>
+    <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:<%= _lbSize %>px;height:<%= _lbSize %>px;padding:2px;">
+      <img src="<%= _lbLogo %>" alt="<%= _lbName %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+    </span>
+  <% } %>
+  <% if (!_lbCompact && _lbName) { %>
+    <span class="truncate"><%= _lbName %></span>
+  <% } %>
+</span><% } %>

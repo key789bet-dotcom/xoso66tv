@@ -79,7 +79,14 @@ var _dDangerAtk  = _dStats ? (_dStats.dangerAtk  || null) : null;
     </div>
 
     <div class="dlr-nav-right">
-      <span class="dlr-nav-label"><%= match.league %></span>
+      <span class="dlr-nav-label inline-flex items-center gap-1.5">
+        <% if (match.leagueLogo) { %>
+          <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+            <img src="<%= match.leagueLogo %>" alt="<%= match.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+          </span>
+        <% } %>
+        <span><%= match.league %></span>
+      </span>
     </div>
   </div>
 

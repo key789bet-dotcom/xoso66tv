@@ -42,7 +42,14 @@ seo = {
         <% liveMatches.forEach(function(m){ %>
           <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri hover:shadow-pri transition-all flex flex-col">
             <div class="flex items-center justify-between mb-2.5">
-              <span class="text-pri-light text-[11px] font-bold uppercase tracking-wider line-clamp-1 flex-1">⚽ <%= m.league %></span>
+              <span class="text-pri-light text-[11px] font-bold uppercase tracking-wider line-clamp-1 flex-1 inline-flex items-center gap-1.5">
+                <% if (m.leagueLogo) { %>
+                  <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+                    <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+                  </span>
+                <% } else { %><span>⚽</span><% } %>
+                <span class="truncate"><%= m.league %></span>
+              </span>
               <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
             </div>
             <div class="flex items-center justify-between gap-2">
@@ -81,7 +88,14 @@ seo = {
         <% upcomingMatches.slice(0, 12).forEach(function(m){ %>
           <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri transition-all">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1">⚽ <%= m.league %></span>
+              <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1 inline-flex items-center gap-1.5">
+                <% if (m.leagueLogo) { %>
+                  <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+                    <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
+                  </span>
+                <% } else { %><span>⚽</span><% } %>
+                <span class="truncate"><%= m.league %></span>
+              </span>
               <span class="bg-gradient-to-r from-pri to-pri-dark text-white text-[10px] font-extrabold px-2 py-0.5 rounded">⏰ <%= m.time %></span>
             </div>
             <div class="text-white text-sm font-bold line-clamp-2"><%= m.home %> vs <%= m.away %></div>
