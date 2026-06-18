@@ -188,15 +188,37 @@ function colorFromName(name){
   return 'hsl(' + (h % 360) + ', 80%, 70%)';
 }
 
-function lvlBadgeColor(lvl, badge){
-  if (badge === 'CSKH') return 'linear-gradient(135deg,#16a34a,#15803d)';
-  if (badge === 'SVIP') return 'linear-gradient(135deg,#e91e63,#8e44ad)';
-  if (badge === 'VIP')  return 'linear-gradient(135deg,#f59e0b,#ea580c)';
-  if (lvl >= 50) return 'linear-gradient(135deg,#9b59b6,#3498db)';
-  if (lvl >= 20) return 'linear-gradient(135deg,#f39c12,#e67e22)';
-  if (lvl >= 10) return 'linear-gradient(135deg,#10b981,#059669)';
-  return 'linear-gradient(135deg,#64748b,#475569)';
+/* ════ Level tier — 12 cấp xịn xò, dùng class CSS từ /static/css/level-badges.css ════ */
+function getLevelTierClass(lvl, badge){
+  if (badge === 'CSKH') return 'lv-cskh';
+  if (badge === 'VIP' || badge === 'SVIP' || badge === 'ADMIN' || badge === 'BLV' || badge === 'IDOL') return 'lv-vip';
+  var n = parseInt(lvl, 10) || 1;
+  if (n >= 100) return 'lv-tier11';
+  if (n >= 90)  return 'lv-tier10';
+  if (n >= 80)  return 'lv-tier9';
+  if (n >= 70)  return 'lv-tier8';
+  if (n >= 60)  return 'lv-tier7';
+  if (n >= 50)  return 'lv-tier6';
+  if (n >= 40)  return 'lv-tier5';
+  if (n >= 30)  return 'lv-tier4';
+  if (n >= 20)  return 'lv-tier3';
+  if (n >= 10)  return 'lv-tier2';
+  return 'lv-tier1';
 }
+// SVG icon ngôi sao (text dùng cho innerHTML)
+var LV_STAR_SVG = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9.2l-5 4.8 1.4 7L12 17.5 6.6 21l1.4-7-5-4.8 6.4-.8L12 2z"/></svg>';
+var LV_CROWN_SVG = '<svg class="lv-ico" viewBox="0 0 24 24"><path d="M5 18h14v2H5zM3 7l4 5 5-7 5 7 4-5v9H3V7z"/></svg>';
+
+function getLevelBadgeHTML(lvl, badge){
+  var tierClass = getLevelTierClass(lvl, badge);
+  var isSpecial = (tierClass === 'lv-vip' || tierClass === 'lv-cskh');
+  var label = isSpecial ? (badge || 'VIP') : ('LV ' + (parseInt(lvl,10)||1));
+  var icon  = (tierClass === 'lv-vip') ? LV_CROWN_SVG : LV_STAR_SVG;
+  return '<span class="lv ' + tierClass + '">' + icon + '<span class="lv-num">' + label + '</span></span>';
+}
+
+/* Backward-compatible — KHÔNG XOÁ vì có thể code khác còn gọi */
+function lvlBadgeColor(lvl, badge){ return 'transparent'; /* deprecated */ }
 
 function nowHHMM(){
   var d = new Date();
@@ -209,25 +231,21 @@ function esc(s){
   });
 }
 
-// ===== RENDER 1 DÒNG, KHÔNG BARS PHÂN CÁCH =====
+// ===== RENDER 1 DÒNG với BADGE 12 TIER xịn xò =====
 function pushMsg(container, m){
   var nameColor = colorFromName(m.name);
-  var lvlBg = lvlBadgeColor(m.lvl, m.badge);
   var time = m.time || nowHHMM();
 
   var el = document.createElement('div');
   el.className = 'msg-row';
-  // Style PHẲNG: chỉ padding nhỏ, không border, không background bar
-  el.style.cssText = 'padding:3px 10px;font-size:13px;line-height:1.5;color:#e5e7eb;word-break:break-word;';
+  el.style.cssText = 'padding:4px 10px;font-size:13px;line-height:1.55;color:#e5e7eb;word-break:break-word;';
 
-  var lvlHtml = '<span style="display:inline-block;vertical-align:baseline;min-width:20px;padding:1px 5px;border-radius:3px;color:#fff;font-size:10px;font-weight:800;text-align:center;background:' + lvlBg + ';margin-right:5px">' + m.lvl + '</span>';
-  var cskhHtml = m.badge === 'CSKH'
-    ? '<span style="display:inline-block;vertical-align:baseline;background:#16a34a;color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:3px;margin-right:5px">CSKH</span>'
-    : '';
+  // Badge LV (12 tier, có shimmer + pulse)
+  var lvlHtml = getLevelBadgeHTML(m.lvl, m.badge);
   var nameHtml = '<span style="font-weight:700;color:' + nameColor + ';margin-right:5px">' + esc(m.name) + ':</span>';
   var textHtml = '<span style="color:#e2e8f0">' + esc(m.text) + '</span>';
 
-  el.innerHTML = lvlHtml + cskhHtml + nameHtml + textHtml;
+  el.innerHTML = lvlHtml + nameHtml + textHtml;
 
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
