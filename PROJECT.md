@@ -172,6 +172,14 @@ okwin-clone/
 - Mobile <768px (stack 1 col)
 - Desktop ≥768px (2 cols ngang)
 
+**Deploy 502 Bad Gateway sau `bash deploy/update.sh` (18/06/2026):**
+
+- **VẤN ĐỀ**: Sau khi pull code + chạy `npm install --production` trong update.sh, PM2 restart nhưng nginx báo 502.
+- **NGUYÊN NHÂN**: `package.json` của folder mới (vừa migrate ra root) thiếu `mysql2` trong `dependencies` → `npm install --production` xóa `mysql2` (log: `removed 9 packages`) → `lib/db-relational.js` require fail → spam `[DB-Rel] ❌ mysql2 chưa cài` → app không serve request.
+- **FIX ĐÚNG**: Thêm `"mysql2": "^3.11.0"` vào `dependencies` package.json. Trên VPS chạy `npm install mysql2 --save` + `pm2 restart xoso66tv`.
+- **APP CHẠY PORT 4001, KHÔNG PHẢI 4000** — test bằng `curl -I http://localhost:4001`.
+- **Quy tắc**: mỗi lần migrate/đổi folder, MỞ `package.json` so sánh với folder cũ để KHÔNG mất dependency. Cân nhắc đổi `update.sh` dùng `npm ci` (strict theo lock file) thay vì `npm install --production`.
+
 ---
 
 ## 7. PENDING TASKS (chưa làm)
