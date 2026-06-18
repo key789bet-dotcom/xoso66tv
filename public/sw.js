@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v106-2026-06-18-smart-flv-error-no-reconnect-overlay-on-first-attach';
+const VERSION = 'v107-2026-06-18-force-flv-mode-chrome-desktop-not-buggy-hls';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

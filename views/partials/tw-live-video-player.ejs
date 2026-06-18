@@ -113,9 +113,14 @@ try {
   var STREAM_URL     = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.flv';
   var STREAM_URL_HLS = USE_BUNNY ? BUNNY_HLS : ('https://live.xoso66tv.com/live/' + STREAM_KEY + '.m3u8');
   // 🍎 Detect iOS Safari/macOS Safari (native HLS only, không có MSE)
+  // ⚠️ canPlayType chỉ trust khi === 'probably'. Chrome desktop trả 'maybe' (experimental, buggy)
+  //    → KHÔNG dùng HLS cho Chrome, dùng FLV (low latency + ổn định hơn)
   var _v = document.createElement('video');
-  var HAS_NATIVE_HLS = _v.canPlayType('application/vnd.apple.mpegurl') !== '';
+  var HAS_NATIVE_HLS = _v.canPlayType('application/vnd.apple.mpegurl') === 'probably';
   var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var IS_SAFARI = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  // Chỉ dùng HLS khi THỰC SỰ là Safari/iOS (không phải Chrome trên Mac có experimental HLS)
+  HAS_NATIVE_HLS = HAS_NATIVE_HLS && (IS_IOS || IS_SAFARI);
   // 🐰 Bunny BẮT BUỘC dùng HLS (Bunny không phát FLV). iOS cũng BUỘC HLS. Khác → ưu tiên FLV (low-latency hơn HLS)
   var USE_HLS = USE_BUNNY || IS_IOS || HAS_NATIVE_HLS;
   var CHECK_URL = USE_HLS ? STREAM_URL_HLS : STREAM_URL;
