@@ -1077,8 +1077,67 @@ var _obsMode = (idol.streamMethod === 'obs');
 </div>
 
 <script>
+/* ╔═══ FORCE chat aside height (runtime backup — chống CSS cache) ═══╗ */
+(function(){
+  function forceChatHeight(){
+    var chat = document.querySelector('.idol-room-chat');
+    var grid = document.querySelector('.idol-room-grid');
+    if (!chat) return;
+    if (window.innerWidth >= 768) {
+      // Desktop: bounded theo grid 528px
+      if (grid) {
+        grid.style.height = '528px';
+        grid.style.maxHeight = '528px';
+        grid.style.gridTemplateRows = '528px';
+      }
+      chat.style.height = '528px';
+      chat.style.maxHeight = '528px';
+      chat.style.minHeight = '0';
+      chat.style.overflow = 'hidden';
+    } else {
+      // Mobile: 60vh cap 70vh
+      if (grid) {
+        grid.style.height = '';
+        grid.style.maxHeight = '';
+        grid.style.gridTemplateRows = '';
+      }
+      var h = Math.min(window.innerHeight * 0.6, window.innerHeight * 0.7);
+      chat.style.height = h + 'px';
+      chat.style.maxHeight = (window.innerHeight * 0.7) + 'px';
+      chat.style.overflow = 'hidden';
+    }
+    // Force flex-1 panels có overflow-y: auto + min-h: 0
+    var chatBody = document.getElementById('chatBody');
+    var giftLog  = document.getElementById('giftLog');
+    [chatBody, giftLog].forEach(function(p){
+      if (!p) return;
+      p.style.flex = '1 1 0';
+      p.style.minHeight = '0';
+      p.style.overflowY = 'auto';
+    });
+    // Force children fixed phần (tab nav, status, CTA, input) shrink-0
+    Array.prototype.forEach.call(chat.children, function(c){
+      if (c.id !== 'chatBody' && c.id !== 'giftLog') {
+        c.style.flexShrink = '0';
+      }
+    });
+  }
+  if (document.readyState !== 'loading') forceChatHeight();
+  else document.addEventListener('DOMContentLoaded', forceChatHeight);
+  window.addEventListener('load', forceChatHeight);
+  var rzT = null;
+  window.addEventListener('resize', function(){
+    if (rzT) clearTimeout(rzT);
+    rzT = setTimeout(forceChatHeight, 120);
+  });
+  // Cũng chạy lại sau mỗi lần switch tab
+  window.__forceChatHeight = forceChatHeight;
+})();
+/* ╚═══ END FORCE chat height ═══╝ */
+
 // ===== TAB CHAT / QUÀ trong khung chat phong idol =====
 window.switchChatTab = function(tab){
+  if (window.__forceChatHeight) window.__forceChatHeight();
   document.querySelectorAll('.cp-tab').forEach(function(t){
     if (t.getAttribute('data-tab') === tab) {
       t.className = 'cp-tab flex-1 py-3 bg-bg-card text-pri-light font-bold text-xs border-b-2 border-pri' + (t.getAttribute('data-tab')==='gift'?' relative':'');
