@@ -405,6 +405,8 @@ var _obsMode = (idol.streamMethod === 'obs');
   height: 100%;
   align-items: stretch;
   padding: 14px;
+  box-sizing: border-box;
+  width: 100%;
   will-change: transform;
   transition: transform var(--alb-dur) var(--alb-ease);
 }
@@ -1175,14 +1177,33 @@ document.querySelectorAll('.ab-tab').forEach(function(t){
   var elapsed = 0;
   var timer = null;
 
-  /* Re-center track sao cho slide active ở giữa stage */
+  /* Layout metrics theo viewport (đồng bộ với @media CSS).
+     Track box-sizing: border-box → content area = stageW - padL - padR.
+     CSS active flex-basis dùng %, nên phải nhân với content area. */
+  function getLayout(){
+    var stageW = stage.clientWidth;
+    var isXs = stageW < 480;
+    var isSm = !isXs && stageW < 768;
+    var conf;
+    if (isXs)      conf = { sideW: 44, gap: 6,  padL: 10, padR: 10, actMax: Infinity, actPct: 0.78 };
+    else if (isSm) conf = { sideW: 56, gap: 6,  padL: 10, padR: 10, actMax: Infinity, actPct: 0.72 };
+    else           conf = { sideW: 88, gap: 10, padL: 14, padR: 14, actMax: 640,      actPct: 0.7  };
+    var content = stageW - conf.padL - conf.padR;
+    var activeW = Math.min(conf.actMax, content * conf.actPct);
+    return { stageW: stageW, sideW: conf.sideW, gap: conf.gap, padL: conf.padL, padR: conf.padR, activeW: activeW };
+  }
+
+  /* Re-center track: tính toán deterministic, không đo DOM (đang animate) */
   function centerTrack(){
-    var a = slides[idx];
-    if (!a) return;
-    // offsetLeft của slide đo trong track (đã tính padding của track)
-    var center  = a.offsetLeft + a.offsetWidth / 2;
-    var stageW  = stage.clientWidth;
-    var tx      = (stageW / 2) - center;
+    // Stage chưa render xong → retry
+    if (!stage.clientWidth) { setTimeout(centerTrack, 80); return; }
+    var m = getLayout();
+    // offsetLeft TARGET của slide active:
+    //   padding-left của track + idx * (sideW + gap)
+    // (vì tất cả slide trước idx đều là side khi idx là active)
+    var targetLeft = m.padL + idx * (m.sideW + m.gap);
+    var center     = targetLeft + m.activeW / 2;
+    var tx         = (m.stageW / 2) - center;
     track.style.transform = 'translateX(' + tx.toFixed(1) + 'px)';
   }
 
@@ -1194,10 +1215,8 @@ document.querySelectorAll('.ab-tab').forEach(function(t){
     if (curEl) curEl.textContent = (n + 1);
     elapsed = 0;
     if (progFill) progFill.style.width = '0%';
-    // Đợi browser apply flex-basis mới rồi mới đo offsetLeft
-    requestAnimationFrame(function(){
-      requestAnimationFrame(centerTrack);
-    });
+    // Tính toán deterministic → có thể gọi ngay, transform chạy đồng bộ với flex-basis
+    centerTrack();
   }
 
   function tick(){
