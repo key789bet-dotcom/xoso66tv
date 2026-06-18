@@ -243,113 +243,244 @@ _cnt.all = _cards.length;
       <!-- Nút bật tiếng đã bỏ theo yêu cầu -->
     </div>
 
+    <!-- 🆕 Dots carousel indicator (chỉ hiện khi có ≥2 candidates) -->
+    <div id="mhLivePreviewDots" class="hidden flex justify-center items-center gap-1.5 mt-1.5 mb-2" role="tablist" aria-label="Chọn stream"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
     <script>
+    /**
+     * Mobile home preview CAROUSEL:
+     * - Hiển thị nhiều candidates (BLV + Idol đang live) trong 1 khung preview
+     * - Vuốt trái/phải → đổi slide → load FLV stream khác (KHÔNG vào phòng)
+     * - Tap vào khung → vào phòng của slide hiện tại
+     * - Dots dưới khung indicator
+     * - Save team panel HTML gốc để slide 0 giữ giao diện 2-logo cũ
+     */
     (function initMhLivePreview(){
-      var candidates = <%- JSON.stringify(_liveCandidates) %>;
-      // Fallback link khi không có idol/blv live: trận đầu tiên hoặc /lich-phat-song
+      var candidates  = <%- JSON.stringify(_liveCandidates) %>;
       var fallbackHref = <%- JSON.stringify(_featuredLink || '/lich-phat-song') %>;
 
-      var box = document.getElementById('mhLivePreview');
-      if (!box) return;  // Defensive: chỉ skip nếu element không tồn tại
-      var video = document.getElementById('mhLiveVideo');
-      var poster = document.getElementById('mhLivePoster');
-      var gradient = document.getElementById('mhLiveGradient');
-      var teamPanel = document.getElementById('mhLiveTeamPanel'); // 🆕 Option B panel
-      var badge = document.getElementById('mhLiveBadge');
-      var viewers = document.getElementById('mhLiveViewers');
-      var nameEl = document.getElementById('mhLiveName');
-      var unmuteBtn = document.getElementById('mhLiveUnmute');
-      var ctaBtn = document.getElementById('mhLiveCta');
+      var box       = document.getElementById('mhLivePreview');
+      if (!box) return;
+      var video     = document.getElementById('mhLiveVideo');
+      var teamPanel = document.getElementById('mhLiveTeamPanel');
+      var badge     = document.getElementById('mhLiveBadge');
+      var viewers   = document.getElementById('mhLiveViewers');
+      var nameEl    = document.getElementById('mhLiveName');
+      var dotsEl    = document.getElementById('mhLivePreviewDots');
 
-      var currentStream = null;
+      // Không có candidates → giữ HTML team panel default, click → fallback link
+      if (!candidates.length) {
+        box.addEventListener('click', function(){ location.href = fallbackHref; });
+        return;
+      }
+
+      var teamPanelOrigHTML = (teamPanel && teamPanel.innerHTML) || '';
       var flvPlayer = null;
-      // Click href: ưu tiên candidate đầu tiên, fallback về trận đầu hoặc lịch
-      var clickHref = (candidates[0] && candidates[0].href) || fallbackHref;
+      var currentIdx = 0;
+      var viewersTimer = null;
+      var clickHref = candidates[0].href || fallbackHref;
 
-      // Click toàn vùng → vào phòng
+      // ────────────────────────────────────────────
+      // Helpers
+      // ────────────────────────────────────────────
+      function escHtml(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
+
+      function renderAvatarSlide(cand){
+        var name = escHtml(cand.name);
+        var initial = (cand.name || '?').trim().charAt(0).toUpperCase();
+        var kindLabel = cand.kind === 'idol' ? '🎀 Idol Live' : '🎙️ BLV trực tiếp';
+        var avatarHtml = cand.avatar
+          ? '<img src="'+escHtml(cand.avatar)+'" alt="'+name+'" class="w-24 h-24 rounded-full object-cover border-2 border-pri shadow-2xl" loading="lazy" onerror="this.style.display=\'none\';var f=this.nextElementSibling;if(f)f.style.display=\'flex\'">'
+          : '';
+        return ''+
+          '<div class="absolute inset-0 z-[1] flex flex-col items-center justify-center" style="background:linear-gradient(135deg,#1a2030 0%,#0a0d12 60%,#070a0f 100%);">'+
+            '<div class="absolute inset-0 opacity-15 pointer-events-none" style="background:radial-gradient(ellipse at center,#ff7a18 0%,transparent 65%);"></div>'+
+            '<div class="relative z-10 flex flex-col items-center px-4 text-center">'+
+              avatarHtml+
+              '<div class="w-24 h-24 rounded-full bg-gradient-to-br from-pri to-live grid place-items-center text-white font-extrabold text-3xl border-2 border-pri shadow-2xl" style="display:'+(cand.avatar?'none':'flex')+'">'+escHtml(initial)+'</div>'+
+              '<div class="text-white font-bold text-sm mt-3 max-w-full truncate">'+name+'</div>'+
+              '<div class="text-pri-light text-[10px] mt-1 font-bold uppercase tracking-wider">'+kindLabel+'</div>'+
+            '</div>'+
+          '</div>';
+      }
+
+      function renderDots(){
+        if (!dotsEl) return;
+        if (candidates.length <= 1) { dotsEl.classList.add('hidden'); return; }
+        var html = '';
+        for (var i = 0; i < candidates.length; i++) {
+          var active = i === 0;
+          html += '<span data-i="'+i+'" role="tab" aria-selected="'+active+'" class="mh-prev-dot rounded-full transition-all cursor-pointer '+(active?'w-4 h-1.5 bg-pri':'w-1.5 h-1.5 bg-white/40')+'"></span>';
+        }
+        dotsEl.innerHTML = html;
+        dotsEl.classList.remove('hidden');
+        Array.prototype.forEach.call(dotsEl.children, function(d){
+          d.addEventListener('click', function(ev){
+            ev.stopPropagation();
+            goSlide(parseInt(d.getAttribute('data-i'), 10), 'click');
+          });
+        });
+      }
+
+      function updateDots(i){
+        if (!dotsEl) return;
+        Array.prototype.forEach.call(dotsEl.children, function(d, k){
+          var active = k === i;
+          d.className = 'mh-prev-dot rounded-full transition-all cursor-pointer '+(active?'w-4 h-1.5 bg-pri':'w-1.5 h-1.5 bg-white/40');
+          d.setAttribute('aria-selected', String(active));
+        });
+      }
+
+      // ────────────────────────────────────────────
+      // Slide navigation
+      // ────────────────────────────────────────────
+      function goSlide(i, _src){
+        if (!candidates.length) return;
+        // loop
+        if (i < 0) i = candidates.length - 1;
+        if (i >= candidates.length) i = 0;
+        currentIdx = i;
+        var cand = candidates[i];
+
+        // Reset UI to "loading" state
+        if (video) { video.classList.add('hidden'); try { video.pause(); } catch(e){} }
+        if (badge) badge.classList.add('hidden');
+        if (viewers) viewers.classList.add('hidden');
+        if (viewersTimer) { clearInterval(viewersTimer); viewersTimer = null; }
+
+        // Swap team panel content
+        if (teamPanel) {
+          if (i === 0 && teamPanelOrigHTML) {
+            teamPanel.innerHTML = teamPanelOrigHTML;
+          } else {
+            teamPanel.innerHTML = renderAvatarSlide(cand);
+          }
+          teamPanel.style.display = '';
+        }
+
+        // Show name overlay
+        if (nameEl) {
+          nameEl.classList.remove('hidden');
+          nameEl.textContent = (cand.kind === 'idol' ? '🎀 ' : '🎙️ ') + cand.name;
+        }
+
+        clickHref = cand.href || fallbackHref;
+        updateDots(i);
+
+        // Try load FLV cho cand này
+        loadFlv(cand);
+      }
+
+      function loadFlv(cand){
+        if (!window.flvjs || !flvjs.isSupported() || !video) return;
+        try { if (flvPlayer) flvPlayer.destroy(); flvPlayer = null; } catch(e){}
+
+        var url = 'https://live.xoso66tv.com/live/' + cand.key + '.flv';
+        // HEAD check trước → tránh tốn FLV connect nếu không có stream
+        fetch(url, { method:'HEAD', cache:'no-store' })
+          .then(function(r){
+            if (!r.ok) return;                             // không live → giữ panel
+            if (candidates[currentIdx] !== cand) return;   // user đã vuốt sang cand khác
+
+            flvPlayer = flvjs.createPlayer({
+              type:'flv', url:url, isLive:true, hasAudio:true, hasVideo:true
+            }, { enableWorker:false, enableStashBuffer:false, stashInitialSize:128 });
+            flvPlayer.attachMediaElement(video);
+            flvPlayer.load();
+            var p = flvPlayer.play();
+            if (p && p.catch) p.catch(function(){});
+
+            var shown = false;
+            function showLive(){
+              if (shown) return; shown = true;
+              if (candidates[currentIdx] !== cand) {
+                try { flvPlayer.destroy(); } catch(e){}
+                return;
+              }
+              video.classList.remove('hidden');
+              if (teamPanel) teamPanel.style.display = 'none';
+              if (badge)   { badge.classList.remove('hidden'); badge.style.display = 'flex'; }
+              if (viewers) {
+                viewers.classList.remove('hidden');
+                var n = 50 + Math.floor(Math.random()*500);
+                var span = viewers.querySelector('span');
+                if (span) span.textContent = n.toLocaleString('vi-VN');
+                if (viewersTimer) clearInterval(viewersTimer);
+                viewersTimer = setInterval(function(){
+                  n += Math.floor(Math.random()*5) - 2;
+                  if (n < 30) n = 30;
+                  if (span) span.textContent = n.toLocaleString('vi-VN');
+                }, 4000);
+              }
+            }
+            video.addEventListener('loadedmetadata', showLive, { once:true });
+            video.addEventListener('playing', showLive, { once:true });
+            flvPlayer.on(flvjs.Events.ERROR, function(){ /* im lặng, giữ panel */ });
+          })
+          .catch(function(){ /* HEAD fail → giữ panel */ });
+      }
+
+      // ────────────────────────────────────────────
+      // Swipe gesture
+      // ────────────────────────────────────────────
+      var touchX0 = 0, touchY0 = 0, touchT0 = 0, swiping = false, swiped = false;
+      box.addEventListener('touchstart', function(e){
+        if (!e.touches || e.touches.length !== 1) { swiping = false; return; }
+        touchX0 = e.touches[0].clientX;
+        touchY0 = e.touches[0].clientY;
+        touchT0 = Date.now();
+        swiping = true;
+        swiped = false;
+      }, { passive:true });
+      box.addEventListener('touchend', function(e){
+        if (!swiping) return;
+        swiping = false;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+        var dx = t.clientX - touchX0;
+        var dy = t.clientY - touchY0;
+        var dt = Date.now() - touchT0;
+        // Ngang hẳn (|dx|>2*|dy|) + đủ xa (>50px) + đủ nhanh (<800ms)
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)*2 && dt < 800) {
+          swiped = true;
+          if (dx < 0) goSlide(currentIdx + 1, 'swipe');
+          else        goSlide(currentIdx - 1, 'swipe');
+        }
+      }, { passive:true });
+
+      // ────────────────────────────────────────────
+      // Click toàn vùng → vào phòng (nhưng KHÔNG nếu vừa swipe)
+      // ────────────────────────────────────────────
       box.addEventListener('click', function(e){
-        // Defensive: unmuteBtn có thể null nếu HTML đã xoá <!-- Nút bật tiếng đã bỏ -->
-        if (unmuteBtn && (e.target === unmuteBtn || unmuteBtn.contains(e.target))) return;
+        if (swiped) { swiped = false; return; }
+        // Bỏ qua nếu click vào dot (đã stopPropagation rồi nhưng phòng hờ)
+        if (e.target && e.target.classList && e.target.classList.contains('mh-prev-dot')) return;
         location.href = clickHref;
       });
 
-      // Unmute button — chỉ attach nếu element tồn tại
-      if (unmuteBtn) {
-        unmuteBtn.addEventListener('click', function(e){
-          e.stopPropagation();
-          if (video) { video.muted = false; video.volume = 1; }
-          unmuteBtn.classList.add('hidden');
-        });
-      }
+      // ────────────────────────────────────────────
+      // Desktop keyboard: ← → khi focus mobile preview (chỉ áp dụng nếu mobile preview hiển thị)
+      // ────────────────────────────────────────────
+      document.addEventListener('keydown', function(e){
+        // Chỉ nếu mobile home đang hiện (md:hidden = ẩn ≥768px)
+        if (window.innerWidth >= 768) return;
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); goSlide(currentIdx - 1, 'key'); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); goSlide(currentIdx + 1, 'key'); }
+      });
 
-      function attachStream(cand){
-        // 🚀 Bypass Cloudflare 100s timeout
-        var url = 'https://live.xoso66tv.com/live/' + cand.key + '.flv';
-        if (!window.flvjs || !flvjs.isSupported()) return;
-        try { if (flvPlayer) flvPlayer.destroy(); } catch(e){}
-        flvPlayer = flvjs.createPlayer({
-          type:'flv', url:url, isLive:true, hasAudio:true, hasVideo:true
-        }, { enableWorker:false, enableStashBuffer:false, stashInitialSize:128 });
-        flvPlayer.attachMediaElement(video);
-        flvPlayer.load();
-        var p = flvPlayer.play();
-        if (p && p.catch) p.catch(function(){});
-
-        var shown = false;
-        function showLive(){
-          if (shown) return; shown = true;
-          video.classList.remove('hidden');
-          if (poster) poster.style.display = 'none';
-          if (gradient) gradient.style.display = 'none';
-          if (teamPanel) teamPanel.style.display = 'none'; // ẩn team panel khi video play
-          badge.classList.remove('hidden');
-          badge.style.display = 'flex';
-          viewers.classList.remove('hidden');
-          nameEl.classList.remove('hidden');
-          nameEl.textContent = '🔴 ' + cand.name;
-          unmuteBtn.classList.remove('hidden');
-          clickHref = cand.href;
-          // Random viewers count update
-          var n = 50 + Math.floor(Math.random()*500);
-          viewers.querySelector('span').textContent = n.toLocaleString('vi-VN');
-          setInterval(function(){
-            n += Math.floor(Math.random()*5) - 2;
-            if (n < 30) n = 30;
-            viewers.querySelector('span').textContent = n.toLocaleString('vi-VN');
-          }, 4000);
-        }
-
-        video.addEventListener('loadedmetadata', showLive, { once:true });
-        video.addEventListener('playing', showLive, { once:true });
-        flvPlayer.on(flvjs.Events.ERROR, function(){
-          if (shown) return; // đã có stream khác work
-          tryNext();
-        });
-      }
-
-      var idx = 0;
-      function tryNext(){
-        if (idx >= candidates.length) return; // không stream nào live
-        var cand = candidates[idx++];
-        // HEAD check trước để khỏi tốn FLV connect
-        fetch('https://live.xoso66tv.com/live/' + cand.key + '.flv', { method:'HEAD', cache:'no-store' })
-          .then(function(r){
-            if (r.ok) attachStream(cand);
-            else tryNext();
-          })
-          .catch(tryNext);
-      }
-
+      // ────────────────────────────────────────────
+      // Init
+      // ────────────────────────────────────────────
       function start(){
-        // Skip FLV stream nếu không có candidates (click handler vẫn hoạt động bình thường)
-        if (!candidates.length) return;
         if (!window.flvjs) { setTimeout(start, 300); return; }
-        tryNext();
-        // Recheck mỗi 30s nếu chưa có stream
+        renderDots();
+        goSlide(0, 'init');
+        // Recheck mỗi 30s nếu chưa có stream live cho slide hiện tại
         setInterval(function(){
-          if (!flvPlayer || video.classList.contains('hidden')) {
-            idx = 0; tryNext();
+          if (!flvPlayer || (video && video.classList.contains('hidden'))) {
+            loadFlv(candidates[currentIdx]);
           }
         }, 30000);
       }
