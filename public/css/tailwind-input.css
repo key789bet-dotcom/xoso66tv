@@ -101,6 +101,186 @@ html:not(.dark) .bg-pri\/10,
 html:not(.dark) .bg-pri\/15,
 html:not(.dark) .bg-pri\/20  { background-color:rgba(255,122,24,.08) !important; }
 
+/* ═══════════════════════════════════════════════════
+   LIGHT MODE — TEXT COLOR PALETTE OVERRIDES
+   ───────────────────────────────────────────────────
+   Tailwind text-{color}-{100..400} là các shade NHẠT
+   thiết kế cho nền TỐI. Trên light mode (nền sáng)
+   chúng gần như invisible. Override sang shade 700-800
+   của cùng hue để contrast đạt WCAG AA.
+   QUY ƯỚC: 100→800, 200→800, 300→700, 400→700
+   ═══════════════════════════════════════════════════ */
+
+/* Gray family — đã cover ở trên cho text-gray-100..400, thêm gray-500 */
+html:not(.dark) .text-gray-500   { color:#5a6573 !important; }
+html:not(.dark) .text-slate-100  { color:#1e293b !important; }
+html:not(.dark) .text-slate-200  { color:#1e293b !important; }
+html:not(.dark) .text-slate-300  { color:#334155 !important; }
+html:not(.dark) .text-slate-400  { color:#475569 !important; }
+html:not(.dark) .text-zinc-100   { color:#27272a !important; }
+html:not(.dark) .text-zinc-200   { color:#27272a !important; }
+html:not(.dark) .text-zinc-300   { color:#3f3f46 !important; }
+html:not(.dark) .text-zinc-400   { color:#52525b !important; }
+html:not(.dark) .text-neutral-100{ color:#262626 !important; }
+html:not(.dark) .text-neutral-200{ color:#262626 !important; }
+html:not(.dark) .text-neutral-300{ color:#404040 !important; }
+html:not(.dark) .text-neutral-400{ color:#525252 !important; }
+html:not(.dark) .text-stone-100  { color:#292524 !important; }
+html:not(.dark) .text-stone-200  { color:#292524 !important; }
+html:not(.dark) .text-stone-300  { color:#44403c !important; }
+html:not(.dark) .text-stone-400  { color:#57534e !important; }
+
+/* Red */
+html:not(.dark) .text-red-100    { color:#991b1b !important; }
+html:not(.dark) .text-red-200    { color:#991b1b !important; }
+html:not(.dark) .text-red-300    { color:#b91c1c !important; }
+html:not(.dark) .text-red-400    { color:#b91c1c !important; }
+
+/* Orange */
+html:not(.dark) .text-orange-100 { color:#9a3412 !important; }
+html:not(.dark) .text-orange-200 { color:#9a3412 !important; }
+html:not(.dark) .text-orange-300 { color:#c2410c !important; }
+html:not(.dark) .text-orange-400 { color:#c2410c !important; }
+
+/* Amber */
+html:not(.dark) .text-amber-100  { color:#92400e !important; }
+html:not(.dark) .text-amber-200  { color:#92400e !important; }
+html:not(.dark) .text-amber-300  { color:#b45309 !important; }
+html:not(.dark) .text-amber-400  { color:#b45309 !important; }
+
+/* Yellow */
+html:not(.dark) .text-yellow-100 { color:#854d0e !important; }
+html:not(.dark) .text-yellow-200 { color:#854d0e !important; }
+html:not(.dark) .text-yellow-300 { color:#a16207 !important; }
+html:not(.dark) .text-yellow-400 { color:#a16207 !important; }
+
+/* Lime */
+html:not(.dark) .text-lime-100   { color:#3f6212 !important; }
+html:not(.dark) .text-lime-200   { color:#3f6212 !important; }
+html:not(.dark) .text-lime-300   { color:#4d7c0f !important; }
+html:not(.dark) .text-lime-400   { color:#4d7c0f !important; }
+
+/* Green */
+html:not(.dark) .text-green-100  { color:#166534 !important; }
+html:not(.dark) .text-green-200  { color:#166534 !important; }
+html:not(.dark) .text-green-300  { color:#15803d !important; }
+html:not(.dark) .text-green-400  { color:#15803d !important; }
+
+/* Emerald */
+html:not(.dark) .text-emerald-100{ color:#065f46 !important; }
+html:not(.dark) .text-emerald-200{ color:#065f46 !important; }
+html:not(.dark) .text-emerald-300{ color:#047857 !important; }
+html:not(.dark) .text-emerald-400{ color:#047857 !important; }
+
+/* Teal */
+html:not(.dark) .text-teal-100   { color:#115e59 !important; }
+html:not(.dark) .text-teal-200   { color:#115e59 !important; }
+html:not(.dark) .text-teal-300   { color:#0f766e !important; }
+html:not(.dark) .text-teal-400   { color:#0f766e !important; }
+
+/* Cyan */
+html:not(.dark) .text-cyan-100   { color:#155e75 !important; }
+html:not(.dark) .text-cyan-200   { color:#155e75 !important; }
+html:not(.dark) .text-cyan-300   { color:#0e7490 !important; }
+html:not(.dark) .text-cyan-400   { color:#0e7490 !important; }
+
+/* Sky */
+html:not(.dark) .text-sky-100    { color:#075985 !important; }
+html:not(.dark) .text-sky-200    { color:#075985 !important; }
+html:not(.dark) .text-sky-300    { color:#0369a1 !important; }
+html:not(.dark) .text-sky-400    { color:#0369a1 !important; }
+
+/* Blue */
+html:not(.dark) .text-blue-100   { color:#1e40af !important; }
+html:not(.dark) .text-blue-200   { color:#1e40af !important; }
+html:not(.dark) .text-blue-300   { color:#1d4ed8 !important; }
+html:not(.dark) .text-blue-400   { color:#1d4ed8 !important; }
+
+/* Indigo */
+html:not(.dark) .text-indigo-100 { color:#3730a3 !important; }
+html:not(.dark) .text-indigo-200 { color:#3730a3 !important; }
+html:not(.dark) .text-indigo-300 { color:#4338ca !important; }
+html:not(.dark) .text-indigo-400 { color:#4338ca !important; }
+
+/* Violet */
+html:not(.dark) .text-violet-100 { color:#5b21b6 !important; }
+html:not(.dark) .text-violet-200 { color:#5b21b6 !important; }
+html:not(.dark) .text-violet-300 { color:#6d28d9 !important; }
+html:not(.dark) .text-violet-400 { color:#6d28d9 !important; }
+
+/* Purple */
+html:not(.dark) .text-purple-100 { color:#6b21a8 !important; }
+html:not(.dark) .text-purple-200 { color:#6b21a8 !important; }
+html:not(.dark) .text-purple-300 { color:#7e22ce !important; }
+html:not(.dark) .text-purple-400 { color:#7e22ce !important; }
+
+/* Fuchsia */
+html:not(.dark) .text-fuchsia-100{ color:#86198f !important; }
+html:not(.dark) .text-fuchsia-200{ color:#86198f !important; }
+html:not(.dark) .text-fuchsia-300{ color:#a21caf !important; }
+html:not(.dark) .text-fuchsia-400{ color:#a21caf !important; }
+
+/* Pink */
+html:not(.dark) .text-pink-100   { color:#9d174d !important; }
+html:not(.dark) .text-pink-200   { color:#9d174d !important; }
+html:not(.dark) .text-pink-300   { color:#be185d !important; }
+html:not(.dark) .text-pink-400   { color:#be185d !important; }
+
+/* Rose */
+html:not(.dark) .text-rose-100   { color:#9f1239 !important; }
+html:not(.dark) .text-rose-200   { color:#9f1239 !important; }
+html:not(.dark) .text-rose-300   { color:#be123c !important; }
+html:not(.dark) .text-rose-400   { color:#be123c !important; }
+
+/* ───── Hover variants (cùng pattern) ───── */
+html:not(.dark) .hover\:text-white:hover    { color:#1a1f2e !important; }
+html:not(.dark) .hover\:text-gray-100:hover { color:#2d3344 !important; }
+html:not(.dark) .hover\:text-gray-200:hover { color:#3d4456 !important; }
+html:not(.dark) .hover\:text-gray-300:hover { color:#4a5160 !important; }
+html:not(.dark) .hover\:text-emerald-300:hover { color:#047857 !important; }
+html:not(.dark) .hover\:text-pri-light:hover   { color:#cc5f00 !important; }
+
+/* ───── Inline style hex MÀU SÁNG (color:#fff/eee/...) trên element không có bg đậm ─────
+   Hệ thống chỉ override khi element KHÔNG có inline background.
+   Đa số case inline color:#fff đều pair với bg đậm (cam/đen/blue) — giữ nguyên.
+   Pattern này safely override các <span style="color:#fff"> đơn lẻ không có bg. */
+html:not(.dark) [style*="color:#fff"]:not([style*="background"]):not([style*="bg"]):not(.lv):not(.lv-num),
+html:not(.dark) [style*="color: #fff"]:not([style*="background"]):not([style*="bg"]):not(.lv):not(.lv-num),
+html:not(.dark) [style*="color:#ffffff"]:not([style*="background"]):not([style*="bg"]):not(.lv):not(.lv-num),
+html:not(.dark) [style*="color: #ffffff"]:not([style*="background"]):not([style*="bg"]):not(.lv):not(.lv-num){
+  color: #1a1f2e !important;
+}
+
+/* ───── Bg đậm hex Tailwind chưa cover ─────
+   Bổ sung các hex thường gặp khi inspect EJS: zinc-900, slate-900, neutral-900 */
+html:not(.dark) .bg-zinc-900     { background-color:#ffffff !important; }
+html:not(.dark) .bg-zinc-800     { background-color:#eef2f7 !important; }
+html:not(.dark) .bg-slate-900    { background-color:#ffffff !important; }
+html:not(.dark) .bg-slate-800    { background-color:#eef2f7 !important; }
+html:not(.dark) .bg-neutral-900  { background-color:#ffffff !important; }
+html:not(.dark) .bg-gray-900     { background-color:#ffffff !important; }
+html:not(.dark) .bg-gray-800     { background-color:#eef2f7 !important; }
+html:not(.dark) .bg-black        { background-color:#1a1f2e !important; } /* giữ tối — vì chỗ này thường là frame video */
+html:not(.dark) .bg-black\/20,
+html:not(.dark) .bg-black\/30,
+html:not(.dark) .bg-black\/40,
+html:not(.dark) .bg-black\/50    { background-color:rgba(15,23,42,.08) !important; }
+
+/* ───── Border arbitrary cho dark ───── */
+html:not(.dark) .border-white\/10,
+html:not(.dark) .border-white\/20,
+html:not(.dark) .border-white\/30  { border-color:rgba(15,23,42,.10) !important; }
+html:not(.dark) .border-zinc-800,
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-gray-800   { border-color:#d6dce6 !important; }
+
+/* ───── Divide line đen ───── */
+html:not(.dark) .divide-white\/10 > * + *,
+html:not(.dark) .divide-zinc-800 > * + * { border-color:#e0e6ee !important; }
+
+/* ───── Placeholder dark ───── */
+html:not(.dark) ::placeholder { color:#8a93a3 !important; opacity:1; }
+
 
 /* ═══════════════════════════════════════════════════
    HERO TITLE ANIMATED BACKGROUND

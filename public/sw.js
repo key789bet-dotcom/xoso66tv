@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v129-2026-06-18-chat-light-mode-correct-selector-html-not-dark';
+const VERSION = 'v130-2026-06-18-full-site-light-mode-overrides-text-palette-100-400';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
@@ -20,6 +20,8 @@ const PRECACHE = [
   '/',
   '/static/css/skeleton.css',
   '/static/css/bottom-sheet.css',
+  '/static/css/level-badges.css',
+  '/static/css/light-mode-overrides.css',
   '/static/js/app.js',
   '/static/img/logoxoso66tv.webp',
   '/static/img/favicon.webp',

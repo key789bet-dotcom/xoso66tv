@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="vi" class="dark">
+<head>
+<meta charset="utf-8">
+<title>Preview Light Mode — XOSO66 TV — Audit toàn site</title>
+<style>
+/* ════ Inline copy nhỏ của light-mode-overrides.css để xem trực tiếp file:// ════ */
+
+/* Base body theme */
+html.dark body { background:#0d111a; color:#e5e7eb; }
+html:not(.dark) body { background:#f5f7fb; color:#1a1f2e; }
+body { margin:0; font:14px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif; transition: background .25s,color .25s; }
+.wrap { max-width: 920px; margin: 24px auto; padding: 0 16px; }
+h1 { font-size: 20px; margin: 0 0 14px; }
+.toolbar { display:flex; gap:10px; margin-bottom: 18px; align-items:center; flex-wrap:wrap; }
+.tg { padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; border:1px solid currentColor; background:transparent; color: inherit; }
+.tg:hover { background:rgba(127,127,127,.1); }
+.section { margin: 24px 0; padding: 16px; border-radius: 12px; border: 1px solid; }
+html.dark .section { border-color:#1f2533; background:#0f1420; }
+html:not(.dark) .section { border-color:#d6dce6; background:#fff; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.section h2 { margin: 0 0 12px; font-size: 16px; }
+.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.swatch { padding: 8px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600; }
+html.dark .swatch { background: rgba(255,255,255,.04); }
+html:not(.dark) .swatch { background: rgba(15,23,42,.04); }
+.label { font-size: 11px; opacity: .7; margin-top: 4px; }
+
+/* ───── INLINE COPY of light-mode-overrides.css essential rules ───── */
+html:not(.dark) .text-red-300, html:not(.dark) .text-red-400 { color:#b91c1c !important; }
+html:not(.dark) .text-red-100, html:not(.dark) .text-red-200 { color:#991b1b !important; }
+html:not(.dark) .text-orange-300, html:not(.dark) .text-orange-400 { color:#c2410c !important; }
+html:not(.dark) .text-orange-100, html:not(.dark) .text-orange-200 { color:#9a3412 !important; }
+html:not(.dark) .text-amber-300, html:not(.dark) .text-amber-400 { color:#b45309 !important; }
+html:not(.dark) .text-amber-100, html:not(.dark) .text-amber-200 { color:#92400e !important; }
+html:not(.dark) .text-yellow-300, html:not(.dark) .text-yellow-400 { color:#a16207 !important; }
+html:not(.dark) .text-yellow-100, html:not(.dark) .text-yellow-200 { color:#854d0e !important; }
+html:not(.dark) .text-lime-300, html:not(.dark) .text-lime-400 { color:#4d7c0f !important; }
+html:not(.dark) .text-green-300, html:not(.dark) .text-green-400 { color:#15803d !important; }
+html:not(.dark) .text-green-100, html:not(.dark) .text-green-200 { color:#166534 !important; }
+html:not(.dark) .text-emerald-300, html:not(.dark) .text-emerald-400 { color:#047857 !important; }
+html:not(.dark) .text-emerald-100, html:not(.dark) .text-emerald-200 { color:#065f46 !important; }
+html:not(.dark) .text-teal-300, html:not(.dark) .text-teal-400 { color:#0f766e !important; }
+html:not(.dark) .text-cyan-300, html:not(.dark) .text-cyan-400 { color:#0e7490 !important; }
+html:not(.dark) .text-cyan-100, html:not(.dark) .text-cyan-200 { color:#155e75 !important; }
+html:not(.dark) .text-sky-300, html:not(.dark) .text-sky-400 { color:#0369a1 !important; }
+html:not(.dark) .text-blue-300, html:not(.dark) .text-blue-400 { color:#1d4ed8 !important; }
+html:not(.dark) .text-blue-100, html:not(.dark) .text-blue-200 { color:#1e40af !important; }
+html:not(.dark) .text-indigo-300, html:not(.dark) .text-indigo-400 { color:#4338ca !important; }
+html:not(.dark) .text-violet-300, html:not(.dark) .text-violet-400 { color:#6d28d9 !important; }
+html:not(.dark) .text-purple-300, html:not(.dark) .text-purple-400 { color:#7e22ce !important; }
+html:not(.dark) .text-purple-100, html:not(.dark) .text-purple-200 { color:#6b21a8 !important; }
+html:not(.dark) .text-fuchsia-300, html:not(.dark) .text-fuchsia-400 { color:#a21caf !important; }
+html:not(.dark) .text-pink-300, html:not(.dark) .text-pink-400 { color:#be185d !important; }
+html:not(.dark) .text-pink-100, html:not(.dark) .text-pink-200 { color:#9d174d !important; }
+html:not(.dark) .text-rose-300, html:not(.dark) .text-rose-400 { color:#be123c !important; }
+html:not(.dark) .text-slate-300, html:not(.dark) .text-slate-400 { color:#334155 !important; }
+html:not(.dark) .text-zinc-300, html:not(.dark) .text-zinc-400 { color:#3f3f46 !important; }
+
+/* gray text base */
+html.dark .text-white { color: #fff; }
+html:not(.dark) .text-white { color:#1a1f2e !important; }
+html.dark .text-gray-100 { color: #f3f4f6; }
+html:not(.dark) .text-gray-100 { color:#2d3344 !important; }
+html.dark .text-gray-200 { color: #e5e7eb; }
+html:not(.dark) .text-gray-200 { color:#3d4456 !important; }
+html.dark .text-gray-300 { color: #d1d5db; }
+html:not(.dark) .text-gray-300 { color:#4a5160 !important; }
+html.dark .text-gray-400 { color: #9ca3af; }
+html:not(.dark) .text-gray-400 { color:#5a6573 !important; }
+html.dark .text-gray-500 { color: #6b7280; }
+html:not(.dark) .text-gray-500 { color:#5a6573 !important; }
+
+/* Color base classes (Tailwind defaults) */
+.text-red-100{color:#fee2e2}.text-red-200{color:#fecaca}.text-red-300{color:#fca5a5}.text-red-400{color:#f87171}
+.text-orange-100{color:#ffedd5}.text-orange-200{color:#fed7aa}.text-orange-300{color:#fdba74}.text-orange-400{color:#fb923c}
+.text-amber-100{color:#fef3c7}.text-amber-200{color:#fde68a}.text-amber-300{color:#fcd34d}.text-amber-400{color:#fbbf24}
+.text-yellow-100{color:#fef9c3}.text-yellow-200{color:#fef08a}.text-yellow-300{color:#fde047}.text-yellow-400{color:#facc15}
+.text-lime-300{color:#bef264}.text-lime-400{color:#a3e635}
+.text-green-100{color:#dcfce7}.text-green-200{color:#bbf7d0}.text-green-300{color:#86efac}.text-green-400{color:#4ade80}
+.text-emerald-100{color:#d1fae5}.text-emerald-200{color:#a7f3d0}.text-emerald-300{color:#6ee7b7}.text-emerald-400{color:#34d399}
+.text-teal-300{color:#5eead4}.text-teal-400{color:#2dd4bf}
+.text-cyan-100{color:#cffafe}.text-cyan-200{color:#a5f3fc}.text-cyan-300{color:#67e8f9}.text-cyan-400{color:#22d3ee}
+.text-sky-300{color:#7dd3fc}.text-sky-400{color:#38bdf8}
+.text-blue-100{color:#dbeafe}.text-blue-200{color:#bfdbfe}.text-blue-300{color:#93c5fd}.text-blue-400{color:#60a5fa}
+.text-indigo-300{color:#a5b4fc}.text-indigo-400{color:#818cf8}
+.text-violet-300{color:#c4b5fd}.text-violet-400{color:#a78bfa}
+.text-purple-100{color:#f3e8ff}.text-purple-200{color:#e9d5ff}.text-purple-300{color:#d8b4fe}.text-purple-400{color:#c084fc}
+.text-fuchsia-300{color:#f0abfc}.text-fuchsia-400{color:#e879f9}
+.text-pink-100{color:#fce7f3}.text-pink-200{color:#fbcfe8}.text-pink-300{color:#f9a8d4}.text-pink-400{color:#f472b6}
+.text-rose-300{color:#fda4af}.text-rose-400{color:#fb7185}
+.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}
+.text-zinc-300{color:#d4d4d8}.text-zinc-400{color:#a1a1aa}
+
+/* Sample cards mô phỏng card thật */
+.card-sample{padding:14px;border-radius:10px;border:1px solid;margin:8px 0;}
+html.dark .card-sample{background:#13171f;border-color:#1f2533;}
+html:not(.dark) .card-sample{background:#fff;border-color:#d6dce6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌞 Light Mode Audit — XOSO66 TV</h1>
+  <div class="toolbar">
+    <button class="tg" onclick="document.documentElement.classList.toggle('dark')">🌓 Toggle Dark / Light</button>
+    <span>Mode: <b id="curMode">dark</b> — click toggle để xem cả 2</span>
+  </div>
+
+  <div class="section">
+    <h2>📝 Text classes Tailwind 100-400 (light shades) — phải đọc rõ ở cả 2 mode</h2>
+    <div class="grid">
+      <div class="swatch"><span class="text-red-400">text-red-400 — Lỗi nhẹ</span><div class="label">→ red-700 trên light</div></div>
+      <div class="swatch"><span class="text-orange-400">text-orange-400 — Cảnh báo</span><div class="label">→ orange-700</div></div>
+      <div class="swatch"><span class="text-amber-400">text-amber-400 — VIP gold</span><div class="label">→ amber-700</div></div>
+      <div class="swatch"><span class="text-yellow-400">text-yellow-400 — Star</span><div class="label">→ yellow-700</div></div>
+      <div class="swatch"><span class="text-green-400">text-green-400 — OK</span><div class="label">→ green-700</div></div>
+      <div class="swatch"><span class="text-emerald-400">text-emerald-400 — Success</span><div class="label">→ emerald-700</div></div>
+      <div class="swatch"><span class="text-teal-400">text-teal-400</span><div class="label">→ teal-700</div></div>
+      <div class="swatch"><span class="text-cyan-400">text-cyan-400 — Info</span><div class="label">→ cyan-700</div></div>
+      <div class="swatch"><span class="text-sky-400">text-sky-400</span><div class="label">→ sky-700</div></div>
+      <div class="swatch"><span class="text-blue-400">text-blue-400 — Link</span><div class="label">→ blue-700</div></div>
+      <div class="swatch"><span class="text-indigo-400">text-indigo-400</span><div class="label">→ indigo-700</div></div>
+      <div class="swatch"><span class="text-violet-400">text-violet-400</span><div class="label">→ violet-700</div></div>
+      <div class="swatch"><span class="text-purple-400">text-purple-400 — SVIP</span><div class="label">→ purple-700</div></div>
+      <div class="swatch"><span class="text-pink-400">text-pink-400</span><div class="label">→ pink-700</div></div>
+      <div class="swatch"><span class="text-rose-400">text-rose-400</span><div class="label">→ rose-700</div></div>
+      <div class="swatch"><span class="text-slate-400">text-slate-400</span><div class="label">→ slate-700</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🎨 Gray scale (cover sẵn từ tailwind-input.css)</h2>
+    <div class="grid">
+      <div class="swatch"><span class="text-white">text-white</span></div>
+      <div class="swatch"><span class="text-gray-100">text-gray-100</span></div>
+      <div class="swatch"><span class="text-gray-200">text-gray-200 — Sub</span></div>
+      <div class="swatch"><span class="text-gray-300">text-gray-300 — Body</span></div>
+      <div class="swatch"><span class="text-gray-400">text-gray-400 — Muted</span></div>
+      <div class="swatch"><span class="text-gray-500">text-gray-500 — Dim</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📦 Card mô phỏng — typical content</h2>
+    <div class="card-sample">
+      <h3 style="margin:0 0 6px;font-size:15px;" class="text-white">Yến Nhi · LIVE</h3>
+      <p class="text-gray-300" style="margin:0 0 8px;font-size:13px;">Phòng đang phát sóng, đông view, có tặng quà</p>
+      <div style="display:flex;gap:8px;font-size:12px;">
+        <span class="text-emerald-400">● 4.789 viewers</span>
+        <span class="text-pink-400">♥ 10.141</span>
+        <span class="text-amber-400">⭐ Top 1</span>
+        <span class="text-cyan-400">📺 1080p</span>
+      </div>
+    </div>
+    <div class="card-sample">
+      <h3 style="margin:0 0 6px;font-size:15px;" class="text-white">Trận Real Madrid vs Barcelona</h3>
+      <p class="text-gray-400" style="margin:0 0 8px;font-size:13px;">El Clasico — 22h00 hôm nay</p>
+      <div style="display:flex;gap:8px;font-size:12px;">
+        <span class="text-red-400">🔴 LIVE</span>
+        <span class="text-blue-300">⚽ Bóng đá</span>
+        <span class="text-yellow-400">Tỉ lệ 2.15</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📋 Banner cam GIỮ NGUYÊN (text trắng trên bg cam vẫn rõ)</h2>
+    <div style="background:linear-gradient(135deg,#ff7a18,#ffb33d);color:#fff;padding:14px 18px;border-radius:8px;font-weight:700;">
+      🎁 ĐĂNG KÝ TÀI KHOẢN XOSO66 → Tặng 100% nạp đầu
+    </div>
+    <div style="background:#ff3b3b;color:#fff;padding:8px 14px;border-radius:6px;font-weight:700;margin-top:8px;display:inline-block;font-size:12px;">
+      ● LIVE
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>✅ Checklist verify</h2>
+    <ul style="margin:0;padding-left:20px;line-height:1.8;font-size:13px;">
+      <li>Toggle qua light mode → tất cả text-*-400 đổi sang shade tối, đọc rõ</li>
+      <li>Toggle qua dark mode → text-*-400 trở lại shade nhạt như cũ</li>
+      <li>Banner cam giữ nguyên ở cả 2 mode</li>
+      <li>Card có border + bg đổi đúng theme</li>
+      <li>Không có chỗ nào text mờ/tàng hình</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+new MutationObserver(function(){
+  document.getElementById('curMode').textContent =
+    document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}).observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
+</script>
+</body>
+</html>
