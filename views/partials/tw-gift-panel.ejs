@@ -151,10 +151,8 @@ var TIER_ICON_DECO = {
   </div>
 </div>
 
-<!-- Floating "Tặng quà" button -->
-<button id="giftFab" class="fixed bottom-5 right-5 z-50 bg-gradient-to-br from-pri to-live hover:scale-110 text-white font-extrabold w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(255,122,24,.55)] grid place-items-center text-2xl transition-transform" aria-label="Tặng quà">
-  🎁
-</button>
+<!-- Floating "Tặng quà" button - ẨN theo yêu cầu user (cả desktop + mobile) -->
+<button id="giftFab" aria-label="Tặng quà" style="display:none !important;">🎁</button>
 
 <!-- Gift flying animation overlay -->
 <div id="giftAnimLayer" class="fixed inset-0 pointer-events-none z-[70]"></div>
