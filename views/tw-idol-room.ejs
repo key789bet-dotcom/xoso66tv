@@ -64,19 +64,18 @@ var _obsMode = (idol.streamMethod === 'obs');
 <%- include('partials/tw-idol-mobile', { idol: idol, idolId: idolId, viewers: viewers, follow: follow, tipsToday: tipsToday, allIdols: (typeof allIdols !== 'undefined' ? allIdols : []), ALBUM: ALBUM, VIDEOS: VIDEOS }) %>
 <% } %>
 
-<% if (_obsMode) { %>
-<!-- CSS responsive cho layout OBS-mode: mobile stack dọc, desktop ngang -->
+<!-- CSS responsive cho layout idol-room: mobile stack dọc, desktop ngang
+     ⚠️ Áp dụng cho CẢ 2 mode (obs + non-obs) để consistent + responsive đúng -->
 <style>
   .idol-room-grid { display: grid; grid-template-columns: 1fr; align-items: start; gap: 1rem; }
   .idol-room-player { width: 100%; aspect-ratio: 16/9; height: auto; }
   .idol-room-chat { height: 60vh; min-height: 380px; }
   @media (min-width: 768px) {
-    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; height: 480px; }
+    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; min-height: 480px; }
     .idol-room-player { height: 480px; width: auto; aspect-ratio: 16/9; margin-left: auto; max-width: 100%; }
     .idol-room-chat { height: 100%; min-height: 0; }
   }
 </style>
-<% } %>
 
 <!-- ===== AUTH + LOCK CHECK với MODAL đẹp ===== -->
 <% if (idol.lock > 0) { %>
@@ -472,14 +471,14 @@ var _obsMode = (idol.streamMethod === 'obs');
 <article class="mb-6 <%= _obsMode ? 'block' : 'hidden md:block' %>" style="max-width:1200px;margin-left:auto;margin-right:auto;width:100%;<%= _obsMode ? 'padding:0 8px;' : '' %>">
 
   <!-- TOP ROW: Player + Chat — responsive cho OBS mode -->
-  <section class="<%= _obsMode ? 'idol-room-grid' : '' %> mb-4" <% if (!_obsMode) { %>style="display:grid;grid-template-columns:minmax(0,1fr) 320px;align-items:start;min-height:480px;gap:1rem;"<% } %>>
+  <section class="idol-room-grid mb-4">
     <!-- Player aspect-video -->
 
     <!-- WRAPPER cột 1: player + quality bar (xếp dọc cùng cột grid) -->
     <div class="idol-player-col" style="display:flex; flex-direction:column; gap:8px; min-width:0;">
 
-    <!-- Player — OBS mode dùng class responsive, mobile mode giữ style cũ -->
-    <div id="livePlayer" class="<%= _obsMode ? 'idol-room-player' : '' %> bg-black rounded-xl relative overflow-hidden grid place-items-center" <% if (!_obsMode) { %>style="height:480px;aspect-ratio:16/9;max-width:100%;margin-left:auto;background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))"<% } else { %>style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))"<% } %>>
+    <!-- Player — class idol-room-player responsive cho cả mobile + desktop -->
+    <div id="livePlayer" class="idol-room-player bg-black rounded-xl relative overflow-hidden grid place-items-center" style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))">
       <div class="absolute inset-0 opacity-40" style="background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.4),transparent 50%),radial-gradient(circle at 70% 50%,rgba(255,255,255,.3),transparent 50%)"></div>
       <span class="absolute top-3.5 left-3.5 z-[2] bg-live text-white px-3 py-1 rounded-md font-extrabold text-xs flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
       <span class="absolute top-3.5 right-3.5 z-[2] bg-black/70 text-gold px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1.5">👁 <span class="tabular-nums"><%= viewers.toLocaleString('vi-VN') %></span></span>
@@ -571,7 +570,7 @@ var _obsMode = (idol.streamMethod === 'obs');
     </div><!-- /.idol-player-col (wrapper cột 1) -->
 
     <!-- CHAT: cùng row grid với player, auto stretch theo aspect-video -->
-    <aside class="<%= _obsMode ? 'idol-room-chat' : 'h-full' %> bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden" aria-label="Chat" id="chatPanelTop">
+    <aside class="idol-room-chat bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden" aria-label="Chat" id="chatPanelTop">
       <%
         // 🎨 Render tab idol chat/gift: ảnh nếu admin upload, fallback emoji+text
         var _iti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};

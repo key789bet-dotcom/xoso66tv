@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v113-2026-06-18-revert-section-height-to-min-height-480px';
+const VERSION = 'v114-2026-06-18-unified-responsive-grid-both-obs-and-non-obs-modes';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
