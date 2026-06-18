@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v108-2026-06-18-mobile-fullscreen-landscape-pip-buttons';
+const VERSION = 'v109-2026-06-18-pip-fs-mobile-only-not-overlap-live-badge';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
