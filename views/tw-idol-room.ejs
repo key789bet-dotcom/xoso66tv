@@ -65,15 +65,20 @@ var _obsMode = (idol.streamMethod === 'obs');
 <% } %>
 
 <!-- CSS responsive cho layout idol-room: mobile stack dọc, desktop ngang
-     ⚠️ Áp dụng cho CẢ 2 mode (obs + non-obs) để consistent + responsive đúng -->
+     ⚠️ Áp dụng cho CẢ 2 mode (obs + non-obs) để consistent + responsive đúng
+     - Mobile: stack 1 col, chat 60vh height (bounded scroll bên trong)
+     - Desktop: 2 cols, chat STRETCH theo player col height, KHÔNG tràn ngoài khung -->
 <style>
-  .idol-room-grid { display: grid; grid-template-columns: 1fr; align-items: start; gap: 1rem; }
+  .idol-room-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: start; }
+  .idol-player-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
   .idol-room-player { width: 100%; aspect-ratio: 16/9; height: auto; }
-  .idol-room-chat { height: 60vh; min-height: 380px; }
+  .idol-room-chat { height: 60vh; min-height: 380px; overflow: hidden; }
   @media (min-width: 768px) {
-    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; min-height: 480px; }
+    /* Desktop: grid stretch các cells → chat tự match height của player col */
+    .idol-room-grid { grid-template-columns: minmax(0,1fr) 320px; align-items: stretch; }
     .idol-room-player { height: 480px; width: auto; aspect-ratio: 16/9; margin-left: auto; max-width: 100%; }
-    .idol-room-chat { height: 100%; min-height: 0; }
+    /* Chat: 100% height của grid row → bounded theo player col (player + quality bar) */
+    .idol-room-chat { height: 100%; min-height: 0; max-height: 100%; }
   }
 </style>
 
@@ -475,7 +480,7 @@ var _obsMode = (idol.streamMethod === 'obs');
     <!-- Player aspect-video -->
 
     <!-- WRAPPER cột 1: player + quality bar (xếp dọc cùng cột grid) -->
-    <div class="idol-player-col" style="display:flex; flex-direction:column; gap:8px; min-width:0;">
+    <div class="idol-player-col">
 
     <!-- Player — class idol-room-player responsive cho cả mobile + desktop -->
     <div id="livePlayer" class="idol-room-player bg-black rounded-xl relative overflow-hidden grid place-items-center" style="background:linear-gradient(135deg, hsl(<%= idol.color %>,70%,40%), hsl(<%= idol.color+60 %>,70%,50%))">
@@ -570,7 +575,7 @@ var _obsMode = (idol.streamMethod === 'obs');
     </div><!-- /.idol-player-col (wrapper cột 1) -->
 
     <!-- CHAT: cùng row grid với player, auto stretch theo aspect-video -->
-    <aside class="idol-room-chat bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden" aria-label="Chat" id="chatPanelTop">
+    <aside class="idol-room-chat bg-bg-card border border-line rounded-xl flex flex-col overflow-hidden min-h-0" aria-label="Chat" id="chatPanelTop">
       <%
         // 🎨 Render tab idol chat/gift: ảnh nếu admin upload, fallback emoji+text
         var _iti = (typeof tabIcons !== 'undefined' && tabIcons) ? tabIcons : {};

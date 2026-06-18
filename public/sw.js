@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v114-2026-06-18-unified-responsive-grid-both-obs-and-non-obs-modes';
+const VERSION = 'v115-2026-06-18-chat-bounded-stretch-player-col-not-overflow';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;
