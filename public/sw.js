@@ -11,7 +11,7 @@
  * ║ Push notification handlers included.                              ║
  * ╚══════════════════════════════════════════════════════════════════*/
 
-const VERSION = 'v160-lps-light-mode-vs-svg';
+const VERSION = 'v161-livescore-redesign';
 const STATIC_CACHE = 'x66-static-' + VERSION;
 const HTML_CACHE   = 'x66-html-'   + VERSION;
 const API_CACHE    = 'x66-api-'    + VERSION;

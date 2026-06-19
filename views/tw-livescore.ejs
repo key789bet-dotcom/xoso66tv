@@ -7,120 +7,630 @@ seo = {
   canonical: '/livescore',
   breadcrumb: [{ name:'Livescore - Tỷ số trực tiếp', url:'/livescore' }]
 };
+
+// ===== Data prep =====
+var _blvSet = (typeof blvMatchIds !== 'undefined' && blvMatchIds) ? blvMatchIds : new Set();
+var _fin = finishedMatches || [];
+var _live = liveMatches || [];
+var _up = upcomingMatches || [];
+
+// "Trận hot" = league nằm trong HOT_KEYWORDS
+var HOT_KEYWORDS = ['premier league','la liga','serie a','bundesliga','ligue 1','champions league','europa league','world cup','v.league','v-league','euro','copa america','afc','j1','k league','mls','primeira liga','eredivisie','fa cup','efl cup'];
+function _isHot(m){
+  if (!m || !m.leagueRaw) return false;
+  var n = String(m.leagueRaw).toLowerCase();
+  for (var i=0; i<HOT_KEYWORDS.length; i++){ if (n.indexOf(HOT_KEYWORDS[i])>=0) return true; }
+  return false;
+}
+
+// All matches để render full table (live + upcoming + finished)
+var _all = [].concat(_live, _up, _fin);
+// Dedup theo id
+var _seen = {};
+var _allUnique = [];
+_all.forEach(function(m){
+  var k = String(m.id || (m.home+'-'+m.away+'-'+m.matchTs));
+  if (_seen[k]) return; _seen[k] = 1;
+  _allUnique.push(m);
+});
+_all = _allUnique;
+
+// Counts cho tabs
+var _countLive = _live.length;
+var _countHot = _all.filter(_isHot).length;
+var _countFin = _fin.length;
+var _countAll = _all.length;
+
+// Group by league
+var _byLeague = {};
+_all.forEach(function(m){
+  var lname = m.league || m.sport || 'Khác';
+  if (!_byLeague[lname]) _byLeague[lname] = { name: lname, country: m.country||'', logo: m.leagueLogo||'', matches: [] };
+  _byLeague[lname].matches.push(m);
+});
+// Sort league: live first, then số trận desc
+var _lgArr = Object.keys(_byLeague).map(function(k){ return _byLeague[k]; }).sort(function(a,b){
+  var aL = a.matches.some(function(m){ return m.status==='live'; });
+  var bL = b.matches.some(function(m){ return m.status==='live'; });
+  if (aL !== bL) return aL ? -1 : 1;
+  return b.matches.length - a.matches.length;
+});
+
+// Helper render time/date strings từ matchTs (VN tz +7)
+function _fmt(m){
+  var out = { time: m.time||'--:--', date: '', elapsed: m.elapsed||'' };
+  try {
+    if (m.matchTs){
+      var d = new Date(m.matchTs + 7*3600*1000);
+      out.time = String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');
+      out.date = String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0');
+    }
+  } catch(e){}
+  return out;
+}
 %>
 <%- include('partials/tw-layout-start', { active: 'livescore' }) %>
 
-<main class="max-w-[1280px] mx-auto px-3 md:px-6 py-4">
-  <!-- HERO -->
-  <header class="mb-5">
-    <h1 class="text-2xl md:text-4xl font-black text-white mb-2">
-      🔴 Livescore - Tỷ số trực tiếp <%= _todayVi %>
-    </h1>
-    <p class="text-muted text-sm md:text-base">
-      Cập nhật <b class="text-pri-light"><%= liveMatches.length %></b> trận đang đá realtime + lịch sắp tới trong ngày. Tự động refresh mỗi 30 giây.
-    </p>
-  </header>
+<main class="max-w-[1400px] mx-auto px-3 md:px-5 py-4">
 
-  <!-- LIVE MATCHES -->
-  <% if (liveMatches.length === 0) { %>
-    <div class="bg-bg-card border border-line rounded-xl p-8 text-center mb-5">
-      <div class="text-5xl mb-3">⏰</div>
-      <h2 class="text-white text-lg font-bold mb-1">Chưa có trận nào đang đá</h2>
-      <p class="text-muted text-sm mb-4">Các trận chưa bắt đầu. Xem lịch để đón chờ trận hot nhé!</p>
-      <a href="/lich-phat-song" class="inline-block bg-pri hover:bg-pri-dark text-white px-5 py-2.5 rounded-full font-bold text-sm">📅 Xem lịch phát sóng</a>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- DESKTOP layout - REDESIGN: table grouped by league -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="hidden md:block">
+
+<!-- Title H1 -->
+<header class="mb-3">
+  <h1 class="text-xl md:text-2xl font-black text-white uppercase tracking-wide leading-tight">
+    Livescore Tỷ Số Bóng Đá Đang Diễn Ra - Tỉ Số Live Score Mới Nhất
+  </h1>
+</header>
+
+<!-- Status tabs row -->
+<nav class="lvs-tabs" id="lvsTabs" aria-label="Lọc trạng thái">
+  <button type="button" class="lvs-tab is-active" data-tab="live">
+    TRỰC TIẾP <span class="lvs-count"><%= _countLive %></span>
+  </button>
+  <button type="button" class="lvs-tab" data-tab="time">THEO THỜI GIAN</button>
+  <button type="button" class="lvs-tab" data-tab="hot">
+    TRẬN HOT <span class="lvs-count"><%= _countHot %></span>
+  </button>
+  <button type="button" class="lvs-tab" data-tab="finished">
+    ĐÃ KẾT THÚC <span class="lvs-count"><%= _countFin %></span>
+  </button>
+  <button type="button" class="lvs-tab" data-tab="all">
+    TẤT CẢ <span class="lvs-count"><%= _countAll %></span>
+  </button>
+  <button type="button" class="lvs-tab" data-tab="follow">
+    THEO DÕI <span class="lvs-count">0</span>
+  </button>
+  <button type="button" class="lvs-tab lvs-tab-icon" data-tab="league" title="Lọc giải đấu">GIẢI ĐẤU</button>
+  <button type="button" class="lvs-tab lvs-tab-icon" data-tab="country" title="Lọc quốc gia">QUỐC GIA</button>
+  <button type="button" class="lvs-tab lvs-tab-icon" data-tab="odds" title="Tỷ lệ kèo">TỶ LỆ</button>
+  <button type="button" class="lvs-settings">
+    <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M19.43 12.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+    CÀI ĐẶT TÍNH NĂNG
+  </button>
+</nav>
+
+<!-- Table header -->
+<div class="lvs-table-head">
+  <span class="lvs-th-fav">
+    <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+  </span>
+  <span class="lvs-th-time">Giờ</span>
+  <span class="lvs-th-home">Chủ</span>
+  <span class="lvs-th-score">Tỷ số</span>
+  <span class="lvs-th-away">Khách</span>
+  <span class="lvs-th-ht">HT</span>
+  <span class="lvs-th-pg">PG</span>
+  <span class="lvs-th-play"></span>
+  <span class="lvs-th-odds">
+    <button type="button" class="lvs-odds-toggle">
+      SBOBET
+      <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M7 10l5 5 5-5z"/></svg>
+    </button>
+  </span>
+</div>
+
+<!-- League groups + matches -->
+<div id="lvsList">
+  <% if (_lgArr.length === 0) { %>
+    <div class="lvs-empty">
+      <div class="text-5xl mb-3 opacity-60">⏰</div>
+      <div class="text-white text-base font-bold mb-1">Chưa có trận nào</div>
+      <div class="text-muted text-sm">Vui lòng quay lại sau hoặc xem <a href="/lich-phat-song" class="text-pri-light">lịch phát sóng</a>.</div>
     </div>
   <% } else { %>
-    <section class="mb-6">
-      <div class="flex items-center gap-2.5 mb-3.5">
-        <span class="w-1 h-5 bg-live rounded-sm"></span>
-        <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
-          <span class="w-2 h-2 bg-live rounded-full animate-pulse-live"></span>
-          ĐANG ĐÁ (<%= liveMatches.length %>)
-        </h2>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        <% liveMatches.forEach(function(m){ %>
-          <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri hover:shadow-pri transition-all flex flex-col">
-            <div class="flex items-center justify-between mb-2.5">
-              <span class="text-pri-light text-[11px] font-bold uppercase tracking-wider line-clamp-1 flex-1 inline-flex items-center gap-1.5">
-                <% if (m.leagueLogo) { %>
-                  <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
-                    <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
-                  </span>
-                <% } else { %><span>⚽</span><% } %>
-                <span class="truncate"><%= m.league %></span>
-              </span>
-              <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+    <% _lgArr.forEach(function(lg){
+      var _hasLive = lg.matches.some(function(m){ return m.status==='live'; });
+      var _hasHot = lg.matches.some(_isHot);
+      var _hasFin = lg.matches.some(function(m){ return m.status==='finished'; });
+    %>
+      <div class="lvs-lg-block" data-has-live="<%= _hasLive %>" data-has-hot="<%= _hasHot %>" data-has-fin="<%= _hasFin %>">
+        <!-- League header row -->
+        <div class="lvs-lg-row">
+          <span class="lvs-star" title="Theo dõi giải">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          </span>
+          <span class="lvs-lg-flag">
+            <% if (lg.logo) { %>
+              <img src="<%= lg.logo %>" alt="<%= lg.name %>" loading="lazy" onerror="this.outerHTML='<svg viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot;><path d=&quot;M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z&quot;/></svg>'">
+            <% } else { %>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+            <% } %>
+          </span>
+          <span class="lvs-lg-name"><%= lg.name %></span>
+          <% if (lg.country) { %><span class="lvs-lg-country">· <%= lg.country %></span><% } %>
+        </div>
+
+        <!-- Match rows -->
+        <% lg.matches.forEach(function(m){
+          var _t = _fmt(m);
+          var _matchKey = String(m.id || '');
+          var _hasBlv = _blvSet.has(_matchKey);
+          var _hasVideo = _hasBlv || m.status==='live';
+          var _isLive = m.status === 'live';
+          var _isFin  = m.status === 'finished';
+          var _hot = _isHot(m);
+        %>
+          <div class="lvs-row" data-status="<%= m.status %>" data-hot="<%= _hot %>" data-ts="<%= m.matchTs || 0 %>">
+            <!-- Star fav -->
+            <button type="button" class="lvs-fav" title="Theo dõi trận" aria-label="Theo dõi">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-3.5 h-3.5"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            </button>
+            <!-- Time -->
+            <div class="lvs-time">
+              <span class="lvs-time-hhmm"><%= _t.time %></span>
+              <span class="lvs-time-date"><%= _t.date %></span>
+              <% if (_isLive && _t.elapsed) { %>
+                <span class="lvs-time-min"><%= _t.elapsed %>'</span>
+              <% } %>
             </div>
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex-1 text-center min-w-0">
-                <% if (m.homeBadge) { %><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
-                <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.home %></div>
-              </div>
-              <div class="text-center flex-shrink-0 px-2">
-                <% if (m.score) { %>
-                  <div class="text-2xl md:text-3xl font-black text-gold tabular-nums leading-none"><%= m.score[0] %><span class="text-pri mx-0.5">-</span><%= m.score[1] %></div>
+            <!-- Home -->
+            <div class="lvs-home">
+              <span class="lvs-team-name truncate"><%= m.home || '?' %></span>
+              <span class="lvs-team-logo">
+                <% if (m.homeBadge) { %>
+                  <img src="<%= m.homeBadge %>" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;lvs-team-letter&quot;>'+'<%= (m.home||'?').replace(/&apos;/g,'&apos;')[0] %>'+'</span>'">
                 <% } else { %>
-                  <div class="text-xl font-black text-pri">VS</div>
+                  <span class="lvs-team-letter"><%= (m.home||'?')[0] %></span>
                 <% } %>
-                <div class="text-live text-[10px] font-bold mt-1 animate-pulse">● <%= m.statusText || 'LIVE' %></div>
-              </div>
-              <div class="flex-1 text-center min-w-0">
-                <% if (m.awayBadge) { %><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
-                <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.away %></div>
-              </div>
-            </div>
-          </a>
-        <% }); %>
-      </div>
-    </section>
-  <% } %>
-
-  <!-- SẮP DIỄN RA -->
-  <% if (upcomingMatches && upcomingMatches.length) { %>
-    <section class="mb-6">
-      <div class="flex items-center gap-2.5 mb-3.5">
-        <span class="w-1 h-5 bg-pri rounded-sm"></span>
-        <h2 class="text-lg font-extrabold text-white">⏰ SẮP DIỄN RA (<%= upcomingMatches.length %>)</h2>
-        <a href="/lich-phat-song" class="ml-auto text-sm text-pri-light font-semibold">Lịch đầy đủ →</a>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        <% upcomingMatches.slice(0, 12).forEach(function(m){ %>
-          <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri transition-all">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1 inline-flex items-center gap-1.5">
-                <% if (m.leagueLogo) { %>
-                  <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
-                    <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
-                  </span>
-                <% } else { %><span>⚽</span><% } %>
-                <span class="truncate"><%= m.league %></span>
               </span>
-              <span class="bg-gradient-to-r from-pri to-pri-dark text-white text-[10px] font-extrabold px-2 py-0.5 rounded">⏰ <%= m.time %></span>
             </div>
-            <div class="text-white text-sm font-bold line-clamp-2"><%= m.home %> vs <%= m.away %></div>
-            <div class="text-muted text-xs mt-1.5"><%= m.date %></div>
+            <!-- Score -->
+            <div class="lvs-score-box <%= _isLive ? 'is-live' : (_isFin ? 'is-fin' : 'is-up') %>">
+              <% if (m.score) { %>
+                <span class="lvs-score-h"><%= m.score[0] %></span><span class="lvs-score-sep">:</span><span class="lvs-score-a"><%= m.score[1] %></span>
+              <% } else { %>
+                <span class="lvs-score-h">-</span><span class="lvs-score-sep">:</span><span class="lvs-score-a">-</span>
+              <% } %>
+            </div>
+            <!-- Away -->
+            <div class="lvs-away">
+              <span class="lvs-team-logo">
+                <% if (m.awayBadge) { %>
+                  <img src="<%= m.awayBadge %>" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;lvs-team-letter&quot;>'+'<%= (m.away||'?').replace(/&apos;/g,'&apos;')[0] %>'+'</span>'">
+                <% } else { %>
+                  <span class="lvs-team-letter"><%= (m.away||'?')[0] %></span>
+                <% } %>
+              </span>
+              <span class="lvs-team-name truncate"><%= m.away || '?' %></span>
+            </div>
+            <!-- HT score -->
+            <div class="lvs-ht">
+              <% if (m.halftime) { %>
+                <%= m.halftime[0] %> - <%= m.halftime[1] %>
+              <% } else { %>
+                <span class="text-muted">-</span>
+              <% } %>
+            </div>
+            <!-- PG (penalty goals - dùng số corners hoặc redCards fallback) -->
+            <div class="lvs-pg">
+              <% if (m.summary && (m.summary.corners_home !== undefined || m.summary.cornersHome !== undefined)) {
+                   var ch = m.summary.corners_home || m.summary.cornersHome || 0;
+                   var ca = m.summary.corners_away || m.summary.cornersAway || 0; %>
+                <%= ch %> - <%= ca %>
+              <% } else { %>
+                <span class="text-muted">-</span>
+              <% } %>
+            </div>
+            <!-- Play button (CHỈ HIỆN khi có video) -->
+            <div class="lvs-play-col">
+              <% if (_hasVideo) { %>
+                <a href="/live/<%= m.slug || m.id %>" class="lvs-play-btn <%= _isLive ? 'is-live' : '' %>" title="Xem trực tiếp">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M8 5v14l11-7z"/></svg>
+                </a>
+              <% } %>
+            </div>
+            <!-- Odds 3 cột (placeholder - đợi wire odds-api) -->
+            <div class="lvs-odds">
+              <span class="lvs-odd-pair">
+                <b class="lvs-odd-up">-</b>
+                <b class="lvs-odd-dn">-</b>
+              </span>
+              <span class="lvs-odd-pair">
+                <b class="lvs-odd-up">-</b>
+                <b class="lvs-odd-dn">-</b>
+              </span>
+              <span class="lvs-odd-pair">
+                <b class="lvs-odd-up">-</b>
+                <b class="lvs-odd-dn">-</b>
+              </span>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% }); %>
+  <% } %>
+</div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MOBILE layout - giữ card-style đơn giản -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="md:hidden">
+  <header class="mb-4">
+    <h1 class="text-lg font-black text-white mb-1.5">🔴 Livescore <%= _todayVi %></h1>
+    <p class="text-muted text-xs">Cập nhật <b class="text-pri-light"><%= _countLive %></b> trận đang đá. Auto refresh 30s.</p>
+  </header>
+
+  <% if (_countLive > 0) { %>
+    <section class="mb-5">
+      <div class="flex items-center gap-2 mb-2.5">
+        <span class="w-1 h-4 bg-live rounded-sm"></span>
+        <h2 class="text-sm font-extrabold text-white flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span>ĐANG ĐÁ (<%= _countLive %>)</h2>
+      </div>
+      <div class="space-y-2">
+        <% _live.forEach(function(m){
+          var _matchKey = String(m.id || ''); var _hasVid = _blvSet.has(_matchKey) || m.status==='live';
+        %>
+          <a href="<%= _hasVid ? ('/live/'+(m.slug||m.id)) : '#' %>" class="block bg-bg-card border border-line rounded-lg p-2.5 active:scale-[.98]">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-pri-light text-[10px] font-bold uppercase truncate"><%= m.league || m.sport %></span>
+              <span class="bg-live text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LIVE <%= m.elapsed||'' %></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="flex-1 text-white text-xs font-bold truncate text-right"><%= m.home %></span>
+              <span class="bg-blue-700 text-white px-2 py-0.5 rounded font-black text-sm"><%= (m.score?m.score[0]:'-')+':'+(m.score?m.score[1]:'-') %></span>
+              <span class="flex-1 text-white text-xs font-bold truncate"><%= m.away %></span>
+              <% if (_hasVid) { %>
+                <span class="bg-emerald-500 text-white w-6 h-6 rounded-full grid place-items-center shrink-0">▶</span>
+              <% } %>
+            </div>
           </a>
         <% }); %>
       </div>
     </section>
   <% } %>
 
-  <!-- SEO ARTICLE -->
-  <article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
-    <h2 class="text-white text-xl font-extrabold mb-3">Livescore XOSO66 TV - Cập nhật tỷ số nhanh nhất Việt Nam</h2>
-    <p class="text-gray-300 text-sm leading-relaxed mb-3">
-      <b class="text-pri-light">Livescore XOSO66</b> cung cấp tỷ số trực tiếp các trận bóng đá đang diễn ra trên toàn thế giới: <a href="/lich-phat-song" class="text-pri-light hover:underline">Ngoại Hạng Anh</a>, La Liga, Bundesliga, Serie A, Ligue 1, V-League, World Cup, Champions League. Dữ liệu cập nhật từng giây thông qua API chính thống, đảm bảo chính xác tuyệt đối. Click vào bất kỳ trận nào để xem trực tiếp Full HD 1080p với <a href="/lich-phat-song" class="text-pri-light hover:underline">BLV bình luận tiếng Việt</a>.
-    </p>
-    <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Điểm khác biệt của Livescore XOSO66</h3>
-    <p class="text-gray-300 text-sm leading-relaxed">
-      Khác với các trang livescore khác chỉ hiện tỷ số, XOSO66 TV tích hợp <b class="text-white">livestream Full HD miễn phí</b> ngay khi click vào trận. Bạn không cần chuyển sang web khác, tiết kiệm thời gian. Ngoài ra còn có <a href="/bxh" class="text-pri-light hover:underline">bảng xếp hạng</a>, <a href="/ket-qua" class="text-pri-light hover:underline">kết quả trận đã đá</a> và <a href="/tin-tuc" class="text-pri-light hover:underline">nhận định chuyên gia AI</a> mỗi ngày.
-    </p>
-  </article>
+  <% if (_up.length) { %>
+    <section class="mb-5">
+      <div class="flex items-center gap-2 mb-2.5">
+        <span class="w-1 h-4 bg-pri rounded-sm"></span>
+        <h2 class="text-sm font-extrabold text-white">⏰ SẮP DIỄN RA (<%= _up.length %>)</h2>
+        <a href="/lich-phat-song" class="ml-auto text-pri-light text-xs">Xem tất cả →</a>
+      </div>
+      <div class="space-y-2">
+        <% _up.slice(0,15).forEach(function(m){ %>
+          <a href="/live/<%= m.slug || m.id %>" class="block bg-bg-card border border-line rounded-lg p-2.5">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-pri-light text-[10px] font-bold uppercase truncate"><%= m.league %></span>
+              <span class="bg-pri text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded"><%= m.time %></span>
+            </div>
+            <div class="text-white text-xs font-bold truncate"><%= m.home %> vs <%= m.away %></div>
+          </a>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+</div>
+
+<!-- SEO ARTICLE -->
+<article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
+  <h2 class="text-white text-xl font-extrabold mb-3">Livescore XOSO66 TV - Cập nhật tỷ số nhanh nhất Việt Nam</h2>
+  <p class="text-gray-300 text-sm leading-relaxed mb-3">
+    <b class="text-pri-light">Livescore XOSO66</b> cập nhật tỷ số trực tiếp các trận bóng đá đang diễn ra trên toàn thế giới: <a href="/lich-phat-song" class="text-pri-light hover:underline">Ngoại Hạng Anh</a>, La Liga, Bundesliga, Serie A, Ligue 1, V-League, World Cup, Champions League. Dữ liệu cập nhật từng giây thông qua API chính thống.
+  </p>
+  <p class="text-gray-300 text-sm leading-relaxed">
+    Trận nào có biểu tượng <b class="text-emerald-400">▶ play màu xanh</b> nghĩa là có BLV đang tường thuật trực tiếp Full HD miễn phí. Click vào nút để vào phòng xem ngay. Trận không có nút play là chưa có BLV đăng ký phát sóng.
+  </p>
+</article>
+
 </main>
 
-<!-- Auto-refresh livescore mỗi 30s (chỉ khi có trận live) -->
-<% if (liveMatches.length > 0) { %>
+<style>
+/* ═══ LIVESCORE DESKTOP REDESIGN ═══ */
+
+/* Tabs */
+.lvs-tabs {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  border-bottom: 1px solid #1a2230;
+  padding: 0;
+  margin-bottom: 0;
+  background: #0e1218;
+  border-radius: 6px 6px 0 0;
+  padding: 4px 8px 0;
+}
+.lvs-tab {
+  background: transparent; border: none;
+  color: #cbd5e1; font-weight: 700; font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  position: relative; bottom: -1px;
+  transition: all .2s;
+}
+.lvs-tab:hover { background: rgba(20,184,166,.1); color: #fff; }
+.lvs-tab.is-active {
+  background: linear-gradient(180deg, #134e4a 0%, #0f3a36 100%);
+  color: #ffffff;
+  border: 1px solid #1a2230; border-bottom: 1px solid #134e4a;
+  box-shadow: inset 0 -2px 0 #14b8a6;
+}
+.lvs-count {
+  background: #14b8a6; color: #fff;
+  padding: 1px 7px; border-radius: 999px;
+  font-size: 10px; font-weight: 900;
+  min-width: 18px; text-align: center;
+}
+.lvs-tab.is-active .lvs-count { background: #fbbf24; color: #1a1f2e; }
+.lvs-settings {
+  margin-left: auto;
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  color: #fff; border: none;
+  padding: 8px 14px; border-radius: 6px;
+  font-weight: 700; font-size: 11px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: filter .2s, transform .2s;
+}
+.lvs-settings:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+/* Table head */
+.lvs-table-head {
+  display: grid;
+  grid-template-columns: 32px 90px 1fr 80px 1fr 50px 50px 50px 290px;
+  align-items: center; gap: 6px;
+  background: #0e1218;
+  padding: 8px 14px;
+  font-size: 11px; font-weight: 700;
+  color: #94a3b8; text-transform: uppercase;
+  border: 1px solid #1a2230; border-bottom: none;
+}
+.lvs-th-fav, .lvs-th-ht, .lvs-th-pg, .lvs-th-play { text-align: center; }
+.lvs-th-home { text-align: right; padding-right: 60px; }
+.lvs-th-score { text-align: center; }
+.lvs-th-away { text-align: left; padding-left: 60px; }
+.lvs-th-odds { text-align: center; }
+.lvs-odds-toggle {
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  color: #fff; border: none; padding: 5px 12px;
+  border-radius: 4px; font-weight: 700; font-size: 11px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+
+/* League block */
+.lvs-lg-block { background: transparent; }
+
+/* League header row */
+.lvs-lg-row {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(90deg, #0e1218 0%, #11151c 100%);
+  border: 1px solid #1a2230;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.lvs-star {
+  color: #fbbf24;
+  display: inline-flex; cursor: pointer;
+}
+.lvs-lg-flag {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; padding: 2px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.lvs-lg-flag img, .lvs-lg-flag svg { width: 100%; height: 100%; object-fit: contain; color: #1a1f2e; }
+.lvs-lg-name { color: #e2e8f0; font-weight: 700; }
+.lvs-lg-country { color: #64748b; font-size: 11px; }
+
+/* Match row - cùng grid với head */
+.lvs-row {
+  display: grid;
+  grid-template-columns: 32px 90px 1fr 80px 1fr 50px 50px 50px 290px;
+  align-items: center; gap: 6px;
+  background: #11151c;
+  border: 1px solid #1a2230; border-top: none;
+  padding: 10px 14px;
+  font-size: 12px;
+  transition: background .15s;
+}
+.lvs-row:hover { background: #161b24; }
+.lvs-row[data-status="live"] { background: #0d1822; }
+.lvs-row[data-status="live"]:hover { background: #112030; }
+
+/* Fav star */
+.lvs-fav {
+  background: transparent; border: none; cursor: pointer;
+  color: #475569; padding: 4px;
+  display: inline-flex; justify-content: center;
+  transition: color .2s, transform .15s;
+}
+.lvs-fav:hover { color: #fbbf24; transform: scale(1.2); }
+.lvs-fav.is-fav { color: #fbbf24; fill: #fbbf24; }
+
+/* Time column */
+.lvs-time {
+  display: flex; flex-direction: column;
+  font-size: 11px; line-height: 1.2;
+}
+.lvs-time-hhmm { color: #fbbf24; font-weight: 800; font-family: 'Roboto Mono', monospace; font-size: 12px; }
+.lvs-time-date { color: #64748b; font-size: 10px; }
+.lvs-time-min { color: #ef4444; font-weight: 800; font-size: 11px; animation: lvsBlink 1.5s infinite; }
+@keyframes lvsBlink { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+/* Home / Away */
+.lvs-home, .lvs-away {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+}
+.lvs-home { justify-content: flex-end; }
+.lvs-away { justify-content: flex-start; }
+.lvs-team-name { color: #e2e8f0; font-weight: 600; font-size: 13px; max-width: 220px; }
+.lvs-team-logo {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; padding: 2px;
+  display: grid; place-items: center; flex-shrink: 0; overflow: hidden;
+}
+.lvs-team-logo img { width: 100%; height: 100%; object-fit: contain; }
+.lvs-team-letter { color: #1a1f2e; font-weight: 800; font-size: 11px; }
+
+/* Score box - hộp xanh nổi bật */
+.lvs-score-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  color: #fff; padding: 5px 10px; border-radius: 4px;
+  font-weight: 900; font-size: 14px;
+  font-family: 'Roboto Mono', monospace;
+  min-width: 56px;
+  box-shadow: 0 2px 6px -2px rgba(30,64,175,.5);
+  justify-self: center;
+}
+.lvs-score-box.is-live {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 2px 8px -2px rgba(220,38,38,.6);
+  animation: lvsScoreLivePulse 2s ease-in-out infinite;
+}
+@keyframes lvsScoreLivePulse {
+  0%, 100% { box-shadow: 0 2px 8px -2px rgba(220,38,38,.6); }
+  50%      { box-shadow: 0 4px 14px -2px rgba(220,38,38,.85); }
+}
+.lvs-score-box.is-fin { background: linear-gradient(135deg, #475569, #334155); }
+.lvs-score-sep { padding: 0 2px; opacity: .8; }
+
+/* HT / PG */
+.lvs-ht, .lvs-pg {
+  text-align: center;
+  color: #94a3b8; font-weight: 700; font-size: 12px;
+}
+
+/* Play button - tròn xanh, chỉ hiện khi có video */
+.lvs-play-col { text-align: center; }
+.lvs-play-btn {
+  display: inline-grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 2px 8px -2px rgba(34,197,94,.55);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.lvs-play-btn:hover { transform: scale(1.15); box-shadow: 0 4px 14px -2px rgba(34,197,94,.75); }
+.lvs-play-btn.is-live {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 2px 8px -2px rgba(220,38,38,.65);
+  animation: lvsPlayLivePulse 1.8s ease-in-out infinite;
+}
+@keyframes lvsPlayLivePulse {
+  0%, 100% { box-shadow: 0 2px 8px -2px rgba(220,38,38,.65); }
+  50%      { box-shadow: 0 0 0 6px rgba(220,38,38,.18), 0 4px 14px -2px rgba(220,38,38,.85); }
+}
+
+/* Odds 3 cột */
+.lvs-odds {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+  align-items: center;
+}
+.lvs-odd-pair {
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 11px; line-height: 1.2;
+  font-family: 'Roboto Mono', monospace;
+}
+.lvs-odd-up { color: #ef4444; font-weight: 700; }
+.lvs-odd-dn { color: #fbbf24; font-weight: 700; }
+
+/* Empty state */
+.lvs-empty {
+  padding: 60px 20px; text-align: center;
+  background: #11151c; border: 1px dashed #1a2230; border-radius: 8px;
+  color: #94a3b8;
+}
+
+/* Responsive shrink */
+@media (max-width: 1280px) {
+  .lvs-table-head, .lvs-row {
+    grid-template-columns: 28px 80px 1fr 70px 1fr 40px 40px 40px 230px;
+  }
+  .lvs-team-name { max-width: 160px; font-size: 12px; }
+}
+</style>
+
+<script>
+(function(){
+  // ===== Tab filter =====
+  var tabs = document.querySelectorAll('#lvsTabs .lvs-tab');
+  var rows = document.querySelectorAll('#lvsList .lvs-row');
+  var blocks = document.querySelectorAll('#lvsList .lvs-lg-block');
+
+  function applyTabFilter(tab){
+    rows.forEach(function(r){
+      var st = r.getAttribute('data-status');
+      var hot = r.getAttribute('data-hot') === 'true';
+      var show = true;
+      if (tab === 'live')     show = (st === 'live');
+      else if (tab === 'finished') show = (st === 'finished');
+      else if (tab === 'hot') show = hot;
+      else if (tab === 'follow') show = false; // chưa wire favorite
+      else if (tab === 'time' || tab === 'all') show = true;
+      else show = true;
+      r.style.display = show ? '' : 'none';
+    });
+    // Sort by time nếu tab="time"
+    if (tab === 'time') {
+      blocks.forEach(function(b){
+        var rs = Array.from(b.querySelectorAll('.lvs-row'));
+        rs.sort(function(a,c){ return (+a.getAttribute('data-ts')) - (+c.getAttribute('data-ts')); });
+        rs.forEach(function(r){ b.appendChild(r); });
+      });
+    }
+    // Hide league block nếu không còn row nào visible
+    blocks.forEach(function(b){
+      var any = Array.from(b.querySelectorAll('.lvs-row')).some(function(r){ return r.style.display !== 'none'; });
+      b.style.display = any ? '' : 'none';
+    });
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('is-active'); });
+      t.classList.add('is-active');
+      applyTabFilter(t.getAttribute('data-tab'));
+    });
+  });
+  // Default: live
+  applyTabFilter('live');
+
+  // ===== Fav star toggle (localStorage) =====
+  try {
+    var favKey = 'x66_lvs_favs';
+    var favSet = new Set(JSON.parse(localStorage.getItem(favKey) || '[]'));
+    document.querySelectorAll('.lvs-fav').forEach(function(b, i){
+      var row = b.closest('.lvs-row');
+      var rid = row ? (row.getAttribute('data-ts')+'-'+i) : i;
+      if (favSet.has(rid)) b.classList.add('is-fav');
+      b.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        if (favSet.has(rid)) { favSet.delete(rid); b.classList.remove('is-fav'); }
+        else { favSet.add(rid); b.classList.add('is-fav'); }
+        try { localStorage.setItem(favKey, JSON.stringify(Array.from(favSet))); } catch(_){}
+      });
+    });
+  } catch(_) {}
+})();
+</script>
+
+<!-- Auto-refresh khi có trận live -->
+<% if (_countLive > 0) { %>
 <script>setTimeout(function(){location.reload();}, 30000);</script>
 <% } %>
 

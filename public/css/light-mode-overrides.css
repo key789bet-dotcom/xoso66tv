@@ -527,6 +527,80 @@ html:not(.dark) .lps-round-tag {
 /* H1 title trên top desktop */
 html:not(.dark) .hidden.md\:block > header > h1 { color: #0f172a !important; }
 
+/* ══════════════════════════════════════════════════════════════════
+   /livescore DESKTOP redesign (lvs-*) — v161+
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Tabs row */
+html:not(.dark) .lvs-tabs {
+  background: #f1f5f9 !important;
+  border-bottom-color: #d6dce6 !important;
+}
+html:not(.dark) .lvs-tab { color: #475569 !important; }
+html:not(.dark) .lvs-tab:hover { background: rgba(20,184,166,.12) !important; color: #0f172a !important; }
+html:not(.dark) .lvs-tab.is-active {
+  background: linear-gradient(180deg, #ccfbf1 0%, #99f6e4 100%) !important;
+  color: #0f3a36 !important;
+  border-color: #d6dce6 !important;
+  border-bottom-color: #ccfbf1 !important;
+}
+html:not(.dark) .lvs-count { background: #14b8a6 !important; color: #fff !important; }
+html:not(.dark) .lvs-tab.is-active .lvs-count { background: #ea580c !important; color: #fff !important; }
+
+/* Table head */
+html:not(.dark) .lvs-table-head {
+  background: #f1f5f9 !important;
+  border-color: #d6dce6 !important;
+  color: #475569 !important;
+}
+
+/* League block / header row */
+html:not(.dark) .lvs-lg-row {
+  background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border-color: #fdba74 !important;
+}
+html:not(.dark) .lvs-lg-name { color: #0f172a !important; }
+html:not(.dark) .lvs-lg-country { color: #94a3b8 !important; }
+html:not(.dark) .lvs-lg-flag { background: #fff !important; border: 1px solid #fdba74 !important; }
+
+/* Match row */
+html:not(.dark) .lvs-row {
+  background: #ffffff !important;
+  border-color: #e0e6ee !important;
+}
+html:not(.dark) .lvs-row:hover { background: #fafbfd !important; }
+html:not(.dark) .lvs-row[data-status="live"] { background: #fef2f2 !important; }
+html:not(.dark) .lvs-row[data-status="live"]:hover { background: #fee2e2 !important; }
+
+/* Fav star */
+html:not(.dark) .lvs-fav { color: #cbd5e1 !important; }
+html:not(.dark) .lvs-fav:hover { color: #f59e0b !important; }
+
+/* Time */
+html:not(.dark) .lvs-time-hhmm { color: #c2410c !important; }
+html:not(.dark) .lvs-time-date { color: #64748b !important; }
+html:not(.dark) .lvs-time-min { color: #dc2626 !important; }
+
+/* Team */
+html:not(.dark) .lvs-team-name { color: #1f2937 !important; }
+html:not(.dark) .lvs-team-logo { background: #ffffff !important; border: 1px solid #e0e6ee !important; }
+html:not(.dark) .lvs-team-letter { color: #1f2937 !important; }
+
+/* HT / PG */
+html:not(.dark) .lvs-ht, html:not(.dark) .lvs-pg { color: #64748b !important; }
+html:not(.dark) .lvs-ht .text-muted, html:not(.dark) .lvs-pg .text-muted { color: #cbd5e1 !important; }
+
+/* Odds */
+html:not(.dark) .lvs-odd-up { color: #dc2626 !important; }
+html:not(.dark) .lvs-odd-dn { color: #c2410c !important; }
+
+/* Empty state */
+html:not(.dark) .lvs-empty {
+  background: #ffffff !important; border-color: #d6dce6 !important; color: #64748b !important;
+}
+html:not(.dark) .lvs-empty .text-white { color: #0f172a !important; }
+html:not(.dark) .lvs-empty .text-muted { color: #64748b !important; }
+
 /* ── SEO article text ── */
 html:not(.dark) .dlr-seo h4{ color:#0f172a !important; }
 html:not(.dark) .dlr-seo p{ color:#1f2937 !important; }

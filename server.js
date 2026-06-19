@@ -3187,11 +3187,31 @@ app.get('/khuyen-mai',function (req, res) { res.redirect(301, '/su-kien'); });
 // 🆕 3 trang SEO RIÊNG: Livescore + Kết quả + BXH (boost SEO traffic)
 app.get('/livescore', async function (req, res, next) {
   try {
-    const [liveMatches, upcomingMatches] = await Promise.all([
+    const [liveMatches, upcomingMatches, finishedMatches] = await Promise.all([
       api.getLiveStreams().catch(() => []),
-      api.getUpcomingStreams(null, 200).catch(() => [])
+      api.getUpcomingStreams(null, 200).catch(() => []),
+      api.getFinishedStreams(null, 100).catch(() => [])
     ]);
-    res.render('tw-livescore', { active:'livescore', liveMatches: liveMatches || [], upcomingMatches: upcomingMatches || [] });
+
+    // BLV approved schedule còn hiệu lực → có nút play "video trực tiếp"
+    var blvMatchIds = new Set();
+    try {
+      var scheduleStore = require('./lib/schedule-store');
+      var nowTs = Date.now();
+      (scheduleStore.listAll() || []).forEach(function(s){
+        if (s && s.status === 'approved' && s.matchId && s.endTime > nowTs) {
+          blvMatchIds.add(String(s.matchId));
+        }
+      });
+    } catch(e) { console.warn('[livescore] schedule load fail:', e.message); }
+
+    res.render('tw-livescore', {
+      active: 'livescore',
+      liveMatches: liveMatches || [],
+      upcomingMatches: upcomingMatches || [],
+      finishedMatches: finishedMatches || [],
+      blvMatchIds: blvMatchIds
+    });
   } catch (e) { next(e); }
 });
 
