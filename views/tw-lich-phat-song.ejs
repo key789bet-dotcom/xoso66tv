@@ -41,18 +41,8 @@ for (var _di=0; _di<6; _di++) {
 // ===== DATA THẬT =====
 var _blvList = (typeof blvs !== 'undefined' && blvs) ? blvs : [];
 var _idolList = (typeof idols !== 'undefined' && idols) ? idols : [];
-
-// Helper: assign 2 BLV deterministic cho mỗi match (dựa trên match.id)
-function _pickBlvs(matchId){
-  if (_blvList.length === 0) return [];
-  // Hash đơn giản từ ID để pick stable
-  var h = 0; var s = String(matchId || '');
-  for (var i=0; i<s.length; i++) h = (h*31 + s.charCodeAt(i)) & 0xfff;
-  var a = _blvList[h % _blvList.length];
-  var b = _blvList.length > 1 ? _blvList[(h*7) % _blvList.length] : null;
-  if (b && b.id === a.id) b = _blvList[(h*7+1) % _blvList.length];
-  return b ? [a, b] : [a];
-}
+// Map matchId → array BLV/Idol THẬT đã đăng ký schedule (do server build từ scheduleStore)
+var _blvByMatch = (typeof blvByMatch !== 'undefined' && blvByMatch) ? blvByMatch : {};
 
 // Build allCards: matches + idol cards (cat=idol)
 var _allCards = [];
@@ -70,7 +60,8 @@ var _allCards = [];
     cat: _cat,
     isoDate: _isoDate || _dayPicker[0].iso,
     data: m,
-    blvs: _pickBlvs(m.id || m.slug)
+    // CHỈ lấy BLV THẬT đã đăng ký schedule cho match này (không random)
+    blvs: _blvByMatch[String(m.id)] || _blvByMatch[String(m.slug)] || []
   });
 });
 // 2. Idol cards (cat=idol) - mỗi idol là 1 "lịch" stream
@@ -690,26 +681,33 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
               <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.away || '?' %></div>
             </div>
           </a>
-          <% if (card.blvs && card.blvs.length > 0) { %>
-          <footer class="flex items-center gap-2 px-3 py-2 border-t border-line bg-bg-deep/40">
-            <div class="flex-1 flex items-center gap-3 overflow-x-auto scrollbar-hide">
-              <% card.blvs.forEach(function(blv, _bi){
-                var _colors = ['from-pri to-live','from-emerald-500 to-emerald-700','from-violet-500 to-purple-700','from-sky-500 to-blue-700'];
-                var _color = _colors[_bi % _colors.length];
-              %>
-                <a href="/live/<%= m.slug || m.id %>" class="flex items-center gap-1.5 shrink-0">
-                  <% if (blv.avatar) { %>
-                    <img src="<%= blv.avatar %>" class="w-6 h-6 rounded-full object-cover border border-line" alt="<%= blv.name %>" onerror="this.outerHTML='<div class=&quot;w-6 h-6 rounded-full bg-gradient-to-br <%= _color %> grid place-items-center text-white text-[10px] font-bold&quot;>'+'<%= (blv.name||'?')[0] %>'+'</div>'">
-                  <% } else { %>
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br <%= _color %> grid place-items-center text-white text-[10px] font-bold"><%= (blv.name||'?')[0] %></div>
-                  <% } %>
-                  <span class="text-gray-200 text-[11px] font-semibold truncate max-w-[100px]"><%= blv.name %></span>
-                  <% if (blv.liveNow) { %><span class="bg-live text-white text-[8px] font-extrabold px-1 rounded">LIVE</span><% } %>
-                </a>
-              <% }); %>
-            </div>
+          <footer class="m-card-foot">
+            <% if (card.blvs && card.blvs.length > 0) { %>
+              <div class="m-card-foot-blvs">
+                <% card.blvs.forEach(function(blv, _bi){
+                  var _colors = ['from-pri to-live','from-emerald-500 to-emerald-700','from-violet-500 to-purple-700','from-sky-500 to-blue-700'];
+                  var _color = _colors[_bi % _colors.length];
+                  var _isIdol = blv.role === 'idol';
+                  var _href = _isIdol ? ('/idol/'+(blv.id||blv.name)) : ('/live/'+(m.slug||m.id));
+                %>
+                  <a href="<%= _href %>" class="m-card-blv-item">
+                    <% if (blv.avatar) { %>
+                      <img src="<%= blv.avatar %>" alt="<%= blv.name %>" onerror="this.outerHTML='<span class=&quot;m-card-blv-letter bg-gradient-to-br <%= _color %>&quot;>'+'<%= (blv.name||'?')[0] %>'+'</span>'">
+                    <% } else { %>
+                      <span class="m-card-blv-letter bg-gradient-to-br <%= _color %>"><%= (blv.name||'?')[0] %></span>
+                    <% } %>
+                    <span class="m-card-blv-name"><%= blv.name %></span>
+                    <% if (blv.liveNow) { %><span class="m-card-blv-live">LIVE</span><% } %>
+                  </a>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <span class="m-card-foot-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+                Chưa có bình luận viên
+              </span>
+            <% } %>
           </footer>
-          <% } %>
         </article>
       <% } }); %>
     <% } %>
@@ -753,6 +751,56 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   display: grid; place-items: center;
   font-size: 13px;
 }
+
+/* ===== Card footer COMPACT (BLV/Idol đăng ký) ===== */
+.m-card-foot {
+  padding: 6px 10px;
+  border-top: 1px solid rgba(42, 51, 68, .6);
+  background: rgba(11, 14, 20, .5);
+  min-height: 30px;
+  display: flex; align-items: center;
+}
+.m-card-foot-blvs {
+  flex: 1;
+  display: flex; gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.m-card-foot-blvs::-webkit-scrollbar { display: none; }
+.m-card-blv-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  flex-shrink: 0; text-decoration: none;
+  transition: opacity .15s;
+}
+.m-card-blv-item:active { opacity: .7; }
+.m-card-blv-item img,
+.m-card-blv-letter {
+  width: 18px; height: 18px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+  border: 1px solid rgba(42, 51, 68, .6);
+}
+.m-card-blv-letter {
+  display: grid; place-items: center;
+  color: #fff; font-weight: 700; font-size: 9px;
+}
+.m-card-blv-name {
+  color: #e2e8f0; font-size: 11px; font-weight: 600;
+  max-width: 110px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.m-card-blv-live {
+  background: #dc2626; color: #fff;
+  font-size: 8px; font-weight: 800;
+  padding: 0 4px; border-radius: 2px;
+  letter-spacing: .5px;
+}
+/* Empty state */
+.m-card-foot-empty {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: #64748b; font-size: 11px; font-weight: 500;
+  font-style: italic;
+}
+.m-card-foot-empty svg { opacity: .7; }
 </style>
 
 <script>

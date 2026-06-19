@@ -989,13 +989,33 @@ app.get('/lich-phat-song', async function (req, res, next) {
     const idols  = (dbData.idols || []).filter(function(i){ return i.status === 'active'; });
 
     // NEW: Set matchId BLV đã được duyệt schedule live (còn hiệu lực)
+    //      + Map matchId → array [{name, avatar, role, liveNow, id}] để render tên BLV thật
     var blvMatchIds = new Set();
+    var blvByMatch = {};
     try {
       var scheduleStore = require('./lib/schedule-store');
       var nowTs = Date.now();
       (scheduleStore.listAll() || []).forEach(function(s){
         if (s && s.status === 'approved' && s.matchId && s.endTime > nowTs) {
-          blvMatchIds.add(String(s.matchId));
+          var key = String(s.matchId);
+          blvMatchIds.add(key);
+          // Lookup BLV/Idol từ DB theo username
+          var u = null;
+          if (s.userType === 'idol') {
+            u = (dbData.idols || []).find(function(x){ return x.username === s.username || x.id === s.username; });
+          } else {
+            u = (dbData.blvs || []).find(function(x){ return x.username === s.username || x.id === s.username; });
+          }
+          if (u) {
+            if (!blvByMatch[key]) blvByMatch[key] = [];
+            blvByMatch[key].push({
+              id: u.id || u.username,
+              name: u.name || u.username,
+              avatar: u.avatar || '',
+              role: s.userType || 'blv',
+              liveNow: !!u.liveNow
+            });
+          }
         }
       });
     } catch(e) { console.warn('[lich-phat-song] schedule load fail:', e.message); }
@@ -1011,6 +1031,7 @@ app.get('/lich-phat-song', async function (req, res, next) {
     res.render('tw-lich-phat-song', {
       active:'lich', list:list, sport:sport, blvs:blvs, idols:idols,
       blvMatchIds: blvMatchIds,
+      blvByMatch: blvByMatch,
       articleByMatch: articleByMatch
     });
   } catch (e) { next(e); }
