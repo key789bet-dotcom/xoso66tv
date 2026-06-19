@@ -437,6 +437,96 @@ html:not(.dark) .dlr-other-item:hover{ background:rgba(255,122,24,.06) !importan
 html:not(.dark) .dlr-other-time{ color:#b45309 !important; }
 html:not(.dark) .dlr-other-match{ color:#334155 !important; }
 
+/* ══════════════════════════════════════════════════════════════════
+   /lich-phat-song DESKTOP redesign (lps-*) — v159+
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Sport tab pills (Bóng đá / Bóng rổ / Tennis ...) */
+html:not(.dark) .lps-sport-tab {
+  background: #ffffff !important;
+  border-color: #d6dce6 !important;
+  color: #475569 !important;
+}
+html:not(.dark) .lps-sport-tab:hover {
+  background: #f1f5f9 !important; color: #0f172a !important;
+}
+html:not(.dark) .lps-sport-tab.is-active {
+  background: linear-gradient(135deg, #14b8a6, #0d9488) !important;
+  border-color: #14b8a6 !important; color: #ffffff !important;
+}
+html:not(.dark) .lps-sport-ico { background: rgba(0,0,0,.06) !important; }
+html:not(.dark) .lps-sport-tab.is-active .lps-sport-ico { background: rgba(255,255,255,.25) !important; }
+
+/* Filter bar wrapper (HÔM NAY / date / sort) */
+html:not(.dark) .lps-day-btn {
+  border-color: #d6dce6 !important; color: #475569 !important;
+}
+html:not(.dark) .lps-day-btn:hover { color: #0d9488 !important; border-color: #14b8a6 !important; }
+html:not(.dark) .lps-day-btn.is-active {
+  background: rgba(20,184,166,.12) !important;
+  border-color: #14b8a6 !important; color: #0d9488 !important;
+}
+html:not(.dark) input[type="date"]#lpsDate {
+  background: #ffffff !important; border-color: #d6dce6 !important; color: #1a1f2e !important;
+}
+html:not(.dark) #lpsSortBtn { color: #c2410c !important; }
+
+/* League filter chips */
+html:not(.dark) .lps-lg-chip {
+  background: #ffffff !important; border-color: #d6dce6 !important; color: #475569 !important;
+}
+html:not(.dark) .lps-lg-chip:hover {
+  background: #fff7ed !important; color: #c2410c !important; border-color: #fdba74 !important;
+}
+html:not(.dark) .lps-lg-chip.is-active {
+  background: linear-gradient(135deg, #ff7a18, #ea580c) !important;
+  border-color: #ff7a18 !important; color: #ffffff !important;
+}
+
+/* League group header */
+html:not(.dark) .lps-lg-header {
+  background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border-color: #fdba74 !important;
+}
+html:not(.dark) .lps-lg-header .text-white { color: #0f172a !important; }
+html:not(.dark) .lps-lg-header .text-muted { color: #64748b !important; }
+html:not(.dark) .lps-lg-logo {
+  background: #ffffff !important; border: 1px solid #fdba74 !important; color: #c2410c !important;
+}
+
+/* Match row */
+html:not(.dark) .lps-match-row {
+  background: #ffffff !important; border-color: #e0e6ee !important;
+}
+html:not(.dark) .lps-match-row:hover { background: #fafbfd !important; }
+
+/* Time box */
+html:not(.dark) .lps-time-box {
+  background: #fff7ed !important; border-color: #fdba74 !important; color: #c2410c !important;
+}
+
+/* Team name + logo */
+html:not(.dark) .lps-team-name { color: #1f2937 !important; }
+html:not(.dark) .lps-team-logo { background: #ffffff !important; border: 1px solid #e0e6ee !important; }
+html:not(.dark) .lps-team-letter { color: #1f2937 !important; }
+
+/* VS fallback text */
+html:not(.dark) .lps-col-vs > span { color: #94a3b8 !important; }
+
+/* Action buttons - giữ màu pop, chỉ chỉnh outline */
+html:not(.dark) .lps-btn-detail {
+  background: #ffffff !important; border-color: #d6dce6 !important; color: #64748b !important;
+}
+html:not(.dark) .lps-btn-detail:hover { border-color: #14b8a6 !important; color: #0d9488 !important; }
+
+/* Round tag */
+html:not(.dark) .lps-round-tag {
+  background: #f1f5f9 !important; border-color: #d6dce6 !important; color: #64748b !important;
+}
+
+/* H1 title trên top desktop */
+html:not(.dark) .hidden.md\:block > header > h1 { color: #0f172a !important; }
+
 /* ── SEO article text ── */
 html:not(.dark) .dlr-seo h4{ color:#0f172a !important; }
 html:not(.dark) .dlr-seo p{ color:#1f2937 !important; }

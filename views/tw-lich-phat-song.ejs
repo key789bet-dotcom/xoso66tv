@@ -115,6 +115,35 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
 <div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
+<!-- SVG symbol: VS badge gradient cam-đỏ (dùng <use> ở mỗi match row) -->
+<svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <linearGradient id="lpsVsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9933"/>
+      <stop offset="55%" stop-color="#ff7a18"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <radialGradient id="lpsVsGloss" cx="50%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.4)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <symbol id="lpsVsSym" viewBox="0 0 72 36">
+      <!-- Left chevron wing -->
+      <path d="M2 18 L17 11 L14 18 L17 25 Z" fill="url(#lpsVsGrad)" opacity="0.85"/>
+      <!-- Right chevron wing -->
+      <path d="M70 18 L55 11 L58 18 L55 25 Z" fill="url(#lpsVsGrad)" opacity="0.85"/>
+      <!-- Center badge ellipse -->
+      <ellipse cx="36" cy="18" rx="17" ry="13.5" fill="url(#lpsVsGrad)" stroke="rgba(255,255,255,0.95)" stroke-width="1.8"/>
+      <!-- Inner glossy highlight -->
+      <ellipse cx="36" cy="14" rx="14" ry="6" fill="url(#lpsVsGloss)"/>
+      <!-- Subtle inner ring -->
+      <ellipse cx="36" cy="18" rx="14" ry="10.5" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="0.6"/>
+      <!-- VS text -->
+      <text x="36" y="23" text-anchor="middle" fill="#fff" font-weight="900" font-size="14" font-family="Arial Black, Impact, system-ui, sans-serif" letter-spacing="0.5" style="paint-order:stroke;stroke:rgba(0,0,0,0.25);stroke-width:0.5px">VS</text>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- Title H1 -->
 <header class="mb-4">
   <h1 class="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-wide">
@@ -221,12 +250,12 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
                 <% } %>
               </span>
             </div>
-            <!-- Cột 3: VS / Score -->
+            <!-- Cột 3: VS badge SVG / Score -->
             <div class="lps-col-vs">
               <% if (m.score && _isLive) { %>
-                <span class="text-live font-black"><%= m.score[0] %> - <%= m.score[1] %></span>
+                <span class="lps-score-live"><%= m.score[0] %> - <%= m.score[1] %></span>
               <% } else { %>
-                <span class="text-muted font-bold">VS</span>
+                <svg class="lps-vs-svg" width="58" height="30" viewBox="0 0 72 36" aria-label="VS"><use href="#lpsVsSym"/></svg>
               <% } %>
             </div>
             <!-- Cột 4: Away team (logo + name, align left) -->
@@ -377,6 +406,33 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
 
 .lps-col-vs {
   text-align: center; font-size: 13px;
+  display: flex; justify-content: center; align-items: center;
+}
+/* VS SVG badge — luôn nổi bật + animation nhẹ */
+.lps-vs-svg {
+  display: inline-block;
+  filter: drop-shadow(0 2px 6px rgba(220,38,38,.4));
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), filter .25s ease;
+}
+.lps-match-row:hover .lps-vs-svg {
+  transform: scale(1.12) rotate(-2deg);
+  filter: drop-shadow(0 4px 12px rgba(220,38,38,.65));
+}
+/* Score đang live - đậm + glow đỏ */
+.lps-score-live {
+  display: inline-block;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: 900;
+  font-size: 14px;
+  box-shadow: 0 2px 8px -2px rgba(220,38,38,.6);
+  animation: lpsScorePulse 2s ease-in-out infinite;
+}
+@keyframes lpsScorePulse {
+  0%, 100% { box-shadow: 0 2px 8px -2px rgba(220,38,38,.6); }
+  50%      { box-shadow: 0 4px 14px -2px rgba(220,38,38,.85); }
 }
 
 .lps-col-actions {
