@@ -237,16 +237,37 @@ function _stat(m, keys){
         var _aW = m.score && m.score[0] < m.score[1];
       %>
         <a href="/live/<%= m.slug || m.id %>" class="block bg-bg-card border border-line rounded-lg p-2.5 active:scale-[.98]">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-pri-light text-[10px] font-bold uppercase truncate"><%= m.league || m.sport %></span>
-            <span class="bg-black/60 text-gray-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded">FT</span>
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span class="flex items-center gap-1.5 min-w-0 flex-1">
+              <% if (m.leagueLogo) { %>
+                <span class="inline-flex items-center justify-center bg-white rounded-full shrink-0" style="width:16px;height:16px;padding:1.5px;">
+                  <img src="<%= m.leagueLogo %>" alt="" class="w-full h-full object-contain" loading="lazy" onerror="this.parentNode.style.display='none'">
+                </span>
+              <% } %>
+              <span class="text-pri-light text-[10px] font-bold uppercase truncate"><%= m.league || m.sport %></span>
+            </span>
+            <span class="bg-black/60 text-gray-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0">FT</span>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="flex-1 text-xs font-bold truncate text-right <%= _hW?'text-gold':'text-white' %>"><%= m.home %></span>
-            <span class="bg-blue-700 text-white px-2 py-0.5 rounded font-black text-sm">
+          <div class="flex items-center gap-1.5">
+            <span class="flex-1 flex items-center justify-end gap-1.5 min-w-0">
+              <span class="text-xs font-bold truncate text-right <%= _hW?'text-gold':'text-white' %>"><%= m.home %></span>
+              <% if (m.homeBadge) { %>
+                <span class="w-6 h-6 bg-white rounded-full p-0.5 grid place-items-center shrink-0 overflow-hidden">
+                  <img src="<%= m.homeBadge %>" alt="" class="w-full h-full object-contain" loading="lazy" onerror="this.outerHTML='<span class=&quot;text-[10px] font-bold text-gray-700&quot;>'+'<%= (m.home||'?')[0] %>'+'</span>'">
+                </span>
+              <% } %>
+            </span>
+            <span class="bg-blue-700 text-white px-2 py-0.5 rounded font-black text-sm shrink-0">
               <span class="<%= _hW?'text-gold':'' %>"><%= m.score?m.score[0]:'-' %></span>:<span class="<%= _aW?'text-gold':'' %>"><%= m.score?m.score[1]:'-' %></span>
             </span>
-            <span class="flex-1 text-xs font-bold truncate <%= _aW?'text-gold':'text-white' %>"><%= m.away %></span>
+            <span class="flex-1 flex items-center gap-1.5 min-w-0">
+              <% if (m.awayBadge) { %>
+                <span class="w-6 h-6 bg-white rounded-full p-0.5 grid place-items-center shrink-0 overflow-hidden">
+                  <img src="<%= m.awayBadge %>" alt="" class="w-full h-full object-contain" loading="lazy" onerror="this.outerHTML='<span class=&quot;text-[10px] font-bold text-gray-700&quot;>'+'<%= (m.away||'?')[0] %>'+'</span>'">
+                </span>
+              <% } %>
+              <span class="text-xs font-bold truncate <%= _aW?'text-gold':'text-white' %>"><%= m.away %></span>
+            </span>
           </div>
           <% if (m.halftime) { %>
             <div class="text-[9px] text-muted text-center mt-1">HT: <%= m.halftime[0] %> - <%= m.halftime[1] %></div>
