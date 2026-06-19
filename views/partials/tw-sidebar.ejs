@@ -161,6 +161,10 @@
           svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>' },
         { href:'/lich-phat-song',key:'lich',     text:'Lịch phát sóng',         a:'lich',
           svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' },
+        { href:'/livescore',     key:'livescore',text:'Livescore',              a:'livescore', badge:'LIVE',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6M12 5v2"/></svg>' },
+        { href:'/ket-qua',       key:'ket-qua',  text:'Kết quả',                a:'ket-qua',
+          svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><path d="M6 9V3h12v6a6 6 0 0 1-12 0z"/><path d="M6 9H4a2 2 0 0 1 0-4h2M18 9h2a2 2 0 0 0 0-4h-2"/><path d="M9 21h6M12 17v4"/></svg>' },
         { href:'/su-kien',       key:'su-kien',  text:'Sự kiện & Khuyến mãi',   a:'su-kien', hot:true,
           svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>' },
         { href:'/qua-tang',      key:'qua-tang', text:'Quà tặng',               a:'qua-tang',
@@ -195,8 +199,12 @@
       <div class="px-3 pt-2.5 pb-1.5 text-dim text-[11px] uppercase tracking-widest font-extrabold flex items-center gap-2">
         <span class="w-1.5 h-1.5 bg-live rounded-full animate-pulse-live"></span> Danh mục phát sóng
       </div>
-      <% Object.entries(cats).forEach(function(pair){
-         var key=pair[0], c=pair[1]; var ac=activeCat===key;
+      <% // Ẩn 3 môn ít user xem khỏi sidebar (vẫn giữ trong cats để page khác dùng)
+         var _hiddenCats = ['bong-ban','bong-chuyen','tennis'];
+         Object.entries(cats).forEach(function(pair){
+         var key=pair[0], c=pair[1];
+         if (_hiddenCats.indexOf(key) >= 0) return;
+         var ac=activeCat===key;
          var href = key==='casino'?'/casino':key==='idol'?'/idol-live':key==='esports'?'/esports':key==='hot'?'/':'/the-thao/'+key;
          var cnt = catCounts[key] || 0;
       %>
