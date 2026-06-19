@@ -1109,7 +1109,7 @@ app.get('/idol/:id', function (req, res) {
 });
 
 // ===== PUBLIC AUTH (cookie-based for streamer protection) =====
-app.post('/api/auth/login', sec.loginStrictLimiter, async function (req, res) {
+app.post('/api/auth/login', sec.loginStrictLimiter, turnstile.middleware(), async function (req, res) {
   const b = req.body || {};
   try {
     const result = await pubAuth.login(b.username || '', b.password || '', res, { otp: b.otp });

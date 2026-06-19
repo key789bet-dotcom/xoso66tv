@@ -54,15 +54,20 @@ seo = {
           <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-pri-light bg-transparent border-0 text-lg p-1" onclick="togglePw('password2',this)">&#128065;</button>
         </div>
 
-        <div class="flex items-stretch gap-2">
-          <div class="flex-1 relative">
-            <input id="captchaInput" type="text" required maxlength="5" inputmode="numeric" pattern="[0-9]{5}" autocomplete="off"
-                   class="w-full bg-[#0e1218] border border-line text-gray-100 pl-4 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 tracking-widest"
-                   placeholder="Mã CAPTCHA">
+        <%# 🛡️ Turnstile (Cloudflare) nếu ENV configured, fallback captcha SVG nếu chưa %>
+        <% if (typeof turnstileEnabled !== 'undefined' && turnstileEnabled) { %>
+          <%- include('partials/tw-turnstile-widget') %>
+        <% } else { %>
+          <div class="flex items-stretch gap-2">
+            <div class="flex-1 relative">
+              <input id="captchaInput" type="text" required maxlength="5" inputmode="numeric" pattern="[0-9]{5}" autocomplete="off"
+                     class="w-full bg-[#0e1218] border border-line text-gray-100 pl-4 pr-3 py-3 rounded-lg outline-none text-[14px] focus:border-pri focus:ring-2 focus:ring-pri/20 tracking-widest"
+                     placeholder="Mã CAPTCHA">
+            </div>
+            <div id="captchaBox" class="w-[130px] h-[48px] bg-white rounded-lg cursor-pointer overflow-hidden" onclick="renderCaptcha('captchaBox')" title="Click để đổi mã"></div>
+            <button type="button" onclick="renderCaptcha('captchaBox')" class="w-12 h-12 bg-pri hover:bg-pri-dark text-white rounded-lg grid place-items-center text-lg font-bold transition-colors" aria-label="Đổi mã">&#8635;</button>
           </div>
-          <div id="captchaBox" class="w-[130px] h-[48px] bg-white rounded-lg cursor-pointer overflow-hidden" onclick="renderCaptcha('captchaBox')" title="Click để đổi mã"></div>
-          <button type="button" onclick="renderCaptcha('captchaBox')" class="w-12 h-12 bg-pri hover:bg-pri-dark text-white rounded-lg grid place-items-center text-lg font-bold transition-colors" aria-label="Đổi mã">&#8635;</button>
-        </div>
+        <% } %>
 
         <button type="submit" class="w-full py-3.5 bg-gradient-to-b from-pri to-pri-dark text-white rounded-lg font-extrabold text-base shadow-pri hover:brightness-110 transition-all">Đăng ký</button>
 
@@ -92,8 +97,10 @@ seo = {
 
 <div id="toast" class="fixed top-20 right-5 bg-bg-card border border-line border-l-4 border-l-pri px-4 py-3 rounded-lg text-white text-[13px] font-semibold z-[100] shadow-2xl translate-x-[120%] transition-transform"></div>
 
-<script src="/static/js/captcha.js"></script>
+<% var _twEnabled = (typeof turnstileEnabled !== 'undefined' && turnstileEnabled); %>
+<% if (!_twEnabled) { %><script src="/static/js/captcha.js"></script><% } %>
 <script>
+var TURNSTILE_ON = <%= _twEnabled ? 'true' : 'false' %>;
 function togglePw(id, btn){ var i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; }
 function showToast(msg, kind){
   var t=document.getElementById('toast');
@@ -103,7 +110,7 @@ function showToast(msg, kind){
   setTimeout(function(){ t.className=t.className.replace('translate-x-0','translate-x-[120%]') }, 3500);
 }
 
-renderCaptcha('captchaBox');
+if (!TURNSTILE_ON) renderCaptcha('captchaBox');
 
 document.getElementById('regForm').addEventListener('submit', async function(e){
   e.preventDefault();
@@ -112,18 +119,27 @@ document.getElementById('regForm').addEventListener('submit', async function(e){
   var ph = f.phone.value.trim();
   var p  = f.password.value;
   var p2 = document.getElementById('password2').value;
-  var cap = document.getElementById('captchaInput').value.trim();
 
   if (!/^[a-zA-Z0-9_]{4,20}$/.test(u)) { showToast('Tên đăng nhập 4-20 ký tự, chữ/số/_','error'); return; }
   if (!/^0[3-9][0-9]{8}$/.test(ph))    { showToast('Số điện thoại không hợp lệ','error'); return; }
   if (p.length < 8)                    { showToast('Mật khẩu tối thiểu 8 ký tự','error'); return; }
   if (p !== p2)                        { showToast('Mật khẩu nhập lại không khớp','error'); return; }
   if (!f.agree.checked)                { showToast('Vui lòng đồng ý điều khoản','error'); return; }
-  if (!verifyCaptcha(cap)) {
-    showToast('Mã CAPTCHA không đúng','error');
-    document.getElementById('captchaInput').value = '';
-    renderCaptcha('captchaBox');
-    return;
+
+  // Captcha check: Turnstile (server verify) hoặc captcha SVG (client verify)
+  var cfToken = '';
+  if (TURNSTILE_ON) {
+    var ti = document.getElementById('cf_token_input');
+    cfToken = ti ? ti.value : '';
+    if (!cfToken) { showToast('Vui lòng hoàn thành xác minh Cloudflare','error'); return; }
+  } else {
+    var cap = document.getElementById('captchaInput').value.trim();
+    if (!verifyCaptcha(cap)) {
+      showToast('Mã CAPTCHA không đúng','error');
+      document.getElementById('captchaInput').value = '';
+      renderCaptcha('captchaBox');
+      return;
+    }
   }
 
   var btn = f.querySelector('button[type=submit]');
@@ -132,7 +148,7 @@ document.getElementById('regForm').addEventListener('submit', async function(e){
 
   try {
     // Step 1: LƯU user vào DB local (bcrypt hash, lưu data/db.json để admin thấy)
-    var data = { username: u, fullname: u, phone: ph, password: p };
+    var data = { username: u, fullname: u, phone: ph, password: p, cf_token: cfToken };
     var r = await fetch('/api/auth/register', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
