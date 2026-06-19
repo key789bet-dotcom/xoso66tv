@@ -582,7 +582,7 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   </div>
 
   <!-- Match cards list - data thật từ server -->
-  <div class="space-y-3" id="mLichList">
+  <div class="space-y-2" id="mLichList">
     <% if (_allCards.length === 0) { %>
       <div class="p-10 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
         <div class="text-4xl mb-2 opacity-60">📥</div>
@@ -633,52 +633,52 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
           var _leagueIconKey = _sportToIcoKey[m.sport] || 'trophy';
           var _leagueIconSvg = _svgIco[_leagueIconKey] || _svgIco.trophy;
       %>
-        <article class="m-match-card bg-bg-card border border-line rounded-xl overflow-hidden" data-cat="<%= card.cat %>" data-date="<%= card.isoDate %>" data-status="<%= m.status %>">
-          <header class="flex items-center justify-between px-3 py-2 bg-bg-soft/40 border-b border-line">
+        <article class="m-match-card bg-bg-card border border-line rounded-lg overflow-hidden" data-cat="<%= card.cat %>" data-date="<%= card.isoDate %>" data-status="<%= m.status %>">
+          <header class="flex items-center justify-between px-2.5 py-1.5 bg-bg-soft/40 border-b border-line">
             <div class="flex items-center gap-1.5 min-w-0">
               <% if (m.leagueLogo) { %>
-                <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
+                <span class="inline-flex items-center justify-center bg-white rounded-full shrink-0" style="width:18px;height:18px;padding:1.5px;">
                   <img src="<%= m.leagueLogo %>" alt="<%= m.league || '' %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
                 </span>
               <% } else { %>
-                <span class="bg-pri/20 text-pri-light w-5 h-5 rounded grid place-items-center shrink-0"><%- _leagueIconSvg %></span>
+                <span class="bg-pri/20 text-pri-light w-4 h-4 rounded grid place-items-center shrink-0"><%- _leagueIconSvg %></span>
               <% } %>
-              <span class="text-white text-[12px] font-bold truncate"><%= m.league || m.sport %></span>
+              <span class="text-white text-[11px] font-bold truncate"><%= m.league || m.sport %></span>
             </div>
             <% if (m.status==='live') { %>
-              <span class="bg-live text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
+              <span class="bg-live text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0"><span class="w-1 h-1 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
             <% } else if (m.status==='finished') { %>
-              <span class="bg-black/60 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>
+              <span class="bg-black/60 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0">FT</span>
             <% } else { %>
-              <span class="bg-pri/20 text-pri-light text-[10px] font-extrabold px-2 py-0.5 rounded">SẮP DIỄN RA</span>
+              <span class="bg-pri/20 text-pri-light text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0">SẮP DIỄN RA</span>
             <% } %>
           </header>
-          <a href="/live/<%= m.slug || m.id %>" class="flex items-center px-3 py-3 hover:bg-bg-soft/30 active:scale-[.98] transition-all">
-            <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+          <a href="/live/<%= m.slug || m.id %>" class="flex items-center px-2.5 py-2 hover:bg-bg-soft/30 active:scale-[.98] transition-all">
+            <div class="flex-1 flex flex-col items-center gap-1 min-w-0">
               <% if (m.homeBadge) { %>
-                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center"><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>&#9917;</span>'"></div>
+                <div class="w-9 h-9 bg-white rounded-full p-0.5 shadow shrink-0 grid place-items-center"><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-base&quot;>&#9917;</span>'"></div>
               <% } else { %>
-                <div class="w-12 h-12 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-base"><%= (m.home||'?')[0] %></div>
+                <div class="w-9 h-9 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-xs"><%= (m.home||'?')[0] %></div>
               <% } %>
-              <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.home || '?' %></div>
+              <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-0.5 leading-tight"><%= m.home || '?' %></div>
             </div>
-            <div class="px-3 text-center shrink-0">
+            <div class="px-2 text-center shrink-0">
               <% if (m.score) { %>
-                <div class="text-xl font-black text-white"><%= m.score[0] %> : <%= m.score[1] %></div>
+                <div class="text-base font-black text-white leading-tight"><%= m.score[0] %> : <%= m.score[1] %></div>
               <% } else { %>
-                <div class="text-xl font-black text-white"><%= m.time || 'VS' %></div>
+                <div class="text-base font-black text-white leading-tight"><%= m.time || 'VS' %></div>
               <% } %>
               <% if (_dateStr) { %>
-                <div class="inline-block bg-pri text-white text-[10px] font-bold px-2 py-0.5 rounded mt-1"><%= _dateStr %></div>
+                <div class="inline-block bg-pri text-white text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5"><%= _dateStr %></div>
               <% } %>
             </div>
-            <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+            <div class="flex-1 flex flex-col items-center gap-1 min-w-0">
               <% if (m.awayBadge) { %>
-                <div class="w-12 h-12 bg-white rounded-full p-1 shadow shrink-0 grid place-items-center"><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-xl&quot;>&#9917;</span>'"></div>
+                <div class="w-9 h-9 bg-white rounded-full p-0.5 shadow shrink-0 grid place-items-center"><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-base&quot;>&#9917;</span>'"></div>
               <% } else { %>
-                <div class="w-12 h-12 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-base"><%= (m.away||'?')[0] %></div>
+                <div class="w-9 h-9 rounded-full bg-bg-deep grid place-items-center text-white font-bold text-xs"><%= (m.away||'?')[0] %></div>
               <% } %>
-              <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-1"><%= m.away || '?' %></div>
+              <div class="text-[11px] text-gray-300 font-semibold text-center truncate w-full px-0.5 leading-tight"><%= m.away || '?' %></div>
             </div>
           </a>
           <footer class="m-card-foot">
@@ -754,10 +754,10 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
 
 /* ===== Card footer COMPACT (BLV/Idol đăng ký) ===== */
 .m-card-foot {
-  padding: 6px 10px;
-  border-top: 1px solid rgba(42, 51, 68, .6);
-  background: rgba(11, 14, 20, .5);
-  min-height: 30px;
+  padding: 4px 10px;
+  border-top: 1px solid rgba(42, 51, 68, .5);
+  background: rgba(11, 14, 20, .35);
+  min-height: 24px;
   display: flex; align-items: center;
 }
 .m-card-foot-blvs {
