@@ -88,32 +88,391 @@ _idolList.forEach(function(i){
 <%- include('partials/tw-layout-start') %>
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- DESKTOP layout - giữ nguyên cũ -->
+<!-- DESKTOP layout - REDESIGN: list grouped by league + action buttons -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
+<%
+// ===== Group matches by league (desktop) =====
+var _blvSet = (typeof blvMatchIds !== 'undefined' && blvMatchIds) ? blvMatchIds : new Set();
+var _artMap = (typeof articleByMatch !== 'undefined' && articleByMatch) ? articleByMatch : {};
+var _leagueGroups = {}; // { leagueName: { league, country, logo, matches: [] } }
+var _leagueSet = {}; // unique league names cho filter chips
+(list || []).forEach(function(m){
+  var lname = m.league || m.sport || 'Khác';
+  if (!_leagueGroups[lname]) {
+    _leagueGroups[lname] = {
+      name: lname, country: m.country || '', logo: m.leagueLogo || '',
+      flag: m.leagueFlag || '', matches: []
+    };
+  }
+  _leagueGroups[lname].matches.push(m);
+  _leagueSet[lname] = (_leagueSet[lname] || 0) + 1;
+});
+// Sort league theo số match desc, league lớn hiện trước
+var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
+  return _leagueGroups[b].matches.length - _leagueGroups[a].matches.length;
+}).map(function(k){ return _leagueGroups[k]; });
+%>
 <div class="hidden md:block">
 <%- include('partials/tw-breadcrumb') %>
 
-<header class="hero-animated-bg bg-gradient-to-br from-bg-card to-bg-soft border border-line rounded-xl px-6 py-5 mb-4"><div class="hero-sparkles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-  <h1 class="text-xl md:text-2xl font-black text-white mb-2.5 leading-tight"><span class="text-2xl">&#128197;</span> <span class="text-shimmer">Lịch Phát Sóng <%= _catName||'Thể Thao' %> Hôm Nay <%= _todayVi %></span></h1>
-  <p class="text-muted text-sm leading-relaxed">Tổng hợp <strong class="text-white"><%= list.length %> trận đấu</strong> sắp diễn ra trong 2 ngày tới được <strong class="text-white"><%= brand.name %></strong> tường thuật HD miễn phí. Lọc theo môn yêu thích, xem chi tiết và nhận thông báo trước giờ bóng lăn.</p>
+<!-- Title H1 -->
+<header class="mb-4">
+  <h1 class="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-wide">
+    Lịch Thi Đấu <%= _catName||'Bóng Đá' %> Chuẩn Xác Nhất Hôm Nay - LTĐ Sắp Diễn Ra
+  </h1>
 </header>
 
-<nav class="flex gap-2 flex-wrap bg-bg-card border border-line rounded-xl p-2 mb-5 overflow-x-auto scrollbar-hide" aria-label="Lọc môn">
-  <a href="/lich-phat-song" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap <%= !sport ? 'bg-gradient-to-br from-pri to-live text-white shadow-pri' : 'text-gray-100 hover:bg-bg-soft' %>"><span class="bg-white/20 w-5 h-5 rounded grid place-items-center"><%- _svgIco.check %></span> Tất cả</a>
-  <% Object.entries(cats).forEach(function(pair){ var k=pair[0], c=pair[1]; if (c.partnerOnly) return;
+<!-- Tabs môn thể thao (pill style teal) -->
+<nav class="flex gap-2 flex-wrap mb-4" aria-label="Lọc môn">
+  <% Object.entries(cats).forEach(function(pair){ var k=pair[0], c=pair[1]; if (c.partnerOnly || c.sport===null) return;
        var _icoKey = (k==='bong-da'?'bongda':k==='bong-ro'?'bongro':k==='bong-chuyen'?'bongchuyen':k==='bong-ban'?'bongban':k);
+       var _isAct = (sport===k) || (!sport && k==='bong-da');
   %>
-    <a href="/lich-phat-song?mon=<%= k %>" class="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[13px] whitespace-nowrap <%= sport===k ? 'bg-gradient-to-br from-pri to-live text-white shadow-pri' : 'text-gray-100 hover:bg-bg-soft' %>"><span class="inline-flex"><%- _svgIco[_icoKey] || ('<span class=\'text-[14px]\'>'+(c.icon||'🏆')+'</span>') %></span> <%= c.name %></a>
+    <a href="/lich-phat-song?mon=<%= k %>" class="lps-sport-tab <%= _isAct ? 'is-active' : '' %>">
+      <span class="lps-sport-ico"><%- _svgIco[_icoKey] || ('<span>'+(c.icon||'🏆')+'</span>') %></span>
+      <span class="uppercase tracking-wide"><%= c.name %></span>
+    </a>
   <% }); %>
 </nav>
 
-<section>
+<!-- Filter bar: Hôm nay + Date picker + Sắp xếp -->
+<div class="flex items-center gap-3 flex-wrap bg-bg-card border border-line rounded-lg px-4 py-2.5 mb-3">
+  <button type="button" class="lps-day-btn is-active" data-mode="today">
+    <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>
+    HÔM NAY
+  </button>
+  <span class="text-muted text-[13px]">Cụ thể</span>
+  <input type="date" id="lpsDate" value="<%= new Date().toISOString().slice(0,10) %>" class="bg-bg-soft border border-line text-white text-[13px] px-2.5 py-1 rounded font-semibold cursor-pointer">
+  <div class="ml-auto flex items-center gap-2">
+    <span class="text-muted text-[13px]">Sắp xếp:</span>
+    <button type="button" id="lpsSortBtn" class="text-pri-light text-[13px] font-bold flex items-center gap-1">
+      Theo thời gian
+      <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M7 10l5 5 5-5z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Filter chips theo giải đấu (auto-gen từ list) -->
+<% if (_leagueArr.length > 1) { %>
+<div class="bg-bg-card border border-line rounded-lg px-3 py-2.5 mb-4 max-h-[112px] overflow-y-auto">
+  <div class="flex gap-1.5 flex-wrap" id="lpsLeagueChips">
+    <button type="button" class="lps-lg-chip is-active" data-lg="__all__">TẤT CẢ</button>
+    <% _leagueArr.forEach(function(lg){ %>
+      <button type="button" class="lps-lg-chip" data-lg="<%= lg.name %>" title="<%= lg.matches.length %> trận"><%= lg.name.toUpperCase() %></button>
+    <% }); %>
+  </div>
+</div>
+<% } %>
+
+<!-- Match list - GROUPED BY LEAGUE -->
+<section id="lpsList">
   <% if (!list || list.length === 0) { %>
-    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted"><div class="text-5xl mb-2 opacity-60">&#128229;</div>Không có trận sắp diễn ra.</div>
+    <div class="p-12 text-center bg-bg-card border border-dashed border-line rounded-xl text-muted">
+      <div class="text-5xl mb-2 opacity-60">&#128229;</div>
+      Không có trận sắp diễn ra.
+    </div>
   <% } else { %>
-    <div class="grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]" itemscope itemtype="https://schema.org/ItemList"><%- include('partials/tw-stream-card', { list: list }) %></div>
+    <% _leagueArr.forEach(function(lg){ %>
+      <div class="lps-lg-group mb-4" data-lg="<%= lg.name %>">
+        <!-- League header -->
+        <div class="lps-lg-header">
+          <span class="lps-lg-logo">
+            <% if (lg.logo) { %>
+              <img src="<%= lg.logo %>" alt="<%= lg.name %>" class="w-full h-full object-contain" loading="lazy" onerror="this.outerHTML='<svg viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; class=&quot;w-4 h-4&quot;><path d=&quot;M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z&quot;/></svg>'">
+            <% } else { %>
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+            <% } %>
+          </span>
+          <span class="text-white font-bold text-[14px]"><%= lg.name %></span>
+          <% if (lg.country) { %><span class="text-muted text-[11px] ml-1">· <%= lg.country %></span><% } %>
+          <span class="ml-auto text-muted text-[11px]"><%= lg.matches.length %> trận</span>
+        </div>
+
+        <!-- Matches in this league -->
+        <% lg.matches.forEach(function(m){
+          var _matchKey = String(m.id || '');
+          var _hasBlv  = _blvSet.has(_matchKey);
+          var _articleSlug = _artMap[_matchKey] || null;
+          var _isLive  = m.status === 'live';
+          var _ddmm = ''; var _hhmm = m.time || '--:--';
+          try {
+            if (m.matchTs) {
+              var _d = new Date(m.matchTs);
+              _ddmm = String((_d.getUTCDate()+(_d.getUTCHours()>=17?1:0))).padStart(2,'0');
+              var _vn = new Date(m.matchTs + 7*3600*1000);
+              _ddmm = String(_vn.getUTCDate()).padStart(2,'0') + '/' + String(_vn.getUTCMonth()+1).padStart(2,'0');
+              _hhmm = String(_vn.getUTCHours()).padStart(2,'0')+':'+String(_vn.getUTCMinutes()).padStart(2,'0');
+            }
+          } catch(e){}
+        %>
+          <div class="lps-match-row" data-time="<%= m.matchTs || 0 %>">
+            <!-- Cột 1: Time -->
+            <div class="lps-col-time">
+              <span class="lps-time-box"><%= _hhmm %> <%= _ddmm %></span>
+            </div>
+            <!-- Cột 2: Home team (name + logo, align right) -->
+            <div class="lps-col-home">
+              <span class="lps-team-name truncate"><%= m.home || '?' %></span>
+              <span class="lps-team-logo">
+                <% if (m.homeBadge) { %>
+                  <img src="<%= m.homeBadge %>" alt="<%= m.home %>" loading="lazy" onerror="this.outerHTML='<span class=&quot;lps-team-letter&quot;>'+'<%= (m.home||'?').replace(/&apos;/g,'&apos;')[0] %>'+'</span>'">
+                <% } else { %>
+                  <span class="lps-team-letter"><%= (m.home||'?')[0] %></span>
+                <% } %>
+              </span>
+            </div>
+            <!-- Cột 3: VS / Score -->
+            <div class="lps-col-vs">
+              <% if (m.score && _isLive) { %>
+                <span class="text-live font-black"><%= m.score[0] %> - <%= m.score[1] %></span>
+              <% } else { %>
+                <span class="text-muted font-bold">VS</span>
+              <% } %>
+            </div>
+            <!-- Cột 4: Away team (logo + name, align left) -->
+            <div class="lps-col-away">
+              <span class="lps-team-logo">
+                <% if (m.awayBadge) { %>
+                  <img src="<%= m.awayBadge %>" alt="<%= m.away %>" loading="lazy" onerror="this.outerHTML='<span class=&quot;lps-team-letter&quot;>'+'<%= (m.away||'?').replace(/&apos;/g,'&apos;')[0] %>'+'</span>'">
+                <% } else { %>
+                  <span class="lps-team-letter"><%= (m.away||'?')[0] %></span>
+                <% } %>
+              </span>
+              <span class="lps-team-name truncate"><%= m.away || '?' %></span>
+            </div>
+            <!-- Cột 5: Action buttons -->
+            <div class="lps-col-actions">
+              <% if (_hasBlv || _isLive) { %>
+                <a href="/live/<%= m.slug || m.id %>" class="lps-btn-live" title="BLV đang tường thuật trận này">
+                  <% if (_isLive) { %><span class="lps-live-dot"></span><% } %>
+                  Xem trực tiếp
+                </a>
+              <% } %>
+              <% if (_articleSlug) { %>
+                <a href="/tin-tuc/<%= _articleSlug %>" class="lps-btn-predict" title="Bài nhận định &amp; soi kèo">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
+                  Xem nhận định
+                </a>
+              <% } %>
+              <% if (!_hasBlv && !_isLive && !_articleSlug) { %>
+                <a href="/live/<%= m.slug || m.id %>" class="lps-btn-detail">Chi tiết</a>
+              <% } %>
+            </div>
+            <!-- Cột 6: Round/Stage tag -->
+            <div class="lps-col-round">
+              <% if (m.round) { %>
+                <span class="lps-round-tag"><%= m.round %></span>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% }); %>
   <% } %>
 </section>
+
+<style>
+/* ===== DESKTOP LICH PHAT SONG REDESIGN ===== */
+.lps-sport-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #cbd5e1; padding: 9px 18px; border-radius: 999px;
+  font-weight: 700; font-size: 12px;
+  transition: all .22s ease; cursor: pointer; text-decoration: none;
+}
+.lps-sport-tab:hover { background: #232a36; color: #fff; transform: translateY(-1px); }
+.lps-sport-tab.is-active {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  border-color: #14b8a6; color: #fff;
+  box-shadow: 0 6px 16px -4px rgba(20,184,166,.45);
+}
+.lps-sport-ico {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  display: grid; place-items: center;
+}
+.lps-sport-tab.is-active .lps-sport-ico { background: rgba(255,255,255,.22); }
+
+.lps-day-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: 1px solid #2a3344;
+  color: #cbd5e1; padding: 5px 12px; border-radius: 6px;
+  font-weight: 700; font-size: 12px;
+  transition: all .2s; cursor: pointer;
+}
+.lps-day-btn:hover { color: #fff; border-color: #14b8a6; }
+.lps-day-btn.is-active {
+  background: rgba(20,184,166,.15); border-color: #14b8a6; color: #14b8a6;
+}
+
+.lps-lg-chip {
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #cbd5e1; padding: 4px 10px; border-radius: 4px;
+  font-weight: 700; font-size: 11px; cursor: pointer;
+  transition: all .18s; white-space: nowrap;
+}
+.lps-lg-chip:hover { background: #232a36; color: #fff; border-color: #ff9a3a; }
+.lps-lg-chip.is-active {
+  background: linear-gradient(135deg, #ff7a18, #ea580c);
+  border-color: #ff7a18; color: #fff;
+}
+
+/* League group */
+.lps-lg-group { background: transparent; }
+.lps-lg-header {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, #1a2230 0%, #141a26 100%);
+  border: 1px solid #2a3344; border-bottom: none;
+  padding: 9px 14px; border-radius: 6px 6px 0 0;
+}
+.lps-lg-logo {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,.95); color: #1a1f29;
+  display: grid; place-items: center; padding: 2px;
+  flex-shrink: 0;
+}
+.lps-lg-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Match row - grid layout */
+.lps-match-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 60px 1fr 200px 110px;
+  align-items: center;
+  gap: 8px;
+  background: #11151c; border: 1px solid #1a2230;
+  border-top: none;
+  padding: 10px 14px;
+  transition: background .15s;
+}
+.lps-match-row:hover { background: #161b24; }
+.lps-match-row:last-child { border-radius: 0 0 6px 6px; }
+
+.lps-col-time { display: flex; }
+.lps-time-box {
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #fbbf24; padding: 4px 10px; border-radius: 4px;
+  font-weight: 800; font-size: 12px; font-family: 'Roboto Mono', monospace;
+  white-space: nowrap;
+}
+
+.lps-col-home, .lps-col-away {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+}
+.lps-col-home { justify-content: flex-end; }
+.lps-col-away { justify-content: flex-start; }
+.lps-team-name {
+  color: #e2e8f0; font-weight: 600; font-size: 13px;
+  max-width: 180px;
+}
+.lps-team-logo {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #fff; display: grid; place-items: center;
+  padding: 2px; flex-shrink: 0;
+  overflow: hidden;
+}
+.lps-team-logo img { width: 100%; height: 100%; object-fit: contain; }
+.lps-team-letter {
+  color: #1a1f29; font-weight: 800; font-size: 11px;
+}
+
+.lps-col-vs {
+  text-align: center; font-size: 13px;
+}
+
+.lps-col-actions {
+  display: flex; gap: 6px; justify-content: center;
+}
+
+.lps-btn-live, .lps-btn-predict, .lps-btn-detail {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px; border-radius: 4px;
+  font-weight: 700; font-size: 11px;
+  text-decoration: none; white-space: nowrap;
+  transition: all .2s;
+}
+.lps-btn-live {
+  background: #dc2626; color: #fff;
+  box-shadow: 0 2px 8px -2px rgba(220,38,38,.55);
+}
+.lps-btn-live:hover { background: #ef4444; transform: translateY(-1px); box-shadow: 0 4px 12px -2px rgba(220,38,38,.7); }
+.lps-live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #fff;
+  animation: lpsLivePulse 1.2s infinite;
+}
+@keyframes lpsLivePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.8); }
+}
+.lps-btn-predict {
+  background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
+  box-shadow: 0 2px 8px -2px rgba(245,158,11,.55);
+}
+.lps-btn-predict:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.lps-btn-detail {
+  background: transparent; border: 1px solid #2a3344; color: #94a3b8;
+}
+.lps-btn-detail:hover { border-color: #14b8a6; color: #14b8a6; }
+
+.lps-col-round { text-align: right; }
+.lps-round-tag {
+  display: inline-block;
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #94a3b8; padding: 3px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600;
+}
+
+/* Responsive: thu nhỏ cột round trên 1200px */
+@media (max-width: 1280px) {
+  .lps-match-row {
+    grid-template-columns: 100px 1fr 50px 1fr 180px 90px;
+    gap: 6px;
+  }
+  .lps-team-name { max-width: 140px; font-size: 12px; }
+}
+</style>
+
+<script>
+(function(){
+  // ===== League filter chips =====
+  var chips = document.querySelectorAll('#lpsLeagueChips .lps-lg-chip');
+  var groups = document.querySelectorAll('.lps-lg-group');
+  chips.forEach(function(c){
+    c.addEventListener('click', function(){
+      chips.forEach(function(x){ x.classList.remove('is-active'); });
+      c.classList.add('is-active');
+      var lg = c.getAttribute('data-lg');
+      groups.forEach(function(g){
+        if (lg === '__all__' || g.getAttribute('data-lg') === lg) {
+          g.style.display = '';
+        } else {
+          g.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // ===== Date picker - chuyển ngày (reload với query) =====
+  var dateInput = document.getElementById('lpsDate');
+  var todayBtn = document.querySelector('.lps-day-btn[data-mode="today"]');
+  if (dateInput) {
+    dateInput.addEventListener('change', function(){
+      // Tạm thời chỉ scroll lên đầu (API chưa hỗ trợ ?date= ở route này)
+      // TODO: nâng cấp route /lich-phat-song?date=YYYY-MM-DD
+      var d = dateInput.value;
+      var todayIso = new Date().toISOString().slice(0,10);
+      if (d !== todayIso) {
+        alert('Tính năng chọn ngày khác hôm nay sẽ sớm có. Hiện tại đang hiển thị lịch 3 ngày tới.');
+        dateInput.value = todayIso;
+      }
+    });
+  }
+  if (todayBtn) {
+    todayBtn.addEventListener('click', function(){
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+})();
+</script>
 
 <%- include('partials/tw-seo-bottom', { seoContent: {
   h2: 'Lịch phát sóng '+(_catName||'thể thao')+' đầy đủ, chính xác',

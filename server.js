@@ -987,7 +987,32 @@ app.get('/lich-phat-song', async function (req, res, next) {
     const dbData = db.load();
     const blvs   = (dbData.blvs || []).filter(function(b){ return b.status === 'active'; });
     const idols  = (dbData.idols || []).filter(function(i){ return i.status === 'active'; });
-    res.render('tw-lich-phat-song', { active:'lich', list:list, sport:sport, blvs:blvs, idols:idols });
+
+    // NEW: Set matchId BLV đã được duyệt schedule live (còn hiệu lực)
+    var blvMatchIds = new Set();
+    try {
+      var scheduleStore = require('./lib/schedule-store');
+      var nowTs = Date.now();
+      (scheduleStore.listAll() || []).forEach(function(s){
+        if (s && s.status === 'approved' && s.matchId && s.endTime > nowTs) {
+          blvMatchIds.add(String(s.matchId));
+        }
+      });
+    } catch(e) { console.warn('[lich-phat-song] schedule load fail:', e.message); }
+
+    // NEW: Map matchId → article slug (cho nút "Xem nhận định")
+    var articleByMatch = {};
+    try {
+      (newsStore.load() || []).forEach(function(a){
+        if (a && a.matchId) articleByMatch[String(a.matchId)] = a.slug;
+      });
+    } catch(e) { console.warn('[lich-phat-song] news load fail:', e.message); }
+
+    res.render('tw-lich-phat-song', {
+      active:'lich', list:list, sport:sport, blvs:blvs, idols:idols,
+      blvMatchIds: blvMatchIds,
+      articleByMatch: articleByMatch
+    });
   } catch (e) { next(e); }
 });
 
