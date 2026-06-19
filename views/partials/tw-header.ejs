@@ -42,6 +42,9 @@
     var ticker = document.getElementById('liveTicker');
     if (!ticker) return;
     var inner = document.getElementById('liveTickerInner');
+    // 🆕 Hover pause/resume bằng JS — vì inline `animation` shorthand override CSS :hover rule
+    ticker.addEventListener('mouseenter', function(){ if (inner) inner.style.animationPlayState = 'paused'; });
+    ticker.addEventListener('mouseleave', function(){ if (inner) inner.style.animationPlayState = 'running'; });
     function esc(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
     function chip(m, kind){
       var time = kind==='live' ? '<span class="tk-time live">&#9679; LIVE</span>' : '<span class="tk-time">'+esc(m.time||'--:--')+'</span>';
