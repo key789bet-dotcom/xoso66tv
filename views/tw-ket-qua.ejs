@@ -8,111 +8,456 @@ seo = {
   breadcrumb: [{ name:'Kết quả bóng đá', url:'/ket-qua' }]
 };
 
-// Group matches by date
-var _grouped = {};
+// ===== Group matches by LEAGUE (giống lich-phat-song) =====
+var _byLeague = {};
 (finishedMatches || []).forEach(function(m){
-  var d = m.date || 'Khác';
-  if (!_grouped[d]) _grouped[d] = [];
-  _grouped[d].push(m);
+  var lname = m.league || m.sport || 'Khác';
+  if (!_byLeague[lname]) _byLeague[lname] = {
+    name: lname, country: m.country||'', logo: m.leagueLogo||'', matches: []
+  };
+  _byLeague[lname].matches.push(m);
 });
-var _dates = Object.keys(_grouped).sort().reverse();
+// Sort matches trong từng league theo time desc (mới nhất trước)
+Object.keys(_byLeague).forEach(function(k){
+  _byLeague[k].matches.sort(function(a,b){ return (b.matchTs||0) - (a.matchTs||0); });
+});
+// Sort league theo số trận desc
+var _lgArr = Object.keys(_byLeague).map(function(k){ return _byLeague[k]; })
+  .sort(function(a,b){ return b.matches.length - a.matches.length; });
+
+// Helper fmt time theo VN tz +7
+function _fmt(m){
+  var out = { time: m.time||'--:--', date: '' };
+  try {
+    if (m.matchTs){
+      var d = new Date(m.matchTs + 7*3600*1000);
+      out.time = String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');
+      out.date = String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0');
+    }
+  } catch(e){}
+  return out;
+}
+
+// Safe getter cho corners + cards (API có thể có/không có)
+function _stat(m, keys){
+  var s = m && m.summary;
+  if (!s) return null;
+  for (var i=0; i<keys.length; i++){
+    if (s[keys[i]] !== undefined && s[keys[i]] !== null) return s[keys[i]];
+  }
+  return null;
+}
 %>
 <%- include('partials/tw-layout-start', { active: 'ket-qua' }) %>
 
-<main class="max-w-[1280px] mx-auto px-3 md:px-6 py-4">
-  <!-- HERO -->
-  <header class="mb-5">
-    <h1 class="text-2xl md:text-4xl font-black text-white mb-2">
-      🏆 Kết quả bóng đá <%= _todayVi %>
-    </h1>
-    <p class="text-muted text-sm md:text-base">
-      Tỷ số chung cuộc <b class="text-pri-light"><%= finishedMatches.length %></b> trận đã kết thúc trong 3 ngày qua. Click để xem highlight + bình luận chi tiết.
-    </p>
-  </header>
+<main class="max-w-[1400px] mx-auto px-3 md:px-5 py-4">
 
-  <!-- RESULTS BY DATE -->
-  <% if (finishedMatches.length === 0) { %>
-    <div class="bg-bg-card border border-line rounded-xl p-8 text-center mb-5">
-      <div class="text-5xl mb-3">📊</div>
-      <h2 class="text-white text-lg font-bold mb-1">Chưa có kết quả</h2>
-      <p class="text-muted text-sm mb-4">Các trận chưa kết thúc. Xem lịch hoặc tỷ số trực tiếp nhé!</p>
-      <div class="flex flex-wrap gap-2 justify-center">
-        <a href="/livescore" class="bg-live hover:bg-red-700 text-white px-5 py-2.5 rounded-full font-bold text-sm">🔴 Livescore</a>
-        <a href="/lich-phat-song" class="bg-pri hover:bg-pri-dark text-white px-5 py-2.5 rounded-full font-bold text-sm">📅 Lịch sắp tới</a>
-      </div>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- DESKTOP layout - REDESIGN: table grouped by league -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="hidden md:block">
+
+<!-- Title H1 -->
+<header class="mb-3">
+  <h1 class="text-xl md:text-2xl font-black text-white uppercase tracking-wide leading-tight">
+    🏆 Kết Quả Bóng Đá Hôm Nay - Tỷ Số Chung Cuộc <%= _todayVi %>
+  </h1>
+</header>
+
+<!-- League filter chips (auto-gen từ data) -->
+<% if (_lgArr.length > 1) { %>
+<div class="bg-bg-card border border-line rounded-lg px-3 py-2.5 mb-4 max-h-[112px] overflow-y-auto">
+  <div class="flex gap-1.5 flex-wrap" id="kqLeagueChips">
+    <button type="button" class="kq-lg-chip is-active" data-lg="__all__">TẤT CẢ</button>
+    <% _lgArr.forEach(function(lg){ %>
+      <button type="button" class="kq-lg-chip" data-lg="<%= lg.name %>" title="<%= lg.matches.length %> trận"><%= lg.name.toUpperCase() %></button>
+    <% }); %>
+  </div>
+</div>
+<% } %>
+
+<!-- Match list grouped -->
+<section id="kqList">
+  <% if (!finishedMatches || finishedMatches.length === 0) { %>
+    <div class="kq-empty">
+      <div class="text-5xl mb-3 opacity-60">📊</div>
+      <div class="text-white text-base font-bold mb-1">Chưa có kết quả</div>
+      <div class="text-muted text-sm mb-4">Các trận chưa kết thúc. Xem <a href="/livescore" class="text-pri-light">livescore</a> hoặc <a href="/lich-phat-song" class="text-pri-light">lịch phát sóng</a>.</div>
     </div>
   <% } else { %>
-    <% _dates.forEach(function(d){
-      var dateLabel = d;
-      try {
-        var dt = new Date(d);
-        var dd = String(dt.getDate()).padStart(2,'0');
-        var mm = String(dt.getMonth()+1).padStart(2,'0');
-        dateLabel = dd+'/'+mm+'/'+dt.getFullYear();
-        if (d === new Date().toISOString().slice(0,10)) dateLabel = 'Hôm nay ('+dateLabel+')';
-      } catch(e){}
-    %>
-      <section class="mb-6">
-        <div class="flex items-center gap-2.5 mb-3.5">
-          <span class="w-1 h-5 bg-pri rounded-sm"></span>
-          <h2 class="text-lg font-extrabold text-white">📅 <%= dateLabel %> (<%= _grouped[d].length %> trận)</h2>
+    <% _lgArr.forEach(function(lg){ %>
+      <div class="kq-lg-group mb-4" data-lg="<%= lg.name %>">
+        <!-- League header -->
+        <div class="kq-lg-header">
+          <span class="kq-lg-logo">
+            <% if (lg.logo) { %>
+              <img src="<%= lg.logo %>" alt="<%= lg.name %>" loading="lazy" onerror="this.outerHTML='<svg viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot;><path d=&quot;M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z&quot;/></svg>'">
+            <% } else { %>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+            <% } %>
+          </span>
+          <span class="kq-lg-name"><%= lg.name %></span>
+          <% if (lg.country) { %><span class="kq-lg-country">· <%= lg.country %></span><% } %>
+          <span class="ml-auto text-muted text-[11px]"><%= lg.matches.length %> trận</span>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <% _grouped[d].forEach(function(m){ %>
-            <a href="/live/<%= m.slug || m.id %>" class="bg-bg-card border border-line rounded-xl p-3.5 hover:border-pri transition-all">
-              <div class="flex items-center justify-between mb-2.5">
-                <span class="text-pri-light text-[11px] font-bold uppercase line-clamp-1 flex-1 inline-flex items-center gap-1.5">
-                  <% if (m.leagueLogo) { %>
-                    <span class="inline-flex items-center justify-center bg-white rounded-full shadow-sm shrink-0" style="width:24px;height:24px;padding:2px;">
-                      <img src="<%= m.leagueLogo %>" alt="<%= m.league %>" class="w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'">
-                    </span>
-                  <% } else { %><span>⚽</span><% } %>
-                  <span class="truncate"><%= m.league %></span>
-                </span>
-                <span class="bg-black/60 text-gray-300 text-[10px] font-extrabold px-2 py-0.5 rounded">FT</span>
-              </div>
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex-1 text-center min-w-0">
-                  <% if (m.homeBadge) { %><img src="<%= m.homeBadge %>" alt="<%= m.home %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
-                  <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.home %></div>
-                </div>
-                <div class="text-center flex-shrink-0 px-2">
-                  <% if (m.score) {
-                    var hWin = m.score[0] > m.score[1], aWin = m.score[0] < m.score[1];
-                  %>
-                    <div class="text-2xl md:text-3xl font-black tabular-nums leading-none">
-                      <span class="<%= hWin?'text-gold':'text-white' %>"><%= m.score[0] %></span>
-                      <span class="text-pri mx-0.5">-</span>
-                      <span class="<%= aWin?'text-gold':'text-white' %>"><%= m.score[1] %></span>
-                    </div>
-                  <% } else { %>
-                    <div class="text-xl font-black text-gray-400">?-?</div>
-                  <% } %>
-                  <div class="text-muted text-[10px] font-semibold mt-1"><%= m.time || '' %></div>
-                </div>
-                <div class="flex-1 text-center min-w-0">
-                  <% if (m.awayBadge) { %><img src="<%= m.awayBadge %>" alt="<%= m.away %>" class="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow"><% } %>
-                  <div class="text-white font-bold text-sm mt-1.5 truncate"><%= m.away %></div>
-                </div>
-              </div>
-            </a>
-          <% }); %>
+
+        <!-- Table sub-header (sticky bên trong league) -->
+        <div class="kq-sub-head">
+          <span></span>
+          <span></span>
+          <span class="kq-th-home">Chủ nhà</span>
+          <span class="kq-th-score">Tỷ số</span>
+          <span class="kq-th-away">Khách</span>
+          <span class="kq-th-hl"></span>
+          <span class="kq-th-ht">HT</span>
+          <span class="kq-th-corners" title="Phạt góc HT | FT">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 inline-block"><path d="M6 3v18l3-3h6l3-3V3H6zm10 11h-4v-4h4v4z"/></svg>
+            HT | FT
+          </span>
+          <span class="kq-th-cards" title="Thẻ vàng HT | FT">
+            <svg viewBox="0 0 24 24" fill="#fbbf24" class="w-3 h-4 inline-block"><rect x="6" y="3" width="12" height="18" rx="2"/></svg>
+            HT | FT
+          </span>
         </div>
-      </section>
+
+        <!-- Match rows -->
+        <% lg.matches.forEach(function(m){
+          var _t = _fmt(m);
+          var _isFin = m.status === 'finished';
+          var _hWin = m.score && m.score[0] > m.score[1];
+          var _aWin = m.score && m.score[0] < m.score[1];
+          var _ch = _stat(m, ['corners_home','cornersHome']);
+          var _ca = _stat(m, ['corners_away','cornersAway']);
+          var _chHt = _stat(m, ['corners_home_ht','cornersHomeHt','corners_ht_home']);
+          var _caHt = _stat(m, ['corners_away_ht','cornersAwayHt','corners_ht_away']);
+          var _yh = _stat(m, ['yellow_cards_home','yellowCardsHome','yellow_home']);
+          var _ya = _stat(m, ['yellow_cards_away','yellowCardsAway','yellow_away']);
+          var _yhHt = _stat(m, ['yellow_home_ht','yellowCardsHomeHt']);
+          var _yaHt = _stat(m, ['yellow_away_ht','yellowCardsAwayHt']);
+        %>
+          <div class="kq-row" data-ts="<%= m.matchTs || 0 %>">
+            <!-- Time + date -->
+            <div class="kq-col-time">
+              <span class="kq-time-box"><%= _t.time %> <%= _t.date %></span>
+            </div>
+            <!-- Round/Stage -->
+            <div class="kq-col-round">
+              <% if (m.round) { %><span class="kq-round-tag"><%= m.round %></span><% } %>
+            </div>
+            <!-- Home -->
+            <div class="kq-col-home">
+              <span class="kq-team-name truncate <%= _hWin ? 'kq-winner' : '' %>"><%= m.home || '?' %></span>
+              <span class="kq-team-logo">
+                <% if (m.homeBadge) { %>
+                  <img src="<%= m.homeBadge %>" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;kq-team-letter&quot;>'+'<%= (m.home||'?').replace(/&apos;/g,'&apos;')[0] %>'+'</span>'">
+                <% } else { %>
+                  <span class="kq-team-letter"><%= (m.home||'?')[0] %></span>
+                <% } %>
+              </span>
+            </div>
+            <!-- Score box xanh -->
+            <div class="kq-col-score">
+              <div class="kq-score-box">
+                <% if (m.score) { %>
+                  <span class="kq-score-h <%= _hWin ? 'is-win' : '' %>"><%= m.score[0] %></span><span class="kq-score-sep">:</span><span class="kq-score-a <%= _aWin ? 'is-win' : '' %>"><%= m.score[1] %></span>
+                <% } else { %>
+                  <span>-</span><span class="kq-score-sep">:</span><span>-</span>
+                <% } %>
+              </div>
+            </div>
+            <!-- Away -->
+            <div class="kq-col-away">
+              <span class="kq-team-logo">
+                <% if (m.awayBadge) { %>
+                  <img src="<%= m.awayBadge %>" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;kq-team-letter&quot;>'+'<%= (m.away||'?').replace(/&apos;/g,'&apos;')[0] %>'+'</span>'">
+                <% } else { %>
+                  <span class="kq-team-letter"><%= (m.away||'?')[0] %></span>
+                <% } %>
+              </span>
+              <span class="kq-team-name truncate <%= _aWin ? 'kq-winner' : '' %>"><%= m.away || '?' %></span>
+            </div>
+            <!-- Xem Highlight -->
+            <div class="kq-col-hl">
+              <a href="/live/<%= m.slug || m.id %>" class="kq-btn-hl">Xem Highlight</a>
+            </div>
+            <!-- HT -->
+            <div class="kq-col-ht">
+              <% if (m.halftime) { %>
+                <span class="kq-ht-val"><%= m.halftime[0] %> : <%= m.halftime[1] %></span>
+              <% } else { %>
+                <span class="text-muted">0 : 0</span>
+              <% } %>
+            </div>
+            <!-- Corners HT | FT -->
+            <div class="kq-col-corners">
+              <% if (_chHt !== null || _caHt !== null || _ch !== null || _ca !== null) { %>
+                <span class="kq-pair-num"><%= _chHt!==null ? _chHt : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _caHt!==null ? _caHt : '0' %></span>
+                <span class="kq-pair-gap">&nbsp;</span>
+                <span class="kq-pair-num"><%= _ch!==null ? _ch : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _ca!==null ? _ca : '0' %></span>
+              <% } else { %>
+                <span class="text-muted">0 - 0&nbsp;&nbsp;0 - 0</span>
+              <% } %>
+            </div>
+            <!-- Yellow cards HT | FT -->
+            <div class="kq-col-cards">
+              <% if (_yhHt !== null || _yaHt !== null || _yh !== null || _ya !== null) { %>
+                <span class="kq-pair-num"><%= _yhHt!==null ? _yhHt : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _yaHt!==null ? _yaHt : '0' %></span>
+                <span class="kq-pair-gap">&nbsp;</span>
+                <span class="kq-pair-num"><%= _yh!==null ? _yh : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _ya!==null ? _ya : '0' %></span>
+              <% } else { %>
+                <span class="text-muted">0 - 0&nbsp;&nbsp;0 - 0</span>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
     <% }); %>
   <% } %>
+</section>
 
-  <!-- SEO ARTICLE -->
-  <article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
-    <h2 class="text-white text-xl font-extrabold mb-3">Kết quả bóng đá hôm nay - Cập nhật nhanh nhất tại XOSO66 TV</h2>
-    <p class="text-gray-300 text-sm leading-relaxed mb-3">
-      <b class="text-pri-light">Kết quả bóng đá XOSO66</b> tổng hợp tỷ số chung cuộc tất cả các trận đã kết thúc trong 3 ngày gần đây. Bao phủ toàn bộ giải đấu lớn: Ngoại Hạng Anh, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, V-League, J-League. Click vào mỗi trận để xem chi tiết: highlight, thống kê, đội hình, thẻ phạt, bàn thắng.
-    </p>
-    <h3 class="text-pri-light text-base font-bold mb-2 mt-4">Cập nhật tự động từ API chính thống</h3>
-    <p class="text-gray-300 text-sm leading-relaxed">
-      Dữ liệu kết quả được lấy realtime từ API chính thống của các tổ chức bóng đá quốc tế. Sai số gần như bằng 0. Ngoài <b class="text-white">kết quả trận đã đá</b>, bạn có thể xem <a href="/livescore" class="text-pri-light hover:underline">tỷ số livescore</a> các trận đang đá, <a href="/lich-phat-song" class="text-pri-light hover:underline">lịch thi đấu</a> sắp tới và <a href="/bxh" class="text-pri-light hover:underline">bảng xếp hạng</a> mới nhất.
-    </p>
-  </article>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MOBILE - keep cards layout -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="md:hidden">
+  <header class="mb-4">
+    <h1 class="text-lg font-black text-white mb-1.5">🏆 Kết quả <%= _todayVi %></h1>
+    <p class="text-muted text-xs">Tỷ số <b class="text-pri-light"><%= finishedMatches.length %></b> trận đã đá.</p>
+  </header>
+  <% if ((finishedMatches||[]).length === 0) { %>
+    <div class="bg-bg-card border border-dashed border-line rounded-xl p-8 text-center">
+      <div class="text-4xl mb-2 opacity-60">📊</div>
+      <div class="text-white text-sm font-bold">Chưa có kết quả</div>
+    </div>
+  <% } else { %>
+    <div class="space-y-2">
+      <% (finishedMatches||[]).forEach(function(m){
+        var _hW = m.score && m.score[0] > m.score[1];
+        var _aW = m.score && m.score[0] < m.score[1];
+      %>
+        <a href="/live/<%= m.slug || m.id %>" class="block bg-bg-card border border-line rounded-lg p-2.5 active:scale-[.98]">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-pri-light text-[10px] font-bold uppercase truncate"><%= m.league || m.sport %></span>
+            <span class="bg-black/60 text-gray-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded">FT</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="flex-1 text-xs font-bold truncate text-right <%= _hW?'text-gold':'text-white' %>"><%= m.home %></span>
+            <span class="bg-blue-700 text-white px-2 py-0.5 rounded font-black text-sm">
+              <span class="<%= _hW?'text-gold':'' %>"><%= m.score?m.score[0]:'-' %></span>:<span class="<%= _aW?'text-gold':'' %>"><%= m.score?m.score[1]:'-' %></span>
+            </span>
+            <span class="flex-1 text-xs font-bold truncate <%= _aW?'text-gold':'text-white' %>"><%= m.away %></span>
+          </div>
+          <% if (m.halftime) { %>
+            <div class="text-[9px] text-muted text-center mt-1">HT: <%= m.halftime[0] %> - <%= m.halftime[1] %></div>
+          <% } %>
+        </a>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<!-- SEO ARTICLE -->
+<article class="bg-bg-card border-2 border-pri/30 rounded-xl p-5 mt-5">
+  <h2 class="text-white text-xl font-extrabold mb-3">Kết quả bóng đá hôm nay - Cập nhật nhanh nhất tại XOSO66 TV</h2>
+  <p class="text-gray-300 text-sm leading-relaxed mb-3">
+    <b class="text-pri-light">Kết quả bóng đá XOSO66</b> tổng hợp tỷ số chung cuộc tất cả các trận đã kết thúc trong 3 ngày gần đây. Bao phủ toàn bộ giải đấu lớn: Ngoại Hạng Anh, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, V-League, J-League. Click <b class="text-red-400">Xem Highlight</b> để xem video bàn thắng + chi tiết trận đấu.
+  </p>
+  <p class="text-gray-300 text-sm leading-relaxed">
+    Mỗi trận hiển thị: tỷ số chung cuộc, hiệp 1 (HT), số phạt góc HT|FT và số thẻ vàng HT|FT. Đội thắng được tô màu <b class="text-amber-400">vàng</b> nổi bật. Lọc theo giải đấu bằng các chip phía trên. Xem thêm <a href="/livescore" class="text-pri-light hover:underline">livescore trực tiếp</a> và <a href="/lich-phat-song" class="text-pri-light hover:underline">lịch thi đấu sắp tới</a>.
+  </p>
+</article>
+
 </main>
+
+<style>
+/* ═══ KET QUA DESKTOP REDESIGN ═══ */
+
+.kq-lg-chip {
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #cbd5e1; padding: 4px 10px; border-radius: 4px;
+  font-weight: 700; font-size: 11px; cursor: pointer;
+  transition: all .18s; white-space: nowrap;
+}
+.kq-lg-chip:hover { background: #232a36; color: #fff; border-color: #14b8a6; }
+.kq-lg-chip.is-active {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  border-color: #14b8a6; color: #ffffff;
+  box-shadow: 0 4px 12px -4px rgba(20,184,166,.45);
+}
+
+/* League group */
+.kq-lg-group { background: transparent; }
+.kq-lg-header {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, #1a2230 0%, #141a26 100%);
+  border: 1px solid #2a3344; border-bottom: none;
+  padding: 9px 14px; border-radius: 6px 6px 0 0;
+}
+.kq-lg-logo {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,.95); color: #1a1f29;
+  display: grid; place-items: center; padding: 2px;
+  flex-shrink: 0;
+}
+.kq-lg-logo img, .kq-lg-logo svg { width: 100%; height: 100%; object-fit: contain; }
+.kq-lg-name { color: #e2e8f0; font-weight: 700; font-size: 14px; }
+.kq-lg-country { color: #64748b; font-size: 11px; }
+
+/* Sub-header (col labels inside league block) */
+.kq-sub-head {
+  display: grid;
+  grid-template-columns: 90px 60px 1fr 80px 1fr 110px 60px 130px 130px;
+  align-items: center; gap: 6px;
+  background: #0e1218;
+  border: 1px solid #1a2230; border-top: none; border-bottom: none;
+  padding: 6px 14px;
+  font-size: 11px; font-weight: 700;
+  color: #94a3b8; text-transform: uppercase;
+}
+.kq-th-home { text-align: right; padding-right: 50px; }
+.kq-th-score { text-align: center; }
+.kq-th-away { text-align: left; padding-left: 50px; }
+.kq-th-hl { text-align: center; }
+.kq-th-ht, .kq-th-corners, .kq-th-cards { text-align: center; }
+
+/* Match row */
+.kq-row {
+  display: grid;
+  grid-template-columns: 90px 60px 1fr 80px 1fr 110px 60px 130px 130px;
+  align-items: center; gap: 6px;
+  background: #11151c;
+  border: 1px solid #1a2230; border-top: none;
+  padding: 9px 14px;
+  font-size: 12px;
+  transition: background .15s;
+}
+.kq-row:hover { background: #161b24; }
+.kq-row:last-child { border-radius: 0 0 6px 6px; }
+
+/* Time box */
+.kq-col-time { display: flex; }
+.kq-time-box {
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #fbbf24; padding: 4px 8px; border-radius: 4px;
+  font-weight: 800; font-size: 11px; font-family: 'Roboto Mono', monospace;
+  white-space: nowrap;
+}
+
+/* Round tag */
+.kq-col-round { text-align: center; }
+.kq-round-tag {
+  display: inline-block;
+  background: #1a1f29; border: 1px solid #2a3344;
+  color: #94a3b8; padding: 3px 7px; border-radius: 4px;
+  font-size: 10px; font-weight: 700;
+}
+
+/* Home / Away */
+.kq-col-home, .kq-col-away {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+}
+.kq-col-home { justify-content: flex-end; }
+.kq-col-away { justify-content: flex-start; }
+.kq-team-name { color: #e2e8f0; font-weight: 600; font-size: 13px; max-width: 200px; }
+.kq-team-name.kq-winner { color: #fbbf24; font-weight: 800; }
+.kq-team-logo {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; padding: 2px;
+  display: grid; place-items: center; flex-shrink: 0; overflow: hidden;
+}
+.kq-team-logo img { width: 100%; height: 100%; object-fit: contain; }
+.kq-team-letter { color: #1a1f29; font-weight: 800; font-size: 11px; }
+
+/* Score box xanh */
+.kq-col-score { display: flex; justify-content: center; }
+.kq-score-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  color: #fff; padding: 5px 12px; border-radius: 4px;
+  font-weight: 900; font-size: 15px;
+  font-family: 'Roboto Mono', monospace;
+  min-width: 60px;
+  box-shadow: 0 2px 8px -2px rgba(30,64,175,.55);
+}
+.kq-score-sep { padding: 0 3px; opacity: .8; }
+.kq-score-h.is-win, .kq-score-a.is-win { color: #fbbf24; text-shadow: 0 0 4px rgba(251,191,36,.4); }
+
+/* Highlight button */
+.kq-col-hl { display: flex; justify-content: center; }
+.kq-btn-hl {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff; text-decoration: none;
+  padding: 5px 14px; border-radius: 4px;
+  font-weight: 700; font-size: 11px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px -2px rgba(220,38,38,.5);
+  transition: transform .2s, filter .2s, box-shadow .2s;
+}
+.kq-btn-hl:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.12);
+  box-shadow: 0 4px 12px -2px rgba(220,38,38,.7);
+}
+
+/* HT */
+.kq-col-ht { text-align: center; color: #22c55e; font-weight: 700; font-size: 12px; }
+.kq-ht-val { color: #22c55e; }
+.kq-col-ht .text-muted { color: #475569 !important; }
+
+/* Corners / Cards columns - 2 pairs */
+.kq-col-corners, .kq-col-cards {
+  text-align: center;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+.kq-col-corners .kq-pair-num:first-child,
+.kq-col-corners .kq-pair-num:nth-of-type(3) { color: #94a3b8; }
+.kq-col-corners .kq-pair-num:nth-of-type(2),
+.kq-col-corners .kq-pair-num:nth-of-type(4) { color: #94a3b8; }
+.kq-col-corners .kq-pair-num:nth-of-type(3),
+.kq-col-corners .kq-pair-num:nth-of-type(4) { color: #22c55e; }
+.kq-col-cards .kq-pair-num { color: #94a3b8; }
+.kq-col-cards .kq-pair-num:nth-of-type(3),
+.kq-col-cards .kq-pair-num:nth-of-type(4) { color: #fbbf24; }
+.kq-pair-sep { color: #475569; padding: 0 2px; }
+.kq-pair-gap { padding: 0 6px; }
+
+/* Empty state */
+.kq-empty {
+  padding: 60px 20px; text-align: center;
+  background: #11151c; border: 1px dashed #1a2230; border-radius: 8px;
+  color: #94a3b8;
+}
+
+/* Responsive shrink */
+@media (max-width: 1280px) {
+  .kq-sub-head, .kq-row {
+    grid-template-columns: 80px 50px 1fr 72px 1fr 100px 56px 110px 110px;
+  }
+  .kq-team-name { max-width: 150px; font-size: 12px; }
+}
+</style>
+
+<script>
+(function(){
+  // League filter chips
+  var chips = document.querySelectorAll('#kqLeagueChips .kq-lg-chip');
+  var groups = document.querySelectorAll('.kq-lg-group');
+  chips.forEach(function(c){
+    c.addEventListener('click', function(){
+      chips.forEach(function(x){ x.classList.remove('is-active'); });
+      c.classList.add('is-active');
+      var lg = c.getAttribute('data-lg');
+      groups.forEach(function(g){
+        if (lg === '__all__' || g.getAttribute('data-lg') === lg) g.style.display = '';
+        else g.style.display = 'none';
+      });
+    });
+  });
+})();
+</script>
 
 <%- include('partials/tw-footer') %>

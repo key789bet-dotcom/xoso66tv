@@ -601,6 +601,81 @@ html:not(.dark) .lvs-empty {
 html:not(.dark) .lvs-empty .text-white { color: #0f172a !important; }
 html:not(.dark) .lvs-empty .text-muted { color: #64748b !important; }
 
+/* ══════════════════════════════════════════════════════════════════
+   /ket-qua DESKTOP redesign (kq-*) — v163+
+   ══════════════════════════════════════════════════════════════════ */
+
+/* League filter chips */
+html:not(.dark) .kq-lg-chip {
+  background: #ffffff !important; border-color: #d6dce6 !important; color: #475569 !important;
+}
+html:not(.dark) .kq-lg-chip:hover {
+  background: #f0fdfa !important; color: #0d9488 !important; border-color: #14b8a6 !important;
+}
+html:not(.dark) .kq-lg-chip.is-active {
+  background: linear-gradient(135deg, #14b8a6, #0d9488) !important;
+  border-color: #14b8a6 !important; color: #ffffff !important;
+}
+
+/* League header */
+html:not(.dark) .kq-lg-header {
+  background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border-color: #fdba74 !important;
+}
+html:not(.dark) .kq-lg-name { color: #0f172a !important; }
+html:not(.dark) .kq-lg-country { color: #94a3b8 !important; }
+html:not(.dark) .kq-lg-logo { background: #ffffff !important; border: 1px solid #fdba74 !important; color: #c2410c !important; }
+
+/* Sub-head */
+html:not(.dark) .kq-sub-head {
+  background: #f1f5f9 !important;
+  border-color: #d6dce6 !important;
+  color: #475569 !important;
+}
+
+/* Row */
+html:not(.dark) .kq-row {
+  background: #ffffff !important; border-color: #e0e6ee !important;
+}
+html:not(.dark) .kq-row:hover { background: #fafbfd !important; }
+
+/* Time box */
+html:not(.dark) .kq-time-box {
+  background: #fff7ed !important; border-color: #fdba74 !important; color: #c2410c !important;
+}
+
+/* Round tag */
+html:not(.dark) .kq-round-tag {
+  background: #f1f5f9 !important; border-color: #d6dce6 !important; color: #64748b !important;
+}
+
+/* Team name / logo */
+html:not(.dark) .kq-team-name { color: #1f2937 !important; }
+html:not(.dark) .kq-team-name.kq-winner { color: #c2410c !important; }
+html:not(.dark) .kq-team-logo { background: #ffffff !important; border: 1px solid #e0e6ee !important; }
+html:not(.dark) .kq-team-letter { color: #1f2937 !important; }
+
+/* HT */
+html:not(.dark) .kq-col-ht { color: #15803d !important; }
+html:not(.dark) .kq-ht-val { color: #15803d !important; }
+html:not(.dark) .kq-col-ht .text-muted { color: #cbd5e1 !important; }
+
+/* Corners + Cards */
+html:not(.dark) .kq-col-corners .kq-pair-num,
+html:not(.dark) .kq-col-cards .kq-pair-num { color: #64748b !important; }
+html:not(.dark) .kq-col-corners .kq-pair-num:nth-of-type(3),
+html:not(.dark) .kq-col-corners .kq-pair-num:nth-of-type(4) { color: #15803d !important; }
+html:not(.dark) .kq-col-cards .kq-pair-num:nth-of-type(3),
+html:not(.dark) .kq-col-cards .kq-pair-num:nth-of-type(4) { color: #d97706 !important; }
+html:not(.dark) .kq-pair-sep { color: #cbd5e1 !important; }
+
+/* Empty state */
+html:not(.dark) .kq-empty {
+  background: #ffffff !important; border-color: #d6dce6 !important; color: #64748b !important;
+}
+html:not(.dark) .kq-empty .text-white { color: #0f172a !important; }
+html:not(.dark) .kq-empty .text-muted { color: #64748b !important; }
+
 /* ── SEO article text ── */
 html:not(.dark) .dlr-seo h4{ color:#0f172a !important; }
 html:not(.dark) .dlr-seo p{ color:#1f2937 !important; }
