@@ -981,7 +981,8 @@ app.get('/lich-phat-song', async function (req, res, next) {
   try {
     const sport = req.query.mon || null;
     const cat   = sport ? api.CATEGORIES[sport] : null;
-    const list = await api.getUpcomingStreams(cat ? cat.sport : null, 50);
+    // KHÔNG cắt limit: lịch phát sóng = FULL danh sách (truyền 0 → no slice)
+    const list = await api.getUpcomingStreams(cat ? cat.sport : null, 0);
     // Data thật từ DB cho mobile: BLV active + Idol active để hiện trên card + filter
     const dbData = db.load();
     const blvs   = (dbData.blvs || []).filter(function(b){ return b.status === 'active'; });
@@ -1000,7 +1001,7 @@ app.get('/game/vong-quay',function (req, res) { res.render('games/tw-vong-quay',
 
 
 app.get('/video-noi-bat', async function (req, res, next) {
-  try { res.render('tw-video-noi-bat', { active:'video', list: await api.getFinishedStreams(null, 24) }); }
+  try { res.render('tw-video-noi-bat', { active:'video', list: await api.getFinishedStreams(null, 100) }); }
   catch (e) { next(e); }
 });
 
@@ -1046,8 +1047,8 @@ app.get('/the-thao/:cat', async function (req, res, next) {
     const cat = api.CATEGORIES[req.params.cat];
     if (!cat || cat.partnerOnly) return res.status(404).render('tw-404');
     const live     = await api.getLiveStreams(cat.sport);
-    const upcoming = await api.getUpcomingStreams(cat.sport, 16);
-    const finished = await api.getFinishedStreams(cat.sport, 8);
+    const upcoming = await api.getUpcomingStreams(cat.sport, 100);
+    const finished = await api.getFinishedStreams(cat.sport, 50);
     res.render('tw-the-thao', { active:'cat', activeCat:req.params.cat, cat:cat, live:live, upcoming:upcoming, finished:finished });
   } catch (e) { next(e); }
 });
@@ -1055,7 +1056,7 @@ app.get('/the-thao/:cat', async function (req, res, next) {
 app.get('/esports', async function (req, res, next) {
   try {
     const cat = api.CATEGORIES['esports'];
-    const upcoming = await api.getUpcomingStreams('eSports', 16);
+    const upcoming = await api.getUpcomingStreams('eSports', 100);
     res.render('tw-the-thao', { active:'cat', activeCat:'esports', cat:cat, live:[], upcoming:upcoming, finished:[] });
   } catch (e) { next(e); }
 });
@@ -3034,7 +3035,7 @@ app.post('/api/idol/verify-pin', function (req, res){
 });
 
 app.get('/api/live',     async function (req, res) { res.json({ updatedAt: Date.now(), list: await api.getLiveStreams(req.query.mon || null) }); });
-app.get('/api/upcoming', async function (req, res) { res.json({ updatedAt: Date.now(), list: await api.getUpcomingStreams(req.query.mon || null, 20) }); });
+app.get('/api/upcoming', async function (req, res) { res.json({ updatedAt: Date.now(), list: await api.getUpcomingStreams(req.query.mon || null, Number(req.query.limit) || 200) }); });
 
 app.get('/dang-nhap',     function (req, res) { res.render('tw-dang-nhap',     { active:'auth' }); });
 app.get('/dang-ky',       function (req, res) { res.render('tw-dang-ky',       { active:'auth' }); });
@@ -3163,7 +3164,7 @@ app.get('/livescore', async function (req, res, next) {
   try {
     const [liveMatches, upcomingMatches] = await Promise.all([
       api.getLiveStreams().catch(() => []),
-      api.getUpcomingStreams(null, 24).catch(() => [])
+      api.getUpcomingStreams(null, 200).catch(() => [])
     ]);
     res.render('tw-livescore', { active:'livescore', liveMatches: liveMatches || [], upcomingMatches: upcomingMatches || [] });
   } catch (e) { next(e); }
@@ -3171,7 +3172,7 @@ app.get('/livescore', async function (req, res, next) {
 
 app.get('/ket-qua', async function (req, res, next) {
   try {
-    const finishedMatches = await api.getFinishedStreams(null, 60).catch(() => []);
+    const finishedMatches = await api.getFinishedStreams(null, 200).catch(() => []);
     res.render('tw-ket-qua', { active:'ket-qua', finishedMatches: finishedMatches || [] });
   } catch (e) { next(e); }
 });
