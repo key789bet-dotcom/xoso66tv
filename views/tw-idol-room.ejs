@@ -903,14 +903,24 @@ var _obsMode = (idol.streamMethod === 'obs');
         <button onclick="toggleFollow(this)" class="py-2 bg-bg-soft border border-pri/60 text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5">
           <span>❤</span><span>Theo dõi</span>
         </button>
-        <button onclick="openGiftPanel('<%= idol.name %>')" class="py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-lg shadow-pri/40 flex items-center justify-center gap-1.5">
-          <span>🎁</span><span>Tặng quà</span>
-        </button>
+        <% if (idol.liveNow) { %>
+          <button onclick="openGiftPanel('<%= idol.name %>')" class="py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-lg shadow-pri/40 flex items-center justify-center gap-1.5">
+            <span>🎁</span><span>Tặng quà</span>
+          </button>
+        <% } else { %>
+          <span class="py-2 bg-bg-soft/60 border border-line text-muted font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-not-allowed" title="Idol chưa lên sóng">
+            <span>🔇</span><span>Chưa lên sóng</span>
+          </span>
+        <% } %>
       </div>
       <!-- Desktop action buttons (hidden mobile) -->
       <div class="hidden md:flex items-center gap-2 mt-3 justify-end">
         <button onclick="toggleFollow(this)" class="px-4 py-2 bg-bg-soft border-2 border-pri text-pri-light hover:bg-pri hover:text-white font-bold text-xs rounded-lg transition-colors">❤ Theo dõi</button>
-        <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-pri">🎁 Tặng quà</button>
+        <% if (idol.liveNow) { %>
+          <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-extrabold text-xs rounded-lg shadow-pri">🎁 Tặng quà</button>
+        <% } else { %>
+          <span class="px-4 py-2 bg-bg-soft/60 border border-line text-muted font-bold text-xs rounded-lg cursor-not-allowed inline-flex items-center gap-1.5" title="Idol chưa lên sóng — chỉ tặng quà khi đang live">🔇 Chưa lên sóng</span>
+        <% } %>
       </div>
     </div>
 
@@ -1071,7 +1081,11 @@ var _obsMode = (idol.streamMethod === 'obs');
       <div id="lbTitle" class="text-white font-extrabold text-lg">Title</div>
       <div id="lbMeta" class="text-muted text-sm mt-1">1 / 9</div>
       <div class="flex justify-center gap-2 mt-3">
-        <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-bold text-xs rounded-lg">🎁 Tặng quà cho idol</button>
+        <% if (idol.liveNow) { %>
+          <button onclick="openGiftPanel('<%= idol.name %>')" class="px-4 py-2 bg-gradient-to-br from-pri to-live text-white font-bold text-xs rounded-lg">🎁 Tặng quà cho idol</button>
+        <% } else { %>
+          <span class="px-4 py-2 bg-bg-soft/60 border border-line text-muted font-bold text-xs rounded-lg cursor-not-allowed inline-flex items-center gap-1.5" title="Idol chưa lên sóng">🔇 Idol chưa lên sóng</span>
+        <% } %>
         <button class="px-4 py-2 bg-bg-soft border border-line text-white font-bold text-xs rounded-lg">❤ Thả tim</button>
         <button class="px-4 py-2 bg-bg-soft border border-line text-white font-bold text-xs rounded-lg">📷 Lưu</button>
       </div>
