@@ -514,28 +514,36 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
     // Pause khi hover vao banner
     heroEl.addEventListener('mouseenter', function(){ paused = true; });
     heroEl.addEventListener('mouseleave', function(){ paused = false; });
+    // 🆕 Smooth cross-fade: slide mới phủ LÊN slide cũ + fade in 1s,
+    // sau khi xong mới ẩn slide cũ (instant) → không có khoảng tối giữa 2 ảnh.
+    var FADE_MS = 1000;
+    function switchTo(nextIdx){
+      if (nextIdx === idx) return;
+      // Slide mới: nâng z-index cao + bật pointer-events + fade in
+      slides[nextIdx].style.zIndex = '2';
+      slides[nextIdx].style.opacity = '1';
+      slides[nextIdx].style.pointerEvents = 'auto';
+      // Dot mới active ngay (visual cue)
+      dots[idx].classList.remove('!w-5','!bg-white');
+      dots[nextIdx].classList.add('!w-5','!bg-white');
+      var prevIdx = idx;
+      idx = nextIdx;
+      // Sau khi slide mới fade in xong → silently ẩn slide cũ + hạ z-index
+      setTimeout(function(){
+        if (prevIdx === idx) return; // user đã chuyển tiếp trong khoảng chờ
+        slides[prevIdx].style.opacity = '0';
+        slides[prevIdx].style.pointerEvents = 'none';
+        slides[prevIdx].style.zIndex = '1';
+      }, FADE_MS);
+    }
     function nextSlide(){
       if (paused) return;
-      // Chi thay doi style inline -> GPU composite, KHONG trigger reflow toan trang
-      slides[idx].style.opacity = '0';
-      slides[idx].style.pointerEvents = 'none';
-      dots[idx].classList.remove('!w-5','!bg-white');
-      idx = (idx + 1) % slides.length;
-      slides[idx].style.opacity = '1';
-      slides[idx].style.pointerEvents = 'auto';
-      dots[idx].classList.add('!w-5','!bg-white');
+      switchTo((idx + 1) % slides.length);
     }
     setInterval(nextSlide, 5000);
-    // Click dot de chuyen slide
+    // Click dot để chuyển slide
     dots.forEach(function(d, i){
-      d.addEventListener('click', function(){
-        if (i === idx) return;
-        slides[idx].style.opacity = '0'; slides[idx].style.pointerEvents = 'none';
-        dots[idx].classList.remove('!w-5','!bg-white');
-        idx = i;
-        slides[idx].style.opacity = '1'; slides[idx].style.pointerEvents = 'auto';
-        dots[idx].classList.add('!w-5','!bg-white');
-      });
+      d.addEventListener('click', function(){ switchTo(i); });
     });
   }
 })();
