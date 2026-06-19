@@ -297,6 +297,9 @@ var roomsBongdaIdol = _allIdolRooms.filter(function(r){ return r.category === 'b
     (function(){
       var tabs = document.getElementById('roomTabs');
       if (!tabs) return;
+      // 🆕 Force instant scroll — tránh class `scroll-smooth` (Tailwind) tween mỗi lần
+      // set scrollLeft → frame sau ghi đè animation chưa xong → kẹt chỉ 1 chiều.
+      tabs.style.scrollBehavior = 'auto';
 
       // ─── Auto-scroll khi hover ───
       var rafId = null, dir = 1, paused = false;
