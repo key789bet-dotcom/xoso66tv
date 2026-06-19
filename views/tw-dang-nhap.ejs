@@ -41,7 +41,7 @@ seo = {
           <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-pri-light bg-transparent border-0 text-lg p-1" onclick="togglePw('password',this)" aria-label="Hiện/Ẩn mật khẩu">&#128065;</button>
         </div>
 
-        <%# 🛡️ Turnstile (Cloudflare) nếu ENV configured, fallback captcha SVG nếu chưa %>
+        <!-- Turnstile (Cloudflare) khi ENV configured, fallback captcha SVG khi chua -->
         <% if (typeof turnstileEnabled !== 'undefined' && turnstileEnabled) { %>
           <%- include('partials/tw-turnstile-widget') %>
         <% } else { %>
