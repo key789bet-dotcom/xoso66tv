@@ -14,37 +14,77 @@
         <span class="px-4 text-pri-light text-[11px] font-bold">&#272;ang t&#7843;i l&#7883;ch live&hellip;</span>
       </div>
     </div>
+    <!-- Pause/play -->
+    <button id="liveTickerPause" type="button" class="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 bg-black/60 hover:bg-black/85 text-white w-6 h-6 rounded-full grid place-items-center backdrop-blur transition-colors" aria-label="T&#7841;m d&#7915;ng ticker">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+    </button>
   </div>
   <style>
     @keyframes tk-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     @keyframes tk-pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.85); } }
-    #liveTicker:hover #liveTickerInner { animation-play-state: paused; }
-    .tk-chip { display:inline-flex; align-items:center; gap:6px; padding:0 14px; height:100%; border-right:1px solid rgba(255,255,255,.08); color:#fff; font-size:11px; font-weight:600; text-decoration:none; transition:background .15s; }
-    .tk-chip:hover { background:rgba(255,122,24,.18); }
-    .tk-time { color:#ffb86b; font-family:'JetBrains Mono','Courier New',monospace; font-weight:700; font-size:10px; }
-    .tk-time.live { color:#fca5a5; }
-    .tk-score { color:#fde68a; font-weight:800; padding:0 4px; }
+    @keyframes tk-glow { 0%,100% { box-shadow:0 0 8px rgba(255,68,68,.45),inset 0 0 12px rgba(255,255,255,.15); } 50% { box-shadow:0 0 18px rgba(255,68,68,.85),inset 0 0 16px rgba(255,255,255,.25); } }
+    #liveTicker { transition: box-shadow .3s ease, transform .3s ease; will-change: transform; }
+    #liveTicker:hover { transform: translateY(-1px); box-shadow:0 6px 24px rgba(255,122,24,.25); }
+    #liveTickerInner { transition: filter .3s ease; }
+    /* Mask fade 2 đầu — chips xuất hiện/biến mất mềm mại */
+    #liveTicker > div:nth-child(2) { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%); }
+    /* LIVE label — luôn glow pulse */
+    #liveTicker > div:first-child { animation: tk-glow 2.4s ease-in-out infinite; }
+    /* Chip — lift + scale on hover */
+    .tk-chip { display:inline-flex; align-items:center; gap:6px; padding:0 14px; height:100%; border-right:1px solid rgba(255,255,255,.08); color:#fff; font-size:11px; font-weight:600; text-decoration:none; transition: background .2s ease, transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease; transform-origin: center; will-change: transform; position:relative; }
+    .tk-chip:hover { background:rgba(255,122,24,.22); transform: translateY(-2px) scale(1.06); box-shadow:0 4px 14px rgba(255,122,24,.35); z-index:5; border-radius:6px; }
+    .tk-chip::after { content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:linear-gradient(90deg, transparent, #ff7a18, transparent); transform: scaleX(0); transition: transform .25s ease; }
+    .tk-chip:hover::after { transform: scaleX(1); }
+    .tk-time { color:#ffb86b; font-family:'JetBrains Mono','Courier New',monospace; font-weight:700; font-size:10px; transition: color .15s ease; }
+    .tk-time.live { color:#fca5a5; text-shadow:0 0 6px rgba(252,165,165,.6); }
+    .tk-chip:hover .tk-time { color:#fff; }
+    .tk-score { color:#fde68a; font-weight:800; padding:0 4px; transition: transform .2s ease; }
+    .tk-chip:hover .tk-score { transform: scale(1.15); }
     .tk-vs { color:#94a3b8; font-size:10px; padding:0 2px; }
     .tk-team { max-width:96px; text-overflow:ellipsis; overflow:hidden; }
-    .tk-badge { width:14px; height:14px; border-radius:9999px; background:rgba(255,255,255,.85); padding:1px; object-fit:contain; }
-    .tk-sep { color:#ff7a18; font-weight:900; padding:0 14px; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; opacity:.95; }
+    .tk-badge { width:14px; height:14px; border-radius:9999px; background:rgba(255,255,255,.85); padding:1px; object-fit:contain; transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
+    .tk-chip:hover .tk-badge { transform: scale(1.25) rotate(-8deg); }
+    .tk-sep { color:#ff7a18; font-weight:900; padding:0 14px; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; opacity:.95; text-shadow:0 0 8px rgba(255,122,24,.5); }
     html:not(.dark) #liveTicker { background:linear-gradient(90deg,#fff7ed 0%,#ffedd5 50%,#fff7ed 100%) !important; border-color:rgba(234,88,12,.4) !important; }
+    html:not(.dark) #liveTicker:hover { box-shadow:0 6px 24px rgba(234,88,12,.2); }
     html:not(.dark) .tk-chip { color:#1f2937; }
-    html:not(.dark) .tk-chip:hover { background:rgba(234,88,12,.12); }
+    html:not(.dark) .tk-chip:hover { background:rgba(234,88,12,.14); box-shadow:0 4px 14px rgba(234,88,12,.25); }
     html:not(.dark) .tk-time { color:#c2410c; }
-    html:not(.dark) .tk-time.live { color:#dc2626; }
+    html:not(.dark) .tk-time.live { color:#dc2626; text-shadow:0 0 6px rgba(220,38,38,.4); }
+    html:not(.dark) .tk-chip:hover .tk-time { color:#7c2d12; }
     html:not(.dark) .tk-score { color:#b45309; }
     html:not(.dark) .tk-vs { color:#6b7280; }
     html:not(.dark) .tk-badge { background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.08); }
+    html:not(.dark) .tk-sep { text-shadow:0 0 6px rgba(234,88,12,.3); }
   </style>
   <script>
   (function(){
     var ticker = document.getElementById('liveTicker');
     if (!ticker) return;
     var inner = document.getElementById('liveTickerInner');
-    // 🆕 Hover pause/resume bằng JS — vì inline `animation` shorthand override CSS :hover rule
-    ticker.addEventListener('mouseenter', function(){ if (inner) inner.style.animationPlayState = 'paused'; });
-    ticker.addEventListener('mouseleave', function(){ if (inner) inner.style.animationPlayState = 'running'; });
+    var pauseBtn = document.getElementById('liveTickerPause');
+    var userPaused = false; // user click pause → giữ paused kể cả khi rời chuột
+
+    // Hover pause/resume (vì inline `animation` shorthand override CSS :hover rule)
+    ticker.addEventListener('mouseenter', function(){
+      if (inner) inner.style.animationPlayState = 'paused';
+    });
+    ticker.addEventListener('mouseleave', function(){
+      if (inner) inner.style.animationPlayState = userPaused ? 'paused' : 'running';
+    });
+
+    // Click pause/play button — toggle userPaused
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        userPaused = !userPaused;
+        if (inner) inner.style.animationPlayState = userPaused ? 'paused' : 'running';
+        pauseBtn.innerHTML = userPaused
+          ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
+          : '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>';
+        pauseBtn.setAttribute('aria-label', userPaused ? 'Phát ticker' : 'Tạm dừng ticker');
+      });
+    }
     function esc(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
     function chip(m, kind){
       var time = kind==='live' ? '<span class="tk-time live">&#9679; LIVE</span>' : '<span class="tk-time">'+esc(m.time||'--:--')+'</span>';
