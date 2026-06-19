@@ -14,10 +14,6 @@
         <span class="px-4 text-pri-light text-[11px] font-bold">&#272;ang t&#7843;i l&#7883;ch live&hellip;</span>
       </div>
     </div>
-    <!-- Pause/play -->
-    <button id="liveTickerPause" type="button" class="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 bg-black/60 hover:bg-black/85 text-white w-6 h-6 rounded-full grid place-items-center backdrop-blur transition-colors" aria-label="T&#7841;m d&#7915;ng ticker">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
-    </button>
   </div>
   <style>
     @keyframes tk-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -46,7 +42,6 @@
     var ticker = document.getElementById('liveTicker');
     if (!ticker) return;
     var inner = document.getElementById('liveTickerInner');
-    var pauseBtn = document.getElementById('liveTickerPause');
     function esc(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
     function chip(m, kind){
       var time = kind==='live' ? '<span class="tk-time live">&#9679; LIVE</span>' : '<span class="tk-time">'+esc(m.time||'--:--')+'</span>';
@@ -75,17 +70,6 @@
         });
       }).catch(function(){
         inner.innerHTML = '<span class="px-4 text-red-300 text-[11px] font-bold">Lỗi tải lịch live</span>';
-      });
-    }
-    var paused = false;
-    if (pauseBtn) {
-      pauseBtn.addEventListener('click', function(e){
-        e.stopPropagation();
-        paused = !paused;
-        inner.style.animationPlayState = paused ? 'paused' : 'running';
-        pauseBtn.innerHTML = paused
-          ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
-          : '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>';
       });
     }
     load();
