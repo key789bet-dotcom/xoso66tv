@@ -1,8 +1,9 @@
-<%# 🛡️ Mục 20: Cloudflare Turnstile widget
-    Usage: <%- include('partials/tw-turnstile-widget') %>
-
-    Auto-hide nếu chưa cấu hình ENV (developer mode).
-    Token sẽ tự render vào input name="cf_token" trong form bao quanh widget. %>
+<!--
+  Cloudflare Turnstile widget (Muc 20)
+  Usage: include partials/tw-turnstile-widget
+  Auto-hide neu chua cau hinh ENV (developer mode).
+  Token tu render vao input name="cf_token" trong form bao quanh widget.
+-->
 
 <% if (typeof turnstileEnabled !== 'undefined' && turnstileEnabled && turnstileSiteKey) { %>
   <div class="my-3">
