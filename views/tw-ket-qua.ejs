@@ -135,7 +135,7 @@ function _stat(m, keys){
           var _yhHt = _stat(m, ['yellow_home_ht','yellowCardsHomeHt']);
           var _yaHt = _stat(m, ['yellow_away_ht','yellowCardsAwayHt']);
         %>
-          <div class="kq-row" data-ts="<%= m.matchTs || 0 %>">
+          <div class="kq-row" data-ts="<%= m.matchTs || 0 %>" data-mid="<%= m.id || '' %>">
             <!-- Time + date -->
             <div class="kq-col-time">
               <span class="kq-time-box"><%= _t.time %> <%= _t.date %></span>
@@ -446,6 +446,16 @@ function _stat(m, keys){
 .kq-pair-sep { color: #475569; padding: 0 2px; }
 .kq-pair-gap { padding: 0 6px; }
 
+/* Lazy-loaded stats accent */
+.kq-pair-grey { color: #64748b; }
+.kq-pair-green { color: #22c55e; font-weight: 800; }
+.kq-pair-yellow { color: #fbbf24; font-weight: 800; }
+.kq-red-dot {
+  color: #ef4444; font-size: 12px; font-weight: 900;
+  margin-left: 3px; vertical-align: middle;
+  text-shadow: 0 0 4px rgba(239,68,68,.5);
+}
+
 /* Empty state */
 .kq-empty {
   padding: 60px 20px; text-align: center;
@@ -461,6 +471,73 @@ function _stat(m, keys){
   .kq-team-name { max-width: 150px; font-size: 12px; }
 }
 </style>
+
+<script>
+// ════════ Lazy fetch HT/Corners/Cards khi row vào viewport ════════
+(function(){
+  if (!('IntersectionObserver' in window) || !window.fetch) return;
+  var rows = document.querySelectorAll('.kq-row[data-mid]');
+  if (!rows.length) return;
+
+  function pairHtml(htH, htA, ftH, ftA, accentClass){
+    var ht = (htH != null && htA != null) ? (htH + '-' + htA) : '0-0';
+    var ft = (ftH != null && ftA != null) ? (ftH + '-' + ftA) : '0-0';
+    var ac = accentClass || '';
+    return '<span class="kq-pair-grey">'+ht+'</span><span class="kq-pair-gap">&nbsp;&nbsp;</span><span class="'+ac+'">'+ft+'</span>';
+  }
+  function fillRow(row, data){
+    if (!data || !data.ok) return;
+    // HT score
+    var htCell = row.querySelector('.kq-col-ht');
+    if (htCell && data.ht && data.ht[0] != null && data.ht[1] != null) {
+      htCell.innerHTML = '<span class="kq-ht-val">' + data.ht[0] + ' : ' + data.ht[1] + '</span>';
+    }
+    // Corners (chỉ FT vì API không tách HT)
+    var corCell = row.querySelector('.kq-col-corners');
+    if (corCell && data.corners && (data.corners.h != null || data.corners.a != null)) {
+      var ch = data.corners.h != null ? data.corners.h : 0;
+      var ca = data.corners.a != null ? data.corners.a : 0;
+      corCell.innerHTML = '<span class="kq-pair-grey">-</span><span class="kq-pair-gap">&nbsp;&nbsp;</span><span class="kq-pair-green">'+ch+'-'+ca+'</span>';
+    }
+    // Yellow cards (chỉ FT)
+    var crdCell = row.querySelector('.kq-col-cards');
+    if (crdCell && data.yellow && (data.yellow.h != null || data.yellow.a != null)) {
+      var yh = data.yellow.h != null ? data.yellow.h : 0;
+      var ya = data.yellow.a != null ? data.yellow.a : 0;
+      var rh = (data.red && data.red.h) || 0;
+      var ra = (data.red && data.red.a) || 0;
+      var redBadge = (rh + ra > 0) ? ' <span class="kq-red-dot" title="Thẻ đỏ '+rh+'-'+ra+'">●</span>' : '';
+      crdCell.innerHTML = '<span class="kq-pair-grey">-</span><span class="kq-pair-gap">&nbsp;&nbsp;</span><span class="kq-pair-yellow">'+yh+'-'+ya+'</span>' + redBadge;
+    }
+  }
+  // Throttle: max 3 concurrent fetches
+  var queue = [], active = 0, seen = new Set();
+  function next(){
+    while (active < 3 && queue.length > 0) {
+      var item = queue.shift();
+      active++;
+      fetch('/api/match-stats/' + item.mid, { credentials: 'same-origin' })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ fillRow(item.row, d); })
+        .catch(function(){})
+        .then(function(){ active--; next(); });
+    }
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      var row = e.target;
+      var mid = row.getAttribute('data-mid');
+      if (!mid || seen.has(mid)) return;
+      seen.add(mid);
+      io.unobserve(row);
+      queue.push({ mid: mid, row: row });
+      next();
+    });
+  }, { rootMargin: '300px 0px' });
+  rows.forEach(function(r){ io.observe(r); });
+})();
+</script>
 
 <script>
 (function(){

@@ -623,6 +623,65 @@ app.get('/api/proxy/fixture/:id/detail', async function (req, res) {
   }
 });
 
+// GET /api/match-stats/:id - compact stats (HT score + corners + cards FT)
+// Dùng cho /ket-qua, /livescore lazy fetch khi card vào viewport
+// Cache 10 phút (data đã FT không thay đổi)
+const _matchStatsCache = new Map();
+app.get('/api/match-stats/:id', async function(req, res) {
+  try {
+    const id = req.params.id;
+    if (!id || !/^\d+$/.test(id)) return res.status(400).json({ ok:false, error:'invalid id' });
+    res.set('Cache-Control', 'public, max-age=600');
+    const cacheKey = 'mstats:' + id;
+    const hit = _matchStatsCache.get(cacheKey);
+    if (hit && Date.now() - hit.t < 600000) return res.json(hit.v);
+    const url = PROXY_BASE + '/fixtures/' + id + '/detail';
+    const r = await fetch(url, {
+      headers: { 'Accept':'application/json', 'User-Agent':'xoso66tv/1.0' },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) {
+      const out = { ok:false, error:'upstream '+r.status };
+      _matchStatsCache.set(cacheKey, { t:Date.now(), v:out });
+      return res.json(out);
+    }
+    const j = await r.json();
+    const d = (j && j.data) || j || {};
+    const s = d.summary || {};
+    const out = {
+      ok: true,
+      ht: [
+        (s.score_halftime_home != null) ? Number(s.score_halftime_home) :
+        (s.halftimeHome != null)         ? Number(s.halftimeHome) : null,
+        (s.score_halftime_away != null) ? Number(s.score_halftime_away) :
+        (s.halftimeAway != null)         ? Number(s.halftimeAway) : null
+      ],
+      corners: {
+        h: (s.homeCorners != null) ? Number(s.homeCorners) : null,
+        a: (s.awayCorners != null) ? Number(s.awayCorners) : null
+      },
+      yellow: {
+        h: (s.homeYellow != null) ? Number(s.homeYellow) : null,
+        a: (s.awayYellow != null) ? Number(s.awayYellow) : null
+      },
+      red: {
+        h: (s.homeRed != null) ? Number(s.homeRed) : null,
+        a: (s.awayRed != null) ? Number(s.awayRed) : null
+      }
+    };
+    _matchStatsCache.set(cacheKey, { t:Date.now(), v:out });
+    // Cleanup cache nếu quá 500 entries
+    if (_matchStatsCache.size > 500) {
+      const oldest = _matchStatsCache.keys().next().value;
+      _matchStatsCache.delete(oldest);
+    }
+    res.json(out);
+  } catch (e) {
+    console.warn('[match-stats]', e.message);
+    res.json({ ok:false, error: e.message });
+  }
+});
+
 // GET /api/proxy/fixture/:id/:section — section ∈ {events, statistics, lineups, h2h}
 app.get('/api/proxy/fixture/:id/:section', async function (req, res) {
   try {
