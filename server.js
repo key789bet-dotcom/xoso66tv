@@ -647,16 +647,15 @@ app.get('/api/match-stats/:id', async function(req, res) {
       return res.json(out);
     }
     const j = await r.json();
-    // API trả { success: true, data: { ... summary } } hoặc { data: { data: {...} } }
-    const d = (j && j.data && j.data.data) || (j && j.data) || j || {};
+    // ✅ Verified schema: { success, data: { fixture: {...HT...}, summary: {...cards+corners...} } }
+    const d = (j && j.data) || j || {};
+    const f = d.fixture || {};
     const s = d.summary || {};
     const out = {
       ok: true,
       ht: [
-        (s.score_halftime_home != null) ? Number(s.score_halftime_home) :
-        (s.halftimeHome != null)         ? Number(s.halftimeHome) : null,
-        (s.score_halftime_away != null) ? Number(s.score_halftime_away) :
-        (s.halftimeAway != null)         ? Number(s.halftimeAway) : null
+        (f.score_halftime_home != null) ? Number(f.score_halftime_home) : null,
+        (f.score_halftime_away != null) ? Number(f.score_halftime_away) : null
       ],
       corners: {
         h: (s.homeCorners != null) ? Number(s.homeCorners) : null,
