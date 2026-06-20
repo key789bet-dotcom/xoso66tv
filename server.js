@@ -635,7 +635,8 @@ app.get('/api/match-stats/:id', async function(req, res) {
     const cacheKey = 'mstats:' + id;
     const hit = _matchStatsCache.get(cacheKey);
     if (hit && Date.now() - hit.t < 600000) return res.json(hit.v);
-    const url = PROXY_BASE + '/fixtures/' + id + '/detail';
+    // FIX: detail endpoint cần /p/ prefix (PROXY_BASE = /api, không có /p/)
+    const url = PROXY_BASE + '/p/fixtures/' + id + '/detail';
     const r = await fetch(url, {
       headers: { 'Accept':'application/json', 'User-Agent':'xoso66tv/1.0' },
       signal: AbortSignal.timeout(8000)
@@ -646,7 +647,8 @@ app.get('/api/match-stats/:id', async function(req, res) {
       return res.json(out);
     }
     const j = await r.json();
-    const d = (j && j.data) || j || {};
+    // API trả { success: true, data: { ... summary } } hoặc { data: { data: {...} } }
+    const d = (j && j.data && j.data.data) || (j && j.data) || j || {};
     const s = d.summary || {};
     const out = {
       ok: true,
