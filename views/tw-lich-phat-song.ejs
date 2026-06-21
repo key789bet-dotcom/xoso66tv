@@ -142,6 +142,9 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   </h1>
 </header>
 
+<!-- Hero banner promo (auto-slide) -->
+<%- include('partials/tw-hero-banner') %>
+
 <!-- Tabs môn thể thao (pill style teal) -->
 <nav class="flex gap-2 flex-wrap mb-4" aria-label="Lọc môn">
   <% Object.entries(cats).forEach(function(pair){ var k=pair[0], c=pair[1]; if (c.partnerOnly || c.sport===null) return;
