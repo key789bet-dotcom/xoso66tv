@@ -752,13 +752,15 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   font-size: 13px;
 }
 
-/* ===== Card footer COMPACT (BLV/Idol đăng ký) ===== */
+/* ===== Card footer ULTRA-COMPACT (BLV/Idol đăng ký) ===== */
 .m-card-foot {
-  padding: 4px 10px;
-  border-top: 1px solid rgba(42, 51, 68, .5);
+  padding: 2px 8px;
+  border-top: 1px solid rgba(42, 51, 68, .4);
   background: rgba(11, 14, 20, .35);
-  min-height: 24px;
+  line-height: 1;
   display: flex; align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .m-card-foot-blvs {
   flex: 1;
@@ -775,17 +777,17 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
 .m-card-blv-item:active { opacity: .7; }
 .m-card-blv-item img,
 .m-card-blv-letter {
-  width: 18px; height: 18px; border-radius: 50%;
+  width: 16px; height: 16px; border-radius: 50%;
   object-fit: cover; flex-shrink: 0;
   border: 1px solid rgba(42, 51, 68, .6);
 }
 .m-card-blv-letter {
   display: grid; place-items: center;
-  color: #fff; font-weight: 700; font-size: 9px;
+  color: #fff; font-weight: 700; font-size: 8px;
 }
 .m-card-blv-name {
-  color: #e2e8f0; font-size: 11px; font-weight: 600;
-  max-width: 110px; overflow: hidden;
+  color: #cbd5e1; font-size: 10px; font-weight: 600;
+  max-width: 100px; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
 .m-card-blv-live {
@@ -794,13 +796,17 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   padding: 0 4px; border-radius: 2px;
   letter-spacing: .5px;
 }
-/* Empty state */
+/* Empty state - 1 dòng nhỏ */
 .m-card-foot-empty {
-  display: inline-flex; align-items: center; gap: 5px;
-  color: #64748b; font-size: 11px; font-weight: 500;
-  font-style: italic;
+  display: inline-flex; align-items: center; gap: 4px;
+  color: #5a6878; font-size: 10px; font-weight: 500;
+  font-style: italic; line-height: 1.4;
+  white-space: nowrap;
 }
-.m-card-foot-empty svg { opacity: .7; }
+.m-card-foot-empty svg {
+  opacity: .55;
+  width: 11px !important; height: 11px !important;
+}
 </style>
 
 <script>
