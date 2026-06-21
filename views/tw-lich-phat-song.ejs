@@ -752,6 +752,19 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   font-size: 13px;
 }
 
+/* ===== Match card - ép height = tổng inner content (fix khoảng trống đen thừa) ===== */
+.m-match-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+.m-match-card > a,
+.m-match-card > header,
+.m-match-card > footer {
+  flex: 0 0 auto !important;  /* KHÔNG stretch */
+}
+
 /* ===== Card footer ULTRA-COMPACT (BLV/Idol đăng ký) ===== */
 .m-card-foot {
   padding: 2px 8px;
@@ -761,6 +774,7 @@ var _leagueArr = Object.keys(_leagueGroups).sort(function(a,b){
   display: flex; align-items: center;
   white-space: nowrap;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .m-card-foot-blvs {
   flex: 1;
