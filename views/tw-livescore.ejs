@@ -173,7 +173,7 @@ function _fmt(m){
           var _isFin  = m.status === 'finished';
           var _hot = _isHot(m);
         %>
-          <div class="lvs-row" data-status="<%= m.status %>" data-hot="<%= _hot %>" data-ts="<%= m.matchTs || 0 %>">
+          <div class="lvs-row" data-status="<%= m.status %>" data-hot="<%= _hot %>" data-ts="<%= m.matchTs || 0 %>" data-mid="<%= m.id || '' %>">
             <!-- Star fav -->
             <button type="button" class="lvs-fav" title="Theo dõi trận" aria-label="Theo dõi">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-3.5 h-3.5"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
@@ -216,23 +216,17 @@ function _fmt(m){
               </span>
               <span class="lvs-team-name truncate"><%= m.away || '?' %></span>
             </div>
-            <!-- HT score -->
+            <!-- HT score: server render nếu có sẵn, không thì JS lazy fetch -->
             <div class="lvs-ht">
               <% if (m.halftime) { %>
-                <%= m.halftime[0] %> - <%= m.halftime[1] %>
+                <span class="lvs-ht-val"><%= m.halftime[0] %> - <%= m.halftime[1] %></span>
               <% } else { %>
-                <span class="text-muted">-</span>
+                <span class="lvs-loading" title="Đang tải...">…</span>
               <% } %>
             </div>
-            <!-- PG (penalty goals - dùng số corners hoặc redCards fallback) -->
+            <!-- PG (Phạt Góc) - JS lazy fetch fill -->
             <div class="lvs-pg">
-              <% if (m.summary && (m.summary.corners_home !== undefined || m.summary.cornersHome !== undefined)) {
-                   var ch = m.summary.corners_home || m.summary.cornersHome || 0;
-                   var ca = m.summary.corners_away || m.summary.cornersAway || 0; %>
-                <%= ch %> - <%= ca %>
-              <% } else { %>
-                <span class="text-muted">-</span>
-              <% } %>
+              <span class="lvs-loading" title="Đang tải...">…</span>
             </div>
             <!-- Play button (CHỈ HIỆN khi có video) -->
             <div class="lvs-play-col">
@@ -603,6 +597,18 @@ function _fmt(m){
   color: #94a3b8;
 }
 
+/* Lazy fetch placeholder */
+.lvs-loading {
+  color: #475569; font-style: italic; font-size: 11px;
+  opacity: .6;
+}
+.lvs-no-data {
+  color: #475569; font-style: italic; font-size: 13px;
+  opacity: .7;
+}
+.lvs-ht-val { color: #22c55e; font-weight: 700; }
+.lvs-pg-val { color: #22c55e; font-weight: 700; font-family: 'Roboto Mono', monospace; }
+
 /* Responsive shrink */
 @media (max-width: 1280px) {
   .lvs-table-head, .lvs-row {
@@ -611,6 +617,61 @@ function _fmt(m){
   .lvs-team-name { max-width: 160px; font-size: 12px; }
 }
 </style>
+
+<script>
+// ════════ Lazy fetch HT score + Corners khi row vào viewport ════════
+(function(){
+  if (!('IntersectionObserver' in window) || !window.fetch) return;
+  var rows = document.querySelectorAll('.lvs-row[data-mid]');
+  if (!rows.length) return;
+  function fillRow(row, data){
+    if (!data || !data.ok) return;
+    // HT score
+    var htCell = row.querySelector('.lvs-ht');
+    if (htCell && data.ht && data.ht[0] != null && data.ht[1] != null) {
+      htCell.innerHTML = '<span class="lvs-ht-val">' + data.ht[0] + ' - ' + data.ht[1] + '</span>';
+    } else if (htCell) {
+      htCell.innerHTML = '<span class="lvs-no-data">—</span>';
+    }
+    // PG = Phạt Góc (corners FT)
+    var pgCell = row.querySelector('.lvs-pg');
+    if (pgCell && data.corners) {
+      var ch = data.corners.h != null ? data.corners.h : 0;
+      var ca = data.corners.a != null ? data.corners.a : 0;
+      if (ch + ca > 0) {
+        pgCell.innerHTML = '<span class="lvs-pg-val">' + ch + ' - ' + ca + '</span>';
+      } else {
+        pgCell.innerHTML = '<span class="lvs-no-data" title="API không cung cấp">—</span>';
+      }
+    }
+  }
+  var queue = [], active = 0, seen = new Set();
+  function next(){
+    while (active < 3 && queue.length > 0) {
+      var item = queue.shift();
+      active++;
+      fetch('/api/match-stats/' + item.mid, { credentials:'same-origin' })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ fillRow(item.row, d); })
+        .catch(function(){})
+        .then(function(){ active--; next(); });
+    }
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      var row = e.target;
+      var mid = row.getAttribute('data-mid');
+      if (!mid || seen.has(mid)) return;
+      seen.add(mid);
+      io.unobserve(row);
+      queue.push({ mid: mid, row: row });
+      next();
+    });
+  }, { rootMargin: '300px 0px' });
+  rows.forEach(function(r){ io.observe(r); });
+})();
+</script>
 
 <script>
 (function(){
