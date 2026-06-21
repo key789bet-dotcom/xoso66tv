@@ -188,25 +188,13 @@ function _stat(m, keys){
                 <span class="text-muted">0 : 0</span>
               <% } %>
             </div>
-            <!-- Corners HT | FT -->
+            <!-- Corners — placeholder, JS lazy fetch sẽ fill (hoặc — nếu API không có) -->
             <div class="kq-col-corners">
-              <% if (_chHt !== null || _caHt !== null || _ch !== null || _ca !== null) { %>
-                <span class="kq-pair-num"><%= _chHt!==null ? _chHt : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _caHt!==null ? _caHt : '0' %></span>
-                <span class="kq-pair-gap">&nbsp;</span>
-                <span class="kq-pair-num"><%= _ch!==null ? _ch : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _ca!==null ? _ca : '0' %></span>
-              <% } else { %>
-                <span class="text-muted">0 - 0&nbsp;&nbsp;0 - 0</span>
-              <% } %>
+              <span class="kq-no-data" title="Đang tải...">…</span>
             </div>
-            <!-- Yellow cards HT | FT -->
+            <!-- Yellow cards — placeholder -->
             <div class="kq-col-cards">
-              <% if (_yhHt !== null || _yaHt !== null || _yh !== null || _ya !== null) { %>
-                <span class="kq-pair-num"><%= _yhHt!==null ? _yhHt : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _yaHt!==null ? _yaHt : '0' %></span>
-                <span class="kq-pair-gap">&nbsp;</span>
-                <span class="kq-pair-num"><%= _yh!==null ? _yh : '0' %></span><span class="kq-pair-sep">-</span><span class="kq-pair-num"><%= _ya!==null ? _ya : '0' %></span>
-              <% } else { %>
-                <span class="text-muted">0 - 0&nbsp;&nbsp;0 - 0</span>
-              <% } %>
+              <span class="kq-no-data" title="Đang tải...">…</span>
             </div>
           </div>
         <% }); %>
@@ -492,22 +480,30 @@ function _stat(m, keys){
     if (htCell && data.ht && data.ht[0] != null && data.ht[1] != null) {
       htCell.innerHTML = '<span class="kq-ht-val">' + data.ht[0] + ' : ' + data.ht[1] + '</span>';
     }
-    // Corners (chỉ FT vì API không tách HT)
+    // Corners (chỉ FT). API thethaoviet KHÔNG có data corners cho đa số giải nhỏ → hiển thị "—" mờ
     var corCell = row.querySelector('.kq-col-corners');
-    if (corCell && data.corners && (data.corners.h != null || data.corners.a != null)) {
+    if (corCell && data.corners) {
       var ch = data.corners.h != null ? data.corners.h : 0;
       var ca = data.corners.a != null ? data.corners.a : 0;
-      corCell.innerHTML = '<span class="kq-pair-grey">-</span><span class="kq-pair-gap">&nbsp;&nbsp;</span><span class="kq-pair-green">'+ch+'-'+ca+'</span>';
+      if (ch + ca > 0) {
+        corCell.innerHTML = '<span class="kq-pair-green">'+ch+' - '+ca+'</span>';
+      } else {
+        corCell.innerHTML = '<span class="kq-no-data" title="API không cung cấp">—</span>';
+      }
     }
-    // Yellow cards (chỉ FT)
+    // Yellow + Red cards (chỉ FT). Tương tự
     var crdCell = row.querySelector('.kq-col-cards');
-    if (crdCell && data.yellow && (data.yellow.h != null || data.yellow.a != null)) {
+    if (crdCell && data.yellow) {
       var yh = data.yellow.h != null ? data.yellow.h : 0;
       var ya = data.yellow.a != null ? data.yellow.a : 0;
       var rh = (data.red && data.red.h) || 0;
       var ra = (data.red && data.red.a) || 0;
-      var redBadge = (rh + ra > 0) ? ' <span class="kq-red-dot" title="Thẻ đỏ '+rh+'-'+ra+'">●</span>' : '';
-      crdCell.innerHTML = '<span class="kq-pair-grey">-</span><span class="kq-pair-gap">&nbsp;&nbsp;</span><span class="kq-pair-yellow">'+yh+'-'+ya+'</span>' + redBadge;
+      if (yh + ya + rh + ra > 0) {
+        var redBadge = (rh + ra > 0) ? ' <span class="kq-red-dot" title="Thẻ đỏ '+rh+'-'+ra+'">●</span>' : '';
+        crdCell.innerHTML = '<span class="kq-pair-yellow">'+yh+' - '+ya+'</span>' + redBadge;
+      } else {
+        crdCell.innerHTML = '<span class="kq-no-data" title="API không cung cấp">—</span>';
+      }
     }
   }
   // Throttle: max 3 concurrent fetches
