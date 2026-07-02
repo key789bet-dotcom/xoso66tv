@@ -2,6 +2,8 @@
 // Partial: Video player FLV.js cho idol/blv live room
 // Cach goi: include('partials/tw-live-video-player', { streamKey: idolId })
 var __sk = (typeof streamKey !== 'undefined') ? streamKey : (typeof idolId !== 'undefined' ? idolId : 'unknown');
+// 🔑 ID gốc để resolve key thật đang push (OBS có thể dùng key có suffix random)
+var __resolveBase = (typeof resolveBase !== 'undefined' && resolveBase) ? resolveBase : __sk;
 
 // 🐰 BunnyCDN: nếu admin đã enable + idol có bunny_video_id → ưu tiên play HLS qua Bunny (scale 10k+ viewers)
 var __bunnyHls = '';
@@ -115,6 +117,8 @@ try {
 <script>
 (function initLiveStream(){
   var STREAM_KEY = '<%= __sk %>';
+  // 🔑 ID gốc để hỏi server key thật đang push (map idolId → key có suffix)
+  var RESOLVE_ID = '<%= __resolveBase %>';
   // 🐰 BunnyCDN HLS URL (nếu admin đã enable + idol/blv có bunny_video_id)
   var BUNNY_HLS  = '<%= __bunnyHls %>';
   var USE_BUNNY  = !!BUNNY_HLS;
@@ -137,6 +141,34 @@ try {
   var POLL_INTERVAL = 8000;
   var video, flvPlayer, hlsPlayer, isPlaying = false;
   console.log('[LIVE] mode=' + (USE_HLS ? 'HLS' : 'FLV') + ', native HLS=' + HAS_NATIVE_HLS + ', iOS=' + IS_IOS);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 🔑 RESOLVE STREAM KEY — hỏi server key THẬT đang push
+  //   OBS có thể push key có suffix (i_yennhi_2ypczk0e) → viewer chỉ biết
+  //   idolId → gọi /api/live/key/:id để lấy đúng key. Fallback giữ key cũ.
+  // ═══════════════════════════════════════════════════════════════
+  function rebuildStreamUrls(){
+    STREAM_URL     = 'https://live.xoso66tv.com/live/' + STREAM_KEY + '.flv';
+    STREAM_URL_HLS = USE_BUNNY ? BUNNY_HLS : ('https://live.xoso66tv.com/live/' + STREAM_KEY + '.m3u8');
+    CHECK_URL      = USE_HLS ? STREAM_URL_HLS : STREAM_URL;
+  }
+  function resolveStreamKey(done){
+    if (USE_BUNNY) { if (done) done(); return; } // Bunny dùng video id riêng, không resolve
+    var called = false;
+    function finish(){ if (called) return; called = true; if (done) done(); }
+    var _to = setTimeout(finish, 2500); // guard: không chặn UI quá lâu nếu API chậm
+    fetch('/api/live/key/' + encodeURIComponent(RESOLVE_ID), { cache:'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){
+        if (j && j.key && j.key !== STREAM_KEY) {
+          console.log('[LIVE] 🔑 Resolved key:', STREAM_KEY, '→', j.key);
+          STREAM_KEY = j.key;
+          rebuildStreamUrls();
+        }
+        clearTimeout(_to); finish();
+      })
+      .catch(function(){ clearTimeout(_to); finish(); }); // lỗi → giữ key cũ
+  }
 
   /* ═══════════════════════════════════════════════════════════════
      🎬 Mục 16: PICTURE-IN-PICTURE
@@ -692,6 +724,7 @@ try {
     __reconnectId = setInterval(function(){
       __reconnectCount++;
       if (countEl) countEl.textContent = __reconnectCount;
+      resolveStreamKey(); // 🔑 cập nhật key nếu idol restart OBS với key mới (tick sau dùng key mới)
       // Check stream còn sống không
       fetch(CHECK_URL, { method:'HEAD', cache:'no-store' })
         .then(function(r){
@@ -744,8 +777,10 @@ try {
     bindUnmute();
     initStatsToggle();
     startStatsLoop(); // 🚀 Start stats loop NGAY, không chờ attach
-    checkStream();
-    setInterval(checkStream, POLL_INTERVAL);
+    resolveStreamKey(function(){   // 🔑 lấy key thật đang push trước khi check/attach
+      checkStream();
+      setInterval(checkStream, POLL_INTERVAL);
+    });
   }
   if (document.readyState !== 'loading') start();
   else document.addEventListener('DOMContentLoaded', start);

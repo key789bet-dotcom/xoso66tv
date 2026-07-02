@@ -691,7 +691,7 @@ var _obsMode = (idol.streamMethod === 'obs');
       <span class="absolute top-3.5 left-3.5 z-[2] bg-live text-white px-3 py-1 rounded-md font-extrabold text-xs flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse-live"></span>LIVE</span>
       <span class="absolute top-3.5 right-3.5 z-[2] bg-black/70 text-gold px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1.5">👁 <span class="tabular-nums"><%= viewers.toLocaleString('vi-VN') %></span></span>
       <div class="relative z-[1] text-[200px] filter drop-shadow-2xl" style="animation:bounceIdol 1.4s ease-in-out infinite alternate;"><%= idol.emoji || '👑' %></div>
-      <%- include('partials/tw-live-video-player', { streamKey: (typeof actualStreamKey !== 'undefined' && actualStreamKey ? actualStreamKey : idolId) }) %>
+      <%- include('partials/tw-live-video-player', { streamKey: (typeof actualStreamKey !== 'undefined' && actualStreamKey ? actualStreamKey : idolId), resolveBase: idolId }) %>
       <div class="absolute inset-x-0 bottom-0 z-[4] px-4 py-3 bg-gradient-to-t from-black/85 to-transparent text-white flex items-center gap-3">
         <button class="w-9 h-9 grid place-items-center hover:text-pri" aria-label="Phát/Dừng">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>

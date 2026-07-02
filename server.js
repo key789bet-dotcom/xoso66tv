@@ -3493,6 +3493,51 @@ try {
 // ║ - Tránh: OBS push nhưng DB không cập nhật (mismatch hôm nay)      ║
 // ╚════════════════════════════════════════════════════════════════════╝
 const SRS_API_URL = process.env.SRS_API_URL || 'http://127.0.0.1:1985/api/v1/streams/';
+
+// ╔════════════════════════════════════════════════════════════════════╗
+// ║ 🔑 RESOLVE STREAM KEY — trả về key THẬT đang publish cho idol/blv   ║
+// ║ OBS có thể push key có suffix random (vd i_yennhi_2ypczk0e) do cơ  ║
+// ║ chế rotate key. Viewer chỉ biết id gốc → map id gốc → key thật.    ║
+// ║ Nguồn sự thật = SRS API (không phụ thuộc db.json/obs record).       ║
+// ╚════════════════════════════════════════════════════════════════════╝
+let _srsStreamsCache = { at: 0, streams: [] };
+async function _getSrsStreams() {
+  const now = Date.now();
+  // Cache 3s để không spam SRS khi nhiều viewer cùng resolve
+  if (now - _srsStreamsCache.at < 3000) return _srsStreamsCache.streams;
+  try {
+    const fetchFn = (typeof fetch === 'function') ? fetch : require('node-fetch');
+    const resp = await fetchFn(SRS_API_URL);
+    if (!resp.ok) return _srsStreamsCache.streams;
+    const data = await resp.json();
+    _srsStreamsCache = { at: now, streams: (data && data.streams) || [] };
+  } catch (e) {
+    console.warn('[LIVE-KEY] SRS API fail:', e.message);
+  }
+  return _srsStreamsCache.streams;
+}
+async function resolveActiveStreamKey(baseKey) {
+  if (!baseKey) return null;
+  const streams = await _getSrsStreams();
+  // Match stream đang publish active: exact HOẶC prefix (baseKey_...) — cùng logic syncLiveStatusFromSRS
+  const match = streams.find(function (s) {
+    return s && s.publish && s.publish.active &&
+      (s.name === baseKey || (s.name && s.name.indexOf(baseKey + '_') === 0));
+  });
+  return match ? match.name : null;
+}
+// GET /api/live/key/:id → { ok, key, live } — player gọi để lấy key thật đang push
+app.get('/api/live/key/:id', async function (req, res) {
+  const baseKey = String(req.params.id || '').slice(0, 64); // bound input
+  res.set('Cache-Control', 'no-store');
+  try {
+    const key = await resolveActiveStreamKey(baseKey);
+    res.json({ ok: true, key: key || baseKey, live: !!key });
+  } catch (e) {
+    res.json({ ok: true, key: baseKey, live: false });
+  }
+});
+
 async function syncLiveStatusFromSRS() {
   try {
     const fetchFn = (typeof fetch === 'function') ? fetch : require('node-fetch');
