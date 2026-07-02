@@ -216,6 +216,29 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   }
 }));
 
+// 🖼️ ASSET_HOST — đẩy ẢNH (/uploads, /static/img) sang host grey-cloud (live.xoso66tv.com)
+//    để né Cloudflare chặn media (ToS 2.8). Chỉ rewrite ẢNH, KHÔNG đụng JS/CSS.
+//    No-op khi ASSET_HOST rỗng → an toàn, rollback = xóa env ASSET_HOST + restart.
+const ASSET_HOST = (process.env.ASSET_HOST || '').replace(/\/+$/, '');
+if (ASSET_HOST) {
+  app.use(function(req, res, next){
+    const _render = res.render.bind(res);
+    res.render = function(view, opts, cb){
+      _render(view, opts, function(err, html){
+        if (err) return next(err);
+        if (typeof html === 'string') {
+          // Rewrite src="/uploads/…", src="/static/img/…", url(/…) → ASSET_HOST
+          html = html.replace(/(["'(])\/(uploads|static\/img)\//g, '$1' + ASSET_HOST + '/$2/');
+        }
+        if (typeof cb === 'function') return cb(null, html);
+        res.send(html);
+      });
+    };
+    next();
+  });
+  console.log('[ASSET-HOST] ✅ Rewrite ảnh → ' + ASSET_HOST + ' (né Cloudflare media block)');
+}
+
 // ===== PWA assets (phải serve ở root scope) =====
 app.get('/sw.js', function(req, res){
   res.setHeader('Content-Type', 'application/javascript');
