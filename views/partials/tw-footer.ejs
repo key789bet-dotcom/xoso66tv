@@ -15,17 +15,21 @@
       box-shadow:0 3px 10px rgba(255,122,24,.6),inset 0 -2px 5px rgba(0,0,0,.28),inset 0 2px 3px rgba(255,255,255,.45);
       opacity:0;z-index:3;pointer-events:none;will-change:left,transform;
     }
-    /* Khi footer vào viewport (.brand-anim-on) → bóng lăn RA rồi lăn VÀO lại (ping-pong), loop */
-    .brand-anim-on .xbf-ball{opacity:1;animation:xbfRoll 2.2s cubic-bezier(.45,.05,.55,.95) infinite alternate;}
-    .brand-anim-on .xbf-ch{animation:xbfReveal 2.2s ease-in-out infinite alternate;animation-delay:calc(var(--i) * .16s);}
-    /* alternate: chạy xuôi (lăn phải, xoay +720°) rồi ngược (lăn trái về, xoay lại) → 2 chiều */
+    /* Khi footer vào viewport (.brand-anim-on): bóng lăn RA (theo chữ hiện) rồi lăn VÀO (theo chữ biến mất) */
+    .brand-anim-on .xbf-ball{opacity:1;animation:xbfRoll 3s cubic-bezier(.55,0,.45,1) infinite;}
+    /* Mỗi ký tự pop hiện → giữ → pop biến mất; delay so le → HIỆN/BIẾN MẤT TỪNG CHỮ 1 (typewriter) */
+    .brand-anim-on .xbf-ch{opacity:0;animation:xbfSeq 3s ease-in-out infinite;animation-delay:calc(var(--i) * .25s);}
     @keyframes xbfRoll{
-      0%{left:-6px;transform:translateY(-50%) rotate(-20deg);}
-      100%{left:calc(100% - 6px);transform:translateY(-50%) rotate(720deg);}
+      0%{left:-6px;transform:translateY(-50%) rotate(0deg);}
+      50%{left:calc(100% - 6px);transform:translateY(-50%) rotate(540deg);}   /* lăn tới cuối (chữ đã hiện hết) */
+      100%{left:-6px;transform:translateY(-50%) rotate(1080deg);}             /* lăn về đầu (chữ đã biến mất) */
     }
-    @keyframes xbfReveal{
-      0%{opacity:.25;transform:translateY(6px) scale(.6) rotate(-12deg);filter:blur(1px);}
-      100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:blur(0);}
+    @keyframes xbfSeq{
+      0%{opacity:0;transform:translateY(9px) scale(.4) rotate(-16deg);filter:blur(2px);}
+      10%{opacity:1;transform:translateY(-2px) scale(1.18) rotate(0deg);filter:blur(0);}  /* pop hiện */
+      16%,50%{opacity:1;transform:translateY(0) scale(1);}                                 /* giữ */
+      62%{opacity:0;transform:translateY(-9px) scale(.4) rotate(14deg);filter:blur(2px);}  /* pop biến mất */
+      100%{opacity:0;}
     }
     /* Tôn trọng prefers-reduced-motion: hiện chữ tĩnh, ẩn bóng */
     @media (prefers-reduced-motion: reduce){
