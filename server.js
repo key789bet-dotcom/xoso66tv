@@ -3441,6 +3441,19 @@ app.get('/api/admin/chat/bans', requireAdmin, function (req, res) {
   res.json({ ok:true, bans: roomChat.listBans(), stats: roomChat.stats() });
 });
 
+// 🔑 GET /api/live/key/:id → resolve stream key thật đang push (helper hoisted ở cuối file).
+//    PHẢI đăng ký TRƯỚC catch-all 404 dưới đây, nếu không request sẽ bị nuốt thành 404.
+app.get('/api/live/key/:id', async function (req, res) {
+  const baseKey = String(req.params.id || '').slice(0, 64); // bound input
+  res.set('Cache-Control', 'no-store');
+  try {
+    const key = await resolveActiveStreamKey(baseKey);
+    res.json({ ok: true, key: key || baseKey, live: !!key });
+  } catch (e) {
+    res.json({ ok: true, key: baseKey, live: false });
+  }
+});
+
 // 404 + error handler (đăng ký CUỐI CÙNG - sau mọi route)
 app.use(function (req, res) { res.status(404).render('tw-404'); });
 // 🛡️ Sentry error handler — phải chạy TRƯỚC error handler của Express
@@ -3526,17 +3539,8 @@ async function resolveActiveStreamKey(baseKey) {
   });
   return match ? match.name : null;
 }
-// GET /api/live/key/:id → { ok, key, live } — player gọi để lấy key thật đang push
-app.get('/api/live/key/:id', async function (req, res) {
-  const baseKey = String(req.params.id || '').slice(0, 64); // bound input
-  res.set('Cache-Control', 'no-store');
-  try {
-    const key = await resolveActiveStreamKey(baseKey);
-    res.json({ ok: true, key: key || baseKey, live: !!key });
-  } catch (e) {
-    res.json({ ok: true, key: baseKey, live: false });
-  }
-});
+// ⬆️ Route /api/live/key/:id đã chuyển lên TRƯỚC catch-all 404 (gần dòng 3444)
+//    để không bị app.use(404) nuốt. Helper resolveActiveStreamKey ở trên được hoisted.
 
 async function syncLiveStatusFromSRS() {
   try {
