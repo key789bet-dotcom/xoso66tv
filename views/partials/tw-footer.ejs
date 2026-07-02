@@ -1,6 +1,42 @@
   </main>
   <footer class="bg-gradient-to-b from-[#13171f] to-[#0a0d12] border-t border-line/60 mt-4 md:mt-8" style="padding-bottom:env(safe-area-inset-bottom);">
     <style>@media (max-width:767px){body > footer{padding-bottom:calc(80px + env(safe-area-inset-bottom)) !important;}}</style>
+    <style>
+    /* 🎾 XOSO66 brand FX — quả bóng 66 lăn + chữ hiện từng ký tự (loop khi footer vào viewport) */
+    .xbf-stage{position:relative;display:inline-flex;align-items:center;line-height:1;padding-left:2px;}
+    .xbf-word{display:inline-flex;letter-spacing:.5px;}
+    .xbf-ch{display:inline-block;will-change:transform,opacity;}
+    .xbf-ball{
+      position:absolute;left:-4px;top:50%;transform:translateY(-50%);
+      width:26px;height:26px;border-radius:50%;
+      display:inline-grid;place-items:center;
+      font-size:11px;font-weight:900;font-style:italic;color:#fff;
+      background:radial-gradient(circle at 34% 30%,#ffe08a,#ff7a18 58%,#ea580c);
+      box-shadow:0 3px 10px rgba(255,122,24,.6),inset 0 -2px 5px rgba(0,0,0,.28),inset 0 2px 3px rgba(255,255,255,.45);
+      opacity:0;z-index:3;pointer-events:none;will-change:left,transform;
+    }
+    /* Khi footer vào viewport (.brand-anim-on) → chạy loop */
+    .brand-anim-on .xbf-ball{animation:xbfRoll 2.6s cubic-bezier(.45,.05,.25,1) infinite;}
+    .brand-anim-on .xbf-ch{animation:xbfReveal 2.6s ease-in-out infinite;animation-delay:calc(var(--i) * .2s);}
+    @keyframes xbfRoll{
+      0%{left:-6px;opacity:0;transform:translateY(-50%) rotate(0deg);}
+      8%{opacity:1;}
+      88%{opacity:1;}
+      100%{left:calc(100% - 6px);opacity:0;transform:translateY(-50%) rotate(900deg);}
+    }
+    @keyframes xbfReveal{
+      0%,12%{opacity:0;transform:translateY(10px) scale(.4) rotate(-14deg);filter:blur(2px);}
+      26%{opacity:1;transform:translateY(-3px) scale(1.22) rotate(0);filter:blur(0);}
+      40%,78%{opacity:1;transform:translateY(0) scale(1);}
+      94%,100%{opacity:0;transform:translateY(-7px) scale(.6);filter:blur(1px);}
+    }
+    /* Tôn trọng prefers-reduced-motion: hiện chữ tĩnh, ẩn bóng */
+    @media (prefers-reduced-motion: reduce){
+      .brand-anim-on .xbf-ball,.brand-anim-on .xbf-ch{animation:none;}
+      .xbf-ch{opacity:1;transform:none;}
+      .xbf-ball{display:none;}
+    }
+    </style>
     <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-7">
 
       <!-- ============ DESKTOP FOOTER (hidden md:block) ============ -->
@@ -15,7 +51,11 @@
               <div class="text-[11px] uppercase tracking-widest text-pri-light font-extrabold leading-tight">Liên minh<br>thương hiệu</div>
               <div class="flex items-center gap-1.5">
                 <span class="text-2xl">&#128077;</span>
-                <span class="text-2xl font-black text-white group-hover:text-pri transition-colors"><%= brand.short.replace(/\s*TV\s*$/i,'') %></span>
+                <% var __brandWord = brand.short.replace(/\s*TV\s*$/i,''); %>
+                <span class="xbf-stage" id="footerBrandFx">
+                  <span class="xbf-ball" aria-hidden="true">66</span>
+                  <span class="xbf-word text-2xl font-black text-white group-hover:text-pri transition-colors" role="text" aria-label="<%= __brandWord %>"><% for (var _ci=0; _ci<__brandWord.length; _ci++) { %><span class="xbf-ch" style="--i:<%= _ci %>"><%= __brandWord[_ci] %></span><% } %></span>
+                </span>
               </div>
             </a>
           </div>
@@ -122,6 +162,20 @@
     var hasNew = muts.some(function(m){ return m.addedNodes && m.addedNodes.length > 0; });
     if (hasNew) applyLazy();
   }).observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+<script>
+// 🎾 Brand FX: chạy loop bóng-66 + chữ XOSO66 mỗi khi footer vào viewport, dừng khi rời đi (tự replay)
+(function(){
+  var stage = document.getElementById('footerBrandFx');
+  if (!stage || !('IntersectionObserver' in window)) return; // fallback: chữ tĩnh
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting) stage.classList.add('brand-anim-on');
+      else stage.classList.remove('brand-anim-on'); // rời viewport → reset để lần sau replay
+    });
+  }, { threshold: 0.45 });
+  io.observe(stage);
 })();
 </script>
 <!-- 🛡️ Sentry browser SDK — lazy loader (chỉ load khi có error xảy ra) -->
