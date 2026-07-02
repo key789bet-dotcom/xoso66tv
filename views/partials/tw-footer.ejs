@@ -15,20 +15,17 @@
       box-shadow:0 3px 10px rgba(255,122,24,.6),inset 0 -2px 5px rgba(0,0,0,.28),inset 0 2px 3px rgba(255,255,255,.45);
       opacity:0;z-index:3;pointer-events:none;will-change:left,transform;
     }
-    /* Khi footer vào viewport (.brand-anim-on) → chạy loop */
-    .brand-anim-on .xbf-ball{animation:xbfRoll 2.6s cubic-bezier(.45,.05,.25,1) infinite;}
-    .brand-anim-on .xbf-ch{animation:xbfReveal 2.6s ease-in-out infinite;animation-delay:calc(var(--i) * .2s);}
+    /* Khi footer vào viewport (.brand-anim-on) → bóng lăn RA rồi lăn VÀO lại (ping-pong), loop */
+    .brand-anim-on .xbf-ball{opacity:1;animation:xbfRoll 2.2s cubic-bezier(.45,.05,.55,.95) infinite alternate;}
+    .brand-anim-on .xbf-ch{animation:xbfReveal 2.2s ease-in-out infinite alternate;animation-delay:calc(var(--i) * .16s);}
+    /* alternate: chạy xuôi (lăn phải, xoay +720°) rồi ngược (lăn trái về, xoay lại) → 2 chiều */
     @keyframes xbfRoll{
-      0%{left:-6px;opacity:0;transform:translateY(-50%) rotate(0deg);}
-      8%{opacity:1;}
-      88%{opacity:1;}
-      100%{left:calc(100% - 6px);opacity:0;transform:translateY(-50%) rotate(900deg);}
+      0%{left:-6px;transform:translateY(-50%) rotate(-20deg);}
+      100%{left:calc(100% - 6px);transform:translateY(-50%) rotate(720deg);}
     }
     @keyframes xbfReveal{
-      0%,12%{opacity:0;transform:translateY(10px) scale(.4) rotate(-14deg);filter:blur(2px);}
-      26%{opacity:1;transform:translateY(-3px) scale(1.22) rotate(0);filter:blur(0);}
-      40%,78%{opacity:1;transform:translateY(0) scale(1);}
-      94%,100%{opacity:0;transform:translateY(-7px) scale(.6);filter:blur(1px);}
+      0%{opacity:.25;transform:translateY(6px) scale(.6) rotate(-12deg);filter:blur(1px);}
+      100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:blur(0);}
     }
     /* Tôn trọng prefers-reduced-motion: hiện chữ tĩnh, ẩn bóng */
     @media (prefers-reduced-motion: reduce){
