@@ -131,6 +131,8 @@ okwin-clone/
 | 3 trang riêng `/livescore`, `/bxh`, `/ket-qua` | SEO traffic riêng cho keyword chính |
 | Lazy load `<img>` dưới viewport via JS | Tiết kiệm bandwidth, tăng PageSpeed |
 | Auto-compress upload (sharp 82 quality) | Giảm size 30-70% |
+| Player resolve stream key thật từ SRS (`/api/live/key/:id`) | Idol push key rotate nào cũng xem được, không lệ thuộc db |
+| Ảnh serve qua `ASSET_HOST` = `live.xoso66tv.com` (grey) | Né Cloudflare chặn media ToS 2.8 trên zone orange |
 
 ### ⚠️ LESSONS LEARNED — tránh lặp lỗi
 
@@ -179,6 +181,28 @@ okwin-clone/
 - **FIX ĐÚNG**: Thêm `"mysql2": "^3.11.0"` vào `dependencies` package.json. Trên VPS chạy `npm install mysql2 --save` + `pm2 restart xoso66tv`.
 - **APP CHẠY PORT 4001, KHÔNG PHẢI 4000** — test bằng `curl -I http://localhost:4001`.
 - **Quy tắc**: mỗi lần migrate/đổi folder, MỞ `package.json` so sánh với folder cũ để KHÔNG mất dependency. Cân nhắc đổi `update.sh` dùng `npm ci` (strict theo lock file) thay vì `npm install --production`.
+
+**Video LIVE đen — lệch stream key idol/BLV (02/07/2026):**
+
+- **VẤN ĐỀ**: Phòng idol lên sóng nhưng viewer thấy màn hình đen (butterfly placeholder), dù OBS đang push tốt (SRS API thấy stream có frames).
+- **NGUYÊN NHÂN GỐC**: OBS push key có **suffix random rotate** (vd `i_yennhi_n8gt6yqq` — sinh bởi cơ chế rotate key khi hết lịch, xem `lib/auto-end-scheduled-live.js`), nhưng player cho viewer xem key **trơ** `idolId` (`/live/i_yennhi.flv`) → 2 stream KHÁC NHAU → viewer connect vào stream rỗng (frames:0).
+- **FIX ĐÚNG** (đã deploy): endpoint `GET /api/live/key/:id` resolve key THẬT đang publish từ SRS API (match prefix `idolId_...`), player gọi endpoint này trước khi phát (`views/partials/tw-live-video-player.ejs` — hàm `resolveStreamKey`). Idol push key nào (rotate bao nhiêu lần) viewer cũng tự bám đúng.
+- **⚠️ BẪY**: route `/api/live/key/:id` PHẢI đăng ký **TRƯỚC** catch-all `app.use(404)` trong `server.js` (~dòng 3446). Nếu đăng ký sau → Express nuốt thành 404 HTML.
+- **Chẩn đoán nhanh**: `curl http://127.0.0.1:1985/api/v1/streams/` → so key `publish.active` với key viewer xem. `curl http://127.0.0.1:4001/api/live/key/i_yennhi` → phải ra JSON key thật.
+
+**Ảnh/logo không hiện — Cloudflare chặn media ToS 2.8 (02/07/2026):**
+
+- **VẤN ĐỀ**: Logo + ảnh (avatar, banner, gift) không hiện, box "This content has been restricted... violation of the Terms of Service (cfl.re/tos)".
+- **NGUYÊN NHÂN GỐC**: Zone `xoso66tv.com` chạy **orange 🟠 (Flexible SSL)**. Cloudflare **free plan cấm serve nhiều media** (ảnh/audio/video) qua proxy (ToS mục 2.8) → gắn cờ zone → `302` redirect file ảnh sang `cloudflare-terms-of-service-abuse.com/stream.*`. Origin serve 200 OK, CF chặn ở edge. (JS/CSS KHÔNG bị vì không phải "media".)
+- **FIX ĐÚNG** (đã deploy): đẩy ẢNH ra khỏi CF proxy qua subdomain **grey-cloud** `live.xoso66tv.com`:
+  1. `.env`: `ASSET_HOST=https://live.xoso66tv.com`
+  2. `server.js` middleware rewrite `/uploads/` + `/static/img/` trong HTML render → `ASSET_HOST` (no-op khi env rỗng → rollback = xóa env + restart).
+  3. nginx `sites-available/live.xoso66tv.com`: thêm `location /static/` (alias `public/`) + `location /uploads/` (alias `uploads/`).
+  4. Purge Cloudflare cache (HTML cũ cache path `/static/` cũ).
+- **CSP không cần đổi**: `img-src` đã có `https:`. Chỉ rewrite ẢNH, KHÔNG đụng JS/CSS (tránh phải sửa `script-src`).
+
+**🔑 QUY TẮC VÀNG — Cloudflare + media:**
+> Mọi **video VÀ ảnh** PHẢI đi qua subdomain **grey-cloud (DNS-only)** (`live.xoso66tv.com`), TUYỆT ĐỐI KHÔNG serve media qua orange proxy — nếu không CF chặn ToS. Các subdomain grey hiện có: `live.xoso66tv.com`, `stream.xoso66tv.com` (trỏ thẳng IP VPS `187.127.112.134`). Kiểm tra: `dig +short live.xoso66tv.com` phải ra IP VPS, KHÔNG ra IP Cloudflare.
 
 ---
 
@@ -230,5 +254,5 @@ curl -s -H "Host: xoso66tv.com" "http://127.0.0.1/?bust=$(date +%s)" | head -c 2
 
 ---
 
-**Last updated:** 2026-06-16 (v63 deploy)
+**Last updated:** 2026-07-02 (fix video stream-key resolve + ASSET_HOST né CF media block)
 **Maintained by:** sang + Claude
